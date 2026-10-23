@@ -185,7 +185,11 @@
     background-color: #fff;
 }
 
-.hex-shape.squad-dark {
-    filter: brightness(0.3) !important; /* Серьезно приглушает яркость фона и карты под ним */
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+.hex-shape.squad-dark::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.55); /* Степень затемнения гекса (55% черного) */
+    pointer-events: none;
+    z-index: 2;
 }
