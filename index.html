@@ -250,7 +250,7 @@
                 shape.setAttribute('id', 'shape_' + hexId);
                 
                 if (mapData[hexId] && mapData[hexId].color) {
-                    shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.4);
+                    shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.75);
                 }
                 vHex.appendChild(shape);
 
@@ -321,7 +321,7 @@
         const shape = document.getElementById('shape_' + currentHexId);
         const label = document.getElementById('label_' + currentHexId);
 
-        if (shape) shape.style.backgroundColor = convertHexToRgba(colorVal, 0.4);
+        if (shape) shape.style.backgroundColor = convertHexToRgba(colorVal, 0.75);
         
         if (label) {
             if (diffVal) {
