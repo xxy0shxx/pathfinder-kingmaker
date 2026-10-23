@@ -85,18 +85,16 @@ vHex.addEventListener('mouseenter', function(e) {
         const data = mapData[hexId];
         let content = '';
         
+        // 1. Формируем шапку плашки (только иконки статуса и имя)
         if (data.title) {
-            const lvl = data.difficulty ? ` (Lvl ${data.difficulty})` : '';
             const star = data.explored ? '⭐ ' : '';
             
-            // 1. Иконка типа объекта
             let typeIcon = '';
             if (data.type === 'landmark') typeIcon = '🔍 ';
             else if (data.type === 'resource') typeIcon = '🪵 ';
             else if (data.type === 'quest') typeIcon = '✔ ';
             else if (data.type === 'mystery') typeIcon = '❓ ';
 
-            // 2. Иконка типа местности
             let terrainIcon = '';
             if (data.terrain === 'swamp') terrainIcon = '🐊 ';
             else if (data.terrain === 'forest') terrainIcon = '🌲 ';
@@ -105,11 +103,51 @@ vHex.addEventListener('mouseenter', function(e) {
             else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
             else if (data.terrain === 'plains') terrainIcon = '🌾 ';
 
-            // Собираем всё вместе в шапку: [Местность] [Разведка] [Тип] Название (Lvl)
-            content += `<div class="tooltip-title">${terrainIcon}${star}${typeIcon}${data.title}${lvl}</div>`;
+            content += `<div class="tooltip-title">${terrainIcon}${star}${typeIcon}${data.title}</div>`;
         }
+
+        // 2. Блок системных параметров в виде текстовых пунктов
+        let paramsBlock = '';
+
+        // Статус разведки
+        paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
+
+        // Сложность региона (Уровень)
+        if (data.difficulty) {
+            paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Сложность:</b> Уровень ${data.difficulty}</div>`;
+        }
+
+        // Тип объекта
+        if (data.type) {
+            let typeText = '';
+            let tIcon = '';
+            if (data.type === 'landmark') { tIcon = '🔍'; typeText = 'Достопримечательность'; }
+            if (data.type === 'resource') { tIcon = '🪵'; typeText = 'Ресурс'; }
+            if (data.type === 'quest') { tIcon = '✔'; typeText = 'Стандартное задание'; }
+            if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
+            paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
+        }
+
+        // Тип местности и СЛ
+        if (data.terrain) {
+            let terrainText = '';
+            let terrIcon = '';
+            if (data.terrain === 'swamp') { terrIcon = '🐊'; terrainText = 'Болото (СЛ 14)'; }
+            if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес (СЛ 14)'; }
+            if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода (СЛ 17)'; }
+            if (data.terrain === 'arctic') { terrIcon = '❄'; terrainText = 'Приполярье (СЛ 17)'; }
+            if (data.terrain === 'mountain') { terrIcon = '⛰'; terrainText = 'Горы (СЛ 16)'; }
+            if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины (СЛ 12)'; }
+            paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
+        }
+
+        // Оборачиваем системные параметры в контейнер с небольшим отступом
+        content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
+
+        // 3. Пользовательское описание гекса (если оно есть)
         if (data.text) {
-            content += `<div class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
+            // Добавляем разделительную линию перед кастомным описанием
+            content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
         }
         
         tooltip.innerHTML = content;
