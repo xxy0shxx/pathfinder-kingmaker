@@ -307,3 +307,50 @@
     border-radius: 3px;
 }
 
+.dropdown-playlist {
+    display: none;
+    position: fixed;
+    bottom: 75px;
+    left: 20px;
+    width: 280px;
+    max-height: 250px;
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid #d4af37;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    z-index: 10006;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.dropdown-playlist.show {
+    display: flex;
+}
+
+.playlist-tracks {
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+.playlist-track-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #ccc;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playlist-track-item:hover {
+    background: rgba(212, 175, 55, 0.2);
+    color: #fff;
+}
+
+.playlist-track-item.active {
+    color: #d4af37;
+    font-weight: bold;
+    background: rgba(212, 175, 55, 0.15);
+}
