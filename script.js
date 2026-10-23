@@ -357,7 +357,7 @@ function buildHexGrid() {
             }
 
             if (mapData[hexId] && mapData[hexId].squadHere) {
-                shape.classList.add('squad-dark');
+                vHex.classList.add('squad-dark');
             }
                     
             vHex.appendChild(shape);
@@ -472,13 +472,20 @@ function saveMenu() {
     const terrainVal = document.getElementById('inpTerrain').value;
     const regionLevelVal = document.getElementById('inpRegionLevel').value;
     
+    const currentHexElement = document.getElementById('visual_' + currentHexId);
     const currentShape = document.getElementById('shape_' + currentHexId);
-    if (currentShape) {
+    
+    // Управляем классом отряда на самом контейнере гекса для сильного затемнения
+    if (currentHexElement) {
         if (squadHereVal) {
-            currentShape.classList.add('squad-dark');
+            currentHexElement.classList.add('squad-dark');
         } else {
-            currentShape.classList.remove('squad-dark');
+            currentHexElement.classList.remove('squad-dark');
         }
+    }
+
+    // Управляем фоновым цветом подложки гекса
+    if (currentShape) {
         if (colorVal !== 'transparent') {
             currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.17);
         } else {
@@ -549,13 +556,15 @@ function initColorPresets() {
     const container = document.getElementById('colorPresetsContainer');
     if (!container || container.children.length > 0) return; 
     
+    // Возвращаем все 7 оригинальных цветов для сетки и модалки
     const presets = [
         { color: 'transparent', label: '✖' },
-        { color: '#2ecc71', label: '' },
-        { color: '#3498db', label: '' },
-        { color: '#e74c3c', label: '' },
-        { color: '#f1c40f', label: '' },
-        { color: '#9b59b6', label: '' }
+        { color: '#2ecc71', label: '' }, // Зеленый
+        { color: '#3498db', label: '' }, // Синий
+        { color: '#e74c3c', label: '' }, // Красный
+        { color: '#f1c40f', label: '' }, // Желтый
+        { color: '#9b59b6', label: '' }, // Фиолетовый
+        { color: '#e67e22', label: '' }  // Оранжевый
     ];
 
     presets.forEach(p => {
