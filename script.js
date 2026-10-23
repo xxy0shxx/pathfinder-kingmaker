@@ -81,15 +81,16 @@
 				const tooltip = document.getElementById('hexTooltip');
 
 vHex.addEventListener('mouseenter', function(e) {
-    // Проверяем, есть ли сохраненные данные для этого гекса
     if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
         const data = mapData[hexId];
         let content = '';
         
-        // Формируем красивую разметку внутри подсказки
         if (data.title) {
             const lvl = data.difficulty ? ` (Lvl ${data.difficulty})` : '';
-            content += `<div class="tooltip-title">${data.title}${lvl}</div>`;
+            // Проверяем статус разведки и добавляем звездочку
+            const star = data.explored ? '⭐ ' : ''; 
+            
+            content += `<div class="tooltip-title">${star}${data.title}${lvl}</div>`;
         }
         if (data.text) {
             content += `<div class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
@@ -148,59 +149,67 @@ vHex.addEventListener('mouseleave', function() {
         return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
     }
 
-    function openMenu(hexId) {
-		document.getElementById('hexTooltip').style.display = 'none';
-        currentHexId = hexId;
-        document.getElementById('menuTitle').textContent = 'Hex Setup: ' + hexId;
-        
-        if (mapData[hexId]) {
-            document.getElementById('inpTitle').value = mapData[hexId].title || '';
-            document.getElementById('inpDesc').value = mapData[hexId].text || '';
-            document.getElementById('inpColor').value = mapData[hexId].color || '#3498db';
-            difficultySelect.value = mapData[hexId].difficulty || ''; 
-        } else {
-            document.getElementById('inpTitle').value = '';
-            document.getElementById('inpDesc').value = '';
-            document.getElementById('inpColor').value = '#3498db';
-            difficultySelect.value = ''; 
-        }
-        modal.classList.add('open');
+function openMenu(hexId) {
+    currentHexId = hexId;
+    document.getElementById('menuTitle').textContent = 'Hex Setup: ' + hexId;
+    
+    // Получаем ссылку на чекбокс
+    const inpExplored = document.getElementById('inpExplored');
+
+    if (mapData[hexId]) {
+        document.getElementById('inpTitle').value = mapData[hexId].title || '';
+        document.getElementById('inpDesc').value = mapData[hexId].text || '';
+        document.getElementById('inpColor').value = mapData[hexId].color || '#3498db';
+        difficultySelect.value = mapData[hexId].difficulty || '';
+        // Устанавливаем галочку на основе сохраненных данных
+        inpExplored.checked = !!mapData[hexId].explored; 
+    } else {
+        document.getElementById('inpTitle').value = '';
+        document.getElementById('inpDesc').value = '';
+        document.getElementById('inpColor').value = '#3498db';
+        difficultySelect.value = '';
+        // Сбрасываем галочку для нового гекса
+        inpExplored.checked = false; 
     }
+    modal.classList.add('open');
+}
+
     function closeMenu() {
         modal.classList.remove('open');
         currentHexId = null;
     }
 
-    function saveMenu() {
-        if (!currentHexId) return;
-        const titleVal = document.getElementById('inpTitle').value;
-        const descVal = document.getElementById('inpDesc').value;
-        const colorVal = document.getElementById('inpColor').value;
-        const diffVal = difficultySelect.value; 
+function saveMenu() {
+    if (!currentHexId) return;
+    const titleVal = document.getElementById('inpTitle').value;
+    const descVal = document.getElementById('inpDesc').value;
+    const colorVal = document.getElementById('inpColor').value;
+    const diffVal = difficultySelect.value;
+    // Считываем галочку (true/false)
+    const exploredVal = document.getElementById('inpExplored').checked; 
 
-        mapData[currentHexId] = { 
-            title: titleVal, 
-            text: descVal, 
-            color: colorVal,
-            difficulty: diffVal 
-        };
-        localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+    mapData[currentHexId] = {
+        title: titleVal,
+        text: descVal,
+        color: colorVal,
+        difficulty: diffVal,
+        explored: exploredVal // Сохраняем в объект
+    };
+    
+    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-        const shape = document.getElementById('shape_' + currentHexId);
-        const label = document.getElementById('label_' + currentHexId);
-
-        if (shape) shape.style.backgroundColor = convertHexToRgba(colorVal, 0.6);
-        
-        if (label) {
-            if (diffVal) {
-                label.textContent = titleVal + ': lvl ' + diffVal;
-            } else {
-                label.textContent = titleVal;
-            }
+    const shape = document.getElementById('shape_' + currentHexId);
+    const label = document.getElementById('label_' + currentHexId);
+    if (shape) shape.style.backgroundColor = convertHexToRgba(colorVal, 0.6);
+    if (label) {
+        if (diffVal) {
+            label.textContent = titleVal + ': lvl ' + diffVal;
+        } else {
+            label.textContent = titleVal;
         }
-
-        closeMenu();
     }
+    closeMenu();
+}
 
     document.getElementById('btnApplyColor').addEventListener('click', function() {
         if (!currentHexId) return;
