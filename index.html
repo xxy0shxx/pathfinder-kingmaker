@@ -109,29 +109,49 @@
 
 <div id="hexTooltip" class="hex-tooltip"></div>
 
-<!-- Элемент аудио остаётся здесь -->
+<!-- Аудио-элемент -->
 <audio id="bg-music"></audio>
 
-<div class="main-controls" id="audioControls">
-    <!-- НОВОЕ ПОЛЕ ВЫБОРА ТРЕКА -->
-    <label for="trackSelectorStyle" style="margin-right: 10px; color: #aaa;">Трек:</label>
-    <select id="trackSelectorStyle" style="padding: 5px; border: none; border-radius: 4px; background: #222; color: white; margin-right: 15px;">
-        <option value="" data-default>-- Выбрать трек --</option>
-        <!-- !!! ВНИМАНИЕ: ЗАМЕНИТЕ ЭТО НА РЕАЛЬНЫЕ ПУТИ К ФАЙЛАМ !!! -->
-        <option value="./audio/ambient_forest.mp3" data-track="Лес (Ambient)"></option>
-        <option value="./audio/battle_theme.mp3" data-track="Бой (Intense)"></option>
-        <option value="./audio/town_life.mp3" data-track="Городская жизнь"></option>
-    </select>
-    <!-- КОНЕЦ НОВОГО ПОЛЯ -->
+<!-- ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ И СОГЛАСОВАННЫЙ БЛОК ПЛЕЕРА -->
+<div class="music-controller">
+    <div class="main-controls" id="audioControls">
+        <!-- Верхняя строка: Выбор трека и Громкость -->
+        <div class="music-controls-row">
+            <select id="trackSelectorStyle">
+                <!-- JavaScript динамически добавит все треки сюда -->
+            </select>
+            <div class="volume-box">
+                <span class="volume-icon">🔊</span>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.25">
+            </div>
+        </div>
 
-    <button class="player-btn" id="btnMusic" title="Включить/Выключить (Рандом)">🎵 Включить музыку</button>
-    <button class="player-btn sub-btn" id="btnLoop" title="Зациклить трек">🔁</button>
-    <button class="player-btn sub-btn" id="btnPlaylist" title="Открыть плейлист">📜</button>
+        <!-- Средняя строка: Кнопки управления плеером -->
+        <div class="music-controls-row">
+            <button id="btnMusic" title="Воспроизведение/Пауза">🎵 Включить музыку</button>
+            <button id="btnLoop" title="Зациклить текущую композицию">🔁</button>
+            <button id="btnPlaylist" title="Открыть список всех треков">📜</button>
+        </div>
+
+        <!-- Нижняя строка: Интерактивный прогресс-бар -->
+        <div class="player-timeline">
+            <span class="time-lbl" id="timeCurrent">0:00</span>
+            <div class="timeline-bg" id="progressBarBg">
+                <div class="timeline-fill" id="progressBarFill"></div>
+            </div>
+            <span class="time-lbl" id="timeTotal">0:00</span>
+        </div>
+    </div>
+
+    <!-- Выпадающий плейлист -->
+    <div class="dropdown-playlist" id="playerPlaylist">
+        <div class="playlist-header">Список композиций</div>
+        <div class="playlist-tracks" id="playlistTracksContainer">
+            <!-- Сюда JavaScript сгенерирует кликабельные строки треков -->
+        </div>
+    </div>
 </div>
 
-<div class="dropdown-playlist" id="dropdownPlaylist">
-    <div class="playlist-header">Список треков:</div >
-    <div class="playlist-tracks" id="playlistTracksContainer"></div>
-</div>
+<script src="script.js"></script>
 </body>
 </html>
