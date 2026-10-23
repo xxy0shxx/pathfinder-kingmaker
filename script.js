@@ -91,46 +91,49 @@ vHex.addEventListener('mouseenter', function(e) {
         const data = mapData[hexId];
         let content = '';
         
-        if (data.title) {
-            const star = data.explored ? '⭐ ' : '';
-            const mapIcon = data.mapMapped ? '📜 ' : '';
-            const diffLabel = data.difficulty ? ` (СЛ ${data.difficulty})` : '';
-            
-            let typeIcon = '';
-            if (data.type === 'landmark') typeIcon = '🔍 ';
-            else if (data.type === 'resource') typeIcon = '🪵 ';
-            else if (data.type === 'quest') typeIcon = '✔ ';
-            else if (data.type === 'mystery') typeIcon = '❓ ';
+if (data.title) {
+    const star = data.explored ? '⭐ ' : '';
+    const mapIcon = data.mapMapped ? '📜 ' : '';
+    
+    let statsLabel = '';
+    if (data.difficulty && data.regionLevel) {
+        statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
+    } else if (data.difficulty) {
+        statsLabel = ` (СЛ ${data.difficulty})`;
+    } else if (data.regionLevel) {
+        statsLabel = ` (lvl ${data.regionLevel})`;
+    }
+    
+    let typeIcon = '';
+    if (data.type === 'landmark') typeIcon = '🔍 ';
+    else if (data.type === 'resource') typeIcon = '🪵 ';
+    else if (data.type === 'quest') typeIcon = '✔ ';
+    else if (data.type === 'mystery') typeIcon = '❓ ';
 
-            let terrainIcon = '';
-            if (data.terrain === 'swamp') terrainIcon = '🐊 ';
-            else if (data.terrain === 'forest') terrainIcon = '🌲 ';
-            else if (data.terrain === 'water') terrainIcon = '🌊 ';
-            else if (data.terrain === 'arctic') terrainIcon = '❄ ';
-            else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
-            else if (data.terrain === 'plains') terrainIcon = '🌾 ';
+    let terrainIcon = '';
+    if (data.terrain === 'swamp') terrainIcon = '🐊 ';
+    else if (data.terrain === 'forest') terrainIcon = '🌲 ';
+    else if (data.terrain === 'water') terrainIcon = '🌊 ';
+    else if (data.terrain === 'arctic') terrainIcon = '❄ ';
+    else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
+    else if (data.terrain === 'plains') terrainIcon = '🌾 ';
 
-            content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${diffLabel}</div>`;
-        }
+    content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
+}
 
-        // 2. Блок параметров
         let paramsBlock = '';
 
-        // Статус разведки и Карты
         paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
         paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '✖ <b>Карта отсутствует</b>'}</div>`;
 
-        // Сложность региона (СЛ)
         if (data.difficulty) {
             paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
         }
 
-        // НОВЫЙ ПАРАМЕТР: Уровень региона (Монстры/Игроки)
         if (data.regionLevel) {
             paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
         }
 
-        // Тип объекта
         if (data.type) {
             let typeText = '';
             let tIcon = '';
@@ -141,7 +144,6 @@ vHex.addEventListener('mouseenter', function(e) {
             paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
         }
 
-        // Тип местности
         if (data.terrain) {
             let terrainText = '';
             let terrIcon = '';
@@ -156,7 +158,6 @@ vHex.addEventListener('mouseenter', function(e) {
 
         content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
 
-        // 3. Пользовательское описание
         if (data.text) {
             content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
         }
@@ -185,20 +186,26 @@ vHex.addEventListener('mouseleave', function() {
                 }
                 vHex.appendChild(shape);
 
-                const label = document.createElement('span');
-                label.className = 'hex-text-label';
-                label.setAttribute('id', 'label_' + hexId);
-                
-                if (mapData[hexId] && mapData[hexId].title) {
-                    const title = mapData[hexId].title;
-                    const diff = mapData[hexId].difficulty;
-                    if (diff) {
-                        label.textContent = title + ': СЛ ' + diff;
-                    } else {
-                        label.textContent = title;
-                    }
-                }
-                vHex.appendChild(label);
+const label = document.createElement('span');
+label.className = 'hex-text-label';
+label.setAttribute('id', 'label_' + hexId);
+
+if (mapData[hexId] && mapData[hexId].title) {
+    const title = mapData[hexId].title;
+    const diff = mapData[hexId].difficulty;
+    const lvl = mapData[hexId].regionLevel;
+
+    if (diff && lvl) {
+        label.textContent = title + ': СЛ ' + diff + ' / lvl ' + lvl;
+    } else if (diff) {
+        label.textContent = title + ': СЛ ' + diff;
+    } else if (lvl) {
+        label.textContent = title + ': lvl ' + lvl;
+    } else {
+        label.textContent = title;
+    }
+}
+vHex.appendChild(label);
 
                 visualLayer.appendChild(vHex);
             }
@@ -266,7 +273,7 @@ function saveMenu() {
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
-        color: colorVal, // сохраняем в базу, но визуально шейп НЕ красим тут!
+        color: colorVal,
         difficulty: diffVal,
         explored: exploredVal,
         mapMapped: mapMappedVal,
@@ -277,15 +284,18 @@ function saveMenu() {
     
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-    const label = document.getElementById('label_' + currentHexId);
-    if (label) {
-        // На карте теперь пишется "Название: СЛ X" вместо "lvl X"
-        if (diffVal) {
-            label.textContent = titleVal + ': СЛ ' + diffVal;
-        } else {
-            label.textContent = titleVal;
-        }
+const label = document.getElementById('label_' + currentHexId);
+if (label) {
+    if (diffVal && regionLevelVal) {
+        label.textContent = titleVal + ': СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
+    } else if (diffVal) {
+        label.textContent = titleVal + ': СЛ ' + diffVal;
+    } else if (regionLevelVal) {
+        label.textContent = titleVal + ': lvl ' + regionLevelVal;
+    } else {
+        label.textContent = titleVal;
     }
+}
     closeMenu();
 }
 
