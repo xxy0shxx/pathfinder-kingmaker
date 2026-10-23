@@ -323,6 +323,7 @@ function saveMenu() {
     closeMenu();
 }
 
+/*
 document.getElementById('btnApplyColor').addEventListener('click', function() {
     if (!currentHexId) return;
     const colorVal = document.getElementById('inpColor').value;
@@ -337,6 +338,7 @@ document.getElementById('btnApplyColor').addEventListener('click', function() {
     mapData[currentHexId].color = colorVal;
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 });
+*/
 
     document.getElementById('btnDelete').addEventListener('click', function() {
         if (!currentHexId) return;
