@@ -127,6 +127,10 @@ if (data.title) {
         paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
         paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '✖ <b>Карта отсутствует</b>'}</div>`;
 
+		if (data.squadHere) {
+    		paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">⛺ <b>Отряд в гексе</b></div>`;
+		}
+
         if (data.difficulty) {
             paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
         }
@@ -185,11 +189,16 @@ vHex.addEventListener('mouseleave', function() {
                 if (mapData[hexId] && mapData[hexId].color) {
                     shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.17);
                 }
-				
+
+				if (mapData[hexId] && mapData[hexId].squadHere) {
+    				shape.classList.add('squad-dark');
+				}
+/*
 if (currentSquadHex === hexId) {
 	paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">⛺ <b>Здесь находится ваш отряд</b></div>`;
     shape.classList.add('squad-dark');
 }
+*/
 				
 				
                 vHex.appendChild(shape);
@@ -262,7 +271,7 @@ function openMenu(hexId) {
     }
     
     // Проверяем, стоит ли отряд на этом гексе прямо сейчас
-    inpSquadHere.checked = (currentSquadHex === hexId);
+    inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
 
     inpColor.value = currentColor;
     document.querySelectorAll('.color-preset-btn').forEach(btn => {
@@ -298,40 +307,22 @@ function saveMenu() {
     const diffVal = difficultySelect.value;
     const exploredVal = document.getElementById('inpExplored').checked;
     const mapMappedVal = document.getElementById('inpMapMapped').checked;
-    const squadHereVal = document.getElementById('inpSquadHere').checked; // Считываем чекбокс отряда
+    const squadHereVal = document.getElementById('inpSquadHere').checked; // Считываем галочку
     const typeVal = document.getElementById('inpType').value;
     const terrainVal = document.getElementById('inpTerrain').value;
     const regionLevelVal = document.getElementById('inpRegionLevel').value;
 
-    // ЛОГИКА ПЕРЕМЕЩЕНИЯ ОТРЯДА:
-    if (squadHereVal) {
-        // Если отряд переместился на этот гекс из другого места
-        if (currentSquadHex && currentSquadHex !== currentHexId) {
-            const oldShape = document.getElementById('shape_' + currentSquadHex);
-            if (oldShape) {
-                oldShape.classList.remove('squad-dark'); // Растемняем старый гекс
-            }
-        }
-        // Делаем текущий гекс новым пристанищем отряда
-        currentSquadHex = currentHexId;
-        localStorage.setItem('hexMapSquadLocation', currentSquadHex);
-        
-        const currentShape = document.getElementById('shape_' + currentHexId);
-        if (currentShape) {
-            currentShape.classList.add('squad-dark'); // Затемняем новый гекс
-        }
-    } else {
-        // Если юзер снял галочку отряда именно с этого гекса
-        if (currentSquadHex === currentHexId) {
-            currentSquadHex = null;
-            localStorage.removeItem('hexMapSquadLocation');
-            const currentShape = document.getElementById('shape_' + currentHexId);
-            if (currentShape) {
-                currentShape.classList.remove('squad-dark'); // Растемняем
-            }
+    // Просто добавляем или убираем затемнение текущего гекса
+    const currentShape = document.getElementById('shape_' + currentHexId);
+    if (currentShape) {
+        if (squadHereVal) {
+            currentShape.classList.add('squad-dark');
+        } else {
+            currentShape.classList.remove('squad-dark');
         }
     }
 
+    // Сохраняем в общий объект JSON
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
@@ -339,6 +330,7 @@ function saveMenu() {
         difficulty: diffVal,
         explored: exploredVal,
         mapMapped: mapMappedVal,
+        squadHere: squadHereVal, // Записываем в базу true/false
         type: typeVal,
         terrain: terrainVal,
         regionLevel: regionLevelVal
@@ -499,9 +491,9 @@ function initColorPresets() {
                     shape.style.backgroundColor = color === 'transparent' ? 'rgba(255, 255, 255, 0)' : convertHexToRgba(color, 0.17);
                 }
                 
-                if (!mapData[currentHexId]) mapData[currentHexId] = {};
-                mapData[currentHexId].color = color;
-                localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+if (!mapData[currentHexId]) mapData[currentHexId] = {};
+mapData[currentHexId].color = color;
+localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
             }
         });
         
