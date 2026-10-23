@@ -1,4 +1,4 @@
-✅ [**Рабочая схема по ссылке**](https://xxy0shxx.github.io/pathfinder-kingmaker/)
+✅ [**Рабочая схема по ссылке**](https://xxy0shxx.github.io/pathfinder-kingmaker/) https://xxy0shxx.github.io/pathfinder-kingmaker/
 
 ✅ Либо скачать файлы локально в директорию на компьютере и запустить index.html чтобы он открылся в браузере
 
