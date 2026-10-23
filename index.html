@@ -111,8 +111,16 @@
 
 <audio id="bg-music"></audio>
 
-<div class="music-controller">
-    <button class="btn ok" id="btnMusic" style="background-color: #d4af37; color: #141414; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">🎵 Включить музыку</button>
+    <div class="main-controls">
+        <button class="player-btn" id="btnMusic" title="Включить/Выключить (Рандом)">🎵 Включить музыку</button>
+        <button class="player-btn sub-btn" id="btnLoop" title="Зациклить трек">🔁</button>
+        <button class="player-btn sub-btn" id="btnPlaylist" title="Открыть плейлист">📜</button>
+    </div>
+    
+    <div class="dropdown-playlist" id="dropdownPlaylist">
+        <div class="playlist-header">Список треков:</div>
+        <div class="playlist-tracks" id="playlistTracksContainer"></div>
+    </div>
 </div>
 
 <script src="script.js"></script>
