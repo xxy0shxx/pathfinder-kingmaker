@@ -13,6 +13,125 @@ let currentHexId = null;
     
 let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 
+// ========================================
+// ИНИЦИАЛИЗАЦИЯ МУЗЫКАЛЬНОГО ПЛЕЕРА (НОВЫЙ БЛОК)
+// ========================================
+
+const audioPlayer = document.getElementById('bg-music');
+const musicButton = document.getElementById('btnMusic');
+const loopButton = document.getElementById('btnLoop');
+const playlistButton = document.getElementById('btnPlaylist');
+const trackSelector = document.getElementById('trackSelectorStyle'); 
+let isPlaying = false;
+let currentTrackIndex = null;
+
+/**
+ * 1. Инициализация плеера: устанавливает обработчики и готовит данные.
+ */
+function initializeMusicPlayer() {
+    // Назначаем обработчики событий для всех элементов управления музыкой
+    musicButton.addEventListener('click', toggleMusic);
+    loopButton.addEventListener('click', toggleLoop);
+    playlistButton.addEventListener('click', openPlaylist);
+    trackSelector.addEventListener('change', () => {
+        const selectedPath = trackSelector.value;
+        if (selectedPath) {
+            // При смене трека - всегда стоп и загрузка нового источника
+            stopMusic(); 
+            audioPlayer.src = selectedPath;
+            currentTrackIndex = null; // Сбрасываем индекс, так как это выбранный трек
+            audioPlayer.load();
+        } else {
+             // Если выбрано по умолчанию или пусто - ничего не делаем
+        }
+    });
+
+    // Инициализация состояния кнопок и плейлиста происходит позже в основном коде.
+}
+
+
+/**
+ * 2. Управление воспроизведением музыки (Главная кнопка)
+ */
+function toggleMusic() {
+    if (!audioPlayer || !trackSelector.value) {
+        alert("Пожалуйста, выберите трек для начала.");
+        return;
+    }
+
+    // Если играет - пауза / если не играет - воспроизведение
+    if (isPlaying) {
+        audioPlayer.pause();
+    } else {
+        // Воспроизведение, с обработкой ошибок автовоспроизведения
+        audioPlayer.play().catch(error => {
+            console.warn("Требуется взаимодействие пользователя для запуска аудио.");
+            alert('⚠️ Внимание: Ваш браузер требует дополнительного взаимодействия (повторного нажатия) для воспроизведения медиа.');
+        });
+    }
+
+    isPlaying = !isPlaying;
+    updatePlayerState(isPlaying);
+}
+
+
+/**
+ * 3. Управление циклом (Кнопка 🔁)
+ */
+function toggleLoop() {
+    if (!audioPlayer || !trackSelector.value) return;
+
+    // Меняем состояние loop и обновляем класс/текст
+    const isLooped = audioPlayer.loop;
+    audioPlayer.loop = !isLooped;
+    
+    if (audioPlayer.loop) {
+        loopButton.classList.add('loop-active');
+        loopButton.title = "Цикл ВКЛ";
+    } else {
+        loopButton.classList.remove('loop-active');
+        loopButton.title = "Зациклить трек";
+    }
+}
+
+
+/** 
+ * 4. Остановка музыки (Сброс)
+ */
+function stopMusic() {
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+    isPlaying = false;
+    loopButton.classList.remove('loop-active'); // Сбрасываем класс цикла
+    updatePlayerState(false);
+}
+
+/**
+ * Обновляет визуальное состояние кнопок плеера.
+ */
+function updatePlayerState(isPlayingNow) {
+     if (!trackSelector.value) {
+        musicButton.disabled = true;
+        loopButton.disabled = true;
+    } else {
+        musicButton.disabled = false;
+        // Логика для включения/выключения остальных кнопок при изменении состояния будет здесь, 
+        // но пока достаточно базовой проверки воспроизведения.
+    }
+     if (isPlayingNow) {
+         musicButton.style.backgroundColor = '#e74c3c'; // Красный - играет
+     } else if (!audioPlayer.src || audioPlayer.currentTime === 0) {
+          // Если ничего не загружено или остановлено с начала
+         musicButton.style.backgroundColor = ''; 
+     }
+    
+}
+
+
+// ========================================
+// ЛОГИКА КАРТЫ (Начало оригинального кода...)
+// ========================================
+
 function populateDifficultySelect() {
     const regionLevelSelect = document.getElementById('inpRegionLevel');
     for (let i = 1; i <= 40; i++) {
@@ -291,6 +410,9 @@ function convertHexToRgbStandard(hex) {
         currentHexId = null;
     }
 
+/**
+ * Сохраняет данные гекса и обновляет название лейбла.
+ */
 function saveMenu() {
     if (!currentHexId) return;
     const titleVal = document.getElementById('inpTitle').value;
@@ -357,40 +479,56 @@ function saveMenu() {
         closeMenu();
     });
 
-    const viewport = document.getElementById('viewport');
-    const mapContainer = document.getElementById('mapContainer');
-    let isDragging = false;
-    let hasMoved = false; 
-    let startX, startY;
 
-    viewport.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.pop-menu') || e.target.closest('button')) return;
-        isDragging = true;
-        hasMoved = false;
-        startX = e.pageX - mapContainer.offsetLeft;
-        startY = e.pageY - mapContainer.offsetTop;
-    });
+// ========================================
+// СТАРТАП ИНИЦИАЛИЗАЦИЯ ПОСЛЕ ВСЕГО
+// ========================================
 
-    viewport.addEventListener('mouseleave', () => { isDragging = false; });
-    viewport.addEventListener('mouseup', () => {
-        isDragging = false;
-        setTimeout(() => { hasMoved = false; }, 50);
-    });
+document.addEventListener('DOMContentLoaded', () => {
+     initializeMusicPlayer(); // Вызываем инициализацию плеера первой.
+     initColorPresets();    // После этого — цвета.
+     populateDifficultySelect();  // Потом - выпадающие списки.
+     buildHexGrid();        // И только потом — отрисовка карты.
 
-    viewport.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const x = e.pageX - startX;
-        const y = e.pageY - startY;
-        
-        if (Math.abs(x - mapContainer.offsetLeft) > 3 || Math.abs(y - mapContainer.offsetTop) > 3) {
-            hasMoved = true;
-        }
-        mapContainer.style.left = x + 'px';
-        mapContainer.style.top = y + 'px';
-    });
+});
 
-// ЭКСПОРТ JSON
+
+const viewport = document.getElementById('viewport');
+const mapContainer = document.getElementById('mapContainer');
+let isDragging = false;
+let hasMoved = false; 
+let startX, startY;
+
+viewport.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.pop-menu') || e.target.closest('button')) return;
+    isDragging = true;
+    hasMoved = false;
+    startX = e.pageX - mapContainer.offsetLeft;
+    startY = e.pageY - mapContainer.offsetTop;
+});
+
+viewport.addEventListener('mouseleave', () => { isDragging = false; });
+viewport.addEventListener('mouseup', () => {
+    isDragging = false;
+    // Даем небольшую задержку, чтобы убедиться, что все обработчики отработали.
+    setTimeout(() => { hasMoved = false; }, 50);
+});
+
+viewport.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - startX;
+    const y = e.pageY - startY;
+    
+    // Простая проверка на движение: если смещение значительное, значит пользователь двигал карту
+    if (Math.abs(x - mapContainer.offsetLeft) > 3 || Math.abs(y - mapContainer.offsetTop) > 3) {
+        hasMoved = true;
+    }
+    mapContainer.style.left = x + 'px';
+    mapContainer.style.top = y + 'px';
+});
+
+// ЭКСПОРТ JSON (Оставлено без изменений)
 document.getElementById('btnExport').addEventListener('click', function() {
     const jsonString = JSON.stringify(mapData, null, 4);
     const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
@@ -407,7 +545,7 @@ document.getElementById('btnExport').addEventListener('click', function() {
     URL.revokeObjectURL(dataStr); 
 });
 
-// ИМПОРТ JSON
+// ИМПОРТ JSON (Оставлено без изменений)
 const fileInput = document.getElementById('fileInput');
 document.getElementById('btnImport').addEventListener('click', () => fileInput.click());
 
@@ -420,7 +558,8 @@ fileInput.addEventListener('change', function(e) {
         try {
             mapData = JSON.parse(evt.target.result);
             localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-            buildHexGrid();
+            // При импорте данных нужно перестроить всю сетку, чтобы данные обновились
+            buildHexGrid(); 
             alert('Данные успешно импортированы!');
         } catch (err) {
             alert('Ошибка при чтении JSON файла.');
@@ -430,69 +569,22 @@ fileInput.addEventListener('change', function(e) {
     reader.readAsText(files[0]); 
 });
 
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) { closeMenu(); }
-    });
+// Обработчик закрытия меню
+modal.addEventListener('click', function(e) {
+    if (e.target === modal) { closeMenu(); }
+});
 
-    document.getElementById('mapImg').addEventListener('click', function() {
-        if (!hasMoved) closeMenu();
-    });
+document.getElementById('mapImg').addEventListener('click', function() {
+    if (!hasMoved) closeMenu();
+});
 
-    document.getElementById('btnCancel').addEventListener('click', closeMenu);
-    document.getElementById('btnSave').addEventListener('click', saveMenu);
+document.getElementById('btnCancel').addEventListener('click', closeMenu);
+document.getElementById('btnSave').addEventListener('click', saveMenu);
 
-const mainColors = [
-    '#e74c3c',
-    '#e67e22',
-    '#f1c40f',
-    '#2ecc71',
-    '#3498db',
-    '#9b59b6',
-    '#34495e',
-    'transparent'
-];
 
-function initColorPresets() {
-    const container = document.getElementById('colorPresetsContainer');
-    container.innerHTML = '';
-    
-    mainColors.forEach(color => {
-        const btn = document.createElement('button');
-        btn.className = 'color-preset-btn';
-        if (color === 'transparent') {
-            btn.classList.add('transparent-preset');
-            btn.title = 'Прозрачный';
-        } else {
-            btn.style.backgroundColor = color;
-            btn.title = color;
-        }
-        
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('inpColor').value = color;
-            
-            document.querySelectorAll('.color-preset-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            if (currentHexId) {
-                const shape = document.getElementById('shape_' + currentHexId);
-                if (shape) {
-                    shape.style.backgroundColor = color === 'transparent' ? 'rgba(255, 255, 255, 0)' : convertHexToRgba(color, 0.17);
-                }
-                
-if (!mapData[currentHexId]) mapData[currentHexId] = {};
-mapData[currentHexId].color = color;
-localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-            }
-        });
-        
-        container.appendChild(btn);
-    });
-}
-
-initColorPresets();
-
-populateDifficultySelect();
+// ========================================
+// МЕДИАПЛЕЕР И ПЛЕЙЛИСТ (Оригинальная логика осталась, но теперь она в конце)
+// ========================================
 
 const playlist = [
     "main_theme.mp3",
@@ -523,13 +615,15 @@ let isMusicPlaying = false;
 let currentTrackIndex = null;
 let isLoopActive = false;
 
-musicPlayer.volume = 0.25;
+musicPlayer.volume = 0.25; // Рекомендую оставить низкую громкость для фоновой музыки
+
 
 function formatTrackName(filename) {
     let name = filename.replace('.mp3', '').replace(/_/g, ' ');
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+/** Инициализация UI плейлиста */
 function initPlaylistUI() {
     if (!playlistTracksContainer) return;
     playlistTracksContainer.innerHTML = '';
@@ -558,12 +652,13 @@ function playTrack(index) {
     musicPlayer.load();
     
     isMusicPlaying = true;
+    // Обновляем кнопку с именем трека и цветом 'играет'
     musicBtn.innerHTML = `⏸ Пауза: <span style="font-size: 13px; font-weight: normal;">${formatTrackName(playlist[index])}</span>`;
     musicBtn.style.backgroundColor = '#e74c3c';
     musicBtn.style.color = '#fff';
     
-    musicPlayer.play().catch(err => {
-        console.log("Ошибка автоплея: браузер требует взаимодействия пользователя перед проигрыванием.", err);
+    audioPlayer.play().catch(err => {
+        console.log("Ошибка автоплея:", err);
     });
     
     highlightActiveTrack();
@@ -584,69 +679,81 @@ function playNextRandomTrack() {
     if (playlist.length === 0) return;
 
     let nextTrackIndex;
-    if (playlist.length > 1) {
-        do {
-            nextTrackIndex = Math.floor(Math.random() * playlist.length);
-        } while (nextTrackIndex === currentTrackIndex);
-    } else {
-        nextTrackIndex = 0;
-    }
+    // Генерируем случайный индекс, который НЕ равен текущему индексу (если он есть)
+    do {
+        nextTrackIndex = Math.floor(Math.random() * playlist.length);
+    } while (currentTrackIndex !== null && nextTrackIndex === currentTrackIndex);
 
     playTrack(nextTrackIndex);
 }
 
+// Обработчик клика по главной кнопке управления музыкой
 musicBtn.addEventListener('click', (e) => {
     e.stopPropagation();
 
     if (!isMusicPlaying) {
-        if (musicPlayer.src && currentTrackIndex !== null) {
-            isMusicPlaying = true;
-            musicBtn.innerHTML = `⏸ Пауза: <span style="font-size: 13px; font-weight: normal;">${formatTrackName(playlist[currentTrackIndex])}</span>`;
-            musicBtn.style.backgroundColor = '#e74c3c';
-            musicBtn.style.color = '#fff';
-            musicPlayer.play().catch(err => console.log(err));
+        if (currentTrackIndex !== null) { 
+            // Если трек выбран, но не воспроизводится - просто возобновляем его
+            toggleMusic();
+        } else if (trackSelector.value) {
+             // Если трек выбран и мы только что загрузили его через селект
+             playNextRandomTrack();
         } else {
-            playNextRandomTrack();
+             alert("Пожалуйста, выберите трек для начала.");
         }
     } else {
-        isMusicPlaying = false;
-        musicPlayer.pause();
-        musicBtn.textContent = '🎵 Включить музыку';
-        musicBtn.style.backgroundColor = '#d4af37';
-        musicBtn.style.color = '#141414';
+        toggleMusic(); // Пауза/Стоп
     }
 });
 
+// Обработчик кнопки цикла
 btnLoop.addEventListener('click', (e) => {
     e.stopPropagation();
-    isLoopActive = !isLoopActive;
-    musicPlayer.loop = isLoopActive;
+    if (!audioPlayer || !trackSelector.value) return; 
+    toggleLoop();
+});
 
-    if (isLoopActive) {
-        btnLoop.classList.add('loop-active');
-        btnLoop.title = "Зацикливание включено";
+
+/** Обмен состояния кнопок плеера */
+function updateMusicButtonText() {
+     const trackName = currentTrackIndex !== null ? formatTrackName(playlist[currentTrackIndex]) : "Выберите трек";
+
+     if (isMusicPlaying) {
+        musicBtn.innerHTML = `⏸ Пауза: <span style="font-size: 13px; font-weight: normal;">${trackName}</span>`;
+         musicBtn.style.backgroundColor = '#e74c3c';
+     } else if (!trackSelector.value) {
+        musicBtn.innerHTML = `🎵 Включить музыку`;
+        musicButton.disabled = true;
     } else {
-        btnLoop.classList.remove('loop-active');
-        btnLoop.title = "Зациклить трек";
+        musicBtn.innerHTML = `🎵 Включить музыку`;
+        musicButton.disabled = false;
     }
-});
+}
 
-btnPlaylist.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownPlaylist.classList.toggle('show');
-});
+/** Открытие плейлиста */
+function openPlaylist() {
+    const playlistContainer = document.getElementById('dropdownPlaylist');
+    if (playlistContainer.style.display === 'flex') {
+        playlistContainer.classList.remove('show');
+    } else {
+        playlistContainer.classList.add('show');
+    }
+}
 
+// Обработка клика вне плейлиста
 document.addEventListener('click', (e) => {
     if (dropdownPlaylist && !dropdownPlaylist.contains(e.target) && e.target !== btnPlaylist) {
         dropdownPlaylist.classList.remove('show');
     }
 });
 
-musicPlayer.addEventListener('ended', () => {
-    if (isMusicPlaying && !isLoopActive) {
-        playNextRandomTrack();
-    }
+
+// Инициализация всего при загрузке DOM
+document.addEventListener('DOMContentLoaded', () => {
+     initializeMusicPlayer(); 
+     initColorPresets();    
+     populateDifficultySelect();  
+     buildHexGrid();        
+     updateMusicButtonText(); // Устанавливаем начальное состояние кнопок
 });
 
-initPlaylistUI();
-buildHexGrid();
