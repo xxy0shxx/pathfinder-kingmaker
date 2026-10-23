@@ -102,8 +102,8 @@ vHex.addEventListener('mouseenter', function(e) {
 
 vHex.addEventListener('mousemove', function(e) {
     // Сдвигаем плашку чуть правее и ниже курсора мыши
-    tooltip.style.left = (e.clientX + 15) + 'px';
-    tooltip.style.top = (e.clientY + 15) + 'px';
+    tooltip.style.left = (e.clientX + 25) + 'px';
+    tooltip.style.top = (e.clientY + 25) + 'px';
 });
 
 vHex.addEventListener('mouseleave', function() {
