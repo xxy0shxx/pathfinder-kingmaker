@@ -109,20 +109,29 @@
 
 <div id="hexTooltip" class="hex-tooltip"></div>
 
+<!-- Элемент аудио остаётся здесь -->
 <audio id="bg-music"></audio>
 
-    <div class="main-controls">
-        <button class="player-btn" id="btnMusic" title="Включить/Выключить (Рандом)">🎵 Включить музыку</button>
-        <button class="player-btn sub-btn" id="btnLoop" title="Зациклить трек">🔁</button>
-        <button class="player-btn sub-btn" id="btnPlaylist" title="Открыть плейлист">📜</button>
-    </div>
-    
-    <div class="dropdown-playlist" id="dropdownPlaylist">
-        <div class="playlist-header">Список треков:</div>
-        <div class="playlist-tracks" id="playlistTracksContainer"></div>
-    </div>
+<div class="main-controls" id="audioControls">
+    <!-- НОВОЕ ПОЛЕ ВЫБОРА ТРЕКА -->
+    <label for="trackSelectorStyle" style="margin-right: 10px; color: #aaa;">Трек:</label>
+    <select id="trackSelectorStyle" style="padding: 5px; border: none; border-radius: 4px; background: #222; color: white; margin-right: 15px;">
+        <option value="" data-default>-- Выбрать трек --</option>
+        <!-- !!! ВНИМАНИЕ: ЗАМЕНИТЕ ЭТО НА РЕАЛЬНЫЕ ПУТИ К ФАЙЛАМ !!! -->
+        <option value="./audio/ambient_forest.mp3" data-track="Лес (Ambient)"></option>
+        <option value="./audio/battle_theme.mp3" data-track="Бой (Intense)"></option>
+        <option value="./audio/town_life.mp3" data-track="Городская жизнь"></option>
+    </select>
+    <!-- КОНЕЦ НОВОГО ПОЛЯ -->
+
+    <button class="player-btn" id="btnMusic" title="Включить/Выключить (Рандом)">🎵 Включить музыку</button>
+    <button class="player-btn sub-btn" id="btnLoop" title="Зациклить трек">🔁</button>
+    <button class="player-btn sub-btn" id="btnPlaylist" title="Открыть плейлист">📜</button>
 </div>
 
-<script src="script.js"></script>
+<div class="dropdown-playlist" id="dropdownPlaylist">
+    <div class="playlist-header">Список треков:</div >
+    <div class="playlist-tracks" id="playlistTracksContainer"></div>
+</div>
 </body>
 </html>
