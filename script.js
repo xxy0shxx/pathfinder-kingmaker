@@ -1,16 +1,17 @@
-    const hexRadius = 78;  
-    const rows = 12;       
-    const cols = 30;       
-    const offsetX = 29; 
-    const offsetY = 16; 
+let currentSquadHex = localStorage.getItem('hexMapSquadLocation') || null;
+const hexRadius = 78;  
+const rows = 12;       
+const cols = 30;       
+const offsetX = 29; 
+const offsetY = 16; 
 
-    const clickableMap = document.getElementById('clickableMap');
-    const visualLayer = document.getElementById('visualLayer');
-    const modal = document.getElementById('hexMenu');
-    const difficultySelect = document.getElementById('inpDifficulty');
-    let currentHexId = null;
+const clickableMap = document.getElementById('clickableMap');
+const visualLayer = document.getElementById('visualLayer');
+const modal = document.getElementById('hexMenu');
+const difficultySelect = document.getElementById('inpDifficulty');
+let currentHexId = null;
     
-    let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
+let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 
 function populateDifficultySelect() {
     const regionLevelSelect = document.getElementById('inpRegionLevel');
@@ -184,6 +185,13 @@ vHex.addEventListener('mouseleave', function() {
                 if (mapData[hexId] && mapData[hexId].color) {
                     shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.17);
                 }
+				
+if (currentSquadHex === hexId) {
+	paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">⛺ <b>Здесь находится ваш отряд</b></div>`;
+    shape.classList.add('squad-dark');
+}
+				
+				
                 vHex.appendChild(shape);
 
 const label = document.createElement('span');
@@ -221,10 +229,10 @@ vHex.appendChild(label);
 
 function openMenu(hexId) {
     currentHexId = hexId;
-    document.getElementById('menuTitle').textContent = 'Hex Setup: ' + hexId;
     
     const inpExplored = document.getElementById('inpExplored');
     const inpMapMapped = document.getElementById('inpMapMapped');
+    const inpSquadHere = document.getElementById('inpSquadHere'); // Ссылка на новый чекбокс
     const inpType = document.getElementById('inpType');
     const inpTerrain = document.getElementById('inpTerrain');
     const inpRegionLevel = document.getElementById('inpRegionLevel');
@@ -253,7 +261,9 @@ function openMenu(hexId) {
         inpRegionLevel.value = '';
     }
     
-    // Записываем цвет в скрытое поле и подсвечиваем кнопку в палитре
+    // Проверяем, стоит ли отряд на этом гексе прямо сейчас
+    inpSquadHere.checked = (currentSquadHex === hexId);
+
     inpColor.value = currentColor;
     document.querySelectorAll('.color-preset-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -288,9 +298,39 @@ function saveMenu() {
     const diffVal = difficultySelect.value;
     const exploredVal = document.getElementById('inpExplored').checked;
     const mapMappedVal = document.getElementById('inpMapMapped').checked;
+    const squadHereVal = document.getElementById('inpSquadHere').checked; // Считываем чекбокс отряда
     const typeVal = document.getElementById('inpType').value;
     const terrainVal = document.getElementById('inpTerrain').value;
     const regionLevelVal = document.getElementById('inpRegionLevel').value;
+
+    // ЛОГИКА ПЕРЕМЕЩЕНИЯ ОТРЯДА:
+    if (squadHereVal) {
+        // Если отряд переместился на этот гекс из другого места
+        if (currentSquadHex && currentSquadHex !== currentHexId) {
+            const oldShape = document.getElementById('shape_' + currentSquadHex);
+            if (oldShape) {
+                oldShape.classList.remove('squad-dark'); // Растемняем старый гекс
+            }
+        }
+        // Делаем текущий гекс новым пристанищем отряда
+        currentSquadHex = currentHexId;
+        localStorage.setItem('hexMapSquadLocation', currentSquadHex);
+        
+        const currentShape = document.getElementById('shape_' + currentHexId);
+        if (currentShape) {
+            currentShape.classList.add('squad-dark'); // Затемняем новый гекс
+        }
+    } else {
+        // Если юзер снял галочку отряда именно с этого гекса
+        if (currentSquadHex === currentHexId) {
+            currentSquadHex = null;
+            localStorage.removeItem('hexMapSquadLocation');
+            const currentShape = document.getElementById('shape_' + currentHexId);
+            if (currentShape) {
+                currentShape.classList.remove('squad-dark'); // Растемняем
+            }
+        }
+    }
 
     mapData[currentHexId] = {
         title: titleVal,
@@ -309,11 +349,11 @@ function saveMenu() {
     const label = document.getElementById('label_' + currentHexId);
     if (label) {
         if (diffVal && regionLevelVal) {
-            label.textContent = titleVal + ' СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
+            label.textContent = titleVal + ': СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
         } else if (diffVal) {
-            label.textContent = titleVal + ' СЛ ' + diffVal;
+            label.textContent = titleVal + ': СЛ ' + diffVal;
         } else if (regionLevelVal) {
-            label.textContent = titleVal + ' lvl ' + regionLevelVal;
+            label.textContent = titleVal + ': lvl ' + regionLevelVal;
         } else {
             label.textContent = titleVal;
         }
