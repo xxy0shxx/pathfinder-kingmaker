@@ -12,14 +12,20 @@
     
     let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 
-    function populateDifficultySelect() {
-        for (let i = 1; i <= 40; i++) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = 'Level ' + i;
-            difficultySelect.appendChild(opt);
-        }
+function populateDifficultySelect() {
+    const regionLevelSelect = document.getElementById('inpRegionLevel');
+    for (let i = 1; i <= 40; i++) {
+        const optDiff = document.createElement('option');
+        optDiff.value = i;
+        optDiff.textContent = 'СЛ ' + i;
+        difficultySelect.appendChild(optDiff);
+
+        const optLvl = document.createElement('option');
+        optLvl.value = i;
+        optLvl.textContent = 'Уровень ' + i;
+        regionLevelSelect.appendChild(optLvl);
     }
+}
 
     function getHexCoordsArray(cx, cy, r) {
         let coords = [];
@@ -87,7 +93,8 @@ vHex.addEventListener('mouseenter', function(e) {
         
         if (data.title) {
             const star = data.explored ? '⭐ ' : '';
-            const lvl = data.difficulty ? ` (Lvl ${data.difficulty})` : '';
+            const mapIcon = data.mapMapped ? '📜 ' : '';
+            const diffLabel = data.difficulty ? ` (СЛ ${data.difficulty})` : '';
             
             let typeIcon = '';
             if (data.type === 'landmark') typeIcon = '🔍 ';
@@ -102,17 +109,28 @@ vHex.addEventListener('mouseenter', function(e) {
             else if (data.terrain === 'arctic') terrainIcon = '❄ ';
             else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
             else if (data.terrain === 'plains') terrainIcon = '🌾 ';
-            content += `<div class="tooltip-title">${terrainIcon}${star}${typeIcon}${data.title}${lvl}</div>`;
+
+            content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${diffLabel}</div>`;
         }
 
+        // 2. Блок параметров
         let paramsBlock = '';
 
+        // Статус разведки и Карты
         paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
+        paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '✖ <b>Карта отсутствует</b>'}</div>`;
 
+        // Сложность региона (СЛ)
         if (data.difficulty) {
-            paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Сложность:</b> Уровень ${data.difficulty}</div>`;
+            paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
         }
 
+        // НОВЫЙ ПАРАМЕТР: Уровень региона (Монстры/Игроки)
+        if (data.regionLevel) {
+            paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
+        }
+
+        // Тип объекта
         if (data.type) {
             let typeText = '';
             let tIcon = '';
@@ -123,6 +141,7 @@ vHex.addEventListener('mouseenter', function(e) {
             paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
         }
 
+        // Тип местности
         if (data.terrain) {
             let terrainText = '';
             let terrIcon = '';
@@ -137,6 +156,7 @@ vHex.addEventListener('mouseenter', function(e) {
 
         content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
 
+        // 3. Пользовательское описание
         if (data.text) {
             content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
         }
@@ -173,7 +193,7 @@ vHex.addEventListener('mouseleave', function() {
                     const title = mapData[hexId].title;
                     const diff = mapData[hexId].difficulty;
                     if (diff) {
-                        label.textContent = title + ': lvl ' + diff;
+                        label.textContent = title + ': СЛ ' + diff;
                     } else {
                         label.textContent = title;
                     }
@@ -197,8 +217,10 @@ function openMenu(hexId) {
     document.getElementById('menuTitle').textContent = 'Hex Setup: ' + hexId;
     
     const inpExplored = document.getElementById('inpExplored');
+    const inpMapMapped = document.getElementById('inpMapMapped');
     const inpType = document.getElementById('inpType');
     const inpTerrain = document.getElementById('inpTerrain');
+    const inpRegionLevel = document.getElementById('inpRegionLevel');
 
     if (mapData[hexId]) {
         document.getElementById('inpTitle').value = mapData[hexId].title || '';
@@ -206,16 +228,20 @@ function openMenu(hexId) {
         document.getElementById('inpColor').value = mapData[hexId].color || '#3498db';
         difficultySelect.value = mapData[hexId].difficulty || '';
         inpExplored.checked = !!mapData[hexId].explored;
+        inpMapMapped.checked = !!mapData[hexId].mapMapped; // Загрузка «Карты»
         inpType.value = mapData[hexId].type || '';
-        inpTerrain.value = mapData[hexId].terrain || ''; 
+        inpTerrain.value = mapData[hexId].terrain || '';
+        inpRegionLevel.value = mapData[hexId].regionLevel || ''; // Загрузка Уровня
     } else {
         document.getElementById('inpTitle').value = '';
         document.getElementById('inpDesc').value = '';
         document.getElementById('inpColor').value = '#3498db';
         difficultySelect.value = '';
         inpExplored.checked = false;
+        inpMapMapped.checked = false;
         inpType.value = '';
-        inpTerrain.value = ''; 
+        inpTerrain.value = '';
+        inpRegionLevel.value = '';
     }
     modal.classList.add('open');
 }
@@ -232,27 +258,30 @@ function saveMenu() {
     const colorVal = document.getElementById('inpColor').value;
     const diffVal = difficultySelect.value;
     const exploredVal = document.getElementById('inpExplored').checked;
+    const mapMappedVal = document.getElementById('inpMapMapped').checked;
     const typeVal = document.getElementById('inpType').value;
     const terrainVal = document.getElementById('inpTerrain').value;
+    const regionLevelVal = document.getElementById('inpRegionLevel').value;
 
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
-        color: colorVal,
+        color: colorVal, // сохраняем в базу, но визуально шейп НЕ красим тут!
         difficulty: diffVal,
         explored: exploredVal,
+        mapMapped: mapMappedVal,
         type: typeVal,
-        terrain: terrainVal
+        terrain: terrainVal,
+        regionLevel: regionLevelVal
     };
     
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-    const shape = document.getElementById('shape_' + currentHexId);
     const label = document.getElementById('label_' + currentHexId);
-    if (shape) shape.style.backgroundColor = convertHexToRgba(colorVal, 0.6);
     if (label) {
+        // На карте теперь пишется "Название: СЛ X" вместо "lvl X"
         if (diffVal) {
-            label.textContent = titleVal + ': lvl ' + diffVal;
+            label.textContent = titleVal + ': СЛ ' + diffVal;
         } else {
             label.textContent = titleVal;
         }
@@ -260,14 +289,20 @@ function saveMenu() {
     closeMenu();
 }
 
-    document.getElementById('btnApplyColor').addEventListener('click', function() {
-        if (!currentHexId) return;
-        const colorVal = document.getElementById('inpColor').value;
-        const shape = document.getElementById('shape_' + currentHexId);
-        if (shape) {
-            shape.style.backgroundColor = convertHexToRgba(colorVal, 0.4);
-        }
-    });
+document.getElementById('btnApplyColor').addEventListener('click', function() {
+    if (!currentHexId) return;
+    const colorVal = document.getElementById('inpColor').value;
+    const shape = document.getElementById('shape_' + currentHexId);
+    
+    if (shape) {
+        shape.style.backgroundColor = convertHexToRgba(colorVal, 0.6);
+    }
+    
+    // Сразу фиксируем измененный цвет в объекте данных гекса
+    if (!mapData[currentHexId]) mapData[currentHexId] = {};
+    mapData[currentHexId].color = colorVal;
+    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+});
 
     document.getElementById('btnDelete').addEventListener('click', function() {
         if (!currentHexId) return;
