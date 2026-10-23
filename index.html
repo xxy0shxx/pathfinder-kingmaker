@@ -53,6 +53,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
+			pointer-events: auto;
         }
 		.hex-shape {
     		position: absolute;
@@ -68,9 +69,10 @@
     		background: rgba(0, 0, 0, 0);
     		transition: background 0.2s ease;
     		pointer-events: none;
+    		z-index: 1;
 		}
 		.visual-hex:hover .hex-shape::before {
-    		background: rgba(0, 0, 0, 0.35); 
+    		background: rgba(0, 0, 0, 0.35) !important; 
 		}
         .hex-text-label {
             position: relative;
