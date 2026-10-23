@@ -503,5 +503,82 @@ localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
 initColorPresets();
 
-    populateDifficultySelect();
-    buildHexGrid();
+populateDifficultySelect();
+
+const playlist = [
+    "audio/ambient_nature.mp3",
+    "audio/tavern_theme.mp3",
+    "audio/exploration_bg.mp3",
+    "audio/kingdom_theme.mp3"
+];
+
+const musicPlayer = document.getElementById('bg-music');
+const musicBtn = document.getElementById('btnMusic');
+
+let isMusicPlaying = false;
+let previouslyPlayedIndex = null;
+
+musicPlayer.volume = 0.25;
+
+function playNextRandomTrack() {
+    if (playlist.length === 0) return;
+
+    let nextTrackIndex;
+    
+    if (playlist.length > 1) {
+        do {
+            nextTrackIndex = Math.floor(Math.random() * playlist.length);
+        } while (nextTrackIndex === previouslyPlayedIndex);
+    } else {
+        nextTrackIndex = 0;
+    }
+
+    previouslyPlayedIndex = nextTrackIndex;
+    
+    musicPlayer.src = playlist[nextTrackIndex];
+    musicPlayer.play().catch(err => {
+        console.log("Браузер заблокировал старт трека до первого клика:", err);
+    });
+}
+
+musicBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    if (!isMusicPlaying) {
+        isMusicPlaying = true;
+        musicBtn.textContent = '🔇 Выключить музыку';
+        musicBtn.style.backgroundColor = '#e74c3c';
+        musicBtn.style.color = '#fff';
+
+        if (musicPlayer.src) {
+            musicPlayer.play().catch(err => console.log(err));
+        } else {
+            playNextRandomTrack();
+        }
+    } else {
+        isMusicPlaying = false;
+        musicPlayer.pause();
+        musicBtn.textContent = '🎵 Включить музыку';
+        musicBtn.style.backgroundColor = '#d4af37';
+        musicBtn.style.color = '#141414';
+    }
+});
+
+musicPlayer.addEventListener('ended', () => {
+    if (isMusicPlaying) {
+        playNextRandomTrack();
+    }
+});
+
+document.addEventListener('click', () => {
+    if (!isMusicPlaying && !musicPlayer.src) {
+        isMusicPlaying = true;
+        musicBtn.textContent = '🔇 Выключить музыку';
+        musicBtn.style.backgroundColor = '#e74c3c';
+        musicBtn.style.color = '#fff';
+        playNextRandomTrack();
+    }
+}, { once: true });
+
+
+buildHexGrid();
