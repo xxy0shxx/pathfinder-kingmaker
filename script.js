@@ -56,20 +56,7 @@
                 area.setAttribute('coords', getHexCoordsArray(cx, cy, hexRadius));
                 area.setAttribute('href', '#');
                 area.setAttribute('id', 'area_' + hexId);
-                /*
-                area.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    if (hasMoved) return; 
-                    
-                    if (modal.classList.contains('open')) {
-                        closeMenu();
-                    } else {
-                        openMenu(hexId);
-                    }
-                });
-				*/
+
                 clickableMap.appendChild(area);
 
                 const vHex = document.createElement('div');
@@ -237,37 +224,43 @@
         mapContainer.style.top = y + 'px';
     });
 
-    // ЭКСПОРТ JSON
-    document.getElementById('btnExport').addEventListener('click', function() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mapData, null, 4));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "map_data.json");
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-    });
+document.getElementById('btnExport').addEventListener('click', function() {
+    const jsonString = JSON.stringify(mapData, null, 4);
+    const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+    const dataStr = URL.createObjectURL(blob);
 
-    // ИМПОРТ JSON
-    const fileInput = document.getElementById('fileInput');
-    document.getElementById('btnImport').addEventListener('click', () => fileInput.click());
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "map_data.json");
+    document.body.appendChild(downloadAnchor);
     
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files;
-        if (!file || file.length === 0) return;
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                mapData = JSON.parse(evt.target.result);
-                localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-                buildHexGrid();
-                alert('Data successfully imported!');
-            } catch (err) {
-                alert('Error parsing JSON file.');
-            }
-        };
-        reader.readAsText(file);
-    });
+    downloadAnchor.click();
+    
+    downloadAnchor.remove();
+    URL.revokeObjectURL(dataStr); 
+});
+
+const fileInput = document.getElementById('fileInput');
+document.getElementById('btnImport').addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', function(e) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        try {
+            mapData = JSON.parse(evt.target.result);
+            localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+            buildHexGrid();
+            alert('Data successfully imported!');
+        } catch (err) {
+            alert('Error parsing JSON file.');
+        }
+        fileInput.value = ''; 
+    };
+    reader.readAsText(files[0]); 
+});
 
     modal.addEventListener('click', function(e) {
         if (e.target === modal) { closeMenu(); }
