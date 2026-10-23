@@ -33,7 +33,9 @@ const playlist = [
     "04_bittersweet_nyrissas_theme.mp3", "05_peaceful_lands.mp3", "06_the_shrike_hills.mp3",
     "07_hills_of_glenebon.mp3", "08_twilight_at_glenebon.mp3", "09_the_narlmarches.mp3",
     "10_sunset_at_the_narlmarches.mp3", "11_dawn_at_the_narlmarches.mp3", "12_old_sycamore_caves.mp3",
-    "13_thousand_grains.mp3", "14_city_of_hollow_eyes.mp3", "15_tomb_of_the_iron_lords_champion.mp3"
+    "13_thousand_grains.mp3", "14_city_of_hollow_eyes.mp3", "15_tomb_of_the_iron_lords_champion.mp3",
+    "16_the_dunsward.mp3", "17_sunset_at_the_dunsward.mp3", "18_dawn_at_the_dunsward.mp3", 
+    "19_the_tarnished_jewel_pitax_theme.mp3", "20_the_coronation.mp3"
 ];
 let currentTrackIdx = 0;
 let isLooping = false;
