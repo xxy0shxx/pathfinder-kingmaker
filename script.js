@@ -506,7 +506,10 @@ initColorPresets();
 populateDifficultySelect();
 
 const playlist = [
-    "main_theme.mp3"
+    "main_theme.mp3",
+	"02_beginning.mp3",
+	"03_exploring_the_stolen_lands.mp3",
+	"04_bittersweet_nyrissas_theme.mp3"
 ];
 
 const musicPlayer = document.getElementById('bg-music');
