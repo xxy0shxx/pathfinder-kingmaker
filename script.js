@@ -224,6 +224,7 @@
         mapContainer.style.top = y + 'px';
     });
 
+// ЭКСПОРТ JSON
 document.getElementById('btnExport').addEventListener('click', function() {
     const jsonString = JSON.stringify(mapData, null, 4);
     const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
@@ -236,26 +237,28 @@ document.getElementById('btnExport').addEventListener('click', function() {
     
     downloadAnchor.click();
     
+    // Очищаем память
     downloadAnchor.remove();
     URL.revokeObjectURL(dataStr); 
 });
 
+// ИМПОРТ JSON
 const fileInput = document.getElementById('fileInput');
 document.getElementById('btnImport').addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', function(e) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
+
     const reader = new FileReader();
     reader.onload = function(evt) {
         try {
             mapData = JSON.parse(evt.target.result);
             localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
             buildHexGrid();
-            alert('Data successfully imported!');
+            alert('Данные успешно импортированы!');
         } catch (err) {
-            alert('Error parsing JSON file.');
+            alert('Ошибка при чтении JSON файла.');
         }
         fileInput.value = ''; 
     };
