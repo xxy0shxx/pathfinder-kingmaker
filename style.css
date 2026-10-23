@@ -109,89 +109,64 @@
         .box label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
         .box input, .box textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
         .box input[type="color"] { width: 60px; height: 35px; cursor: pointer; }
-        /* --- Стили для элементов управления музыкой (НОВЫЕ/ИЗМЕНЕННЫЕ) --- */
-        .main-controls {
-            padding: 10px; /* Добавим отступы вокруг группы кнопок */
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 6px;
-        }
-        /* Общие стили для селекта трека */
-        #audioControls select {
-            padding: 5px; 
-            border: none; 
-            border-radius: 4px; 
-            background: #222; /* Фон, соответствующий общему темному дизайну */
-            color: white; 
-            margin-right: 15px;
-        }
-        /* Общий стиль для кнопок в этой группе */
-        .main-controls button {
-             padding: 8px 12px; 
-             font-size: 14px;
-        }
-
-.menu-logo {
-    display: block;
+/* --- Стили для элементов управления музыкой (ОБНОВЛЕННЫЕ И ИСПРАВЛЕННЫЕ) --- */
+.main-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     width: 100%;
-    max-width: 260px;
-    height: auto;
-    margin: 0 auto 15px;
 }
 
-/* ... (Остальные стили остаются без изменений) ... */
+.music-controls-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
 
-.hex-tooltip {
-    position: fixed;
-    display: none;
-    background: rgba(20, 20, 20, 0.9);
+/* Стили для селектора трека */
+.music-controls-row select {
+    padding: 6px 10px; 
+    border: 1px solid rgba(212, 175, 55, 0.4); 
+    border-radius: 4px; 
+    background: #111; 
+    color: #f3e5ab; 
+    font-size: 14px;
+    outline: none;
+    flex-grow: 1;
+}
+
+/* Кнопки управления плеером */
+.main-controls button {
+    padding: 8px 12px; 
+    font-size: 14px;
+    background-color: #34495e;
+    border: 1px solid rgba(212, 175, 55, 0.3);
     color: #fff;
-    
-    padding: 18px 24px; 
-    border-radius: 9px;
-    border: 2px solid #d4af37;
-    box-shadow: 0 6px 22px rgba(0,0,0,0.7);
-    
-
-    font-size: 30px;
-    max-width: 500px;
-    
-    z-index: 10006; 
-    pointer-events: none; 
-    line-height: 1.5;
-}
-
-
-.tooltip-title {
-    font-weight: bold;
-    font-size: 30px;
-    color: #d4af37; 
-    margin-bottom: 8px;
-    border-bottom: 2px solid rgba(212, 175, 55, 0.3);
-    padding-bottom: 6px;
-}
-
-.tooltip-desc {
-    color: #e0e0e0;
-    font-style: italic;
-    word-break: break-word;
-}
-
-
-.color-preset-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid #ccc;
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
-    padding: 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: nowrap;
 }
-.color-preset-btn:hover {
-    transform: scale(1.15);
-}
-/* ... (Остальные стили плейлиста остаются без изменений) ... */
 
+.main-controls button:hover {
+    background-color: #415b76;
+    border-color: #d4af37;
+    color: #d4af37;
+}
+
+.main-controls button.active {
+    background-color: rgba(212, 175, 55, 0.2);
+    border-color: #d4af37;
+    color: #d4af37;
+}
+
+#btnMusic {
+    flex-grow: 2;
+}
+
+/* Контейнер всего плеера в левом нижнем углу */
 .music-controller {
     position: fixed;
     bottom: 20px;
@@ -199,35 +174,126 @@
     z-index: 10005;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background: rgba(20, 20, 20, 0.85);
-    padding: 12px;
+    gap: 10px;
+    background: rgba(20, 20, 20, 0.9);
+    padding: 14px;
     border-radius: 6px;
-    border: 1px solid #d4af37;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    border: 2px solid #d4af37; /* Бронзово-золотой бордюр как у тултипа */
+    box-shadow: 0 6px 22px rgba(0,0,0,0.7);
     backdrop-filter: blur(5px);
+    width: 440px;
 }
 
-.music-controls-row {
+/* Таймлайн и прогресс-бар */
+.player-timeline {
     display: flex;
-    gap: 8px;
     align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 2px;
 }
 
-/* Мы убрали этот блок в пользу нового main-controls, но оставим для полноты */
-/* .music-controller .btn {
-    padding: 8px 12px;
-    font-size: 14px;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-} */
+.time-lbl {
+    font-size: 11px;
+    color: #aaa;
+    min-width: 35px;
+    text-align: center;
+}
 
-#btnLoop {
-    background-color: #34495e;
+.timeline-bg {
+    flex-grow: 1;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.timeline-fill {
+    height: 100%;
+    width: 0%;
+    background: #d4af37;
+    border-radius: 3px;
+    transition: width 0.1s linear;
+}
+
+/* Громкость */
+.volume-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.volume-icon {
+    font-size: 14px;
+    color: #d4af37;
+}
+
+#volumeSlider {
+    width: 80px;
+    height: 4px;
+    cursor: pointer;
+    accent-color: #d4af37;
+}
+
+/* Выпадающий список треков (Плейлист) */
+.dropdown-playlist {
+    background: rgba(15, 15, 15, 0.95);
+    border: 2px solid #d4af37;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    margin-top: -2px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-playlist.open {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.playlist-header {
+    background: rgba(212, 175, 55, 0.15);
+    color: #d4af37;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.playlist-tracks {
+    display: flex;
+    flex-direction: column;
+}
+
+.playlist-item {
+    padding: 8px 12px;
+    color: #ccc;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playlist-item:hover {
+    background: rgba(212, 175, 55, 0.1);
     color: #fff;
 }
 
-#btnLoop:hover {
-    background-color: #415b76;
-    border-color: #fff;
+.playlist-item.current {
+    background: rgba(212, 175, 55, 0.2);
+    color: #d4af37;
+    font-weight: bold;
+    border-left: 3px solid #d4af37;
 }
