@@ -506,10 +506,7 @@ initColorPresets();
 populateDifficultySelect();
 
 const playlist = [
-    "audio/ambient_nature.mp3",
-    "audio/tavern_theme.mp3",
-    "audio/exploration_bg.mp3",
-    "audio/kingdom_theme.mp3"
+    "main_theme.mp3"
 ];
 
 const musicPlayer = document.getElementById('bg-music');
