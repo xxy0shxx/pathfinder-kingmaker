@@ -182,7 +182,7 @@ vHex.addEventListener('mouseleave', function() {
                 shape.setAttribute('id', 'shape_' + hexId);
                 
                 if (mapData[hexId] && mapData[hexId].color) {
-                    shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.6);
+                    shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.4);
                 }
                 vHex.appendChild(shape);
 
@@ -230,7 +230,6 @@ function openMenu(hexId) {
     const inpRegionLevel = document.getElementById('inpRegionLevel');
     const inpColor = document.getElementById('inpColor');
 
-    // Получаем текущий цвет из базы или ставим прозрачный по умолчанию
     let currentColor = 'transparent';
 
     if (mapData[hexId]) {
@@ -268,7 +267,6 @@ function openMenu(hexId) {
     modal.classList.add('open');
 }
 
-// Вспомогательная микро-функция сравнения цветов (браузер преобразует HEX в RGB в style.backgroundColor)
 function convertHexToRgbStandard(hex) {
     if (hex === 'transparent' || !hex) return '';
     let r = parseInt(hex.slice(1, 3), 16);
@@ -286,7 +284,7 @@ function saveMenu() {
     if (!currentHexId) return;
     const titleVal = document.getElementById('inpTitle').value;
     const descVal = document.getElementById('inpDesc').value;
-    const colorVal = document.getElementById('inpColor').value || 'transparent'; // Берем из скрытого поля пресетов
+    const colorVal = document.getElementById('inpColor').value || 'transparent';
     const diffVal = difficultySelect.value;
     const exploredVal = document.getElementById('inpExplored').checked;
     const mapMappedVal = document.getElementById('inpMapMapped').checked;
@@ -311,34 +309,17 @@ function saveMenu() {
     const label = document.getElementById('label_' + currentHexId);
     if (label) {
         if (diffVal && regionLevelVal) {
-            label.textContent = titleVal + ': СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
+            label.textContent = titleVal + ' СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
         } else if (diffVal) {
-            label.textContent = titleVal + ': СЛ ' + diffVal;
+            label.textContent = titleVal + ' СЛ ' + diffVal;
         } else if (regionLevelVal) {
-            label.textContent = titleVal + ': lvl ' + regionLevelVal;
+            label.textContent = titleVal + ' lvl ' + regionLevelVal;
         } else {
             label.textContent = titleVal;
         }
     }
     closeMenu();
 }
-
-/*
-document.getElementById('btnApplyColor').addEventListener('click', function() {
-    if (!currentHexId) return;
-    const colorVal = document.getElementById('inpColor').value;
-    const shape = document.getElementById('shape_' + currentHexId);
-    
-    if (shape) {
-        shape.style.backgroundColor = convertHexToRgba(colorVal, 0.6);
-    }
-    
-    // Сразу фиксируем измененный цвет в объекте данных гекса
-    if (!mapData[currentHexId]) mapData[currentHexId] = {};
-    mapData[currentHexId].color = colorVal;
-    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-});
-*/
 
     document.getElementById('btnDelete').addEventListener('click', function() {
         if (!currentHexId) return;
@@ -440,14 +421,14 @@ fileInput.addEventListener('change', function(e) {
     document.getElementById('btnSave').addEventListener('click', saveMenu);
 
 const mainColors = [
-    '#e74c3c', // Красный
-    '#e67e22', // Оранжевый
-    '#f1c40f', // Желтый
-    '#2ecc71', // Зеленый
-    '#3498db', // Голубой
-    '#9b59b6', // Фиолетовый
-    '#34495e', // Темный / Сине-серый
-    'transparent' // Прозрачный
+    '#e74c3c',
+    '#e67e22',
+    '#f1c40f',
+    '#2ecc71',
+    '#3498db',
+    '#9b59b6',
+    '#34495e',
+    'transparent'
 ];
 
 function initColorPresets() {
@@ -475,7 +456,7 @@ function initColorPresets() {
             if (currentHexId) {
                 const shape = document.getElementById('shape_' + currentHexId);
                 if (shape) {
-                    shape.style.backgroundColor = color === 'transparent' ? 'rgba(255, 255, 255, 0)' : convertHexToRgba(color, 0.6);
+                    shape.style.backgroundColor = color === 'transparent' ? 'rgba(255, 255, 255, 0)' : convertHexToRgba(color, 0.4);
                 }
                 
                 if (!mapData[currentHexId]) mapData[currentHexId] = {};
