@@ -89,13 +89,24 @@ vHex.addEventListener('mouseenter', function(e) {
             const lvl = data.difficulty ? ` (Lvl ${data.difficulty})` : '';
             const star = data.explored ? '⭐ ' : '';
             
+            // 1. Иконка типа объекта
             let typeIcon = '';
             if (data.type === 'landmark') typeIcon = '🔍 ';
             else if (data.type === 'resource') typeIcon = '🪵 ';
             else if (data.type === 'quest') typeIcon = '✔ ';
             else if (data.type === 'mystery') typeIcon = '❓ ';
 
-            content += `<div class="tooltip-title">${star}${typeIcon}${data.title}${lvl}</div>`;
+            // 2. Иконка типа местности
+            let terrainIcon = '';
+            if (data.terrain === 'swamp') terrainIcon = '🐊 ';
+            else if (data.terrain === 'forest') terrainIcon = '🌲 ';
+            else if (data.terrain === 'water') terrainIcon = '🌊 ';
+            else if (data.terrain === 'arctic') terrainIcon = '❄ ';
+            else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
+            else if (data.terrain === 'plains') terrainIcon = '🌾 ';
+
+            // Собираем всё вместе в шапку: [Местность] [Разведка] [Тип] Название (Lvl)
+            content += `<div class="tooltip-title">${terrainIcon}${star}${typeIcon}${data.title}${lvl}</div>`;
         }
         if (data.text) {
             content += `<div class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
@@ -158,6 +169,7 @@ function openMenu(hexId) {
     
     const inpExplored = document.getElementById('inpExplored');
     const inpType = document.getElementById('inpType');
+    const inpTerrain = document.getElementById('inpTerrain');
 
     if (mapData[hexId]) {
         document.getElementById('inpTitle').value = mapData[hexId].title || '';
@@ -165,14 +177,16 @@ function openMenu(hexId) {
         document.getElementById('inpColor').value = mapData[hexId].color || '#3498db';
         difficultySelect.value = mapData[hexId].difficulty || '';
         inpExplored.checked = !!mapData[hexId].explored;
-        inpType.value = mapData[hexId].type || ''; 
+        inpType.value = mapData[hexId].type || '';
+        inpTerrain.value = mapData[hexId].terrain || ''; 
     } else {
         document.getElementById('inpTitle').value = '';
         document.getElementById('inpDesc').value = '';
         document.getElementById('inpColor').value = '#3498db';
         difficultySelect.value = '';
         inpExplored.checked = false;
-        inpType.value = ''; 
+        inpType.value = '';
+        inpTerrain.value = ''; 
     }
     modal.classList.add('open');
 }
@@ -190,6 +204,7 @@ function saveMenu() {
     const diffVal = difficultySelect.value;
     const exploredVal = document.getElementById('inpExplored').checked;
     const typeVal = document.getElementById('inpType').value;
+    const terrainVal = document.getElementById('inpTerrain').value;
 
     mapData[currentHexId] = {
         title: titleVal,
@@ -197,7 +212,8 @@ function saveMenu() {
         color: colorVal,
         difficulty: diffVal,
         explored: exploredVal,
-        type: typeVal
+        type: typeVal,
+        terrain: terrainVal
     };
     
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
