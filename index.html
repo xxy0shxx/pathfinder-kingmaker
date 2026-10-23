@@ -54,6 +54,7 @@
             justify-content: center;
             text-align: center;
 			pointer-events: auto;
+			cursor: pointer;
         }
 		.hex-shape {
     		position: absolute;
@@ -229,7 +230,7 @@
                 area.setAttribute('coords', getHexCoordsArray(cx, cy, hexRadius));
                 area.setAttribute('href', '#');
                 area.setAttribute('id', 'area_' + hexId);
-                
+                /*
                 area.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -242,6 +243,7 @@
                         openMenu(hexId);
                     }
                 });
+				*/
                 clickableMap.appendChild(area);
 
                 const vHex = document.createElement('div');
@@ -251,6 +253,17 @@
                 vHex.style.left = (cx - hexWidth / 2) + 'px';
                 vHex.style.top = (cy - hexRadius) + 'px';
                 vHex.setAttribute('id', 'visual_' + hexId);
+
+				vHex.addEventListener('click', function(e) {
+    				e.preventDefault();
+    				e.stopPropagation();
+    				if (hasMoved) return;
+    				if (modal.classList.contains('open')) {
+        				closeMenu();
+    				} else {
+        				openMenu(hexId);
+    				}
+				});
 
                 const shape = document.createElement('div');
                 shape.className = 'hex-shape';
