@@ -341,11 +341,11 @@ function saveMenu() {
     const label = document.getElementById('label_' + currentHexId);
     if (label) {
         if (diffVal && regionLevelVal) {
-            label.textContent = titleVal + ': СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
+            label.textContent = titleVal + ' СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
         } else if (diffVal) {
-            label.textContent = titleVal + ': СЛ ' + diffVal;
+            label.textContent = titleVal + ' СЛ ' + diffVal;
         } else if (regionLevelVal) {
-            label.textContent = titleVal + ': lvl ' + regionLevelVal;
+            label.textContent = titleVal + ' lvl ' + regionLevelVal;
         } else {
             label.textContent = titleVal;
         }
