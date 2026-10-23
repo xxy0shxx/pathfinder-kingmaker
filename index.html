@@ -30,6 +30,16 @@
         <input type="checkbox" id="inpExplored" style="width: auto; cursor: pointer; transform: scale(1.3);">
         <label for="inpExplored" style="margin-bottom: 0; cursor: pointer; font-size: 16px;">Гекс разведан</label>
     </div>
+	<div class="box">
+        <label>Тип объекта на гексе:</label>
+        <select id="inpType" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
+            <option value="">-- Обычный гекс --</option>
+            <option value="landmark">🔍 Достопримечательность</option>
+            <option value="resource">🪵 Ресурс</option>
+            <option value="quest">✔ Стандартное задание</option>
+            <option value="mystery">❓ Тайна</option>
+        </select>
+    </div>
     <div class="box">
         <label>Описание гекса:</label>
         <textarea id="inpDesc" rows="4"></textarea>
