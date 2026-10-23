@@ -26,10 +26,18 @@
         <label>Пометка (на карте):</label>
         <input type="text" id="inpTitle" maxlength="50">
     </div>
-    <div class="box" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-        <input type="checkbox" id="inpExplored" style="width: auto; cursor: pointer; transform: scale(1.3);">
-        <label for="inpExplored" style="margin-bottom: 0; cursor: pointer; font-size: 16px;">Гекс разведан</label>
+	
+    <div class="box" style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="inpExplored" style="width: auto; cursor: pointer; transform: scale(1.3);">
+            <label for="inpExplored" style="margin-bottom: 0; cursor: pointer; font-size: 16px;">Гекс разведан</label>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="inpMapMapped" style="width: auto; cursor: pointer; transform: scale(1.3);">
+            <label for="inpMapMapped" style="margin-bottom: 0; cursor: pointer; font-size: 16px;">Карта составлена</label>
+        </div>
     </div>
+	
 	<div class="box">
         <label>Тип объекта на гексе:</label>
         <select id="inpType" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
@@ -58,12 +66,19 @@
     </div>
 
     <div class="box">
-        <label>Сложность региона (Уровень):</label>
+        <label>Сложность региона (СЛ):</label>
         <select id="inpDifficulty" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
-            <option value="">-- Выберите уровень --</option>
+            <option value="">-- Выберите СЛ --</option>
         </select>
     </div>
 
+    <div class="box">
+        <label>Уровень региона (Монстры/Игроки):</label>
+        <select id="inpRegionLevel" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
+            <option value="">-- Выберите уровень --</option>
+        </select>
+    </div>
+	
     <div class="box">
         <label>Цвет гекса:</label>
         <div class="color-row">
