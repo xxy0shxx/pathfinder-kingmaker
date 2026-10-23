@@ -78,6 +78,40 @@
     				}
 				});
 
+				const tooltip = document.getElementById('hexTooltip');
+
+vHex.addEventListener('mouseenter', function(e) {
+    // Проверяем, есть ли сохраненные данные для этого гекса
+    if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
+        const data = mapData[hexId];
+        let content = '';
+        
+        // Формируем красивую разметку внутри подсказки
+        if (data.title) {
+            const lvl = data.difficulty ? ` (Lvl ${data.difficulty})` : '';
+            content += `<div class="tooltip-title">${data.title}${lvl}</div>`;
+        }
+        if (data.text) {
+            content += `<div class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
+        }
+        
+        tooltip.innerHTML = content;
+        tooltip.style.display = 'block';
+    }
+});
+
+vHex.addEventListener('mousemove', function(e) {
+    // Сдвигаем плашку чуть правее и ниже курсора мыши
+    tooltip.style.left = (e.clientX + 15) + 'px';
+    tooltip.style.top = (e.clientY + 15) + 'px';
+});
+
+vHex.addEventListener('mouseleave', function() {
+    // Скрываем плашку, когда мышь уходит с гекса
+    tooltip.style.display = 'none';
+    tooltip.innerHTML = '';
+});
+				
                 const shape = document.createElement('div');
                 shape.className = 'hex-shape';
                 shape.setAttribute('id', 'shape_' + hexId);
@@ -115,6 +149,7 @@
     }
 
     function openMenu(hexId) {
+		document.getElementById('hexTooltip').style.display = 'none';
         currentHexId = hexId;
         document.getElementById('menuTitle').textContent = 'Hex Setup: ' + hexId;
         
