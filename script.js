@@ -85,9 +85,9 @@ vHex.addEventListener('mouseenter', function(e) {
         const data = mapData[hexId];
         let content = '';
         
-        // 1. Формируем шапку плашки (только иконки статуса и имя)
         if (data.title) {
             const star = data.explored ? '⭐ ' : '';
+            const lvl = data.difficulty ? ` (Lvl ${data.difficulty})` : '';
             
             let typeIcon = '';
             if (data.type === 'landmark') typeIcon = '🔍 ';
@@ -102,22 +102,17 @@ vHex.addEventListener('mouseenter', function(e) {
             else if (data.terrain === 'arctic') terrainIcon = '❄ ';
             else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
             else if (data.terrain === 'plains') terrainIcon = '🌾 ';
-
-            content += `<div class="tooltip-title">${terrainIcon}${star}${typeIcon}${data.title}</div>`;
+            content += `<div class="tooltip-title">${terrainIcon}${star}${typeIcon}${data.title}${lvl}</div>`;
         }
 
-        // 2. Блок системных параметров в виде текстовых пунктов
         let paramsBlock = '';
 
-        // Статус разведки
         paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
 
-        // Сложность региона (Уровень)
         if (data.difficulty) {
             paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Сложность:</b> Уровень ${data.difficulty}</div>`;
         }
 
-        // Тип объекта
         if (data.type) {
             let typeText = '';
             let tIcon = '';
@@ -128,7 +123,6 @@ vHex.addEventListener('mouseenter', function(e) {
             paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
         }
 
-        // Тип местности и СЛ
         if (data.terrain) {
             let terrainText = '';
             let terrIcon = '';
@@ -141,12 +135,9 @@ vHex.addEventListener('mouseenter', function(e) {
             paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
         }
 
-        // Оборачиваем системные параметры в контейнер с небольшим отступом
         content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
 
-        // 3. Пользовательское описание гекса (если оно есть)
         if (data.text) {
-            // Добавляем разделительную линию перед кастомным описанием
             content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
         }
         
