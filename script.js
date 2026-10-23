@@ -196,11 +196,11 @@ if (mapData[hexId] && mapData[hexId].title) {
     const lvl = mapData[hexId].regionLevel;
 
     if (diff && lvl) {
-        label.textContent = title + ': СЛ ' + diff + ' / lvl ' + lvl;
+        label.textContent = title + ' СЛ ' + diff + ' / lvl ' + lvl;
     } else if (diff) {
-        label.textContent = title + ': СЛ ' + diff;
+        label.textContent = title + ' СЛ ' + diff;
     } else if (lvl) {
-        label.textContent = title + ': lvl ' + lvl;
+        label.textContent = title + ' lvl ' + lvl;
     } else {
         label.textContent = title;
     }
