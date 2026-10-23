@@ -228,21 +228,24 @@ function openMenu(hexId) {
     const inpType = document.getElementById('inpType');
     const inpTerrain = document.getElementById('inpTerrain');
     const inpRegionLevel = document.getElementById('inpRegionLevel');
+    const inpColor = document.getElementById('inpColor');
+
+    // Получаем текущий цвет из базы или ставим прозрачный по умолчанию
+    let currentColor = 'transparent';
 
     if (mapData[hexId]) {
         document.getElementById('inpTitle').value = mapData[hexId].title || '';
         document.getElementById('inpDesc').value = mapData[hexId].text || '';
-        document.getElementById('inpColor').value = mapData[hexId].color || '#3498db';
         difficultySelect.value = mapData[hexId].difficulty || '';
         inpExplored.checked = !!mapData[hexId].explored;
-        inpMapMapped.checked = !!mapData[hexId].mapMapped; // Загрузка «Карты»
+        inpMapMapped.checked = !!mapData[hexId].mapMapped;
         inpType.value = mapData[hexId].type || '';
         inpTerrain.value = mapData[hexId].terrain || '';
-        inpRegionLevel.value = mapData[hexId].regionLevel || ''; // Загрузка Уровня
+        inpRegionLevel.value = mapData[hexId].regionLevel || '';
+        currentColor = mapData[hexId].color || 'transparent';
     } else {
         document.getElementById('inpTitle').value = '';
         document.getElementById('inpDesc').value = '';
-        document.getElementById('inpColor').value = '#3498db';
         difficultySelect.value = '';
         inpExplored.checked = false;
         inpMapMapped.checked = false;
@@ -250,7 +253,28 @@ function openMenu(hexId) {
         inpTerrain.value = '';
         inpRegionLevel.value = '';
     }
+    
+    // Записываем цвет в скрытое поле и подсвечиваем кнопку в палитре
+    inpColor.value = currentColor;
+    document.querySelectorAll('.color-preset-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
+            btn.classList.add('active');
+        } else if (btn.style.backgroundColor === convertHexToRgbStandard(currentColor)) {
+            btn.classList.add('active');
+        }
+    });
+
     modal.classList.add('open');
+}
+
+// Вспомогательная микро-функция сравнения цветов (браузер преобразует HEX в RGB в style.backgroundColor)
+function convertHexToRgbStandard(hex) {
+    if (hex === 'transparent' || !hex) return '';
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
+    return `rgb(${r}, ${g}, ${b})`;
 }
 
     function closeMenu() {
@@ -262,7 +286,7 @@ function saveMenu() {
     if (!currentHexId) return;
     const titleVal = document.getElementById('inpTitle').value;
     const descVal = document.getElementById('inpDesc').value;
-    const colorVal = document.getElementById('inpColor').value;
+    const colorVal = document.getElementById('inpColor').value || 'transparent'; // Берем из скрытого поля пресетов
     const diffVal = difficultySelect.value;
     const exploredVal = document.getElementById('inpExplored').checked;
     const mapMappedVal = document.getElementById('inpMapMapped').checked;
@@ -284,18 +308,18 @@ function saveMenu() {
     
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-const label = document.getElementById('label_' + currentHexId);
-if (label) {
-    if (diffVal && regionLevelVal) {
-        label.textContent = titleVal + ' СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
-    } else if (diffVal) {
-        label.textContent = titleVal + ' СЛ ' + diffVal;
-    } else if (regionLevelVal) {
-        label.textContent = titleVal + ' lvl ' + regionLevelVal;
-    } else {
-        label.textContent = titleVal;
+    const label = document.getElementById('label_' + currentHexId);
+    if (label) {
+        if (diffVal && regionLevelVal) {
+            label.textContent = titleVal + ': СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
+        } else if (diffVal) {
+            label.textContent = titleVal + ': СЛ ' + diffVal;
+        } else if (regionLevelVal) {
+            label.textContent = titleVal + ': lvl ' + regionLevelVal;
+        } else {
+            label.textContent = titleVal;
+        }
     }
-}
     closeMenu();
 }
 
@@ -412,6 +436,57 @@ fileInput.addEventListener('change', function(e) {
 
     document.getElementById('btnCancel').addEventListener('click', closeMenu);
     document.getElementById('btnSave').addEventListener('click', saveMenu);
+
+const mainColors = [
+    '#e74c3c', // Красный
+    '#e67e22', // Оранжевый
+    '#f1c40f', // Желтый
+    '#2ecc71', // Зеленый
+    '#3498db', // Голубой
+    '#9b59b6', // Фиолетовый
+    '#34495e', // Темный / Сине-серый
+    'transparent' // Прозрачный
+];
+
+function initColorPresets() {
+    const container = document.getElementById('colorPresetsContainer');
+    container.innerHTML = '';
+    
+    mainColors.forEach(color => {
+        const btn = document.createElement('button');
+        btn.className = 'color-preset-btn';
+        if (color === 'transparent') {
+            btn.classList.add('transparent-preset');
+            btn.title = 'Прозрачный';
+        } else {
+            btn.style.backgroundColor = color;
+            btn.title = color;
+        }
+        
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('inpColor').value = color;
+            
+            document.querySelectorAll('.color-preset-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (currentHexId) {
+                const shape = document.getElementById('shape_' + currentHexId);
+                if (shape) {
+                    shape.style.backgroundColor = color === 'transparent' ? 'rgba(255, 255, 255, 0)' : convertHexToRgba(color, 0.6);
+                }
+                
+                if (!mapData[currentHexId]) mapData[currentHexId] = {};
+                mapData[currentHexId].color = color;
+                localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+            }
+        });
+        
+        container.appendChild(btn);
+    });
+}
+
+initColorPresets();
 
     populateDifficultySelect();
     buildHexGrid();
