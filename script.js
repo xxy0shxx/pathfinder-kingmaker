@@ -182,7 +182,7 @@ vHex.addEventListener('mouseleave', function() {
                 shape.setAttribute('id', 'shape_' + hexId);
                 
                 if (mapData[hexId] && mapData[hexId].color) {
-                    shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.4);
+                    shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.26);
                 }
                 vHex.appendChild(shape);
 
@@ -456,7 +456,7 @@ function initColorPresets() {
             if (currentHexId) {
                 const shape = document.getElementById('shape_' + currentHexId);
                 if (shape) {
-                    shape.style.backgroundColor = color === 'transparent' ? 'rgba(255, 255, 255, 0)' : convertHexToRgba(color, 0.4);
+                    shape.style.backgroundColor = color === 'transparent' ? 'rgba(255, 255, 255, 0)' : convertHexToRgba(color, 0.26);
                 }
                 
                 if (!mapData[currentHexId]) mapData[currentHexId] = {};
