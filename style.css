@@ -107,3 +107,15 @@
         .cc { background: #95a5a6; color: white; }
         .del { background: #e74c3c; color: white; }
         .apply-btn { background: #3498db; color: white; padding: 8px 15px; font-size: 14px; }
+
+.menu-logo {
+    display: block;
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+    margin: 0 auto 15px;
+}
+
+.pop-menu {
+    padding-top: 15px;
+}
