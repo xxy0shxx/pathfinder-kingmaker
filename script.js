@@ -193,14 +193,7 @@ vHex.addEventListener('mouseleave', function() {
 				if (mapData[hexId] && mapData[hexId].squadHere) {
     				shape.classList.add('squad-dark');
 				}
-/*
-if (currentSquadHex === hexId) {
-	paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">⛺ <b>Здесь находится ваш отряд</b></div>`;
-    shape.classList.add('squad-dark');
-}
-*/
-				
-				
+						
                 vHex.appendChild(shape);
 
 const label = document.createElement('span');
@@ -270,7 +263,6 @@ function openMenu(hexId) {
         inpRegionLevel.value = '';
     }
     
-    // Проверяем, стоит ли отряд на этом гексе прямо сейчас
     inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
 
     inpColor.value = currentColor;
@@ -311,8 +303,6 @@ function saveMenu() {
     const typeVal = document.getElementById('inpType').value;
     const terrainVal = document.getElementById('inpTerrain').value;
     const regionLevelVal = document.getElementById('inpRegionLevel').value;
-
-    // Просто добавляем или убираем затемнение текущего гекса
     const currentShape = document.getElementById('shape_' + currentHexId);
     if (currentShape) {
         if (squadHereVal) {
@@ -322,7 +312,6 @@ function saveMenu() {
         }
     }
 
-    // Сохраняем в общий объект JSON
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
@@ -330,7 +319,7 @@ function saveMenu() {
         difficulty: diffVal,
         explored: exploredVal,
         mapMapped: mapMappedVal,
-        squadHere: squadHereVal, // Записываем в базу true/false
+        squadHere: squadHereVal,
         type: typeVal,
         terrain: terrainVal,
         regionLevel: regionLevelVal
@@ -509,7 +498,18 @@ const playlist = [
     "main_theme.mp3",
 	"02_beginning.mp3",
 	"03_exploring_the_stolen_lands.mp3",
-	"04_bittersweet_nyrissas_theme.mp3"
+	"04_bittersweet_nyrissas_theme.mp3",
+	"05_peaceful_lands.mp3",
+	"06_the_shrike_hills.mp3",
+	"07_hills_of_glenebon.mp3",
+	"08_twilight_at_glenebon.mp3",
+	"09_the_narlmarches.mp3",
+	"10_sunset_at_the_narlmarches.mp3",
+	"11_dawn_at_the_narlmarches.mp3",
+	"12_old_sycamore_caves.mp3",
+	"13_thousand_grains.mp3",
+	"14_city_of_hollow_eyes.mp3",
+	"15_tomb_of_the_iron_lords_champion.mp3"
 ];
 
 const musicPlayer = document.getElementById('bg-music');
