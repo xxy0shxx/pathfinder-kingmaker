@@ -496,61 +496,114 @@ populateDifficultySelect();
 
 const playlist = [
     "main_theme.mp3",
-	"02_beginning.mp3",
-	"03_exploring_the_stolen_lands.mp3",
-	"04_bittersweet_nyrissas_theme.mp3",
-	"05_peaceful_lands.mp3",
-	"06_the_shrike_hills.mp3",
-	"07_hills_of_glenebon.mp3",
-	"08_twilight_at_glenebon.mp3",
-	"09_the_narlmarches.mp3",
-	"10_sunset_at_the_narlmarches.mp3",
-	"11_dawn_at_the_narlmarches.mp3",
-	"12_old_sycamore_caves.mp3",
-	"13_thousand_grains.mp3",
-	"14_city_of_hollow_eyes.mp3",
-	"15_tomb_of_the_iron_lords_champion.mp3"
+    "02_beginning.mp3",
+    "03_exploring_the_stolen_lands.mp3",
+    "04_bittersweet_nyrissas_theme.mp3",
+    "05_peaceful_lands.mp3",
+    "06_the_shrike_hills.mp3",
+    "07_hills_of_glenebon.mp3",
+    "08_twilight_at_glenebon.mp3",
+    "09_the_narlmarches.mp3",
+    "10_sunset_at_the_narlmarches.mp3",
+    "11_dawn_at_the_narlmarches.mp3",
+    "12_old_sycamore_caves.mp3",
+    "13_thousand_grains.mp3",
+    "14_city_of_hollow_eyes.mp3",
+    "15_tomb_of_the_iron_lords_champion.mp3"
 ];
 
 const musicPlayer = document.getElementById('bg-music');
 const musicBtn = document.getElementById('btnMusic');
+const btnLoop = document.getElementById('btnLoop');
+const btnPlaylist = document.getElementById('btnPlaylist');
+const dropdownPlaylist = document.getElementById('dropdownPlaylist');
+const playlistTracksContainer = document.getElementById('playlistTracksContainer');
 
 let isMusicPlaying = false;
-let previouslyPlayedIndex = null;
+let currentTrackIndex = null;
+let isLoopActive = false;
 
 musicPlayer.volume = 0.25;
+
+function formatTrackName(filename) {
+    let name = filename.replace('.mp3', '').replace(/_/g, ' ');
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function initPlaylistUI() {
+    if (!playlistTracksContainer) return;
+    playlistTracksContainer.innerHTML = '';
+    
+    playlist.forEach((track, index) => {
+        const trackItem = document.createElement('div');
+        trackItem.className = 'playlist-track-item';
+        trackItem.textContent = formatTrackName(track);
+        trackItem.dataset.index = index;
+        
+        trackItem.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playTrack(index);
+            dropdownPlaylist.classList.remove('show');
+        });
+        
+        playlistTracksContainer.appendChild(trackItem);
+    });
+}
+
+function playTrack(index) {
+    if (index < 0 || index >= playlist.length) return;
+    
+    currentTrackIndex = index;
+    musicPlayer.src = playlist[index];
+    musicPlayer.load();
+    
+    isMusicPlaying = true;
+    musicBtn.innerHTML = `⏸ Пауза: <span style="font-size: 13px; font-weight: normal;">${formatTrackName(playlist[index])}</span>`;
+    musicBtn.style.backgroundColor = '#e74c3c';
+    musicBtn.style.color = '#fff';
+    
+    musicPlayer.play().catch(err => {
+        console.log("Ошибка автоплея: браузер требует взаимодействия пользователя перед проигрыванием.", err);
+    });
+    
+    highlightActiveTrack();
+}
+
+function highlightActiveTrack() {
+    const items = playlistTracksContainer.querySelectorAll('.playlist-track-item');
+    items.forEach((item, idx) => {
+        if (idx === currentTrackIndex) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
 
 function playNextRandomTrack() {
     if (playlist.length === 0) return;
 
     let nextTrackIndex;
-    
     if (playlist.length > 1) {
         do {
             nextTrackIndex = Math.floor(Math.random() * playlist.length);
-        } while (nextTrackIndex === previouslyPlayedIndex);
+        } while (nextTrackIndex === currentTrackIndex);
     } else {
         nextTrackIndex = 0;
     }
 
-    previouslyPlayedIndex = nextTrackIndex;
-    
-    musicPlayer.src = playlist[nextTrackIndex];
-    musicPlayer.play().catch(err => {
-        console.log("Браузер заблокировал старт трека до первого клика:", err);
-    });
+    playTrack(nextTrackIndex);
 }
 
 musicBtn.addEventListener('click', (e) => {
     e.stopPropagation();
 
     if (!isMusicPlaying) {
-        isMusicPlaying = true;
-        musicBtn.textContent = '🔇 Выключить музыку';
-        musicBtn.style.backgroundColor = '#e74c3c';
-        musicBtn.style.color = '#fff';
-
-        if (musicPlayer.src) {
+        if (musicPlayer.src && currentTrackIndex !== null) {
+            isMusicPlaying = true;
+            musicBtn.innerHTML = `⏸ Пауза: <span style="font-size: 13px; font-weight: normal;">${formatTrackName(playlist[currentTrackIndex])}</span>`;
+            musicBtn.style.backgroundColor = '#e74c3c';
+            musicBtn.style.color = '#fff';
             musicPlayer.play().catch(err => console.log(err));
         } else {
             playNextRandomTrack();
@@ -564,21 +617,36 @@ musicBtn.addEventListener('click', (e) => {
     }
 });
 
+btnLoop.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isLoopActive = !isLoopActive;
+    musicPlayer.loop = isLoopActive;
+
+    if (isLoopActive) {
+        btnLoop.classList.add('loop-active');
+        btnLoop.title = "Зацикливание включено";
+    } else {
+        btnLoop.classList.remove('loop-active');
+        btnLoop.title = "Зациклить трек";
+    }
+});
+
+btnPlaylist.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownPlaylist.classList.toggle('show');
+});
+
+document.addEventListener('click', (e) => {
+    if (dropdownPlaylist && !dropdownPlaylist.contains(e.target) && e.target !== btnPlaylist) {
+        dropdownPlaylist.classList.remove('show');
+    }
+});
+
 musicPlayer.addEventListener('ended', () => {
-    if (isMusicPlaying) {
+    if (isMusicPlaying && !isLoopActive) {
         playNextRandomTrack();
     }
 });
 
-document.addEventListener('click', () => {
-    if (!isMusicPlaying && !musicPlayer.src) {
-        isMusicPlaying = true;
-        musicBtn.textContent = '🔇 Выключить музыку';
-        musicBtn.style.backgroundColor = '#e74c3c';
-        musicBtn.style.color = '#fff';
-        playNextRandomTrack();
-    }
-}, { once: true });
-
-
+initPlaylistUI();
 buildHexGrid();
