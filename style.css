@@ -239,7 +239,7 @@ body {
     border: 2px solid #d4af37;
     box-shadow: 0 6px 22px rgba(0,0,0,0.7);
     backdrop-filter: blur(5px);
-    width: 440px;
+    width: 540px;
     pointer-events: auto;
 }
 
