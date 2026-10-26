@@ -453,8 +453,8 @@ body {
 
 .hex-title-label {
     position: absolute;
-    top: 25px;
-    left: 25px;
+    top: 20px;
+    left: 20px;
     z-index: 3;
     color: #000;
     font-size: 26px;
@@ -466,7 +466,7 @@ body {
 
 .hex-stats-label {
     position: absolute;
-    bottom: 25px;
+    bottom: 20px;
     right: 20px;
     z-index: 3;
     color: #000;
@@ -475,27 +475,24 @@ body {
     text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
     white-space: nowrap;
     pointer-events: none;
-    display: none; /* Скрываем по умолчанию, включаем через JS */
 }
 
-.squad-flag-container.active-flag {
-    animation: flagSwing 12s infinite ease-in-out;
-}
+.squad-flag-container.active-flag { animation: flagSwing 12s infinite ease-in-out; }
 
 .type-icon-container {
-    bottom: 55px;
-    left: 15px;
+    top: 55%; /* Нижний правый квадрант */
+    right: 20px;
     font-size: 24px;
 }
 
 .explored-icon-container {
-    bottom: 25px;
+    top: 55%; /* Нижний левый квадрант */
     left: 15px;
     font-size: 22px;
 }
 
 .mapped-icon-container {
-    bottom: 85px;
+    top: 35%; /* Верхний правый квадрант */
     right: 20px;
     font-size: 22px;
 }
@@ -513,7 +510,7 @@ body {
 
 /* Контейнер для значка типа местности */
 .terrain-icon-container {
-    bottom: 85px;
+    top: 35%; /* Верхний левый квадрант */
     left: 15px;
     font-size: 22px;
 }

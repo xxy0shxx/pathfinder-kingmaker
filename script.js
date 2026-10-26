@@ -359,32 +359,22 @@ function buildHexGrid() {
                 }
             });
 
-            vHex.addEventListener('mousemove', function(e) {
-                if (tooltip) {
-                    tooltip.style.left = (e.clientX + 25) + 'px';
-                    tooltip.style.top = (e.clientY + 25) + 'px';
-                }
+            vHex.addEventListener('mousemove', (e) => {
+                if (tooltip) { tooltip.style.left = (e.clientX + 25) + 'px'; tooltip.style.top = (e.clientY + 25) + 'px'; }
             });
 
-            vHex.addEventListener('mouseleave', function() {
-                if (tooltip) {
-                    tooltip.style.display = 'none';
-                    tooltip.innerHTML = '';
-                }
+            vHex.addEventListener('mouseleave', () => {
+                if (tooltip) { tooltip.style.display = 'none'; tooltip.innerHTML = ''; }
             });
 
             const shape = document.createElement('div');
             shape.className = 'hex-shape';
             shape.setAttribute('id', 'shape_' + hexId);
-            if (mapData[hexId] && mapData[hexId].color) {
-                shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
-            }
-            if (mapData[hexId] && mapData[hexId].squadHere) {
-                vHex.classList.add('squad-dark');
-            }
+            if (mapData[hexId] && mapData[hexId].color) shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
+            if (mapData[hexId] && mapData[hexId].squadHere) vHex.classList.add('squad-dark');
             vHex.appendChild(shape);
 
-            // СОЗДАЕМ ВСЕ ЭЛЕМЕНТЫ СРАЗУ
+            // СОЗДАЕМ ВСЕ ЭЛЕМЕНТЫ (ВСЕГДА)
             const titleLabel = document.createElement('span');
             titleLabel.className = 'hex-title-label';
             vHex.appendChild(titleLabel);
@@ -392,10 +382,6 @@ function buildHexGrid() {
             const statsLabel = document.createElement('span');
             statsLabel.className = 'hex-stats-label';
             vHex.appendChild(statsLabel);
-
-            const typeElem = document.createElement('div');
-            typeElem.className = 'type-icon-container';
-            vHex.appendChild(typeElem);
 
             const terrainElem = document.createElement('div');
             terrainElem.className = 'terrain-icon-container';
@@ -408,6 +394,10 @@ function buildHexGrid() {
             const mappedElem = document.createElement('div');
             mappedElem.className = 'mapped-icon-container';
             vHex.appendChild(mappedElem);
+
+            const typeElem = document.createElement('div');
+            typeElem.className = 'type-icon-container';
+            vHex.appendChild(typeElem);
 
             const flagContainer = document.createElement('div');
             flagContainer.className = 'squad-flag-container';
@@ -425,20 +415,10 @@ function buildHexGrid() {
 
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
-                if (diff && lvl) statsLabel.textContent = `🎲${diff}/💀${lvl}`;
-                else if (diff) statsLabel.textContent = `🎲${diff}`;
-                else if (lvl) statsLabel.textContent = `💀${lvl}`;
+                if (diff && lvl) statsLabel.textContent = `🎲 ${diff}💀 ${lvl}`;
+                else if (diff) statsLabel.textContent = `🎲 ${diff}`;
+                else if (lvl) statsLabel.textContent = `💀 ${lvl}`;
                 statsLabel.style.display = (diff || lvl) ? 'block' : 'none';
-
-                if (mapData[hexId].type) {
-                    typeElem.style.display = 'block';
-                    let icon = '';
-                    if (mapData[hexId].type === 'landmark') icon = '🔍';
-                    else if (mapData[hexId].type === 'resource') icon = '🪵';
-                    else if (mapData[hexId].type === 'quest') icon = '✔';
-                    else if (mapData[hexId].type === 'mystery') icon = '❓';
-                    typeElem.textContent = icon;
-                }
 
                 if (mapData[hexId].terrain) {
                     terrainElem.style.display = 'block';
@@ -450,6 +430,16 @@ function buildHexGrid() {
                     else if (mapData[hexId].terrain === 'mountain') icon = '⛰';
                     else if (mapData[hexId].terrain === 'plains') icon = '🌾';
                     terrainElem.textContent = icon;
+                }
+
+                if (mapData[hexId].type) {
+                    typeElem.style.display = 'block';
+                    let icon = '';
+                    if (mapData[hexId].type === 'landmark') icon = '🔍';
+                    else if (mapData[hexId].type === 'resource') icon = '🪵';
+                    else if (mapData[hexId].type === 'quest') icon = '✔';
+                    else if (mapData[hexId].type === 'mystery') icon = '❓';
+                    typeElem.textContent = icon;
                 }
 
                 if (mapData[hexId].squadHere) {
@@ -476,7 +466,6 @@ function buildHexGrid() {
         }
     }
 }
-
 
 // ========================================================
 // ЧАСТЬ 3: МОДАЛЬНОЕ ОКНО, ЦВЕТА, ИМПОРТ/ЭКСПОРТ И DRAG & DROP
@@ -612,7 +601,7 @@ function saveMenu() {
         const sLabel = currentHexElement.querySelector('.hex-stats-label');
         if (sLabel) {
             if (diffVal && regionLevelVal) {
-                sLabel.textContent = `🎲${diffVal}/💀${regionLevelVal}`;
+                sLabel.textContent = `🎲${diffVal}💀${regionLevelVal}`;
             } else if (diffVal) {
                 sLabel.textContent = `🎲${diffVal}`;
             } else if (regionLevelVal) {
