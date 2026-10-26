@@ -489,7 +489,7 @@ body {
 .type-icon-container {
     position: absolute;
     /* Ставим выше характеристик (которые на 25px от низа) */
-    bottom: 75px;
+    bottom: 50px;
     right: 20%;
     z-index: 4;
     font-size: 24px;
