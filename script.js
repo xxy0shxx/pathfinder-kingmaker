@@ -420,6 +420,20 @@ function buildHexGrid() {
                     
             vHex.appendChild(shape);
 
+            const titleLabel = document.createElement('span');
+            titleLabel.className = 'hex-title-label';
+            vHex.appendChild(titleLabel);
+
+            // Создаем характеристики (нижний правый угол)
+            const statsLabel = document.createElement('span');
+            statsLabel.className = 'hex-stats-label';
+            vHex.appendChild(statsLabel);
+
+            // Заполняем данные
+            if (mapData[hexId] && mapData[hexId].title) {
+                titleLabel.textContent = mapData[hexId].title;
+            }
+
             const flagContainer = document.createElement('div');
             flagContainer.className = 'squad-flag-container';
 
@@ -439,26 +453,20 @@ function buildHexGrid() {
             flagContainer.appendChild(pole);
             vHex.appendChild(flagContainer); // Добавляем контейнер внутрь визуального гекса
 
-            const label = document.createElement('span');
-            label.className = 'hex-text-label';
-            label.setAttribute('id', 'label_' + hexId);
-
-            if (mapData[hexId] && mapData[hexId].title) {
-                const title = mapData[hexId].title;
+            if (mapData[hexId]) {
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
-
                 if (diff && lvl) {
-                    label.textContent = title + ' СЛ ' + diff + ' / lvl ' + lvl;
+                    statsLabel.textContent = `СЛ ${diff} / lvl ${lvl}`;
                 } else if (diff) {
-                    label.textContent = title + ' СЛ ' + diff;
+                    statsLabel.textContent = `СЛ ${diff}`;
                 } else if (lvl) {
-                    label.textContent = title + ' lvl ' + lvl;
+                    statsLabel.textContent = `lvl ${lvl}`;
                 } else {
-                    label.textContent = title;
+                    statsLabel.textContent = '';
                 }
             }
-            vHex.appendChild(label);
+
             visualLayer.appendChild(vHex);
         }
     }
