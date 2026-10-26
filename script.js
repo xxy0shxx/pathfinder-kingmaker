@@ -415,9 +415,9 @@ function buildHexGrid() {
 
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
-                if (diff && lvl) statsLabel.textContent = `🎲 ${diff}💀 ${lvl}`;
-                else if (diff) statsLabel.textContent = `🎲 ${diff}`;
-                else if (lvl) statsLabel.textContent = `💀 ${lvl}`;
+                if (diff && lvl) statsLabel.textContent = `🎲${diff}💀${lvl}`;
+                else if (diff) statsLabel.textContent = `🎲${diff}`;
+                else if (lvl) statsLabel.textContent = `💀${lvl}`;
                 statsLabel.style.display = (diff || lvl) ? 'block' : 'none';
 
                 if (mapData[hexId].terrain) {
