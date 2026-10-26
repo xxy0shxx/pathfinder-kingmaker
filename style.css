@@ -429,13 +429,13 @@ body {
 
 @keyframes flagSwing {
     0% {
-        transform: translate(-50%, -50%) rotate(-35deg);
+        transform: translate(-50%, -50%) rotate(-25deg);
     }
     50% {
-        transform: translate(-50%, -50%) rotate(35deg);
+        transform: translate(-50%, -50%) rotate(25deg);
     }
     100% {
-        transform: translate(-50%, -50%) rotate(-35deg);
+        transform: translate(-50%, -50%) rotate(-25deg);
     }
 }
 
@@ -483,18 +483,19 @@ body {
 }
 
 .squad-flag-container.active-flag {
-    animation: flagSwing 6s infinite ease-in-out;
+    animation: flagSwing 8s infinite ease-in-out;
 }
 
 .type-icon-container {
     position: absolute;
-    bottom: 30px; /* Чуть выше характеристик */
-    left: 15px;   /* В левом углу */
+    /* Поднимаем иконку выше (40% от низа), оставляя её в левой части */
+    bottom: 40%;
+    left: 15%;
     z-index: 4;
     font-size: 24px;
     pointer-events: none;
-    display: none; /* По умолчанию скрыт, включается через JS */
-    animation: typeFloat 3s infinite ease-in-out; /* Медленное покачивание */
+    display: none;
+    animation: typeFloat 3s infinite ease-in-out;
 }
 
 @keyframes typeFloat {
@@ -502,7 +503,7 @@ body {
         transform: translate(0, 0) rotate(-5deg);
     }
     50% {
-        transform: translate(2px, -3px) rotate(5deg); /* Легкий подъем вверх и вправо */
+        transform: translate(2px, -3px) rotate(5deg);
     }
     100% {
         transform: translate(0, 0) rotate(-5deg);
