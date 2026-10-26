@@ -577,8 +577,10 @@ function closeMenu() {
 
 function saveMenu() {
     if (!currentHexId) return;
+
     const titleVal = document.getElementById('inpTitle').value.trim();
 
+    // Проверка обязательного поля
     if (titleVal === "") {
         alert("Пожалуйста, введите название для гекса!");
         document.getElementById('inpTitle').focus();
@@ -602,14 +604,11 @@ function saveMenu() {
     // ЛОГИКА ПЕРЕМЕЩЕНИЯ ОТРЯДА (Один отряд на карте)
     // ============================================================
     if (squadHereVal) {
-        // Проходим по всем сохраненным гексам
         for (let id in mapData) {
             // Если это не текущий гекс И в этом гексе отряд уже стоит
             if (id !== currentHexId && mapData[id].squadHere === true) {
-                // Выключаем отряд в старом гексе в данных
                 mapData[id].squadHere = false;
 
-                // Мгновенно обновляем визуальную часть старого гекса
                 const oldHexElement = document.getElementById('visual_' + id);
                 if (oldHexElement) {
                     oldHexElement.classList.remove('squad-dark');
@@ -621,16 +620,80 @@ function saveMenu() {
     }
     // ============================================================
 
-    // Управление классом затемнения текущего гекса
     if (currentHexElement) {
+        // 1. Затемнение гекса
         if (squadHereVal) {
             currentHexElement.classList.add('squad-dark');
         } else {
             currentHexElement.classList.remove('squad-dark');
         }
+
+        // 2. Текст заголовка
+        const tLabel = currentHexElement.querySelector('.hex-title-label');
+        if (tLabel) tLabel.textContent = titleVal;
+
+        // 3. Текст характеристик (СЛ и lvl)
+        const sLabel = currentHexElement.querySelector('.hex-stats-label');
+        if (sLabel) {
+            if (diffVal && regionLevelVal) {
+                sLabel.textContent = `СЛ ${diffVal} / lvl ${regionLevelVal}`;
+            } else if (diffVal) {
+                sLabel.textContent = `СЛ ${diffVal}`;
+            } else if (regionLevelVal) {
+                sLabel.textContent = `lvl ${regionLevelVal}`;
+            } else {
+                sLabel.textContent = '';
+            }
+        }
+
+        // 4. Иконка типа объекта
+        const typeElem = currentHexElement.querySelector('.type-icon-container');
+        if (typeElem) {
+            if (typeVal === "") {
+                typeElem.style.display = 'none';
+            } else {
+                typeElem.style.display = 'block';
+                let icon = '';
+                if (typeVal === 'landmark') icon = '🔍';
+                else if (typeVal === 'resource') icon = '🪵';
+                else if (typeVal === 'quest') icon = '✔';
+                else if (typeVal === 'mystery') icon = '❓';
+                typeElem.textContent = icon;
+            }
+        }
+
+        // 5. Иконка типа местности
+        const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
+        if (terrainElem) {
+            if (terrainVal === "") {
+                terrainElem.style.display = 'none';
+            } else {
+                terrainElem.style.display = 'block';
+                let icon = '';
+                if (terrainVal === 'swamp') icon = '🐊';
+                else if (terrainVal === 'forest') icon = '🌲';
+                else if (terrainVal === 'water') icon = '🌊';
+                else if (terrainVal === 'arctic') icon = '❄';
+                else if (terrainVal === 'mountain') icon = '⛰';
+                else if (terrainVal === 'plains') icon = '🌾';
+                terrainElem.textContent = icon;
+            }
+        }
+
+        // 6. Флажок отряда
+        const flagElem = currentHexElement.querySelector('.squad-flag-container');
+        if (flagElem) {
+            if (squadHereVal) {
+                flagElem.style.display = 'block';
+                flagElem.classList.add('active-flag');
+            } else {
+                flagElem.style.display = 'none';
+                flagElem.classList.remove('active-flag');
+            }
+        }
     }
 
-    // Управление цветом подложки
+    // Обновляем цвет подложки
     if (currentShape) {
         if (colorVal !== 'transparent') {
             currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
@@ -639,68 +702,7 @@ function saveMenu() {
         }
     }
 
-    // Обновляем визуальный флажок текущего гекса
-    const flagElem = currentHexElement.querySelector('.squad-flag-container');
-    if (flagElem) {
-        if (squadHereVal) {
-            flagElem.style.display = 'block';
-            flagElem.classList.add('active-flag');
-        } else {
-            flagElem.style.display = 'none';
-            flagElem.classList.remove('active-flag');
-        }
-    }
-
-    // Обновляем текст меток
-    const tLabel = currentHexElement.querySelector('.hex-title-label');
-    if (tLabel) tLabel.textContent = titleVal;
-
-    const sLabel = currentHexElement.querySelector('.hex-stats-label');
-    if (sLabel) {
-        if (diffVal && regionLevelVal) {
-            sLabel.textContent = `СЛ${diffVal}/lvl${regionLevelVal}`;
-        } else if (diffVal) {
-            sLabel.textContent = `СЛ${diffVal}`;
-        } else if (regionLevelVal) {
-            sLabel.textContent = `lvl${regionLevelVal}`;
-        } else {
-            sLabel.textContent = '';
-        }
-    }
-
-    const typeElem = currentHexElement.querySelector('.type-icon-container');
-    if (typeElem) {
-        if (typeVal === "") {
-            typeElem.style.display = 'none';
-        } else {
-            typeElem.style.display = 'block';
-            let icon = '';
-            if (typeVal === 'landmark') icon = '🔍';
-            else if (typeVal === 'resource') icon = '🪵';
-            else if (typeVal === 'quest') icon = '✔';
-            else if (typeVal === 'mystery') icon = '❓';
-            typeElem.textContent = icon;
-        }
-    }
-
-    const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
-    if (terrainElem) {
-        if (terrainVal === "") {
-            terrainElem.style.display = 'none';
-        } else {
-            terrainElem.style.display = 'block';
-            let icon = '';
-            if (terrainVal === 'swamp') icon = '🐊';
-            else if (terrainVal === 'forest') icon = '🌲';
-            else if (terrainVal === 'water') icon = '🌊';
-            else if (terrainVal === 'arctic') icon = '❄';
-            else if (terrainVal === 'mountain') icon = '⛰';
-            else if (terrainVal === 'plains') icon = '🌾';
-            terrainElem.textContent = icon;
-        }
-    }
-
-    // Сохраняем данные в объект
+    // Сохраняем всё в объект
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
