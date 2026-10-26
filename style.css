@@ -398,3 +398,39 @@ body {
     font-weight: bold;
     border-left: 3px solid #d4af37;
 }
+
+.squad-flag-container {
+    position: absolute;
+    bottom: 15%; /* Позиция в нижней части гекса */
+    right: 15%;
+    z-index: 5;
+    transform: rotate(-10deg); /* Небольшой наклон для реалистичности */
+    pointer-events: none;
+}
+
+.squad-pole {
+    width: 3px;
+    height: 35px;
+    background: #7f8c8d; /* Цвет палочки */
+    margin-left: 5px;
+    border-radius: 2px;
+}
+
+.squad-flag {
+    width: 25px;
+    height: 15px;
+    background: #c0392b; /* Темно-красный цвет */
+    clip-path: polygon(0 0, 100% 50%, 0 100%); /* Делает флаг треугольным */
+    border: 1px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* Анимация появления */
+.squad-flag-container {
+    animation: flagAppear 0.5s ease-out;
+}
+
+@keyframes flagAppear {
+    from { transform: rotate(-10deg) translateY(-10px) scale(0); }
+    to { transform: rotate(-10deg) translateY(0) scale(1); }
+}
