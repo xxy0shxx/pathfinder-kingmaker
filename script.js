@@ -453,11 +453,11 @@ function buildHexGrid() {
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
                 if (diff && lvl) {
-                    statsLabel.textContent = `СЛ ${diff} / lvl ${lvl}`;
+                    statsLabel.textContent = `СЛ${diff}/lvl${lvl}`;
                 } else if (diff) {
-                    statsLabel.textContent = `СЛ ${diff}`;
+                    statsLabel.textContent = `СЛ${diff}`;
                 } else if (lvl) {
-                    statsLabel.textContent = `lvl ${lvl}`;
+                    statsLabel.textContent = `lvl${lvl}`;
                 }
 
                 if (mapData[hexId].squadHere) {
@@ -575,11 +575,11 @@ function saveMenu() {
         const sLabel = currentHexElement.querySelector('.hex-stats-label');
         if (sLabel) {
             if (diffVal && regionLevelVal) {
-                sLabel.textContent = `СЛ ${diffVal} / lvl ${regionLevelVal}`;
+                sLabel.textContent = `СЛ${diffVal}/lvl${regionLevelVal}`;
             } else if (diffVal) {
-                sLabel.textContent = `СЛ ${diffVal}`;
+                sLabel.textContent = `СЛ${diffVal}`;
             } else if (regionLevelVal) {
-                sLabel.textContent = `lvl ${regionLevelVal}`;
+                sLabel.textContent = `lvl${regionLevelVal}`;
             } else {
                 sLabel.textContent = '';
             }
