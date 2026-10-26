@@ -400,24 +400,31 @@ body {
 }
 
 .squad-flag-container {
-    animation: flagAppear 0.5s ease-out;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-20deg); /* Наклон -20 градусов */
+    z-index: 4;
+    pointer-events: none;
+    display: none; /* Управляется через JS */
 }
 
 .squad-pole {
-    width: 3px;
-    height: 35px;
-    background: #7f8c8d;
-    margin-left: 5px;
+    width: 5px; /* Сделали жирнее */
+    height: 45px;
+    background: #333; /* Темно-серый цвет */
+    margin-left: 6px;
     border-radius: 2px;
+    border: 1px solid #000; /* Контур для четкости */
 }
 
 .squad-flag {
-    width: 25px;
-    height: 15px;
+    width: 30px;
+    height: 20px;
     background: #c0392b;
     clip-path: polygon(0 0, 100% 50%, 0 100%);
-    border: 1px solid #ffffff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    border: 2px solid #ffffff; /* Более жирная рамка */
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.5);
 }
 
 /* Анимация появления */
@@ -426,8 +433,8 @@ body {
 }
 
 @keyframes flagAppear {
-    from { transform: translate(-50%, -50%) rotate(-15deg) translateY(-10px) scale(0); }
-    to { transform: translate(-50%, -50%) rotate(-15deg) translateY(0) scale(1); }
+    from { transform: translate(-50%, -50%) rotate(-20deg) translateY(-10px) scale(0); }
+    to { transform: translate(-50%, -50%) rotate(-20deg) translateY(0) scale(1); }
 }
 
 .hex-title-label {
@@ -436,7 +443,7 @@ body {
     left: 10px;
     z-index: 3;
     color: #000;
-    font-size: 22px; /* Чуть меньше, чтобы не вылезало */
+    font-size: 22px;
     font-weight: bold;
     text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
     white-space: nowrap;
@@ -455,4 +462,3 @@ body {
     white-space: nowrap;
     pointer-events: none;
 }
-

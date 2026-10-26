@@ -420,28 +420,19 @@ function buildHexGrid() {
                     
             vHex.appendChild(shape);
 
+            // Заголовок (верхний левый угол)
             const titleLabel = document.createElement('span');
             titleLabel.className = 'hex-title-label';
             vHex.appendChild(titleLabel);
 
-            // Создаем характеристики (нижний правый угол)
+            // Характеристики (нижний правый угол)
             const statsLabel = document.createElement('span');
             statsLabel.className = 'hex-stats-label';
             vHex.appendChild(statsLabel);
 
-            // Заполняем данные
-            if (mapData[hexId] && mapData[hexId].title) {
-                titleLabel.textContent = mapData[hexId].title;
-            }
-
+            // Контейнер флажка
             const flagContainer = document.createElement('div');
             flagContainer.className = 'squad-flag-container';
-
-            if (mapData[hexId] && mapData[hexId].squadHere) {
-                flagContainer.style.display = 'block';
-            } else {
-                flagContainer.style.display = 'none';
-            }
 
             const pole = document.createElement('div');
             pole.className = 'squad-pole';
@@ -451,7 +442,12 @@ function buildHexGrid() {
 
             pole.appendChild(flag);
             flagContainer.appendChild(pole);
-            vHex.appendChild(flagContainer); // Добавляем контейнер внутрь визуального гекса
+            vHex.appendChild(flagContainer);
+
+            // Заполнение начальных данных
+            if (mapData[hexId] && mapData[hexId].title) {
+                titleLabel.textContent = mapData[hexId].title;
+            }
 
             if (mapData[hexId]) {
                 const diff = mapData[hexId].difficulty;
@@ -462,8 +458,11 @@ function buildHexGrid() {
                     statsLabel.textContent = `СЛ ${diff}`;
                 } else if (lvl) {
                     statsLabel.textContent = `lvl ${lvl}`;
-                } else {
-                    statsLabel.textContent = '';
+                }
+
+                if (mapData[hexId].squadHere) {
+                    flagContainer.style.display = 'block';
+                    flagContainer.classList.add('active-flag');
                 }
             }
 
@@ -560,16 +559,46 @@ function saveMenu() {
     const currentHexElement = document.getElementById('visual_' + currentHexId);
     const currentShape = document.getElementById('shape_' + currentHexId);
 
-    // Управление классом затемнения
     if (currentHexElement) {
+        // 1. Обновляем класс затемнения
         if (squadHereVal) {
             currentHexElement.classList.add('squad-dark');
         } else {
             currentHexElement.classList.remove('squad-dark');
         }
+
+        // 2. Мгновенно обновляем текст заголовка
+        const tLabel = currentHexElement.querySelector('.hex-title-label');
+        if (tLabel) tLabel.textContent = titleVal;
+
+        // 3. Мгновенно обновляем текст характеристик
+        const sLabel = currentHexElement.querySelector('.hex-stats-label');
+        if (sLabel) {
+            if (diffVal && regionLevelVal) {
+                sLabel.textContent = `СЛ ${diffVal} / lvl ${regionLevelVal}`;
+            } else if (diffVal) {
+                sLabel.textContent = `СЛ ${diffVal}`;
+            } else if (regionLevelVal) {
+                sLabel.textContent = `lvl ${regionLevelVal}`;
+            } else {
+                sLabel.textContent = '';
+            }
+        }
+
+        // 4. Мгновенно обновляем видимость флажка
+        const flagElem = currentHexElement.querySelector('.squad-flag-container');
+        if (flagElem) {
+            if (squadHereVal) {
+                flagElem.style.display = 'block';
+                flagElem.classList.add('active-flag');
+            } else {
+                flagElem.style.display = 'none';
+                flagElem.classList.remove('active-flag');
+            }
+        }
     }
 
-    // Управление цветом подложки
+    // 5. Обновляем цвет подложки
     if (currentShape) {
         if (colorVal !== 'transparent') {
             currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.27);
@@ -578,12 +607,7 @@ function saveMenu() {
         }
     }
 
-    const flagContainer = document.getElementById('flag_container_' + currentHexId);
-    const flagElem = currentHexElement.querySelector('.squad-flag-container');
-    if (flagElem) {
-        flagElem.style.display = squadHereVal ? 'block' : 'none';
-    }
-
+    // Сохраняем в объект и локалсторейдж
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
@@ -599,21 +623,9 @@ function saveMenu() {
 
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-    const label = document.getElementById('label_' + currentHexId);
-    if (label) {
-        // ... ваш код обновления текста метки ...
-        if (diffVal && regionLevelVal) {
-            label.textContent = titleVal + ' СЛ ' + diffVal + ' / lvl ' + regionLevelVal;
-        } else if (diffVal) {
-            label.textContent = titleVal + ' СЛ ' + diffVal;
-        } else if (regionLevelVal) {
-            label.textContent = titleVal + ' lvl ' + regionLevelVal;
-        } else {
-            label.textContent = titleVal;
-        }
-    }
     closeMenu();
 }
+
 
 const btnSave = document.getElementById('btnSave');
 if (btnSave) btnSave.addEventListener('click', saveMenu);
