@@ -443,7 +443,7 @@ body {
     left: 10px;
     z-index: 3;
     color: #000;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: bold;
     text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
     white-space: nowrap;
@@ -456,7 +456,7 @@ body {
     right: 10px;
     z-index: 3;
     color: #000;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: bold;
     text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
     white-space: nowrap;
