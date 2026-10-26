@@ -513,3 +513,29 @@ body {
 .type-icon-container.small {
     font-size: 18px;
 }
+
+/* Контейнер для значка типа местности */
+.terrain-icon-container {
+    position: absolute;
+    /* Позиция: выше типа объекта */
+    bottom: 60%;
+    left: 15%;
+    z-index: 4;
+    font-size: 22px; /* Чуть меньше, чем объект, для визуальной иерархии */
+    pointer-events: none;
+    display: none;
+    animation: terrainFloat 4s infinite ease-in-out;
+}
+
+/* Анимация пла浮вания для местности */
+@keyframes terrainFloat {
+    0% {
+        transform: translate(0, 0) rotate(-3deg);
+    }
+    50% {
+        transform: translate(1px, -2px) rotate(3deg);
+    }
+    100% {
+        transform: translate(0, 0) rotate(-3deg);
+    }
+}

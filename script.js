@@ -420,6 +420,23 @@ function buildHexGrid() {
                     
             vHex.appendChild(shape);
 
+            if (mapData[hexId] && mapData[hexId].terrain) {
+                const terrainElem = document.createElement('div');
+                terrainElem.className = 'terrain-icon-container';
+                terrainElem.style.display = 'block';
+
+                let icon = '';
+                if (mapData[hexId].terrain === 'swamp') icon = '🐊';
+                else if (mapData[hexId].terrain === 'forest') icon = '🌲';
+                else if (mapData[hexId].terrain === 'water') icon = '🌊';
+                else if (mapData[hexId].terrain === 'arctic') icon = '❄';
+                else if (mapData[hexId].terrain === 'mountain') icon = '⛰';
+                else if (mapData[hexId].terrain === 'plains') icon = '🌾';
+
+                terrainElem.textContent = icon;
+                vHex.appendChild(terrainElem);
+            }
+
             if (mapData[hexId] && mapData[hexId].type) {
                 const typeElem = document.createElement('div');
                 typeElem.className = 'type-icon-container';
@@ -680,6 +697,23 @@ function saveMenu() {
             else if (typeVal === 'quest') icon = '✔';
             else if (typeVal === 'mystery') icon = '❓';
             typeElem.textContent = icon;
+        }
+    }
+
+    const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
+    if (terrainElem) {
+        if (terrainVal === "") {
+            terrainElem.style.display = 'none';
+        } else {
+            terrainElem.style.display = 'block';
+            let icon = '';
+            if (terrainVal === 'swamp') icon = '🐊';
+            else if (terrainVal === 'forest') icon = '🌲';
+            else if (terrainVal === 'water') icon = '🌊';
+            else if (terrainVal === 'arctic') icon = '❄';
+            else if (terrainVal === 'mountain') icon = '⛰';
+            else if (terrainVal === 'plains') icon = '🌾';
+            terrainElem.textContent = icon;
         }
     }
 
