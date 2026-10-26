@@ -410,8 +410,8 @@ body {
 }
 
 .squad-pole {
-    width: 5px;
-    height: 45px;
+    width: 6px;
+    height: 50px;
     background: #333;
     margin-left: 6px;
     border-radius: 2px;
@@ -424,24 +424,18 @@ body {
     background: #c0392b;
     clip-path: polygon(0 0, 100% 50%, 0 100%);
     border: 2px solid #ffffff;
-    box-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-
-    /* Точка опоры флажка — левый край (палочка) */
-    transform-origin: left center;
-    /* Применяем анимацию махания */
-    animation: flagWave 2s infinite ease-in-out;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
 }
 
-/* Анимация покачивания (махания) */
-@keyframes flagWave {
+@keyframes flagSwing {
     0% {
-        transform: rotate(-15deg) skewY(0deg);
+        transform: translate(-50%, -50%) rotate(-40deg);
     }
     50% {
-        transform: rotate(15deg) skewY(5deg); /* Немного наклоняем и искажаем для эффекта ткани */
+        transform: translate(-50%, -50%) rotate(40deg);
     }
     100% {
-        transform: rotate(-15deg) skewY(0deg);
+        transform: translate(-50%, -50%) rotate(-40deg);
     }
 }
 
@@ -450,11 +444,12 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    /* Базовый наклон -20 градусов */
-    transform: translate(-50%, -50%) rotate(-20deg);
+    /* Сбрасываем начальный наклон, анимация сама его задаст */
+    transform: translate(-50%, -50%);
     z-index: 4;
     pointer-events: none;
     display: none;
+    transform-origin: bottom center;
 }
 
 @keyframes flagAppear {
@@ -489,5 +484,5 @@ body {
 }
 
 .squad-flag-container.active-flag {
-    animation: flagAppear 0.5s ease-out;
+    animation: flagSwing 1.5s infinite ease-in-out;
 }
