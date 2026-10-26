@@ -429,13 +429,13 @@ body {
 
 @keyframes flagSwing {
     0% {
-        transform: translate(-50%, -50%) rotate(-25deg);
+        transform: translate(-50%, -50%) rotate(-15deg);
     }
     50% {
-        transform: translate(-50%, -50%) rotate(25deg);
+        transform: translate(-50%, -50%) rotate(15deg);
     }
     100% {
-        transform: translate(-50%, -50%) rotate(-25deg);
+        transform: translate(-50%, -50%) rotate(-15deg);
     }
 }
 
