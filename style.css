@@ -85,9 +85,9 @@ body {
     text-overflow: clip;
 }
 
-/* Сильное затемнение гекса и рамка, если отряд находится в нем */
+/* затемнение гекса и рамка, если отряд находится в нем */
 .visual-hex.squad-dark .hex-shape::before {
-    background: rgba(0, 0, 0, 0.6) !important; /* Мощное затемнение фона */
+    background: rgba(0, 0, 0, 0) !important;
 }
 
 .visual-hex.squad-dark .hex-shape {
