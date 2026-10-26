@@ -490,7 +490,7 @@ body {
     position: absolute;
     /* Ставим выше характеристик (которые на 25px от низа) */
     bottom: 50px;
-    right: 20%;
+    right: 15%;
     z-index: 4;
     font-size: 24px;
     pointer-events: none;
