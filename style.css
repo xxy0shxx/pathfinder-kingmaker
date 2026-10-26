@@ -429,13 +429,13 @@ body {
 
 @keyframes flagSwing {
     0% {
-        transform: translate(-50%, -50%) rotate(-40deg);
+        transform: translate(-50%, -50%) rotate(-35deg);
     }
     50% {
-        transform: translate(-50%, -50%) rotate(40deg);
+        transform: translate(-50%, -50%) rotate(35deg);
     }
     100% {
-        transform: translate(-50%, -50%) rotate(-40deg);
+        transform: translate(-50%, -50%) rotate(-35deg);
     }
 }
 
@@ -444,7 +444,6 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    /* Сбрасываем начальный наклон, анимация сама его задаст */
     transform: translate(-50%, -50%);
     z-index: 4;
     pointer-events: none;
@@ -484,5 +483,5 @@ body {
 }
 
 .squad-flag-container.active-flag {
-    animation: flagSwing 1.5s infinite ease-in-out;
+    animation: flagSwing 4s infinite ease-in-out;
 }
