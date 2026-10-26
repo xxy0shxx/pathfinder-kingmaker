@@ -411,7 +411,7 @@ function buildHexGrid() {
             shape.setAttribute('id', 'shape_' + hexId);
             
             if (mapData[hexId] && mapData[hexId].color) {
-                shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.27);
+                shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
             }
 
             if (mapData[hexId] && mapData[hexId].squadHere) {
@@ -601,7 +601,7 @@ function saveMenu() {
     // 5. Обновляем цвет подложки
     if (currentShape) {
         if (colorVal !== 'transparent') {
-            currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.27);
+            currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
         } else {
             currentShape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
         }
