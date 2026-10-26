@@ -2,11 +2,11 @@
 // ЧАСТЬ 1: ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И МУЗЫКАЛЬНЫЙ ДВИЖОК
 // ========================================================
 let currentSquadHex = localStorage.getItem('hexMapSquadLocation') || null;
-const hexRadius = 78;  
-const rows = 12;       
-const cols = 30;       
-const offsetX = 29; 
-const offsetY = 16; 
+const hexRadius = 78;
+const rows = 12;
+const cols = 30;
+const offsetX = 29;
+const offsetY = 16;
 
 const clickableMap = document.getElementById('clickableMap');
 const visualLayer = document.getElementById('visualLayer');
@@ -19,7 +19,7 @@ const audioPlayer = document.getElementById('bg-music');
 const musicButton = document.getElementById('btnMusic');
 const loopButton = document.getElementById('btnLoop');
 const playlistButton = document.getElementById('btnPlaylist');
-const trackSelector = document.getElementById('trackSelectorStyle'); 
+const trackSelector = document.getElementById('trackSelectorStyle');
 const playlistContainer = document.getElementById('playerPlaylist');
 const tracksListContainer = document.getElementById('playlistTracksContainer');
 const progressBg = document.querySelector('.timeline-bg');
@@ -29,77 +29,78 @@ const timeTotal = document.getElementById('timeTotal');
 const volumeSlider = document.getElementById('volumeSlider');
 
 const playlist = [
-    "main_theme.mp3", 
-    "02_beginning.mp3", 
-    "03_exploring_the_stolen_lands.mp3",
-    "04_bittersweet_nyrissas_theme.mp3", 
-    "05_peaceful_lands.mp3", 
-    "06_the_shrike_hills.mp3",
-    "07_hills_of_glenebon.mp3", 
-    "08_twilight_at_glenebon.mp3", 
-    "09_the_narlmarches.mp3",
-    "10_sunset_at_the_narlmarches.mp3", 
-    "11_dawn_at_the_narlmarches.mp3", 
-    "12_old_sycamore_caves.mp3",
-    "13_thousand_grains.mp3", 
-    "14_city_of_hollow_eyes.mp3", 
-    "15_tomb_of_the_iron_lords_champion.mp3",
-    "16_the_dunsward.mp3", 
-    "17_sunset_at_the_dunsward.mp3", 
-    "18_dawn_at_the_dunsward.mp3", 
-    "19_the_tarnished_jewel_pitax_theme.mp3", 
-    "20_the_coronation.mp3",
-    "21_rule_of_chaos.mp3",
-    "22_rule_of_balance.mp3",
-    "23_rule_of_order.mp3",
-    "24_rule_of_good.mp3",
-    "25_rule_of_evil.mp3",
-    "26_steps_of_the_goddess.mp3",
-    "27_the_art_of_ruling.mp3",
-    "28_season_of_bloom.mp3",
-    "29_canvas_for_the_gods.mp3",
-    "30_where_trees_talk_to_the_stars.mp3",
-    "31_the_echo_born_before_the_sound.mp3",
-    "32_blade_of_your_own_choices.mp3",
-    "33_bold_dog_barks_loud.mp3",
-    "34_skylark.mp3",
-    "35_who_rules_your_heart.mp3",
-    "36_brevoy_folk_melody_tavern_theme_1.mp3",
-    "37_the_heart_of_the_land_tavern_theme_2.mp3",
-    "38_fey_in_the_hills_tavern_theme_3.mp3",
-    "39_lazy_morning_tavern_theme_4.mp3",
-    "40_rushlight_festival_tavern_theme_5.mp3",
-    "41_lake_of_mists_and_veils_tavern_theme_6.mp3",
-    "42_the_shrike_hills_battle_theme.mp3",
-    "43_uplands_battle_theme.mp3",
-    "44_the_dunsward_battle_theme.mp3",
-    "45_the_narlmarches_battle_theme.mp3",
-    "46_dungeon_battle_theme_1.mp3",
-    "47_dungeon_battle_theme_2.mp3",
-    "48_first_world_battle_theme.mp3",
-    "49_capital_under_attack.mp3",
-    "50_ancient_ruins_battle_theme.mp3",
-    "51_caves_battle_theme.mp3",
-    "52_in_the_name_of_my_dream_stag_lord_battle_theme.mp3",
-    "53_dur_borba_hargulka_battle_theme.mp3",
-    "54_relic_of_a_crumbled_empire_vordakai_battle_theme.mp3",
-    "55_false_destiny_armag_battle_theme.mp3",
-    "56_the_proud_the_bitter_the_fallen_nyrissa_battle_theme.mp3",
-    "57_the_doomsayer.mp3",
-    "58_the_laughing_lie.mp3",
-    "59_he_who_leads_the_hunt.mp3",
-    "60_a_string_that_holds_the_world_in_place.mp3",
-    "61_the_art_of_illusion.mp3",
-    "62_varnholds_dawn.mp3"
+    "audio/main_theme.mp3",
+    "audio/02_beginning.mp3",
+    "audio/03_exploring_the_stolen_lands.mp3",
+    "audio/04_bittersweet_nyrissas_theme.mp3",
+    "audio/05_peaceful_lands.mp3",
+    "audio/06_the_shrike_hills.mp3",
+    "audio/07_hills_of_glenebon.mp3",
+    "audio/08_twilight_at_glenebon.mp3",
+    "audio/09_the_narlmarches.mp3",
+    "audio/10_sunset_at_the_narlmarches.mp3",
+    "audio/11_dawn_at_the_narlmarches.mp3",
+    "audio/12_old_sycamore_caves.mp3",
+    "audio/13_thousand_grains.mp3",
+    "audio/14_city_of_hollow_eyes.mp3",
+    "audio/15_tomb_of_the_iron_lords_champion.mp3",
+    "audio/16_the_dunsward.mp3",
+    "audio/17_sunset_at_the_dunsward.mp3",
+    "audio/18_dawn_at_the_dunsward.mp3",
+    "audio/19_the_tarnished_jewel_pitax_theme.mp3",
+    "audio/20_the_coronation.mp3",
+    "audio/21_rule_of_chaos.mp3",
+    "audio/22_rule_of_balance.mp3",
+    "audio/23_rule_of_order.mp3",
+    "audio/24_rule_of_good.mp3",
+    "audio/25_rule_of_evil.mp3",
+    "audio/26_steps_of_the_goddess.mp3",
+    "audio/27_the_art_of_ruling.mp3",
+    "audio/28_season_of_bloom.mp3",
+    "audio/29_canvas_for_the_gods.mp3",
+    "audio/30_where_trees_talk_to_the_stars.mp3",
+    "audio/31_the_echo_born_before_the_sound.mp3",
+    "audio/32_blade_of_your_own_choices.mp3",
+    "audio/33_bold_dog_barks_loud.mp3",
+    "audio/34_skylark.mp3",
+    "audio/35_who_rules_your_heart.mp3",
+    "audio/36_brevoy_folk_melody_tavern_theme_1.mp3",
+    "audio/37_the_heart_of_the_land_tavern_theme_2.mp3",
+    "audio/38_fey_in_the_hills_tavern_theme_3.mp3",
+    "audio/39_lazy_morning_tavern_theme_4.mp3",
+    "audio/40_rushlight_festival_tavern_theme_5.mp3",
+    "audio/41_lake_of_mists_and_veils_tavern_theme_6.mp3",
+    "audio/42_the_shrike_hills_battle_theme.mp3",
+    "audio/43_uplands_battle_theme.mp3",
+    "audio/44_the_dunsward_battle_theme.mp3",
+    "audio/45_the_narlmarches_battle_theme.mp3",
+    "audio/46_dungeon_battle_theme_1.mp3",
+    "audio/47_dungeon_battle_theme_2.mp3",
+    "audio/48_first_world_battle_theme.mp3",
+    "audio/49_capital_under_attack.mp3",
+    "audio/50_ancient_ruins_battle_theme.mp3",
+    "audio/51_caves_battle_theme.mp3",
+    "audio/52_in_the_name_of_my_dream_stag_lord_battle_theme.mp3",
+    "audio/53_dur_borba_hargulka_battle_theme.mp3",
+    "audio/54_relic_of_a_crumbled_empire_vordakai_battle_theme.mp3",
+    "audio/55_false_destiny_armag_battle_theme.mp3",
+    "audio/56_the_proud_the_bitter_the_fallen_nyrissa_battle_theme.mp3",
+    "audio/57_the_doomsayer.mp3",
+    "audio/58_the_laughing_lie.mp3",
+    "audio/59_he_who_leads_the_hunt.mp3",
+    "audio/60_a_string_that_holds_the_world_in_place.mp3",
+    "audio/61_the_art_of_illusion.mp3",
+    "audio/62_varnholds_dawn.mp3"
 ];
 let currentTrackIdx = 0;
 let isLooping = false;
 
 function formatTrackName(filename) {
-    let name = filename.replace('.mp3', '').replace(/_/g, ' ');
+    let name = filename.replace('.mp3', '');
+    name = name.replace(/_/g, ' ');
+    name = name.replace(/audio/gi, '').replace(/\s+/g, ' ').trim();
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
-
 function initializeMusicPlayer() {
     if (!audioPlayer) return;
     audioPlayer.volume = 0.25;
