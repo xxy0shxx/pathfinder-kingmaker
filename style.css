@@ -488,9 +488,9 @@ body {
 
 .type-icon-container {
     position: absolute;
-    /* Опускаем почти до уровня характеристик (которые на 25px от низа) */
-    bottom: 35px;
-    left: 15%;
+    /* Ставим выше характеристик (которые на 25px от низа) */
+    bottom: 75px;
+    right: 20%;
     z-index: 4;
     font-size: 24px;
     pointer-events: none;
@@ -511,8 +511,8 @@ body {
 /* Контейнер для значка типа местности */
 .terrain-icon-container {
     position: absolute;
-    /* Ставим чуть выше значка объекта */
-    bottom: 55px;
+    /* Опускаем в нижнюю левую часть */
+    bottom: 50px;
     left: 15%;
     z-index: 4;
     font-size: 22px;
