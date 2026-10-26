@@ -488,8 +488,8 @@ body {
 
 .type-icon-container {
     position: absolute;
-    /* Поднимаем иконку выше (40% от низа), оставляя её в левой части */
-    bottom: 40%;
+    /* Опускаем почти до уровня характеристик (которые на 25px от низа) */
+    bottom: 35px;
     left: 15%;
     z-index: 4;
     font-size: 24px;
@@ -499,15 +499,9 @@ body {
 }
 
 @keyframes typeFloat {
-    0% {
-        transform: translate(0, 0) rotate(-5deg);
-    }
-    50% {
-        transform: translate(2px, -3px) rotate(5deg);
-    }
-    100% {
-        transform: translate(0, 0) rotate(-5deg);
-    }
+    0% { transform: translate(0, 0) rotate(-5deg); }
+    50% { transform: translate(2px, -3px) rotate(5deg); }
+    100% { transform: translate(0, 0) rotate(-5deg); }
 }
 
 .type-icon-container.small {
@@ -517,11 +511,11 @@ body {
 /* Контейнер для значка типа местности */
 .terrain-icon-container {
     position: absolute;
-    /* Позиция: выше типа объекта */
-    bottom: 60%;
+    /* Ставим чуть выше значка объекта */
+    bottom: 55px;
     left: 15%;
     z-index: 4;
-    font-size: 22px; /* Чуть меньше, чем объект, для визуальной иерархии */
+    font-size: 22px;
     pointer-events: none;
     display: none;
     animation: terrainFloat 4s infinite ease-in-out;
@@ -529,13 +523,7 @@ body {
 
 /* Анимация пла浮вания для местности */
 @keyframes terrainFloat {
-    0% {
-        transform: translate(0, 0) rotate(-3deg);
-    }
-    50% {
-        transform: translate(1px, -2px) rotate(3deg);
-    }
-    100% {
-        transform: translate(0, 0) rotate(-3deg);
-    }
+    0% { transform: translate(0, 0) rotate(-3deg); }
+    50% { transform: translate(1px, -2px) rotate(3deg); }
+    100% { transform: translate(0, 0) rotate(-3deg); }
 }
