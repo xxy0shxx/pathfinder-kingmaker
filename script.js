@@ -98,7 +98,7 @@ let isLooping = false;
 function formatTrackName(filename) {
     let name = filename.replace('.mp3', '');
     name = name.replace(/_/g, ' ');
-    name = name.replace(/audio/gi, '').replace(/\s+/g, ' ').trim();
+    name = name.replace(/audio\//gi, '').replace(/\s+/g, ' ').trim();
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
 function initializeMusicPlayer() {
