@@ -626,7 +626,6 @@ function saveMenu() {
     closeMenu();
 }
 
-
 const btnSave = document.getElementById('btnSave');
 if (btnSave) btnSave.addEventListener('click', saveMenu);
 
@@ -767,4 +766,3 @@ if (viewport && mapContainer) {
         setTimeout(() => { hasMoved = false; }, 50);
     });
 }
-
