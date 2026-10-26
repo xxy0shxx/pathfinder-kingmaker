@@ -312,11 +312,11 @@ function buildHexGrid() {
                 if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
                     const data = mapData[hexId];
                     let content = '';
-                    
+
                     if (data.title) {
                         const star = data.explored ? '⭐ ' : '';
                         const mapIcon = data.mapMapped ? '📜 ' : '';
-                        
+
                         let statsLabel = '';
                         if (data.difficulty && data.regionLevel) {
                             statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
@@ -325,7 +325,7 @@ function buildHexGrid() {
                         } else if (data.regionLevel) {
                             statsLabel = ` (lvl ${data.regionLevel})`;
                         }
-                        
+
                         let typeIcon = '';
                         if (data.type === 'landmark') typeIcon = '🔍 ';
                         else if (data.type === 'resource') typeIcon = '🪵 ';
@@ -386,7 +386,7 @@ function buildHexGrid() {
                     if (data.text) {
                         content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
                     }
-                    
+
                     tooltip.innerHTML = content;
                     tooltip.style.display = 'block';
                 }
@@ -405,11 +405,11 @@ function buildHexGrid() {
                     tooltip.innerHTML = '';
                 }
             });
-            
+
             const shape = document.createElement('div');
             shape.className = 'hex-shape';
             shape.setAttribute('id', 'shape_' + hexId);
-            
+
             if (mapData[hexId] && mapData[hexId].color) {
                 shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
             }
@@ -417,81 +417,85 @@ function buildHexGrid() {
             if (mapData[hexId] && mapData[hexId].squadHere) {
                 vHex.classList.add('squad-dark');
             }
-                    
+
             vHex.appendChild(shape);
 
-            if (mapData[hexId] && mapData[hexId].terrain) {
-                const terrainElem = document.createElement('div');
-                terrainElem.className = 'terrain-icon-container';
-                terrainElem.style.display = 'block';
+            // --- ВСЕ ЭЛЕМЕНТЫ СОЗДАЮТСЯ ВСЕГДА (даже если данных нет) ---
 
-                let icon = '';
-                if (mapData[hexId].terrain === 'swamp') icon = '🐊';
-                else if (mapData[hexId].terrain === 'forest') icon = '🌲';
-                else if (mapData[hexId].terrain === 'water') icon = '🌊';
-                else if (mapData[hexId].terrain === 'arctic') icon = '❄';
-                else if (mapData[hexId].terrain === 'mountain') icon = '⛰';
-                else if (mapData[hexId].terrain === 'plains') icon = '🌾';
-
-                terrainElem.textContent = icon;
-                vHex.appendChild(terrainElem);
-            }
-
-            if (mapData[hexId] && mapData[hexId].type) {
-                const typeElem = document.createElement('div');
-                typeElem.className = 'type-icon-container';
-                typeElem.style.display = 'block';
-
-                let icon = '';
-                if (mapData[hexId].type === 'landmark') icon = '🔍';
-                else if (mapData[hexId].type === 'resource') icon = '🪵';
-                else if (mapData[hexId].type === 'quest') icon = '✔';
-                else if (mapData[hexId].type === 'mystery') icon = '❓';
-
-                typeElem.textContent = icon;
-                vHex.appendChild(typeElem);
-            }
-
-            // Заголовок (верхний левый угол)
+            // 1. Заголовок
             const titleLabel = document.createElement('span');
             titleLabel.className = 'hex-title-label';
             vHex.appendChild(titleLabel);
 
-            // Характеристики (нижний правый угол)
+            // 2. Характеристики
             const statsLabel = document.createElement('span');
             statsLabel.className = 'hex-stats-label';
             vHex.appendChild(statsLabel);
 
-            // Контейнер флажка
+            // 3. Значок типа объекта
+            const typeElem = document.createElement('div');
+            typeElem.className = 'type-icon-container';
+            vHex.appendChild(typeElem);
+
+            // 4. Значок типа местности
+            const terrainElem = document.createElement('div');
+            terrainElem.className = 'terrain-icon-container';
+            vHex.appendChild(terrainElem);
+
+            // 5. Контейнер флажка
             const flagContainer = document.createElement('div');
             flagContainer.className = 'squad-flag-container';
-
             const pole = document.createElement('div');
             pole.className = 'squad-pole';
-
             const flag = document.createElement('div');
             flag.className = 'squad-flag';
-
             pole.appendChild(flag);
             flagContainer.appendChild(pole);
             vHex.appendChild(flagContainer);
 
-            // Заполнение начальных данных
-            if (mapData[hexId] && mapData[hexId].title) {
-                titleLabel.textContent = mapData[hexId].title;
-            }
-
+            // --- ЗАПОЛНЕНИЕ ДАННЫМИ (если они есть) ---
             if (mapData[hexId]) {
+                // Название
+                if (mapData[hexId].title) {
+                    titleLabel.textContent = mapData[hexId].title;
+                }
+
+                // Характеристики
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
                 if (diff && lvl) {
-                    statsLabel.textContent = `СЛ${diff}/lvl${lvl}`;
+                    statsLabel.textContent = `СЛ ${diff} / lvl ${lvl}`;
                 } else if (diff) {
-                    statsLabel.textContent = `СЛ${diff}`;
+                    statsLabel.textContent = `СЛ ${diff}`;
                 } else if (lvl) {
-                    statsLabel.textContent = `lvl${lvl}`;
+                    statsLabel.textContent = `lvl ${lvl}`;
                 }
 
+                // Тип объекта
+                if (mapData[hexId].type) {
+                    typeElem.style.display = 'block';
+                    let icon = '';
+                    if (mapData[hexId].type === 'landmark') icon = '🔍';
+                    else if (mapData[hexId].type === 'resource') icon = '🪵';
+                    else if (mapData[hexId].type === 'quest') icon = '✔';
+                    else if (mapData[hexId].type === 'mystery') icon = '❓';
+                    typeElem.textContent = icon;
+                }
+
+                // Местность
+                if (mapData[hexId].terrain) {
+                    terrainElem.style.display = 'block';
+                    let icon = '';
+                    if (mapData[hexId].terrain === 'swamp') icon = '🐊';
+                    else if (mapData[hexId].terrain === 'forest') icon = '🌲';
+                    else if (mapData[hexId].terrain === 'water') icon = '🌊';
+                    else if (mapData[hexId].terrain === 'arctic') icon = '❄';
+                    else if (mapData[hexId].terrain === 'mountain') icon = '⛰';
+                    else if (mapData[hexId].terrain === 'plains') icon = '🌾';
+                    terrainElem.textContent = icon;
+                }
+
+                // Флаг
                 if (mapData[hexId].squadHere) {
                     flagContainer.style.display = 'block';
                     flagContainer.classList.add('active-flag');
@@ -502,6 +506,7 @@ function buildHexGrid() {
         }
     }
 }
+
 // ========================================================
 // ЧАСТЬ 3: МОДАЛЬНОЕ ОКНО, ЦВЕТА, ИМПОРТ/ЭКСПОРТ И DRAG & DROP
 // ========================================================
