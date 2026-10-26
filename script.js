@@ -420,6 +420,21 @@ function buildHexGrid() {
                     
             vHex.appendChild(shape);
 
+            if (mapData[hexId] && mapData[hexId].type) {
+                const typeElem = document.createElement('div');
+                typeElem.className = 'type-icon-container';
+                typeElem.style.display = 'block';
+
+                let icon = '';
+                if (mapData[hexId].type === 'landmark') icon = '🔍';
+                else if (mapData[hexId].type === 'resource') icon = '🪵';
+                else if (mapData[hexId].type === 'quest') icon = '✔';
+                else if (mapData[hexId].type === 'mystery') icon = '❓';
+
+                typeElem.textContent = icon;
+                vHex.appendChild(typeElem);
+            }
+
             // Заголовок (верхний левый угол)
             const titleLabel = document.createElement('span');
             titleLabel.className = 'hex-title-label';
@@ -546,6 +561,13 @@ function closeMenu() {
 function saveMenu() {
     if (!currentHexId) return;
     const titleVal = document.getElementById('inpTitle').value.trim();
+
+    if (titleVal === "") {
+        alert("Пожалуйста, введите название для гекса!");
+        document.getElementById('inpTitle').focus();
+        return;
+    }
+
     const descVal = document.getElementById('inpDesc').value;
     const colorVal = document.getElementById('inpColor').value || 'transparent';
     const diffVal = difficultySelect.value;
@@ -631,9 +653,9 @@ function saveMenu() {
 
     // Обновляем текст меток
     const tLabel = currentHexElement.querySelector('.hex-title-label');
-    const sLabel = currentHexElement.querySelector('.hex-stats-label');
-
     if (tLabel) tLabel.textContent = titleVal;
+
+    const sLabel = currentHexElement.querySelector('.hex-stats-label');
     if (sLabel) {
         if (diffVal && regionLevelVal) {
             sLabel.textContent = `СЛ${diffVal}/lvl${regionLevelVal}`;
@@ -643,6 +665,21 @@ function saveMenu() {
             sLabel.textContent = `lvl${regionLevelVal}`;
         } else {
             sLabel.textContent = '';
+        }
+    }
+
+    const typeElem = currentHexElement.querySelector('.type-icon-container');
+    if (typeElem) {
+        if (typeVal === "") {
+            typeElem.style.display = 'none';
+        } else {
+            typeElem.style.display = 'block';
+            let icon = '';
+            if (typeVal === 'landmark') icon = '🔍';
+            else if (typeVal === 'resource') icon = '🪵';
+            else if (typeVal === 'quest') icon = '✔';
+            else if (typeVal === 'mystery') icon = '❓';
+            typeElem.textContent = icon;
         }
     }
 

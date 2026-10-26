@@ -483,5 +483,32 @@ body {
 }
 
 .squad-flag-container.active-flag {
-    animation: flagSwing 4s infinite ease-in-out;
+    animation: flagSwing 6s infinite ease-in-out;
+}
+
+.type-icon-container {
+    position: absolute;
+    bottom: 30px; /* Чуть выше характеристик */
+    left: 15px;   /* В левом углу */
+    z-index: 4;
+    font-size: 24px;
+    pointer-events: none;
+    display: none; /* По умолчанию скрыт, включается через JS */
+    animation: typeFloat 3s infinite ease-in-out; /* Медленное покачивание */
+}
+
+@keyframes typeFloat {
+    0% {
+        transform: translate(0, 0) rotate(-5deg);
+    }
+    50% {
+        transform: translate(2px, -3px) rotate(5deg); /* Легкий подъем вверх и вправо */
+    }
+    100% {
+        transform: translate(0, 0) rotate(-5deg);
+    }
+}
+
+.type-icon-container.small {
+    font-size: 18px;
 }
