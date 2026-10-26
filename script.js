@@ -651,23 +651,6 @@ function saveMenu() {
         }
     }
 
-    // Сохраняем данные в объект
-    mapData[currentHexId] = {
-        title: titleVal,
-        text: descVal,
-        color: colorVal,
-        difficulty: diffVal,
-        explored: exploredVal,
-        mapMapped: mapMappedVal,
-        squadHere: squadHereVal,
-        type: typeVal,
-        terrain: terrainVal,
-        regionLevel: regionLevelVal
-    };
-
-    // Сохраняем в локальное хранилище
-    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-
     // Обновляем текст меток
     const tLabel = currentHexElement.querySelector('.hex-title-label');
     if (tLabel) tLabel.textContent = titleVal;
@@ -716,6 +699,23 @@ function saveMenu() {
             terrainElem.textContent = icon;
         }
     }
+
+    // Сохраняем данные в объект
+    mapData[currentHexId] = {
+        title: titleVal,
+        text: descVal,
+        color: colorVal,
+        difficulty: diffVal,
+        explored: exploredVal,
+        mapMapped: mapMappedVal,
+        squadHere: squadHereVal,
+        type: typeVal,
+        terrain: terrainVal,
+        regionLevel: regionLevelVal
+    };
+
+    // Сохраняем в локальное хранилище
+    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
     closeMenu();
 }
