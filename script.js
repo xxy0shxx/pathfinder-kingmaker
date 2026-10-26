@@ -545,7 +545,13 @@ function closeMenu() {
 
 function saveMenu() {
     if (!currentHexId) return;
-    const titleVal = document.getElementById('inpTitle').value;
+    const titleVal = document.getElementById('inpTitle').value.trim();
+    if (titleVal === "") {
+        alert("Пожалуйста, введите название для гекса!");
+        document.getElementById('inpTitle').focus();
+        return;
+    }
+
     const descVal = document.getElementById('inpDesc').value;
     const colorVal = document.getElementById('inpColor').value || 'transparent';
     const diffVal = difficultySelect.value;
