@@ -383,10 +383,6 @@ function buildHexGrid() {
             statsLabel.className = 'hex-stats-label';
             vHex.appendChild(statsLabel);
 
-            const terrainElem = document.createElement('div');
-            terrainElem.className = 'terrain-icon-container';
-            vHex.appendChild(terrainElem);
-
             const exploredElem = document.createElement('div');
             exploredElem.className = 'explored-icon-container';
             vHex.appendChild(exploredElem);
@@ -399,6 +395,10 @@ function buildHexGrid() {
             typeElem.className = 'type-icon-container';
             vHex.appendChild(typeElem);
 
+            const terrainElem = document.createElement('div');
+            terrainElem.className = 'terrain-icon-container';
+            vHex.appendChild(terrainElem);
+
             const flagContainer = document.createElement('div');
             flagContainer.className = 'squad-flag-container';
             const pole = document.createElement('div');
@@ -409,7 +409,7 @@ function buildHexGrid() {
             flagContainer.appendChild(pole);
             vHex.appendChild(flagContainer);
 
-            // ЗАПОЛНЯЕМ ДАННЫЕ
+            // ЗАПОЛНЯЕМ ДАННЫМИ
             if (mapData[hexId]) {
                 if (mapData[hexId].title) titleLabel.textContent = mapData[hexId].title;
 
