@@ -546,12 +546,6 @@ function closeMenu() {
 function saveMenu() {
     if (!currentHexId) return;
     const titleVal = document.getElementById('inpTitle').value.trim();
-    if (titleVal === "") {
-        alert("Пожалуйста, введите название для гекса!");
-        document.getElementById('inpTitle').focus();
-        return;
-    }
-
     const descVal = document.getElementById('inpDesc').value;
     const colorVal = document.getElementById('inpColor').value || 'transparent';
     const diffVal = difficultySelect.value;
@@ -565,46 +559,39 @@ function saveMenu() {
     const currentHexElement = document.getElementById('visual_' + currentHexId);
     const currentShape = document.getElementById('shape_' + currentHexId);
 
+    // ============================================================
+    // ЛОГИКА ПЕРЕМЕЩЕНИЯ ОТРЯДА (Один отряд на карте)
+    // ============================================================
+    if (squadHereVal) {
+        // Проходим по всем сохраненным гексам
+        for (let id in mapData) {
+            // Если это не текущий гекс И в этом гексе отряд уже стоит
+            if (id !== currentHexId && mapData[id].squadHere === true) {
+                // Выключаем отряд в старом гексе в данных
+                mapData[id].squadHere = false;
+
+                // Мгновенно обновляем визуальную часть старого гекса
+                const oldHexElement = document.getElementById('visual_' + id);
+                if (oldHexElement) {
+                    oldHexElement.classList.remove('squad-dark');
+                    const oldFlag = oldHexElement.querySelector('.squad-flag-container');
+                    if (oldFlag) oldFlag.style.display = 'none';
+                }
+            }
+        }
+    }
+    // ============================================================
+
+    // Управление классом затемнения текущего гекса
     if (currentHexElement) {
-        // 1. Обновляем класс затемнения
         if (squadHereVal) {
             currentHexElement.classList.add('squad-dark');
         } else {
             currentHexElement.classList.remove('squad-dark');
         }
-
-        // 2. Мгновенно обновляем текст заголовка
-        const tLabel = currentHexElement.querySelector('.hex-title-label');
-        if (tLabel) tLabel.textContent = titleVal;
-
-        // 3. Мгновенно обновляем текст характеристик
-        const sLabel = currentHexElement.querySelector('.hex-stats-label');
-        if (sLabel) {
-            if (diffVal && regionLevelVal) {
-                sLabel.textContent = `СЛ${diffVal}/lvl${regionLevelVal}`;
-            } else if (diffVal) {
-                sLabel.textContent = `СЛ${diffVal}`;
-            } else if (regionLevelVal) {
-                sLabel.textContent = `lvl${regionLevelVal}`;
-            } else {
-                sLabel.textContent = '';
-            }
-        }
-
-        // 4. Мгновенно обновляем видимость флажка
-        const flagElem = currentHexElement.querySelector('.squad-flag-container');
-        if (flagElem) {
-            if (squadHereVal) {
-                flagElem.style.display = 'block';
-                flagElem.classList.add('active-flag');
-            } else {
-                flagElem.style.display = 'none';
-                flagElem.classList.remove('active-flag');
-            }
-        }
     }
 
-    // 5. Обновляем цвет подложки
+    // Управление цветом подложки
     if (currentShape) {
         if (colorVal !== 'transparent') {
             currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
@@ -613,7 +600,19 @@ function saveMenu() {
         }
     }
 
-    // Сохраняем в объект и локалсторейдж
+    // Обновляем визуальный флажок текущего гекса
+    const flagElem = currentHexElement.querySelector('.squad-flag-container');
+    if (flagElem) {
+        if (squadHereVal) {
+            flagElem.style.display = 'block';
+            flagElem.classList.add('active-flag');
+        } else {
+            flagElem.style.display = 'none';
+            flagElem.classList.remove('active-flag');
+        }
+    }
+
+    // Сохраняем данные в объект
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
@@ -627,7 +626,25 @@ function saveMenu() {
         regionLevel: regionLevelVal
     };
 
+    // Сохраняем в локальное хранилище
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+
+    // Обновляем текст меток
+    const tLabel = currentHexElement.querySelector('.hex-title-label');
+    const sLabel = currentHexElement.querySelector('.hex-stats-label');
+
+    if (tLabel) tLabel.textContent = titleVal;
+    if (sLabel) {
+        if (diffVal && regionLevelVal) {
+            sLabel.textContent = `СЛ${diffVal}/lvl${regionLevelVal}`;
+        } else if (diffVal) {
+            sLabel.textContent = `СЛ${diffVal}`;
+        } else if (regionLevelVal) {
+            sLabel.textContent = `lvl${regionLevelVal}`;
+        } else {
+            sLabel.textContent = '';
+        }
+    }
 
     closeMenu();
 }
