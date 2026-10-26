@@ -275,7 +275,6 @@ function buildHexGrid() {
         for (let c = 0; c < cols; c++) {
             let cx = offsetX + c * widthBetweenHexes;
             let cy = offsetY + r * heightBetweenHexes;
-
             if (r % 2 !== 0) { cx += widthBetweenHexes / 2; }
 
             const hexId = 'hex_' + r + '_' + c;
@@ -296,42 +295,28 @@ function buildHexGrid() {
             vHex.setAttribute('id', 'visual_' + hexId);
 
             vHex.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 if (hasMoved) return;
-                if (modal.classList.contains('open')) {
-                    closeMenu();
-                } else {
-                    openMenu(hexId);
-                }
+                if (modal.classList.contains('open')) { closeMenu(); } else { openMenu(hexId); }
             });
 
             const tooltip = document.getElementById('hexTooltip');
-
             vHex.addEventListener('mouseenter', function(e) {
                 if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
                     const data = mapData[hexId];
                     let content = '';
-
                     if (data.title) {
                         const star = data.explored ? '⭐ ' : '';
                         const mapIcon = data.mapMapped ? '📜 ' : '';
-
                         let statsLabel = '';
-                        if (data.difficulty && data.regionLevel) {
-                            statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
-                        } else if (data.difficulty) {
-                            statsLabel = ` (СЛ ${data.difficulty})`;
-                        } else if (data.regionLevel) {
-                            statsLabel = ` (lvl ${data.regionLevel})`;
-                        }
-
+                        if (data.difficulty && data.regionLevel) statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
+                        else if (data.difficulty) statsLabel = ` (СЛ ${data.difficulty})`;
+                        else if (data.regionLevel) statsLabel = ` (lvl ${data.regionLevel})`;
                         let typeIcon = '';
                         if (data.type === 'landmark') typeIcon = '🔍 ';
                         else if (data.type === 'resource') typeIcon = '🪵 ';
                         else if (data.type === 'quest') typeIcon = '✔ ';
                         else if (data.type === 'mystery') typeIcon = '❓ ';
-
                         let terrainIcon = '';
                         if (data.terrain === 'swamp') terrainIcon = '🐊 ';
                         else if (data.terrain === 'forest') terrainIcon = '🌲 ';
@@ -339,39 +324,24 @@ function buildHexGrid() {
                         else if (data.terrain === 'arctic') terrainIcon = '❄ ';
                         else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
                         else if (data.terrain === 'plains') terrainIcon = '🌾 ';
-
                         content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
                     }
-
                     let paramsBlock = '';
                     paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
                     paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '✖ <b>Карта отсутствует</b>'}</div>`;
-
-                    if (data.squadHere) {
-                        paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">⛺ <b>Отряд в гексе</b></div>`;
-                    }
-
-                    if (data.difficulty) {
-                        paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
-                    }
-
-                    if (data.regionLevel) {
-                        paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
-                    }
-
+                    if (data.squadHere) paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">⛺ <b>Отряд в гексе</b></div>`;
+                    if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
+                    if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
                     if (data.type) {
-                        let typeText = '';
-                        let tIcon = '';
+                        let typeText = ''; let tIcon = '';
                         if (data.type === 'landmark') { tIcon = '🔍'; typeText = 'Достопримечательность'; }
                         if (data.type === 'resource') { tIcon = '🪵'; typeText = 'Ресурс'; }
                         if (data.type === 'quest') { tIcon = '✔'; typeText = 'Стандартное задание'; }
                         if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
                         paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
                     }
-
                     if (data.terrain) {
-                        let terrainText = '';
-                        let terrIcon = '';
+                        let terrainText = ''; let terrIcon = '';
                         if (data.terrain === 'swamp') { terrIcon = '🐊'; terrainText = 'Болото (СЛ 14)'; }
                         if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес (СЛ 14)'; }
                         if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода (СЛ 17)'; }
@@ -380,13 +350,10 @@ function buildHexGrid() {
                         if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины (СЛ 12)'; }
                         paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
                     }
-
                     content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
-
                     if (data.text) {
                         content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
                     }
-
                     tooltip.innerHTML = content;
                     tooltip.style.display = 'block';
                 }
@@ -409,40 +376,39 @@ function buildHexGrid() {
             const shape = document.createElement('div');
             shape.className = 'hex-shape';
             shape.setAttribute('id', 'shape_' + hexId);
-
             if (mapData[hexId] && mapData[hexId].color) {
                 shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
             }
-
             if (mapData[hexId] && mapData[hexId].squadHere) {
                 vHex.classList.add('squad-dark');
             }
-
             vHex.appendChild(shape);
 
-            // --- ВСЕ ЭЛЕМЕНТЫ СОЗДАЮТСЯ ВСЕГДА (даже если данных нет) ---
-
-            // 1. Заголовок
+            // СОЗДАЕМ ВСЕ ЭЛЕМЕНТЫ СРАЗУ
             const titleLabel = document.createElement('span');
             titleLabel.className = 'hex-title-label';
             vHex.appendChild(titleLabel);
 
-            // 2. Характеристики
             const statsLabel = document.createElement('span');
             statsLabel.className = 'hex-stats-label';
             vHex.appendChild(statsLabel);
 
-            // 3. Значок типа объекта
             const typeElem = document.createElement('div');
             typeElem.className = 'type-icon-container';
             vHex.appendChild(typeElem);
 
-            // 4. Значок типа местности
             const terrainElem = document.createElement('div');
             terrainElem.className = 'terrain-icon-container';
             vHex.appendChild(terrainElem);
 
-            // 5. Контейнер флажка
+            const exploredElem = document.createElement('div');
+            exploredElem.className = 'explored-icon-container';
+            vHex.appendChild(exploredElem);
+
+            const mappedElem = document.createElement('div');
+            mappedElem.className = 'mapped-icon-container';
+            vHex.appendChild(mappedElem);
+
             const flagContainer = document.createElement('div');
             flagContainer.className = 'squad-flag-container';
             const pole = document.createElement('div');
@@ -453,25 +419,17 @@ function buildHexGrid() {
             flagContainer.appendChild(pole);
             vHex.appendChild(flagContainer);
 
-            // --- ЗАПОЛНЕНИЕ ДАННЫМИ (если они есть) ---
+            // ЗАПОЛНЯЕМ ДАННЫЕ
             if (mapData[hexId]) {
-                // Название
-                if (mapData[hexId].title) {
-                    titleLabel.textContent = mapData[hexId].title;
-                }
+                if (mapData[hexId].title) titleLabel.textContent = mapData[hexId].title;
 
-                // Характеристики
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
-                if (diff && lvl) {
-                    statsLabel.textContent = `СЛ ${diff} / lvl ${lvl}`;
-                } else if (diff) {
-                    statsLabel.textContent = `СЛ ${diff}`;
-                } else if (lvl) {
-                    statsLabel.textContent = `lvl ${lvl}`;
-                }
+                if (diff && lvl) statsLabel.textContent = `🎲 ${diff} / 💀 ${lvl}`;
+                else if (diff) statsLabel.textContent = `🎲 ${diff}`;
+                else if (lvl) statsLabel.textContent = `💀 ${lvl}`;
+                statsLabel.style.display = (diff || lvl) ? 'block' : 'none';
 
-                // Тип объекта
                 if (mapData[hexId].type) {
                     typeElem.style.display = 'block';
                     let icon = '';
@@ -482,7 +440,6 @@ function buildHexGrid() {
                     typeElem.textContent = icon;
                 }
 
-                // Местность
                 if (mapData[hexId].terrain) {
                     terrainElem.style.display = 'block';
                     let icon = '';
@@ -495,10 +452,23 @@ function buildHexGrid() {
                     terrainElem.textContent = icon;
                 }
 
-                // Флаг
                 if (mapData[hexId].squadHere) {
                     flagContainer.style.display = 'block';
                     flagContainer.classList.add('active-flag');
+                }
+
+                if (mapData[hexId].explored) {
+                    exploredElem.style.display = 'block';
+                    exploredElem.textContent = '⭐';
+                } else {
+                    exploredElem.style.display = 'none';
+                }
+
+                if (mapData[hexId].mapMapped) {
+                    mappedElem.style.display = 'block';
+                    mappedElem.textContent = '📜';
+                } else {
+                    mappedElem.style.display = 'none';
                 }
             }
 
@@ -506,6 +476,7 @@ function buildHexGrid() {
         }
     }
 }
+
 
 // ========================================================
 // ЧАСТЬ 3: МОДАЛЬНОЕ ОКНО, ЦВЕТА, ИМПОРТ/ЭКСПОРТ И DRAG & DROP
@@ -641,14 +612,15 @@ function saveMenu() {
         const sLabel = currentHexElement.querySelector('.hex-stats-label');
         if (sLabel) {
             if (diffVal && regionLevelVal) {
-                sLabel.textContent = `СЛ ${diffVal} / lvl ${regionLevelVal}`;
+                sLabel.textContent = `🎲 ${diffVal} / 💀 ${regionLevelVal}`;
             } else if (diffVal) {
-                sLabel.textContent = `СЛ ${diffVal}`;
+                sLabel.textContent = `🎲 ${diffVal}`;
             } else if (regionLevelVal) {
-                sLabel.textContent = `lvl ${regionLevelVal}`;
+                sLabel.textContent = `💀 ${regionLevelVal}`;
             } else {
                 sLabel.textContent = '';
             }
+            sLabel.style.display = (diffVal || regionLevelVal) ? 'block' : 'none';
         }
 
         // 4. Иконка типа объекта
@@ -683,6 +655,20 @@ function saveMenu() {
                 else if (terrainVal === 'plains') icon = '🌾';
                 terrainElem.textContent = icon;
             }
+        }
+
+        // Обновляем статус Разведан
+        const exploredElem = currentHexElement.querySelector('.explored-icon-container');
+        if (exploredElem) {
+            exploredElem.style.display = exploredVal ? 'block' : 'none';
+            exploredElem.textContent = exploredVal ? '⭐' : '';
+        }
+
+        // Обновляем статус Карта
+        const mappedElem = currentHexElement.querySelector('.mapped-icon-container');
+        if (mappedElem) {
+            mappedElem.style.display = mapMappedVal ? 'block' : 'none';
+            mappedElem.textContent = mapMappedVal ? '📜' : '';
         }
 
         // 6. Флажок отряда

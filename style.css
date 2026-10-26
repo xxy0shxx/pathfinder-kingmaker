@@ -407,6 +407,7 @@ body {
     z-index: 4;
     pointer-events: none;
     display: none;
+    transform-origin: bottom center;
 }
 
 .squad-pole {
@@ -428,15 +429,9 @@ body {
 }
 
 @keyframes flagSwing {
-    0% {
-        transform: translate(-50%, -50%) rotate(-15deg);
-    }
-    50% {
-        transform: translate(-50%, -50%) rotate(15deg);
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(-15deg);
-    }
+    0% { transform: translate(-50%, -50%) rotate(-15deg); }
+    50% { transform: translate(-50%, -50%) rotate(15deg); }
+    100% { transform: translate(-50%, -50%) rotate(-15deg); }
 }
 
 /* Анимация появления */
@@ -480,6 +475,7 @@ body {
     text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
     white-space: nowrap;
     pointer-events: none;
+    display: none; /* Скрываем по умолчанию, включаем через JS */
 }
 
 .squad-flag-container.active-flag {
@@ -487,16 +483,23 @@ body {
 }
 
 .type-icon-container {
-    position: absolute;
-    /* Ставим выше характеристик (которые на 25px от низа) */
-    bottom: 50px;
-    right: 15%;
-    z-index: 4;
+    bottom: 55px;
+    left: 15px;
     font-size: 24px;
-    pointer-events: none;
-    display: none;
-    animation: typeFloat 3s infinite ease-in-out;
 }
+
+.explored-icon-container {
+    bottom: 25px;
+    left: 15px;
+    font-size: 22px;
+}
+
+.mapped-icon-container {
+    bottom: 85px;
+    right: 20px;
+    font-size: 22px;
+}
+
 
 @keyframes typeFloat {
     0% { transform: translate(0, 0) rotate(-5deg); }
@@ -510,15 +513,9 @@ body {
 
 /* Контейнер для значка типа местности */
 .terrain-icon-container {
-    position: absolute;
-    /* Опускаем в нижнюю левую часть */
-    bottom: 50px;
-    left: 15%;
-    z-index: 4;
+    bottom: 85px;
+    left: 15px;
     font-size: 22px;
-    pointer-events: none;
-    display: none;
-    animation: terrainFloat 4s infinite ease-in-out;
 }
 
 /* Анимация пла浮вания для местности */
@@ -527,3 +524,18 @@ body {
     50% { transform: translate(1px, -2px) rotate(5deg); }
     100% { transform: translate(0, 0) rotate(-5deg); }
 }
+
+.info-icon-container {
+    position: absolute;
+    z-index: 4;
+    pointer-events: none;
+    display: none;
+    animation: floatAnim 4s infinite ease-in-out;
+}
+
+@keyframes floatAnim {
+    0% { transform: translate(0, 0) rotate(-3deg); }
+    50% { transform: translate(2px, -3px) rotate(3deg); }
+    100% { transform: translate(0, 0) rotate(-3deg); }
+}
+
