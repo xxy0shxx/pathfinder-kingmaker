@@ -543,7 +543,7 @@ function closeMenu() {
 function saveMenu() {
     if (!currentHexId) return;
 
-    const titleVal = document.getElementById('inpTitle').value.trim();
+    const titleVal = document.getElementById('inpTitle').value;
 
     // Проверка обязательного поля
     if (titleVal === "") {
