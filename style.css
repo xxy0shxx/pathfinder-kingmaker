@@ -212,6 +212,7 @@ body {
 /* ========================================================
    СТАТИЧНЫЕ КНОПКИ УПРАВЛЕНИЯ JSON (СПРАВА СНИЗУ)
    ======================================================== */
+/*
 .json-actions-container {
     position: fixed;
     bottom: 20px;
@@ -221,6 +222,7 @@ body {
     gap: 10px;
     pointer-events: auto;
 }
+ */
 
 /* ========================================================
    ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ УПРАВЛЕНИЯ МУЗЫКОЙ
@@ -525,7 +527,7 @@ body {
     display: none;
     animation: terrainFloat 4s infinite ease-in-out;
 }
-
+/*
 .info-icon-container {
     position: absolute;
     z-index: 4;
@@ -533,6 +535,7 @@ body {
     display: none;
     animation: floatAnim 4s infinite ease-in-out;
 }
+ */
 
 @keyframes floatAnim {
     0% { transform: translate(0, 0) rotate(-5deg); }

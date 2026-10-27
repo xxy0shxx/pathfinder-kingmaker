@@ -801,37 +801,70 @@ document.addEventListener('DOMContentLoaded', () => {
      buildHexGrid();            
 });
 
+let currentZoom = 1.0;
+const minZoom = 0.5;
+const maxZoom = 3.0;
+
 const viewport = document.getElementById('viewport');
 const mapContainer = document.getElementById('mapContainer');
+
 let isDragging = false;
 let hasMoved = false; 
 let startX, startY;
 
 if (viewport && mapContainer) {
+    // Функция обновления трансформации карты
+    function updateMapTransform() {
+        mapContainer.style.transform = `translate(${x}px, ${y}px) scale(${currentZoom})`;
+    }
+
+    // Переопределяем переменные x и y для работы с масштабом
+    let x = 0;
+    let y = 0;
+
     viewport.addEventListener('mousedown', (e) => {
         if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
+
         isDragging = true;
         hasMoved = false;
-        startX = e.pageX - mapContainer.offsetLeft;
-        startY = e.pageY - mapContainer.offsetTop;
+        startX = e.pageX - x;
+        startY = e.pageY - y;
     });
 
     viewport.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
         e.preventDefault();
-        const x = e.pageX - startX;
-        const y = e.pageY - startY;
-        
-        if (Math.abs(x - mapContainer.offsetLeft) > 3 || Math.abs(y - mapContainer.offsetTop) > 3) {
+
+        // Рассчитываем новые координаты с учетом масштаба
+        x = e.pageX - startX;
+        y = e.pageY - startY;
+
+        if (Math.abs(x) > 3 || Math.abs(y) > 3) {
             hasMoved = true;
         }
-        mapContainer.style.left = x + 'px';
-        mapContainer.style.top = y + 'px';
+
+        updateMapTransform();
     });
 
-    viewport.addEventListener('mouseleave', () => { isDragging = false; });
+    viewport.addEventListener('mouseleave', () => {
+        isDragging = false;
+    });
+
     viewport.addEventListener('mouseup', () => {
         isDragging = false;
         setTimeout(() => { hasMoved = false; }, 50);
     });
+
+    // Добавление Zoom через колесо мыши
+    viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        const newZoom = currentZoom * delta;
+
+        if (newZoom >= minZoom && newZoom <= maxZoom) {
+            currentZoom = newZoom;
+            updateMapTransform();
+        }
+    }, { passive: false });
 }
