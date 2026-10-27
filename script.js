@@ -650,19 +650,70 @@ function saveMenu() {
             mappedElem.textContent = mapMappedVal ? '📜' : '';
         }
 
-        // Обновляем флажок отряда с анимацией прилета
         const flagElem = currentHexElement.querySelector('.squad-flag-container');
         if (flagElem) {
             if (squadHereVal) {
-                flagElem.style.display = 'block';
-                flagElem.classList.remove('active-flag');
-                // Запускаем анимацию прилета (один раз)
-                flagElem.style.animation = 'flagAppear 1s forwards';
-                // Через 1 секунду включаем бесконечное покачивание
-                setTimeout(() => {
-                    flagElem.style.animation = '';
+                const isAlreadyHere = mapData[currentHexId] && mapData[currentHexId].squadHere;
+
+                if (!isAlreadyHere) {
+                    flagElem.style.display = 'none';
+                    flagElem.classList.remove('active-flag');
+
+                    // 1. Координаты старта (первый гекс)
+                    const startHex = document.getElementById('visual_hex_0_0');
+                    let startX = 0;
+                    let startY = 0;
+                    if (startHex) {
+                        const startRect = startHex.getBoundingClientRect();
+                        startX = startRect.left + startRect.width / 2;
+                        startY = startRect.top + startRect.height / 2;
+                    }
+
+                    // 2. Координаты финиша (текущий гекс)
+                    const targetRect = currentHexElement.getBoundingClientRect();
+                    const targetX = targetRect.left + targetRect.width / 2;
+                    const targetY = targetRect.top + targetRect.height / 2;
+
+                    // 3. Создаем летящий флаг
+                    const flyingFlag = document.createElement('div');
+                    flyingFlag.className = 'global-flying-flag';
+                    flyingFlag.innerHTML = `
+                <div class="squad-pole" style="height: 50px; width: 6px; background: #333; margin-left: 6px; border-radius: 2px; border: 1px solid #000;">
+                    <div class="squad-flag" style="width: 30px; height: 20px; background: #c0392b; clip-path: polygon(0 0, 100% 50%, 0 100%); border: 2px solid #ffffff; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
+                </div>
+            `;
+
+                    // Начальное состояние: смещаем координаты, увеличиваем и разворачиваем на -90 градусов (строго на бок)
+                    flyingFlag.style.left = `${startX - 9}px`;
+                    flyingFlag.style.top = `${startY - 50}px`;
+                    flyingFlag.style.transform = 'scale(4.5) rotate(-90deg)';
+                    flyingFlag.style.opacity = '0';
+
+                    document.body.appendChild(flyingFlag);
+
+                    setTimeout(() => {
+                        flyingFlag.style.opacity = '1';
+                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
+                        flyingFlag.style.left = `${targetX - 9}px`;
+                        flyingFlag.style.top = `${targetY - 50}px`;
+                    }, 20);
+
+                    setTimeout(() => {
+                        flyingFlag.remove();
+
+                        flagElem.style.display = 'block';
+                        flagElem.style.animation = 'flagAppear 0.3s forwards';
+
+                        setTimeout(() => {
+                            flagElem.style.animation = '';
+                            flagElem.classList.add('active-flag');
+                        }, 300);
+                    }, 1300);
+
+                } else {
+                    flagElem.style.display = 'block';
                     flagElem.classList.add('active-flag');
-                }, 1000);
+                }
             } else {
                 flagElem.style.display = 'none';
                 flagElem.classList.remove('active-flag');
@@ -671,7 +722,6 @@ function saveMenu() {
         }
     }
 
-    // 3. Обновляем цвет подложки
     if (currentShape) {
         if (colorVal !== 'transparent') {
             currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
@@ -696,10 +746,8 @@ function saveMenu() {
         lastSaved: new Date().toLocaleString() // Добавлена строка сохранения даты
     };
 
-    // 5. Сохраняем в локальное хранилище
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-    // 6. Мгновенное визуальное обновление тумана для всех гексов (синхронизация)
     for (let id in mapData) {
         const vHex = document.getElementById('visual_' + id);
         if (vHex) {
@@ -833,12 +881,10 @@ let hasMoved = false;
 let startX, startY;
 
 if (viewport && mapContainer) {
-    // Функция обновления трансформации карты
     function updateMapTransform() {
         mapContainer.style.transform = `translate(${x}px, ${y}px) scale(${currentZoom})`;
     }
 
-    // Переопределяем переменные x и y для работы с масштабом
     let x = 0;
     let y = 0;
 
@@ -855,7 +901,6 @@ if (viewport && mapContainer) {
         if (!isDragging) return;
         e.preventDefault();
 
-        // Рассчитываем новые координаты с учетом масштаба
         x = e.pageX - startX;
         y = e.pageY - startY;
 
@@ -889,7 +934,6 @@ if (viewport && mapContainer) {
     }, { passive: false });
 }
 
-// Логика открытия/закрытия легенды
 const btnToggle = document.getElementById('btnToggleLegend');
 const legendCont = document.getElementById('legendContainer');
 
@@ -916,15 +960,3 @@ if (btnToggle && legendCont) {
 } else {
     console.error("Ошибка: Элементы легенды не найдены в DOM! Проверьте правильность вставки HTML.");
 }
-
-document.addEventListener('click', (e) => {
-    if (e.target && e.target.id === 'btnSave' && currentHexId) {
-        const vHex = document.getElementById('visual_' + currentHexId);
-        const flag = vHex ? vHex.querySelector('.squad-flag-container') : null;
-        if (flag) {
-            flag.classList.remove('active-flag');
-            void flag.offsetWidth;
-            flag.classList.add('active-flag');
-        }
-    }
-});
