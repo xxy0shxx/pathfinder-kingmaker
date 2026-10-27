@@ -426,7 +426,7 @@ function buildHexGrid() {
                     if (mapData[hexId].terrain === 'swamp') icon = '🐊';
                     else if (mapData[hexId].terrain === 'forest') icon = '🌲';
                     else if (mapData[hexId].terrain === 'water') icon = '🌊';
-                    else if (mapData[hexId].terrain === 'arctic') icon = '❄';
+                    else if (mapData[hexId].terrain === 'arctic') icon = '❄️';
                     else if (mapData[hexId].terrain === 'mountain') icon = '⛰';
                     else if (mapData[hexId].terrain === 'plains') icon = '🌾';
                     terrainElem.textContent = icon;
@@ -632,7 +632,7 @@ function saveMenu() {
                 if (terrainVal === 'swamp') icon = '🐊';
                 else if (terrainVal === 'forest') icon = '🌲';
                 else if (terrainVal === 'water') icon = '🌊';
-                else if (terrainVal === 'arctic') icon = '❄';
+                else if (terrainVal === 'arctic') icon = '❄️';
                 else if (terrainVal === 'mountain') icon = '⛰';
                 else if (terrainVal === 'plains') icon = '🌾';
                 terrainElem.textContent = icon;
