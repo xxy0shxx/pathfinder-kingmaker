@@ -318,7 +318,7 @@ function buildHexGrid() {
                         else if (data.type === 'quest') typeIcon = '✔ ';
                         else if (data.type === 'mystery') typeIcon = '❓ ';
                         let terrainIcon = '';
-                        if (data.terrain === 'swamp') terrainIcon = '🐊 ';
+                        if (data.terrain === 'swamp') terrainIcon = '🐸 ';
                         else if (data.terrain === 'forest') terrainIcon = '🌲 ';
                         else if (data.terrain === 'water') terrainIcon = '🌊 ';
                         else if (data.terrain === 'arctic') terrainIcon = '❄ ';
@@ -342,7 +342,7 @@ function buildHexGrid() {
                     }
                     if (data.terrain) {
                         let terrainText = ''; let terrIcon = '';
-                        if (data.terrain === 'swamp') { terrIcon = '🐊'; terrainText = 'Болото (СЛ 14)'; }
+                        if (data.terrain === 'swamp') { terrIcon = '🐸'; terrainText = 'Болото (СЛ 14)'; }
                         if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес (СЛ 14)'; }
                         if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода (СЛ 17)'; }
                         if (data.terrain === 'arctic') { terrIcon = '❄'; terrainText = 'Приполярье (СЛ 17)'; }
@@ -423,7 +423,7 @@ function buildHexGrid() {
                 if (mapData[hexId].terrain) {
                     terrainElem.style.display = 'block';
                     let icon = '';
-                    if (mapData[hexId].terrain === 'swamp') icon = '🐊';
+                    if (mapData[hexId].terrain === 'swamp') icon = '🐸';
                     else if (mapData[hexId].terrain === 'forest') icon = '🌲';
                     else if (mapData[hexId].terrain === 'water') icon = '🌊';
                     else if (mapData[hexId].terrain === 'arctic') icon = '❄️';
@@ -629,7 +629,7 @@ function saveMenu() {
             } else {
                 terrainElem.style.display = 'block';
                 let icon = '';
-                if (terrainVal === 'swamp') icon = '🐊';
+                if (terrainVal === 'swamp') icon = '🐸';
                 else if (terrainVal === 'forest') icon = '🌲';
                 else if (terrainVal === 'water') icon = '🌊';
                 else if (terrainVal === 'arctic') icon = '❄️';

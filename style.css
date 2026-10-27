@@ -476,7 +476,7 @@ body {
 }
 
 .squad-flag-container.active-flag {
-    animation: flagSwing 12s infinite ease-in-out !important;
+    animation: flagSwing 5s infinite ease-in-out !important;
 }
 
 .type-icon-container {
@@ -556,9 +556,9 @@ body {
 }
 
 @keyframes flagSwing {
-    0% { transform: translate(-50%, -50%) rotate(-15deg); }
-    50% { transform: translate(-50%, -50%) rotate(15deg); }
-    100% { transform: translate(-50%, -50%) rotate(-15deg); }
+    0% { transform: translate(-50%, -50%) rotate(-5deg); }
+    50% { transform: translate(-50%, -50%) rotate(5deg); }
+    100% { transform: translate(-50%, -50%) rotate(-5deg); }
 }
 
 /* Стили для легенды */
