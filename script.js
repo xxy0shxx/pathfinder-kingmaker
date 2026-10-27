@@ -748,7 +748,7 @@ function saveMenu() {
         terrain: terrainVal,
         regionLevel: regionLevelVal,
         hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited),
-        lastSaved: new Date().toLocaleString() // Добавлена строка сохранения даты
+        lastSaved: new Date().toLocaleString()
     };
 
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
@@ -803,12 +803,12 @@ function initColorPresets() {
     
     const presets = [
         { color: 'transparent', label: '✖' },
-        { color: '#2ecc71', label: '' }, // Зеленый
-        { color: '#3498db', label: '' }, // Синий
-        { color: '#e74c3c', label: '' }, // Красный
-        { color: '#f1c40f', label: '' }, // Желтый
-        { color: '#9b59b6', label: '' }, // Фиолетовый
-        { color: '#e67e22', label: '' }  // Оранжевый
+        { color: '#2ecc71', label: '' },
+        { color: '#3498db', label: '' },
+        { color: '#e74c3c', label: '' },
+        { color: '#f1c40f', label: '' },
+        { color: '#9b59b6', label: '' },
+        { color: '#e67e22', label: '' }
     ];
 
     presets.forEach(p => {
@@ -918,7 +918,6 @@ if (viewport && mapContainer) {
         const maxLimitY = 1280 * 0.5;
         const minLimitY = -1280 * 0.5;
 
-        // Зажимаем координаты в этих пределах
         x = Math.max(minLimitX, Math.min(maxLimitX, newX));
         y = Math.max(minLimitY, Math.min(maxLimitY, newY));
 

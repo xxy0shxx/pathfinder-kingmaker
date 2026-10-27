@@ -439,7 +439,6 @@ body {
 }
 .type-icon-container.small { font-size: 18px; }
 
-/* Анимации */
 @keyframes floatAnim {
     0%, 100% { transform: translate(0, 0) rotate(-5deg); }
     50% { transform: translate(2px, -3px) rotate(5deg); }
@@ -471,7 +470,6 @@ body {
     opacity 0.2s ease-out !important;
 }
 
-/* Легенда */
 .legend-container {
     background: rgba(15, 15, 15, 0.95);
     border: 2px solid #d4af37;
@@ -540,7 +538,6 @@ body {
     pointer-events: none;
 }
 
-/* Кнопки экспорта/импорта */
 #btnExport, #btnImport {
     padding: 12px 22px;
     border-radius: 8px;
