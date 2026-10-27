@@ -329,7 +329,7 @@ function buildHexGrid() {
                     let paramsBlock = '';
                     paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
                     paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '✖ <b>Карта отсутствует</b>'}</div>`;
-                    if (data.squadHere) paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">⛺ <b>Отряд в гексе</b></div>`;
+                    if (data.squadHere) paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
                     if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
                     if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
                     if (data.type) {
