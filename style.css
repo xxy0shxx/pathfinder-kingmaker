@@ -484,7 +484,7 @@ body {
 
 .type-icon-container {
     position: absolute !important;
-    top: 33% !important; /* Верхний правый квадрант */
+    top: 32% !important; /* Верхний правый квадрант */
     right: 10px !important;
     z-index: 4 !important;
     font-size: 24px !important;
@@ -495,7 +495,7 @@ body {
 
 .explored-icon-container {
     position: absolute !important;
-    top: 33% !important;
+    top: 32% !important;
     left: 10px !important;
     z-index: 4 !important;
     font-size: 22px !important;
