@@ -670,15 +670,11 @@ function saveMenu() {
                         flyingFlag.style.transform = 'scale(1) rotate(-90deg)';
                     }, 20);
 
-                    setTimeout(() => {
-                        // Выпрямляем флаг
-                        flyingFlag.style.transition = 'transform 0.05s ease-out';
-                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
-
+                    function createBurst(x, y) {
                         const burstContainer = document.createElement('div');
                         burstContainer.className = 'flag-impact-burst';
-                        burstContainer.style.left = `${targetX}px`;
-                        burstContainer.style.top = `${targetY}px`;
+                        burstContainer.style.left = `${x}px`;
+                        burstContainer.style.top = `${y}px`;
 
                         const sparksCount = 8;
                         for (let i = 0; i < sparksCount; i++) {
@@ -690,11 +686,14 @@ function saveMenu() {
                         }
 
                         document.body.appendChild(burstContainer);
+                        setTimeout(() => { burstContainer.remove(); }, 250);
+                    }
 
-                        setTimeout(() => {
-                            burstContainer.remove();
-                        }, 250);
+                    setTimeout(() => {
+                        flyingFlag.style.transition = 'transform 0.05s ease-out';
+                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
 
+                        createBurst(targetX, targetY);
                     }, 1250);
 
                     setTimeout(() => {
@@ -708,6 +707,14 @@ function saveMenu() {
                             flagElem.classList.add('active-flag');
                         }, 50);
                     }, 1300);
+
+                    setTimeout(() => {
+                        createBurst(targetX - 45, targetY + 40);
+                    }, 1430);
+
+                    setTimeout(() => {
+                        createBurst(targetX + 45, targetY - 40);
+                    }, 1610);
 
                 } else {
                     flagElem.style.display = 'block';
