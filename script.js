@@ -1,6 +1,3 @@
-// ========================================================
-// ЧАСТЬ 1: ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И МУЗЫКАЛЬНЫЙ ДВИЖОК
-// ========================================================
 let currentSquadHex = localStorage.getItem('hexMapSquadLocation') || null;
 const hexRadius = 78;
 const rows = 12;
@@ -174,9 +171,7 @@ document.addEventListener('click', (e) => {
         playlistContainer.classList.remove('open'); playlistButton.classList.remove('active');
     }
 });
-// ========================================================
-// ЧАСТЬ 2: ГЕНЕРАЦИЯ СЕТКИ ГЕКСОВ И ИНТЕРАКТИВНЫЙ ТУЛТИП
-// ========================================================
+
 function populateDifficultySelect() {
     const regionLevelSelect = document.getElementById('inpRegionLevel');
     if (!difficultySelect || !regionLevelSelect) return;
@@ -240,12 +235,9 @@ function buildHexGrid() {
             vHex.style.top = (cy - hexRadius) + 'px';
             vHex.setAttribute('id', 'visual_' + hexId);
 
-            // --- ЛОГИКА ТУМАНА ---
-            // Гекс скрыт туманом, если он не был ни разведан, ни посещен отрядом
             if (!mapData[hexId] || (!mapData[hexId].explored && !mapData[hexId].hasVisited)) {
                 vHex.classList.add('fog-active');
             }
-            // -----------------------
 
             vHex.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -464,9 +456,6 @@ function buildHexGrid() {
     }
 }
 
-// ========================================================
-// ЧАСТЬ 3: МОДАЛЬНОЕ ОКНО, ЦВЕТА, ИМПОРТ/ЭКСПОРТ И DRAG & DROP
-// ========================================================
 function convertHexToRgba(hex, alpha) {
     if (!hex || hex === 'transparent') return 'rgba(0,0,0,0)';
     let r = parseInt(hex.slice(1, 3), 16);
@@ -540,7 +529,6 @@ function closeMenu() {
 function saveMenu() {
     if (!currentHexId) return;
 
-    // 1. Сбор данных из полей ввода
     const titleVal = document.getElementById('inpTitle').value;
     const descVal = document.getElementById('inpDesc').value;
     const colorVal = document.getElementById('inpColor').value || 'transparent';
@@ -555,12 +543,8 @@ function saveMenu() {
     const currentHexElement = document.getElementById('visual_' + currentHexId);
     const currentShape = document.getElementById('shape_' + currentHexId);
 
-    // ============================================================
-    // ЛОГИКА ПЕРЕМЕЩЕНИЯ ОТРЯДА (Один отряд на карте)
-    // ============================================================
     if (squadHereVal) {
         for (let id in mapData) {
-            // Если это не текущий гекс И в этом гексе отряд уже стоит
             if (id !== currentHexId && mapData[id].squadHere === true) {
                 mapData[id].squadHere = false;
 
@@ -574,20 +558,16 @@ function saveMenu() {
         }
     }
 
-    // 2. Визуальное обновление текущего гекса в интерфейсе
     if (currentHexElement) {
-        // Затемнение гекса
         if (squadHereVal) {
             currentHexElement.classList.add('squad-dark');
         } else {
             currentHexElement.classList.remove('squad-dark');
         }
 
-        // Текст заголовка
         const tLabel = currentHexElement.querySelector('.hex-title-label');
         if (tLabel) tLabel.textContent = titleVal;
 
-        // Текст характеристик (СЛ и lvl)
         const sLabel = currentHexElement.querySelector('.hex-stats-label');
         if (sLabel) {
             if (diffVal && regionLevelVal) {
@@ -602,7 +582,6 @@ function saveMenu() {
             sLabel.style.display = (diffVal || regionLevelVal) ? 'block' : 'none';
         }
 
-        // Иконка типа объекта
         const typeElem = currentHexElement.querySelector('.type-icon-container');
         if (typeElem) {
             if (typeVal === "") {
@@ -618,7 +597,6 @@ function saveMenu() {
             }
         }
 
-        // Иконка типа местности
         const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
         if (terrainElem) {
             if (terrainVal === "") {
@@ -636,14 +614,12 @@ function saveMenu() {
             }
         }
 
-        // Обновляем статус Разведан
         const exploredElem = currentHexElement.querySelector('.explored-icon-container');
         if (exploredElem) {
             exploredElem.style.display = exploredVal ? 'block' : 'none';
             exploredElem.textContent = exploredVal ? '🔍' : '';
         }
 
-        // Обновляем статус Карта
         const mappedElem = currentHexElement.querySelector('.mapped-icon-container');
         if (mappedElem) {
             mappedElem.style.display = mapMappedVal ? 'block' : 'none';
@@ -659,7 +635,6 @@ function saveMenu() {
                     flagElem.style.display = 'none';
                     flagElem.classList.remove('active-flag');
 
-                    // 1. Координаты старта (первый гекс)
                     const startHex = document.getElementById('visual_hex_0_0');
                     let startX = 0;
                     let startY = 0;
@@ -669,12 +644,10 @@ function saveMenu() {
                         startY = startRect.top + startRect.height / 2;
                     }
 
-                    // 2. Координаты финиша (текущий гекс)
                     const targetRect = currentHexElement.getBoundingClientRect();
                     const targetX = targetRect.left + targetRect.width / 2;
                     const targetY = targetRect.top + targetRect.height / 2;
 
-                    // 3. Создаем летящий флаг
                     const flyingFlag = document.createElement('div');
                     flyingFlag.className = 'global-flying-flag';
                     flyingFlag.innerHTML = `
@@ -683,7 +656,6 @@ function saveMenu() {
                 </div>
             `;
 
-                    // Старт: на боку (-90 градусов)
                     flyingFlag.style.left = `${startX - 9}px`;
                     flyingFlag.style.top = `${startY - 50}px`;
                     flyingFlag.style.transform = 'scale(2.5) rotate(-90deg)';
@@ -691,7 +663,6 @@ function saveMenu() {
 
                     document.body.appendChild(flyingFlag);
 
-                    // 4. Полет по прямой без замедления (синхронизировано с CSS линейным переходом)
                     setTimeout(() => {
                         flyingFlag.style.opacity = '1';
                         flyingFlag.style.left = `${targetX - 9}px`;
@@ -699,13 +670,33 @@ function saveMenu() {
                         flyingFlag.style.transform = 'scale(1) rotate(-90deg)';
                     }, 20);
 
-                    // 5. МГНОВЕННЫЙ КЛЕВОК НА ПОЛНОЙ СКОРОСТИ (За 50мс до упора в гекс)
                     setTimeout(() => {
+                        // Выпрямляем флаг
                         flyingFlag.style.transition = 'transform 0.05s ease-out';
-                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)'; // Резкий удар в землю
-                    }, 1250); // 1300мс (общий полет) - 50мс (время на поворот)
+                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
 
-                    // 6. Окончательное приземление и замена на машущий флаг
+                        const burstContainer = document.createElement('div');
+                        burstContainer.className = 'flag-impact-burst';
+                        burstContainer.style.left = `${targetX}px`;
+                        burstContainer.style.top = `${targetY}px`;
+
+                        const sparksCount = 8;
+                        for (let i = 0; i < sparksCount; i++) {
+                            const spark = document.createElement('div');
+                            spark.className = 'impact-spark';
+                            const currentAngle = (360 / sparksCount) * i;
+                            spark.style.setProperty('--angle', `${currentAngle}deg`);
+                            burstContainer.appendChild(spark);
+                        }
+
+                        document.body.appendChild(burstContainer);
+
+                        setTimeout(() => {
+                            burstContainer.remove();
+                        }, 250);
+
+                    }, 1250);
+
                     setTimeout(() => {
                         flyingFlag.remove();
 
@@ -738,7 +729,6 @@ function saveMenu() {
         }
     }
 
-    // 4. Сохраняем всё в объект
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
@@ -892,7 +882,6 @@ let x = 0;
 let y = 0;
 
 if (viewport && mapContainer) {
-    // Функция обновления трансформации карты
     function updateMapTransform() {
         mapContainer.style.transform = `translate(${x}px, ${y}px) scale(${currentZoom})`;
     }
@@ -910,7 +899,6 @@ if (viewport && mapContainer) {
         if (!isDragging) return;
         e.preventDefault();
 
-        // Временные новые координаты
         let newX = e.pageX - startX;
         let newY = e.pageY - startY;
 
@@ -918,9 +906,6 @@ if (viewport && mapContainer) {
             hasMoved = true;
         }
 
-        // --- ЛОГИКА ОГРАНИЧЕНИЯ ГРАНИЦ ---
-        // Размеры карты: 3840px на 1280px.
-        // Разрешаем сдвигать карту максимум на половину её ширины/высоты в любую сторону
         const maxLimitX = 3840 * 0.5;
         const minLimitX = -3840 * 0.5;
         const maxLimitY = 1280 * 0.5;
@@ -942,7 +927,6 @@ if (viewport && mapContainer) {
         setTimeout(() => { hasMoved = false; }, 50);
     });
 
-    // Изменение Zoom через колесо мыши
     viewport.addEventListener('wheel', (e) => {
         e.preventDefault();
 
