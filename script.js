@@ -28,70 +28,7 @@ const timeCurrent = document.getElementById('timeCurrent');
 const timeTotal = document.getElementById('timeTotal');
 const volumeSlider = document.getElementById('volumeSlider');
 
-const playlist = [
-    "audio/main_theme.mp3",
-    "audio/02_beginning.mp3",
-    "audio/03_exploring_the_stolen_lands.mp3",
-    "audio/04_bittersweet_nyrissas_theme.mp3",
-    "audio/05_peaceful_lands.mp3",
-    "audio/06_the_shrike_hills.mp3",
-    "audio/07_hills_of_glenebon.mp3",
-    "audio/08_twilight_at_glenebon.mp3",
-    "audio/09_the_narlmarches.mp3",
-    "audio/10_sunset_at_the_narlmarches.mp3",
-    "audio/11_dawn_at_the_narlmarches.mp3",
-    "audio/12_old_sycamore_caves.mp3",
-    "audio/13_thousand_grains.mp3",
-    "audio/14_city_of_hollow_eyes.mp3",
-    "audio/15_tomb_of_the_iron_lords_champion.mp3",
-    "audio/16_the_dunsward.mp3",
-    "audio/17_sunset_at_the_dunsward.mp3",
-    "audio/18_dawn_at_the_dunsward.mp3",
-    "audio/19_the_tarnished_jewel_pitax_theme.mp3",
-    "audio/20_the_coronation.mp3",
-    "audio/21_rule_of_chaos.mp3",
-    "audio/22_rule_of_balance.mp3",
-    "audio/23_rule_of_order.mp3",
-    "audio/24_rule_of_good.mp3",
-    "audio/25_rule_of_evil.mp3",
-    "audio/26_steps_of_the_goddess.mp3",
-    "audio/27_the_art_of_ruling.mp3",
-    "audio/28_season_of_bloom.mp3",
-    "audio/29_canvas_for_the_gods.mp3",
-    "audio/30_where_trees_talk_to_the_stars.mp3",
-    "audio/31_the_echo_born_before_the_sound.mp3",
-    "audio/32_blade_of_your_own_choices.mp3",
-    "audio/33_bold_dog_barks_loud.mp3",
-    "audio/34_skylark.mp3",
-    "audio/35_who_rules_your_heart.mp3",
-    "audio/36_brevoy_folk_melody_tavern_theme_1.mp3",
-    "audio/37_the_heart_of_the_land_tavern_theme_2.mp3",
-    "audio/38_fey_in_the_hills_tavern_theme_3.mp3",
-    "audio/39_lazy_morning_tavern_theme_4.mp3",
-    "audio/40_rushlight_festival_tavern_theme_5.mp3",
-    "audio/41_lake_of_mists_and_veils_tavern_theme_6.mp3",
-    "audio/42_the_shrike_hills_battle_theme.mp3",
-    "audio/43_uplands_battle_theme.mp3",
-    "audio/44_the_dunsward_battle_theme.mp3",
-    "audio/45_the_narlmarches_battle_theme.mp3",
-    "audio/46_dungeon_battle_theme_1.mp3",
-    "audio/47_dungeon_battle_theme_2.mp3",
-    "audio/48_first_world_battle_theme.mp3",
-    "audio/49_capital_under_attack.mp3",
-    "audio/50_ancient_ruins_battle_theme.mp3",
-    "audio/51_caves_battle_theme.mp3",
-    "audio/52_in_the_name_of_my_dream_stag_lord_battle_theme.mp3",
-    "audio/53_dur_borba_hargulka_battle_theme.mp3",
-    "audio/54_relic_of_a_crumbled_empire_vordakai_battle_theme.mp3",
-    "audio/55_false_destiny_armag_battle_theme.mp3",
-    "audio/56_the_proud_the_bitter_the_fallen_nyrissa_battle_theme.mp3",
-    "audio/57_the_doomsayer.mp3",
-    "audio/58_the_laughing_lie.mp3",
-    "audio/59_he_who_leads_the_hunt.mp3",
-    "audio/60_a_string_that_holds_the_world_in_place.mp3",
-    "audio/61_the_art_of_illusion.mp3",
-    "audio/62_varnholds_dawn.mp3"
-];
+let playlist = [];
 let currentTrackIdx = 0;
 let isLooping = false;
 
@@ -101,69 +38,76 @@ function formatTrackName(filename) {
     name = name.replace(/audio\//gi, '').replace(/\s+/g, ' ').trim();
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
-function initializeMusicPlayer() {
+async function initializeMusicPlayer() {
     if (!audioPlayer) return;
     audioPlayer.volume = 0.25;
 
-    if (trackSelector) {
-        trackSelector.innerHTML = "";
-        playlist.forEach((track) => {
-            const opt = document.createElement("option");
-            opt.value = track;
-            opt.textContent = formatTrackName(track);
-            trackSelector.appendChild(opt);
-        });
-        trackSelector.addEventListener('change', () => {
-            const idx = playlist.indexOf(trackSelector.value);
-            if (idx !== -1) loadTrack(idx, true);
-        });
-    }
+    try {
+        const response = await fetch('audio/playlist.json');
+        playlist = await response.json();
 
-    if (tracksListContainer) {
-        tracksListContainer.innerHTML = "";
-        playlist.forEach((track, idx) => {
-            const item = document.createElement("div");
-            item.className = "playlist-item";
-            item.textContent = `${idx + 1}. ${formatTrackName(track)}`;
-            item.addEventListener("click", () => loadTrack(idx, true));
-            tracksListContainer.appendChild(item);
-        });
-    }
+        if (trackSelector) {
+            trackSelector.innerHTML = "";
+            playlist.forEach((track) => {
+                const opt = document.createElement("option");
+                opt.value = track;
+                opt.textContent = formatTrackName(track);
+                trackSelector.appendChild(opt);
+            });
+            trackSelector.addEventListener('change', () => {
+                const idx = playlist.indexOf(trackSelector.value);
+                if (idx !== -1) loadTrack(idx, true);
+            });
+        }
 
-    if (musicButton) musicButton.addEventListener('click', toggleMusic);
-    if (loopButton) loopButton.addEventListener('click', toggleLoop);
-    if (playlistButton) playlistButton.addEventListener('click', togglePlaylistUI);
+        if (tracksListContainer) {
+            tracksListContainer.innerHTML = "";
+            playlist.forEach((track, idx) => {
+                const item = document.createElement("div");
+                item.className = "playlist-item";
+                item.textContent = `${idx + 1}. ${formatTrackName(track)}`;
+                item.addEventListener("click", () => loadTrack(idx, true));
+                tracksListContainer.appendChild(item);
+            });
+        }
 
-    audioPlayer.addEventListener("timeupdate", () => {
-        if (!audioPlayer.duration) return;
-        const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        if (progressFill) progressFill.style.width = `${pct}%`;
-        if (timeCurrent) timeCurrent.textContent = formatMusicTime(audioPlayer.currentTime);
-    });
+        if (musicButton) musicButton.addEventListener('click', toggleMusic);
+        if (loopButton) loopButton.addEventListener('click', toggleLoop);
+        if (playlistButton) playlistButton.addEventListener('click', togglePlaylistUI);
 
-    audioPlayer.addEventListener("loadedmetadata", () => {
-        if (timeTotal) timeTotal.textContent = formatMusicTime(audioPlayer.duration);
-    });
-
-    if (progressBg) {
-        progressBg.addEventListener("click", (e) => {
+        audioPlayer.addEventListener("timeupdate", () => {
             if (!audioPlayer.duration) return;
-            const rect = progressBg.getBoundingClientRect();
-            const pct = (e.clientX - rect.left) / rect.width;
-            audioPlayer.currentTime = pct * audioPlayer.duration;
+            const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            if (progressFill) progressFill.style.width = `${pct}%`;
+            if (timeCurrent) timeCurrent.textContent = formatMusicTime(audioPlayer.currentTime);
         });
+
+        audioPlayer.addEventListener("loadedmetadata", () => {
+            if (timeTotal) timeTotal.textContent = formatMusicTime(audioPlayer.duration);
+        });
+
+        if (progressBg) {
+            progressBg.addEventListener("click", (e) => {
+                if (!audioPlayer.duration) return;
+                const rect = progressBg.getBoundingClientRect();
+                const pct = (e.clientX - rect.left) / rect.width;
+                audioPlayer.currentTime = pct * audioPlayer.duration;
+            });
+        }
+
+        if (volumeSlider) {
+            volumeSlider.value = audioPlayer.volume;
+            volumeSlider.addEventListener("input", (e) => { audioPlayer.volume = e.target.value; });
+        }
+
+        audioPlayer.addEventListener("ended", () => {
+            if (!isLooping) playNextRandomTrack();
+        });
+
+        loadTrack(currentTrackIdx, false);
+    } catch (error) {
+        console.error("Ошибка загрузки плейлиста:", error);
     }
-
-    if (volumeSlider) {
-        volumeSlider.value = audioPlayer.volume;
-        volumeSlider.addEventListener("input", (e) => { audioPlayer.volume = e.target.value; });
-    }
-
-    audioPlayer.addEventListener("ended", () => {
-        if (!isLooping) playNextRandomTrack();
-    });
-
-    loadTrack(currentTrackIdx, false);
 }
 
 function loadTrack(idx, startPlaying = false) {
@@ -297,8 +241,8 @@ function buildHexGrid() {
             vHex.setAttribute('id', 'visual_' + hexId);
 
             // --- ЛОГИКА ТУМАНА ---
-            // Если гекса нет в данных ИЛИ он не разведан — добавляем туман
-            if (!mapData[hexId] || !mapData[hexId].explored) {
+            // Гекс скрыт туманом, если он не был ни разведан, ни посещен отрядом
+            if (!mapData[hexId] || (!mapData[hexId].explored && !mapData[hexId].hasVisited)) {
                 vHex.classList.add('fog-active');
             }
             // -----------------------
@@ -591,8 +535,8 @@ function closeMenu() {
 function saveMenu() {
     if (!currentHexId) return;
 
+    // 1. Сбор данных из полей ввода
     const titleVal = document.getElementById('inpTitle').value;
-
     const descVal = document.getElementById('inpDesc').value;
     const colorVal = document.getElementById('inpColor').value || 'transparent';
     const diffVal = difficultySelect.value;
@@ -623,27 +567,22 @@ function saveMenu() {
                 }
             }
         }
-        // Автоматически разводим туман, если отряд находится в этом гексе
-        if (mapData[currentHexId]) {
-            mapData[currentHexId].explored = true;
-        }
     }
-    // ============================================================
 
+    // 2. Визуальное обновление текущего гекса в интерфейсе
     if (currentHexElement) {
-        // 1. Затемнение гекса
+        // Затемнение гекса
         if (squadHereVal) {
             currentHexElement.classList.add('squad-dark');
-            currentHexElement.classList.remove('fog-active'); // Убираем туман, когда отряд заходит
         } else {
             currentHexElement.classList.remove('squad-dark');
         }
 
-        // 2. Текст заголовка
+        // Текст заголовка
         const tLabel = currentHexElement.querySelector('.hex-title-label');
         if (tLabel) tLabel.textContent = titleVal;
 
-        // 3. Текст характеристик (СЛ и lvl)
+        // Текст характеристик (СЛ и lvl)
         const sLabel = currentHexElement.querySelector('.hex-stats-label');
         if (sLabel) {
             if (diffVal && regionLevelVal) {
@@ -658,7 +597,7 @@ function saveMenu() {
             sLabel.style.display = (diffVal || regionLevelVal) ? 'block' : 'none';
         }
 
-        // 4. Иконка типа объекта
+        // Иконка типа объекта
         const typeElem = currentHexElement.querySelector('.type-icon-container');
         if (typeElem) {
             if (typeVal === "") {
@@ -674,7 +613,7 @@ function saveMenu() {
             }
         }
 
-        // 5. Иконка типа местности
+        // Иконка типа местности
         const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
         if (terrainElem) {
             if (terrainVal === "") {
@@ -706,20 +645,28 @@ function saveMenu() {
             mappedElem.textContent = mapMappedVal ? '📜' : '';
         }
 
-        // 6. Флажок отряда
+        // Обновляем флажок отряда с анимацией прилета
         const flagElem = currentHexElement.querySelector('.squad-flag-container');
         if (flagElem) {
             if (squadHereVal) {
                 flagElem.style.display = 'block';
-                flagElem.classList.add('active-flag');
+                flagElem.classList.remove('active-flag');
+                // Запускаем анимацию прилета (один раз)
+                flagElem.style.animation = 'flagAppear 1s forwards';
+                // Через 1 секунду включаем бесконечное покачивание
+                setTimeout(() => {
+                    flagElem.style.animation = '';
+                    flagElem.classList.add('active-flag');
+                }, 1000);
             } else {
                 flagElem.style.display = 'none';
                 flagElem.classList.remove('active-flag');
+                flagElem.style.animation = '';
             }
         }
     }
 
-    // Обновляем цвет подложки
+    // 3. Обновляем цвет подложки
     if (currentShape) {
         if (colorVal !== 'transparent') {
             currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
@@ -728,7 +675,7 @@ function saveMenu() {
         }
     }
 
-    // Сохраняем всё в объект
+    // 4. Сохраняем всё в объект (с учетом hasVisited)
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
@@ -739,11 +686,25 @@ function saveMenu() {
         squadHere: squadHereVal,
         type: typeVal,
         terrain: terrainVal,
-        regionLevel: regionLevelVal
+        regionLevel: regionLevelVal,
+        hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited)
     };
 
-    // Сохраняем в локальное хранилище
+    // 5. Сохраняем в локальное хранилище
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+
+    // 6. Мгновенное визуальное обновление тумана для всех гексов (синхронизация)
+    for (let id in mapData) {
+        const vHex = document.getElementById('visual_' + id);
+        if (vHex) {
+            const data = mapData[id];
+            if (data && (data.explored || data.hasVisited)) {
+                vHex.classList.remove('fog-active');
+            } else {
+                vHex.classList.add('fog-active');
+            }
+        }
+    }
 
     closeMenu();
 }
@@ -935,7 +896,6 @@ if (btnToggle && legendCont) {
         console.log("Легенда переключена!");
     });
 
-    // Добавляем кликабельность на весь заголовок
     const header = document.querySelector('.legend-header');
     if (header) {
         header.style.cursor = 'pointer';
@@ -950,3 +910,15 @@ if (btnToggle && legendCont) {
 } else {
     console.error("Ошибка: Элементы легенды не найдены в DOM! Проверьте правильность вставки HTML.");
 }
+
+document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'btnSave' && currentHexId) {
+        const vHex = document.getElementById('visual_' + currentHexId);
+        const flag = vHex ? vHex.querySelector('.squad-flag-container') : null;
+        if (flag) {
+            flag.classList.remove('active-flag');
+            void flag.offsetWidth;
+            flag.classList.add('active-flag');
+        }
+    }
+});

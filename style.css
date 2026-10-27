@@ -40,7 +40,7 @@ body {
     top: 0; left: 0;
     width: 3840px;
     height: 1280px;
-    pointer-events: none !important; /* Важно: пропускает клики сквозь себя на <area> */
+    pointer-events: none !important;
 }
 .visual-hex {
     position: absolute;
@@ -50,7 +50,6 @@ body {
     text-align: center;
     pointer-events: auto !important;
     cursor: pointer;
-    /* Добавляем форму гекса сюда, чтобы туман тоже был гексагоном */
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
 
@@ -88,7 +87,6 @@ body {
     text-overflow: clip;
 }
 
-/* затемнение гекса и рамка, если отряд находится в нем */
 .visual-hex.squad-dark .hex-shape::before {
     background: rgba(0, 0, 0, 0) !important;
 }
@@ -121,7 +119,7 @@ body {
 
 .menu-logo {
     display: block;
-    width: 65%; /* Скорректирован размер: аккуратный логотип вместо огромного баннера */
+    width: 65%;
     max-width: 180px;
     height: auto;
     margin: 0 auto 15px;
@@ -192,7 +190,7 @@ body {
     border-radius: 9px;
     border: 2px solid #d4af37;
     box-shadow: 0 6px 22px rgba(0,0,0,0.7);
-    font-size: 20px; /* Слегка уменьшен для читаемости на экранах */
+    font-size: 20px;
     max-width: 500px;
     z-index: 10006; 
     pointer-events: none; 
@@ -211,21 +209,6 @@ body {
     font-style: italic;
     word-break: break-word;
 }
-
-/* ========================================================
-   СТАТИЧНЫЕ КНОПКИ УПРАВЛЕНИЯ JSON (СПРАВА СНИЗУ)
-   ======================================================== */
-/*
-.json-actions-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10005;
-    display: flex;
-    gap: 10px;
-    pointer-events: auto;
-}
- */
 
 /* ========================================================
    ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ УПРАВЛЕНИЯ МУЗЫКОЙ
@@ -403,19 +386,6 @@ body {
     font-weight: bold;
     border-left: 3px solid #d4af37;
 }
-/*
-.squad-flag-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-20deg);
-    z-index: 4;
-    pointer-events: none;
-    display: none;
-    transform-origin: bottom center;
-}
-
- */
 
 .squad-pole {
     width: 6px !important;
@@ -435,7 +405,7 @@ body {
     box-shadow: 2px 2px 4px rgba(0,0,0,0.4) !important;
 }
 
-/* Анимация появления */
+/* Стили для контейнера флага отряда */
 .squad-flag-container {
     position: absolute !important;
     top: 50% !important;
@@ -448,8 +418,16 @@ body {
 }
 
 @keyframes flagAppear {
-    from { transform: translate(-50%, -50%) rotate(-20deg) translateY(-10px) scale(0); }
-    to { transform: translate(-50%, -50%) rotate(-20deg) translateY(0) scale(1); }
+    0% {
+        transform: translate(-140%, -1600px) rotate(-30deg) scale(0);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(-20deg) scale(1);
+    }
 }
 
 .hex-title-label {
@@ -470,13 +448,11 @@ body {
     position: absolute !important;
     bottom: 20px !important;
     left: 50% !important;
-    transform: translateX(-50%) !important; /* Центрируем по горизонтали */
+    transform: translateX(-50%) !important;
     z-index: 3 !important;
-/*    color: #000 !important; */
     font-size: 20px !important;
     font-weight: bold !important;
-/*    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff !important; */
-    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    color: #fff !important;
     text-shadow: 0 0 15px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.9) !important;
     white-space: nowrap !important;
     pointer-events: none !important;
@@ -488,14 +464,14 @@ body {
 
 .type-icon-container {
     position: absolute !important;
-    top: 32% !important; /* Верхний правый квадрант */
+    top: 32% !important;
     right: 10px !important;
     z-index: 4 !important;
     font-size: 24px !important;
     pointer-events: none !important;
     display: none;
     animation: typeFloat 3s infinite ease-in-out;
-    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    color: #fff !important;
     text-shadow: 0 0 15px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.9) !important;
 }
 
@@ -508,7 +484,7 @@ body {
     pointer-events: none !important;
     display: none;
     animation: floatAnim 4s infinite ease-in-out;
-    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    color: #fff !important;
     text-shadow: 0 0 15px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.9) !important;
 }
 
@@ -521,7 +497,7 @@ body {
     pointer-events: none !important;
     display: none;
     animation: floatAnim 4s infinite ease-in-out;
-    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    color: #fff !important;
     text-shadow: 0 0 15px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.9) !important;
 }
 
@@ -539,18 +515,9 @@ body {
     pointer-events: none !important;
     display: none;
     animation: terrainFloat 4s infinite ease-in-out;
-    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    color: #fff !important;
     text-shadow: 0 0 15px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.9) !important;
 }
-/*
-.info-icon-container {
-    position: absolute;
-    z-index: 4;
-    pointer-events: none;
-    display: none;
-    animation: floatAnim 4s infinite ease-in-out;
-}
- */
 
 @keyframes floatAnim {
     0% { transform: translate(0, 0) rotate(-5deg); }
@@ -579,7 +546,7 @@ body {
 /* Стили для легенды */
 .legend-container {
     background: rgba(15, 15, 15, 0.95);
-    border: 2px solid #d4af37; /* Теперь везде одинаковая толщина */
+    border: 2px solid #d4af37;
     margin-bottom: 5px;
     border-radius: 4px;
     display: block;
@@ -597,7 +564,7 @@ body {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-    cursor: pointer; /* Теперь можно кликать по всей строке заголовка */
+    cursor: pointer;
 }
 
 .legend-header button {
@@ -618,7 +585,7 @@ body {
 
 /* Состояние при открытии */
 .legend-container.open .legend-content {
-    max-height: 500px; /* Достаточно для всего списка */
+    max-height: 500px;
     padding: 10px;
 }
 
@@ -657,7 +624,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный цвет */
+    background: rgba(0, 0, 0, 0.7);
     z-index: 5;
     pointer-events: none;
 }
