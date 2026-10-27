@@ -6,11 +6,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Pathfinder Kingmaker Map</title>
-	<link rel="stylesheet" href="style.css">
-	<link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
-
 <div class="map-viewport" id="viewport">
     <div class="map-container" id="mapContainer">
         <img src="map.png" class="map-image" usemap="#hexMap" id="mapImg" alt="Map Grid">
@@ -20,9 +19,9 @@
 </div>
 
 <div class="pop-menu" id="hexMenu">
-	<img src="logo.png" class="menu-logo" alt="Pathfinder Logo">
+    <img src="logo.png" class="menu-logo" alt="Pathfinder Logo">
     <h3 id="menuTitle" style="display: none;">Hex Setup</h3>
-	
+
     <div class="box">
         <label>Название гекса:</label>
         <input type="text" id="inpTitle" maxlength="10">
@@ -42,8 +41,8 @@
             <label for="inpSquadHere" style="margin-bottom: 0; cursor: pointer; font-size: 15px; color: #e74c3c; font-weight: bold;">Отряд здесь</label>
         </div>
     </div>
-	
-	<div class="box">
+
+    <div class="box">
         <label>Тип объекта на гексе:</label>
         <select id="inpType" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
             <option value="">-- Обычный гекс --</option>
@@ -53,6 +52,7 @@
             <option value="mystery">❓ Тайна</option>
         </select>
     </div>
+
     <div class="box">
         <label>Тип местности (Навигация):</label>
         <select id="inpTerrain" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
@@ -64,7 +64,8 @@
             <option value="mountain">⛰ Горы (СЛ 16)</option>
             <option value="plains">🌾 Равнины (СЛ 12)</option>
         </select>
-    </div>	
+    </div>
+
     <div class="box">
         <label>Описание гекса:</label>
         <textarea id="inpDesc" rows="4"></textarea>
@@ -83,21 +84,17 @@
             <option value="">-- Выберите уровень --</option>
         </select>
     </div>
-	
+
     <div class="box">
         <label>Цвет гекса:</label>
-        <div class="color-presets" id="colorPresetsContainer" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
-        </div>
+        <div class="color-presets" id="colorPresetsContainer" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;"></div>
         <input type="hidden" id="inpColor" value="">
     </div>
+
     <div class="buttons">
         <button class="btn del" id="btnDelete">Удалить</button>
-        <div>
-            <button class="btn cc" id="btnCancel">Отмена</button>
-	</div>
-	<div>
-            <button class="btn ok" id="btnSave">Сохранить</button>
-        </div>
+        <div><button class="btn cc" id="btnCancel">Отмена</button></div>
+        <div><button class="btn ok" id="btnSave">Сохранить</button></div>
     </div>
 </div>
 
@@ -112,8 +109,40 @@
 <!-- Аудио-элемент -->
 <audio id="bg-music"></audio>
 
-<!-- ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ И СОГЛАСОВАННЫЙ БЛОК ПЛЕЕРА -->
+<!-- ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ БЛОК ПЛЕЕРА И ЛЕГЕНДЫ -->
 <div class="music-controller">
+    <!-- БЛОК ЛЕГЕНДЫ -->
+    <div class="legend-container" id="legendContainer">
+        <div class="legend-header">
+            <span class="legend-title">📜 Легенда карты</span>
+            <button id="btnToggleLegend" title="Скрыть/Показать легенду">🔼</button>
+        </div>
+        <div class="legend-content" id="legendContent">
+            <div class="legend-group">
+                <p>Местности:</p>
+                <div class="legend-grid">
+                    <span>🐊 Болото</span> <span>🌲 Лес</span> <span>🌊 Вода</span>
+                    <span>❄️ Приполярье</span> <span>⛰ Горы</span> <span>🌾 Равнины</span>
+                </div>
+            </div>
+            <div class="legend-group">
+                <p>Объекты:</p>
+                <div class="legend-grid">
+                    <span>🔍 Достопримечательность</span> <span>💎 Ресурс</span>
+                    <span>⚜️ Задание</span> <span>❓ Тайна</span>
+                </div>
+            </div>
+            <div class="legend-group">
+                <p>Статусы:</p>
+                <div class="legend-grid">
+                    <span>⭐ Разведан</span> <span>📜 Карта составлена</span>
+                    <span>⛺ Отряд здесь</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- БЛОК УПРАВЛЕНИЯ МУЗЫКОЙ -->
     <div class="main-controls" id="audioControls">
         <!-- Верхняя строка: Выбор трека и Громкость -->
         <div class="music-controls-row">
@@ -143,7 +172,7 @@
         </div>
     </div>
 
-    <!-- Выпадающий плейлист -->
+    <!-- Выпадающий список треков (Плейлист) -->
     <div class="dropdown-playlist" id="playerPlaylist">
         <div class="playlist-header">Список композиций</div>
         <div class="playlist-tracks" id="playlistTracksContainer">

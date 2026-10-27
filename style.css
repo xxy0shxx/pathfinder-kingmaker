@@ -560,3 +560,77 @@ body {
     50% { transform: translate(-50%, -50%) rotate(15deg); }
     100% { transform: translate(-50%, -50%) rotate(-15deg); }
 }
+
+/* Стили для легенды */
+.legend-container {
+    background: rgba(15, 15, 15, 0.95);
+    border: 2px solid #d4af37;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    margin-bottom: 5px;
+    border-radius: 4px;
+    display: block;
+    overflow: hidden;
+    z-index: 10006; /* Убедимся, что она над всем */
+}
+
+.legend-header {
+    background: rgba(212, 175, 55, 0.15);
+    color: #d4af37;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    cursor: pointer; /* Теперь можно кликать по всей строке заголовка */
+}
+
+.legend-header button {
+    background: none;
+    border: none;
+    color: #d4af37;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 5px;
+}
+
+.legend-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    padding: 0 10px;
+}
+
+/* Состояние при открытии */
+.legend-container.open .legend-content {
+    max-height: 500px; /* Достаточно для всего списка */
+    padding: 10px;
+}
+
+.legend-group {
+    margin-bottom: 15px;
+}
+
+.legend-group p {
+    margin: 0 0 5px 0;
+    font-size: 11px;
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 2px;
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 13px;
+    color: #ccc;
+}
+
+.legend-grid span {
+    padding: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}

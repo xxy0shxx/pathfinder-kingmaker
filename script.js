@@ -868,3 +868,32 @@ if (viewport && mapContainer) {
         }
     }, { passive: false });
 }
+
+// Логика открытия/закрытия легенды
+const btnToggle = document.getElementById('btnToggleLegend');
+const legendCont = document.getElementById('legendContainer');
+
+if (btnToggle && legendCont) {
+    btnToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        legendCont.classList.toggle('open');
+        btnToggle.textContent = legendCont.classList.contains('open') ? '🔽' : '🔼';
+        console.log("Легенда переключена!");
+    });
+
+    // Добавляем кликабельность на весь заголовок
+    const header = document.querySelector('.legend-header');
+    if (header) {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            legendCont.classList.toggle('open');
+            btnToggle.textContent = legendCont.classList.contains('open') ? '🔽' : '🔼';
+            console.log("Легенда нажата по заголовку!");
+        });
+    }
+} else {
+    console.error("Ошибка: Элементы легенды не найдены в DOM! Проверьте правильность вставки HTML.");
+}
