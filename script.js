@@ -669,12 +669,10 @@ function saveMenu() {
                         startY = startRect.top + startRect.height / 2;
                     }
 
-                    // 2. Координаты финиша (текущий гекс)
                     const targetRect = currentHexElement.getBoundingClientRect();
                     const targetX = targetRect.left + targetRect.width / 2;
                     const targetY = targetRect.top + targetRect.height / 2;
 
-                    // 3. Создаем летящий флаг
                     const flyingFlag = document.createElement('div');
                     flyingFlag.className = 'global-flying-flag';
                     flyingFlag.innerHTML = `
@@ -683,31 +681,36 @@ function saveMenu() {
                 </div>
             `;
 
-                    // Начальное состояние: смещаем координаты, увеличиваем и разворачиваем на -90 градусов (строго на бок)
                     flyingFlag.style.left = `${startX - 9}px`;
                     flyingFlag.style.top = `${startY - 50}px`;
-                    flyingFlag.style.transform = 'scale(4.5) rotate(-90deg)';
+                    flyingFlag.style.transform = 'scale(2.5) rotate(-90deg)';
                     flyingFlag.style.opacity = '0';
 
                     document.body.appendChild(flyingFlag);
 
                     setTimeout(() => {
                         flyingFlag.style.opacity = '1';
-                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
                         flyingFlag.style.left = `${targetX - 9}px`;
                         flyingFlag.style.top = `${targetY - 50}px`;
+                        flyingFlag.style.transform = 'scale(1) rotate(-90deg)';
                     }, 20);
+
+                    setTimeout(() => {
+                        flyingFlag.style.transition = 'transform 0.05s cubic-bezier(0.25, 1, 0.5, 1)';
+                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
+                    }, 1250); // 1300мс - 50мс
+
 
                     setTimeout(() => {
                         flyingFlag.remove();
 
                         flagElem.style.display = 'block';
-                        flagElem.style.animation = 'flagAppear 0.3s forwards';
+                        flagElem.style.animation = 'flagAppear 0.05s forwards';
 
                         setTimeout(() => {
                             flagElem.style.animation = '';
                             flagElem.classList.add('active-flag');
-                        }, 300);
+                        }, 50);
                     }, 1300);
 
                 } else {
@@ -880,13 +883,14 @@ let isDragging = false;
 let hasMoved = false; 
 let startX, startY;
 
+let x = 0;
+let y = 0;
+
 if (viewport && mapContainer) {
+    // Функция обновления трансформации карты
     function updateMapTransform() {
         mapContainer.style.transform = `translate(${x}px, ${y}px) scale(${currentZoom})`;
     }
-
-    let x = 0;
-    let y = 0;
 
     viewport.addEventListener('mousedown', (e) => {
         if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
@@ -901,12 +905,25 @@ if (viewport && mapContainer) {
         if (!isDragging) return;
         e.preventDefault();
 
-        x = e.pageX - startX;
-        y = e.pageY - startY;
+        // Временные новые координаты
+        let newX = e.pageX - startX;
+        let newY = e.pageY - startY;
 
-        if (Math.abs(x) > 3 || Math.abs(y) > 3) {
+        if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
             hasMoved = true;
         }
+
+        // --- ЛОГИКА ОГРАНИЧЕНИЯ ГРАНИЦ ---
+        // Размеры карты: 3840px на 1280px.
+        // Разрешаем сдвигать карту максимум на половину её ширины/высоты в любую сторону
+        const maxLimitX = 3840 * 0.5;
+        const minLimitX = -3840 * 0.5;
+        const maxLimitY = 1280 * 0.5;
+        const minLimitY = -1280 * 0.5;
+
+        // Зажимаем координаты в этих пределах
+        x = Math.max(minLimitX, Math.min(maxLimitX, newX));
+        y = Math.max(minLimitY, Math.min(maxLimitY, newY));
 
         updateMapTransform();
     });
@@ -920,7 +937,7 @@ if (viewport && mapContainer) {
         setTimeout(() => { hasMoved = false; }, 50);
     });
 
-    // Добавление Zoom через колесо мыши
+    // Изменение Zoom через колесо мыши
     viewport.addEventListener('wheel', (e) => {
         e.preventDefault();
 
