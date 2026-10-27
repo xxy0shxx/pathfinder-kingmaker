@@ -381,19 +381,6 @@ body {
     transform-origin: bottom center !important;
 }
 
-@keyframes flagAppear {
-    0% {
-        transform: translate(-140%, -1600px) rotate(-30deg) scale(0);
-        opacity: 0;
-    }
-    50% {
-        opacity: 1;
-    }
-    100% {
-        transform: translate(-50%, -50%) rotate(-20deg) scale(1);
-    }
-}
-
 .hex-title-label {
     position: absolute !important;
     top: 20px !important;
@@ -504,6 +491,12 @@ body {
     0% { transform: translate(-50%, -50%) rotate(-5deg); }
     50% { transform: translate(-50%, -50%) rotate(5deg); }
     100% { transform: translate(-50%, -50%) rotate(-5deg); }
+}
+
+@keyframes flagAppear {
+    0% { transform: translate(-140%, -1600px) rotate(-1deg) scale(0); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
 }
 
 .legend-container {
