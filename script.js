@@ -306,15 +306,15 @@ function buildHexGrid() {
                     const data = mapData[hexId];
                     let content = '';
                     if (data.title) {
-                        const star = data.explored ? '⭐ ' : '';
+                        const star = data.explored ? '🔍 ' : '';
                         const mapIcon = data.mapMapped ? '📜 ' : '';
                         let statsLabel = '';
                         if (data.difficulty && data.regionLevel) statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
                         else if (data.difficulty) statsLabel = ` (СЛ ${data.difficulty})`;
                         else if (data.regionLevel) statsLabel = ` (lvl ${data.regionLevel})`;
                         let typeIcon = '';
-                        if (data.type === 'landmark') typeIcon = '🔍 ';
-                        else if (data.type === 'resource') typeIcon = '🪵 ';
+                        if (data.type === 'landmark') typeIcon = '🏛️ ';
+                        else if (data.type === 'resource') typeIcon = '💎 ';
                         else if (data.type === 'quest') typeIcon = '✔ ';
                         else if (data.type === 'mystery') typeIcon = '❓ ';
                         let terrainIcon = '';
@@ -327,16 +327,16 @@ function buildHexGrid() {
                         content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
                     }
                     let paramsBlock = '';
-                    paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '⭐ <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
+                    paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
                     paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '✖ <b>Карта отсутствует</b>'}</div>`;
                     if (data.squadHere) paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
                     if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
                     if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
                     if (data.type) {
                         let typeText = ''; let tIcon = '';
-                        if (data.type === 'landmark') { tIcon = '🔍'; typeText = 'Достопримечательность'; }
-                        if (data.type === 'resource') { tIcon = '🪵'; typeText = 'Ресурс'; }
-                        if (data.type === 'quest') { tIcon = '✔'; typeText = 'Стандартное задание'; }
+                        if (data.type === 'landmark') { tIcon = '🏛️'; typeText = 'Достопримечательность'; }
+                        if (data.type === 'resource') { tIcon = '💎'; typeText = 'Ресурс'; }
+                        if (data.type === 'quest') { tIcon = '⚜️'; typeText = 'Стандартное задание'; }
                         if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
                         paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
                     }
@@ -435,7 +435,7 @@ function buildHexGrid() {
                 if (mapData[hexId].type) {
                     typeElem.style.display = 'block';
                     let icon = '';
-                    if (mapData[hexId].type === 'landmark') icon = '🔍';
+                    if (mapData[hexId].type === 'landmark') icon = '🏛️';
                     else if (mapData[hexId].type === 'resource') icon = '💎';
                     else if (mapData[hexId].type === 'quest') icon = '⚜️';
                     else if (mapData[hexId].type === 'mystery') icon = '❓';
@@ -449,7 +449,7 @@ function buildHexGrid() {
 
                 if (mapData[hexId].explored) {
                     exploredElem.style.display = 'block';
-                    exploredElem.textContent = '⭐';
+                    exploredElem.textContent = '🔍';
                 } else {
                     exploredElem.style.display = 'none';
                 }
@@ -613,7 +613,7 @@ function saveMenu() {
             } else {
                 typeElem.style.display = 'block';
                 let icon = '';
-                if (typeVal === 'landmark') icon = '🔍';
+                if (typeVal === 'landmark') icon = '🏛️';
                 else if (typeVal === 'resource') icon = '💎';
                 else if (typeVal === 'quest') icon = '⚜️';
                 else if (typeVal === 'mystery') icon = '❓';
@@ -643,7 +643,7 @@ function saveMenu() {
         const exploredElem = currentHexElement.querySelector('.explored-icon-container');
         if (exploredElem) {
             exploredElem.style.display = exploredVal ? 'block' : 'none';
-            exploredElem.textContent = exploredVal ? '⭐' : '';
+            exploredElem.textContent = exploredVal ? '🔍' : '';
         }
 
         // Обновляем статус Карта
