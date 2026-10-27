@@ -329,14 +329,14 @@ function buildHexGrid() {
                         let typeIcon = '';
                         if (data.type === 'landmark') typeIcon = '🏛️ ';
                         else if (data.type === 'resource') typeIcon = '💎 ';
-                        else if (data.type === 'quest') typeIcon = '✔ ';
+                        else if (data.type === 'quest') typeIcon = '⚜️ ';
                         else if (data.type === 'mystery') typeIcon = '❓ ';
                         let terrainIcon = '';
                         if (data.terrain === 'swamp') terrainIcon = '🐸 ';
                         else if (data.terrain === 'forest') terrainIcon = '🌲 ';
                         else if (data.terrain === 'water') terrainIcon = '🌊 ';
-                        else if (data.terrain === 'arctic') terrainIcon = '❄ ';
-                        else if (data.terrain === 'mountain') terrainIcon = '⛰ ';
+                        else if (data.terrain === 'arctic') terrainIcon = '❄️ ';
+                        else if (data.terrain === 'mountain') terrainIcon = '⛰️ ';
                         else if (data.terrain === 'plains') terrainIcon = '🌾 ';
                         content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
                     }
@@ -383,7 +383,7 @@ function buildHexGrid() {
                             terrainText = 'Вода (СЛ 17)';
                         }
                         if (data.terrain === 'arctic') {
-                            terrIcon = '❄';
+                            terrIcon = '❄️';
                             terrainText = 'Приполярье (СЛ 17)';
                         }
                         if (data.terrain === 'mountain') {
