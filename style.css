@@ -432,7 +432,7 @@ body {
 .squad-flag-container {
     position: absolute !important;
     top: 50% !important;
-    left: 50% !important;
+    left: 45% !important;
     transform: translate(-50%, -50%);
     z-index: 4 !important;
     pointer-events: none !important;
@@ -501,7 +501,7 @@ body {
 
 .mapped-icon-container {
     position: absolute !important;
-    top: 55% !important;
+    top: 52% !important;
     left: 10px !important;
     z-index: 4 !important;
     font-size: 22px !important;
@@ -517,7 +517,7 @@ body {
 /* Контейнер для значка типа местности */
 .terrain-icon-container {
     position: absolute !important;
-    top: 55% !important;
+    top: 52% !important;
     right: 10px !important;
     z-index: 4 !important;
     font-size: 22px !important;
