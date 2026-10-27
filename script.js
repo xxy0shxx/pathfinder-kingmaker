@@ -344,6 +344,11 @@ function buildHexGrid() {
                     if (data.text) {
                         content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
                     }
+
+                    if (data.lastSaved) {
+                        content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`;
+                    }
+
                     tooltip.innerHTML = content;
                     tooltip.style.display = 'block';
                 }
@@ -675,7 +680,7 @@ function saveMenu() {
         }
     }
 
-    // 4. Сохраняем всё в объект (с учетом hasVisited)
+    // 4. Сохраняем всё в объект
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
@@ -687,7 +692,8 @@ function saveMenu() {
         type: typeVal,
         terrain: terrainVal,
         regionLevel: regionLevelVal,
-        hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited)
+        hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited),
+        lastSaved: new Date().toLocaleString() // Добавлена строка сохранения даты
     };
 
     // 5. Сохраняем в локальное хранилище
