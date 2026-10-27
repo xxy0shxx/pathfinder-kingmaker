@@ -35,6 +35,7 @@ body {
     height: 1280px;
     pointer-events: auto !important;
 }
+/*
 .hex-visual-layer {
     position: absolute;
     top: 0; left: 0;
@@ -42,6 +43,7 @@ body {
     height: 1280px;
     pointer-events: none !important;
 }
+ */
 .visual-hex {
     position: absolute;
     display: flex;
@@ -72,6 +74,7 @@ body {
 .visual-hex:hover .hex-shape::before {
     background: rgba(0, 0, 0, 0.35) !important; 
 }
+/*
 .hex-text-label {
     position: relative;
     z-index: 2;
@@ -86,6 +89,7 @@ body {
     overflow: visible;
     text-overflow: clip;
 }
+ */
 
 .visual-hex.squad-dark .hex-shape::before {
     background: rgba(0, 0, 0, 0) !important;
@@ -93,7 +97,7 @@ body {
 
 .visual-hex.squad-dark .hex-shape {
     background: radial-gradient(circle, rgba(231, 76, 60, 0.8) 0%, rgba(231, 76, 60, 0) 70%);
-    filter: drop-shadow(0 0 4px #e74c3c); /* Четкий внешний контур отряда */
+    filter: drop-shadow(0 0 4px #e74c3c);
 }
 
 /* ========================================================
@@ -178,9 +182,6 @@ body {
     font-weight: bold;
 }
 
-/* ========================================================
-   ВОССТАНОВЛЕННЫЙ ВСПОЛЫВАЮЩИЙ ТУЛТИП (ПРИ НАВЕДЕНИИ)
-   ======================================================== */
 .hex-tooltip {
     position: fixed;
     display: none;
@@ -210,9 +211,6 @@ body {
     word-break: break-word;
 }
 
-/* ========================================================
-   ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ ЭЛЕМЕНТОВ УПРАВЛЕНИЯ МУЗЫКОЙ
-   ======================================================== */
 .music-controller {
     position: fixed;
     bottom: 20px;
@@ -284,7 +282,6 @@ body {
     flex-grow: 2;
 }
 
-/* Таймлайн и прогресс-бар */
 .player-timeline {
     display: flex;
     align-items: center;
@@ -316,7 +313,6 @@ body {
     transition: width 0.1s linear;
 }
 
-/* Громкость */
 .volume-box {
     display: flex;
     align-items: center;
@@ -333,7 +329,6 @@ body {
     accent-color: #d4af37;
 }
 
-/* Выпадающий список треков (Плейлист) */
 .dropdown-playlist {
     background: rgba(15, 15, 15, 0.95);
     border: 2px solid #d4af37;
