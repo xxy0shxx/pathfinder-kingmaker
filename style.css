@@ -403,7 +403,7 @@ body {
     font-weight: bold;
     border-left: 3px solid #d4af37;
 }
-
+/*
 .squad-flag-container {
     position: absolute;
     top: 50%;
@@ -414,6 +414,8 @@ body {
     display: none;
     transform-origin: bottom center;
 }
+
+ */
 
 .squad-pole {
     width: 6px !important;
@@ -459,7 +461,7 @@ body {
     color: #000 !important;
     font-size: 24px !important;
     font-weight: bold !important;
-    text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff !important;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 1) !important;
     white-space: nowrap !important;
     pointer-events: none !important;
 }
@@ -470,10 +472,12 @@ body {
     left: 50% !important;
     transform: translateX(-50%) !important; /* Центрируем по горизонтали */
     z-index: 3 !important;
-    color: #000 !important;
+/*    color: #000 !important; */
     font-size: 20px !important;
     font-weight: bold !important;
-    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff !important;
+/*    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff !important; */
+    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 1) !important;
     white-space: nowrap !important;
     pointer-events: none !important;
 }
@@ -491,6 +495,8 @@ body {
     pointer-events: none !important;
     display: none;
     animation: typeFloat 3s infinite ease-in-out;
+    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 1) !important;
 }
 
 .explored-icon-container {
@@ -502,6 +508,8 @@ body {
     pointer-events: none !important;
     display: none;
     animation: floatAnim 4s infinite ease-in-out;
+    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 1) !important;
 }
 
 .mapped-icon-container {
@@ -513,6 +521,8 @@ body {
     pointer-events: none !important;
     display: none;
     animation: floatAnim 4s infinite ease-in-out;
+    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 1) !important;
 }
 
 .type-icon-container.small {
@@ -529,6 +539,8 @@ body {
     pointer-events: none !important;
     display: none;
     animation: terrainFloat 4s infinite ease-in-out;
+    color: #fff !important; /* Меняем текст на белый, чтобы тень было видно */
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 1) !important;
 }
 /*
 .info-icon-container {
