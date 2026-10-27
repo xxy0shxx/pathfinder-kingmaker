@@ -346,7 +346,7 @@ function buildHexGrid() {
                         if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес (СЛ 14)'; }
                         if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода (СЛ 17)'; }
                         if (data.terrain === 'arctic') { terrIcon = '❄'; terrainText = 'Приполярье (СЛ 17)'; }
-                        if (data.terrain === 'mountain') { terrIcon = '⛰'; terrainText = 'Горы (СЛ 16)'; }
+                        if (data.terrain === 'mountain') { terrIcon = '⛰️'; terrainText = 'Горы (СЛ 16)'; }
                         if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины (СЛ 12)'; }
                         paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
                     }
@@ -427,7 +427,7 @@ function buildHexGrid() {
                     else if (mapData[hexId].terrain === 'forest') icon = '🌲';
                     else if (mapData[hexId].terrain === 'water') icon = '🌊';
                     else if (mapData[hexId].terrain === 'arctic') icon = '❄️';
-                    else if (mapData[hexId].terrain === 'mountain') icon = '⛰';
+                    else if (mapData[hexId].terrain === 'mountain') icon = '⛰️';
                     else if (mapData[hexId].terrain === 'plains') icon = '🌾';
                     terrainElem.textContent = icon;
                 }
@@ -633,7 +633,7 @@ function saveMenu() {
                 else if (terrainVal === 'forest') icon = '🌲';
                 else if (terrainVal === 'water') icon = '🌊';
                 else if (terrainVal === 'arctic') icon = '❄️';
-                else if (terrainVal === 'mountain') icon = '⛰';
+                else if (terrainVal === 'mountain') icon = '⛰️';
                 else if (terrainVal === 'plains') icon = '🌾';
                 terrainElem.textContent = icon;
             }
