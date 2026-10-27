@@ -567,13 +567,12 @@ body {
 /* Стили для легенды */
 .legend-container {
     background: rgba(15, 15, 15, 0.95);
-    border: 2px solid #d4af37;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    border: 2px solid #d4af37; /* Теперь везде одинаковая толщина */
     margin-bottom: 5px;
     border-radius: 4px;
     display: block;
     overflow: hidden;
-    z-index: 10006; /* Убедимся, что она над всем */
+    z-index: 10006;
 }
 
 .legend-header {
@@ -649,4 +648,39 @@ body {
     background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный цвет */
     z-index: 5;
     pointer-events: none;
+}
+
+/* Стили для кнопок Export/Import */
+#btnExport, #btnImport {
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 14px;
+}
+
+#btnExport {
+    background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#btnImport {
+    background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#btnExport:hover, #btnImport:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    border-color: #d4af37;
+    filter: brightness(1.1);
+}
+
+#btnExport:active, #btnImport:active {
+    transform: translateY(0);
 }
