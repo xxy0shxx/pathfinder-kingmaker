@@ -50,7 +50,10 @@ body {
     text-align: center;
     pointer-events: auto !important;
     cursor: pointer;
+    /* Добавляем форму гекса сюда, чтобы туман тоже был гексагоном */
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
+
 .hex-shape {
     position: absolute;
     width: 100%;
@@ -633,4 +636,17 @@ body {
 .legend-grid span {
     padding: 2px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Туман войны */
+.visual-hex.fog-active::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный цвет */
+    z-index: 5;
+    pointer-events: none;
 }

@@ -5,7 +5,7 @@ let currentSquadHex = localStorage.getItem('hexMapSquadLocation') || null;
 const hexRadius = 78;
 const rows = 12;
 const cols = 30;
-const offsetX = 29;
+const offsetX = -106;
 const offsetY = 16;
 
 const clickableMap = document.getElementById('clickableMap');
@@ -275,7 +275,9 @@ function buildHexGrid() {
         for (let c = 0; c < cols; c++) {
             let cx = offsetX + c * widthBetweenHexes;
             let cy = offsetY + r * heightBetweenHexes;
-            if (r % 2 !== 0) { cx += widthBetweenHexes / 2; }
+            if (r % 2 !== 0) {
+                cx += widthBetweenHexes / 2;
+            }
 
             const hexId = 'hex_' + r + '_' + c;
 
@@ -294,14 +296,26 @@ function buildHexGrid() {
             vHex.style.top = (cy - hexRadius) + 'px';
             vHex.setAttribute('id', 'visual_' + hexId);
 
-            vHex.addEventListener('click', function(e) {
-                e.preventDefault(); e.stopPropagation();
+            // --- ЛОГИКА ТУМАНА ---
+            // Если гекса нет в данных ИЛИ он не разведан — добавляем туман
+            if (!mapData[hexId] || !mapData[hexId].explored) {
+                vHex.classList.add('fog-active');
+            }
+            // -----------------------
+
+            vHex.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
                 if (hasMoved) return;
-                if (modal.classList.contains('open')) { closeMenu(); } else { openMenu(hexId); }
+                if (modal.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu(hexId);
+                }
             });
 
             const tooltip = document.getElementById('hexTooltip');
-            vHex.addEventListener('mouseenter', function(e) {
+            vHex.addEventListener('mouseenter', function (e) {
                 if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
                     const data = mapData[hexId];
                     let content = '';
@@ -333,21 +347,53 @@ function buildHexGrid() {
                     if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
                     if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
                     if (data.type) {
-                        let typeText = ''; let tIcon = '';
-                        if (data.type === 'landmark') { tIcon = '🏛️'; typeText = 'Достопримечательность'; }
-                        if (data.type === 'resource') { tIcon = '💎'; typeText = 'Ресурс'; }
-                        if (data.type === 'quest') { tIcon = '⚜️'; typeText = 'Стандартное задание'; }
-                        if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
+                        let typeText = '';
+                        let tIcon = '';
+                        if (data.type === 'landmark') {
+                            tIcon = '🏛️';
+                            typeText = 'Достопримечательность';
+                        }
+                        if (data.type === 'resource') {
+                            tIcon = '💎';
+                            typeText = 'Ресурс';
+                        }
+                        if (data.type === 'quest') {
+                            tIcon = '⚜️';
+                            typeText = 'Стандартное задание';
+                        }
+                        if (data.type === 'mystery') {
+                            tIcon = '❓';
+                            typeText = 'Тайна';
+                        }
                         paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
                     }
                     if (data.terrain) {
-                        let terrainText = ''; let terrIcon = '';
-                        if (data.terrain === 'swamp') { terrIcon = '🐸'; terrainText = 'Болото (СЛ 14)'; }
-                        if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес (СЛ 14)'; }
-                        if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода (СЛ 17)'; }
-                        if (data.terrain === 'arctic') { terrIcon = '❄'; terrainText = 'Приполярье (СЛ 17)'; }
-                        if (data.terrain === 'mountain') { terrIcon = '⛰️'; terrainText = 'Горы (СЛ 16)'; }
-                        if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины (СЛ 12)'; }
+                        let terrainText = '';
+                        let terrIcon = '';
+                        if (data.terrain === 'swamp') {
+                            terrIcon = '🐸';
+                            terrainText = 'Болото (СЛ 14)';
+                        }
+                        if (data.terrain === 'forest') {
+                            terrIcon = '🌲';
+                            terrainText = 'Лес (СЛ 14)';
+                        }
+                        if (data.terrain === 'water') {
+                            terrIcon = '🌊';
+                            terrainText = 'Вода (СЛ 17)';
+                        }
+                        if (data.terrain === 'arctic') {
+                            terrIcon = '❄';
+                            terrainText = 'Приполярье (СЛ 17)';
+                        }
+                        if (data.terrain === 'mountain') {
+                            terrIcon = '⛰️';
+                            terrainText = 'Горы (СЛ 16)';
+                        }
+                        if (data.terrain === 'plains') {
+                            terrIcon = '🌾';
+                            terrainText = 'Равнины (СЛ 12)';
+                        }
                         paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
                     }
                     content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
@@ -360,11 +406,17 @@ function buildHexGrid() {
             });
 
             vHex.addEventListener('mousemove', (e) => {
-                if (tooltip) { tooltip.style.left = (e.clientX + 25) + 'px'; tooltip.style.top = (e.clientY + 25) + 'px'; }
+                if (tooltip) {
+                    tooltip.style.left = (e.clientX + 25) + 'px';
+                    tooltip.style.top = (e.clientY + 25) + 'px';
+                }
             });
 
             vHex.addEventListener('mouseleave', () => {
-                if (tooltip) { tooltip.style.display = 'none'; tooltip.innerHTML = ''; }
+                if (tooltip) {
+                    tooltip.style.display = 'none';
+                    tooltip.innerHTML = '';
+                }
             });
 
             const shape = document.createElement('div');
@@ -374,7 +426,6 @@ function buildHexGrid() {
             if (mapData[hexId] && mapData[hexId].squadHere) vHex.classList.add('squad-dark');
             vHex.appendChild(shape);
 
-            // СОЗДАЕМ ВСЕ ЭЛЕМЕНТЫ (ВСЕГДА)
             const titleLabel = document.createElement('span');
             titleLabel.className = 'hex-title-label';
             vHex.appendChild(titleLabel);
@@ -409,10 +460,8 @@ function buildHexGrid() {
             flagContainer.appendChild(pole);
             vHex.appendChild(flagContainer);
 
-            // ЗАПОЛНЯЕМ ДАННЫМИ
             if (mapData[hexId]) {
                 if (mapData[hexId].title) titleLabel.textContent = mapData[hexId].title;
-
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
                 if (diff && lvl) statsLabel.textContent = `🎲${diff}💀${lvl}`;
@@ -461,7 +510,6 @@ function buildHexGrid() {
                     mappedElem.style.display = 'none';
                 }
             }
-
             visualLayer.appendChild(vHex);
         }
     }
@@ -575,6 +623,10 @@ function saveMenu() {
                 }
             }
         }
+        // Автоматически разводим туман, если отряд находится в этом гексе
+        if (mapData[currentHexId]) {
+            mapData[currentHexId].explored = true;
+        }
     }
     // ============================================================
 
@@ -582,6 +634,7 @@ function saveMenu() {
         // 1. Затемнение гекса
         if (squadHereVal) {
             currentHexElement.classList.add('squad-dark');
+            currentHexElement.classList.remove('fog-active'); // Убираем туман, когда отряд заходит
         } else {
             currentHexElement.classList.remove('squad-dark');
         }
