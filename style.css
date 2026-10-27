@@ -7,9 +7,6 @@ body {
     overflow: hidden;
 }
 
-/* ========================================================
-   КОНТЕЙНЕРЫ КАРТЫ И МАСШТАБИРОВАНИЕ
-   ======================================================== */
 .map-viewport {
     width: 100vw;
     height: 100vh;
@@ -35,15 +32,7 @@ body {
     height: 1280px;
     pointer-events: auto !important;
 }
-/*
-.hex-visual-layer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 3840px;
-    height: 1280px;
-    pointer-events: none !important;
-}
- */
+
 .visual-hex {
     position: absolute;
     display: flex;
@@ -74,22 +63,6 @@ body {
 .visual-hex:hover .hex-shape::before {
     background: rgba(0, 0, 0, 0.35) !important; 
 }
-/*
-.hex-text-label {
-    position: relative;
-    z-index: 2;
-    color: #000;
-    font-size: 30px;
-    font-weight: bold;
-    padding: 2px;
-    text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
-    width: 400px; 
-    display: block;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
-}
- */
 
 .visual-hex.squad-dark .hex-shape::before {
     background: rgba(0, 0, 0, 0) !important;
@@ -100,9 +73,6 @@ body {
     filter: drop-shadow(0 0 4px #e74c3c);
 }
 
-/* ========================================================
-   ОРИГИНАЛЬНЫЕ СТИЛИ ДЛЯ МОДАЛЬНОГО ОКНА (HEX SETUP)
-   ======================================================== */
 .pop-menu {
     display: none;
     position: fixed;
@@ -114,7 +84,7 @@ body {
     border-radius: 8px;
     width: 440px; 
     box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    z-index: 10010; /* Поверх всего */
+    z-index: 10010;
     pointer-events: auto;
 }
 .pop-menu.open { 
@@ -400,7 +370,6 @@ body {
     box-shadow: 2px 2px 4px rgba(0,0,0,0.4) !important;
 }
 
-/* Стили для контейнера флага отряда */
 .squad-flag-container {
     position: absolute !important;
     top: 50% !important;
@@ -500,7 +469,6 @@ body {
     font-size: 18px;
 }
 
-/* Контейнер для значка типа местности */
 .terrain-icon-container {
     position: absolute !important;
     top: 52% !important;
@@ -538,7 +506,6 @@ body {
     100% { transform: translate(-50%, -50%) rotate(-5deg); }
 }
 
-/* Стили для легенды */
 .legend-container {
     background: rgba(15, 15, 15, 0.95);
     border: 2px solid #d4af37;
@@ -578,7 +545,6 @@ body {
     padding: 0 10px;
 }
 
-/* Состояние при открытии */
 .legend-container.open .legend-content {
     max-height: 500px;
     padding: 10px;
@@ -611,7 +577,6 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Туман войны */
 .visual-hex.fog-active::after {
     content: "";
     position: absolute;
@@ -624,7 +589,6 @@ body {
     pointer-events: none;
 }
 
-/* Стили для кнопок Export/Import */
 #btnExport, #btnImport {
     padding: 12px 22px;
     border-radius: 8px;
