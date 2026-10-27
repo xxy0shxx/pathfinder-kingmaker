@@ -436,8 +436,8 @@ function buildHexGrid() {
                     typeElem.style.display = 'block';
                     let icon = '';
                     if (mapData[hexId].type === 'landmark') icon = '🔍';
-                    else if (mapData[hexId].type === 'resource') icon = '🪵';
-                    else if (mapData[hexId].type === 'quest') icon = '✔';
+                    else if (mapData[hexId].type === 'resource') icon = '💎';
+                    else if (mapData[hexId].type === 'quest') icon = '⚜️';
                     else if (mapData[hexId].type === 'mystery') icon = '❓';
                     typeElem.textContent = icon;
                 }
@@ -545,13 +545,6 @@ function saveMenu() {
 
     const titleVal = document.getElementById('inpTitle').value;
 
-    // Проверка обязательного поля
-    if (titleVal === "") {
-        alert("Пожалуйста, введите название для гекса!");
-        document.getElementById('inpTitle').focus();
-        return;
-    }
-
     const descVal = document.getElementById('inpDesc').value;
     const colorVal = document.getElementById('inpColor').value || 'transparent';
     const diffVal = difficultySelect.value;
@@ -621,8 +614,8 @@ function saveMenu() {
                 typeElem.style.display = 'block';
                 let icon = '';
                 if (typeVal === 'landmark') icon = '🔍';
-                else if (typeVal === 'resource') icon = '🪵';
-                else if (typeVal === 'quest') icon = '✔';
+                else if (typeVal === 'resource') icon = '💎';
+                else if (typeVal === 'quest') icon = '⚜️';
                 else if (typeVal === 'mystery') icon = '❓';
                 typeElem.textContent = icon;
             }
