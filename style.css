@@ -433,7 +433,7 @@ body {
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    transform: translate(-50%, -50%);
     z-index: 4 !important;
     pointer-events: none !important;
     display: none;
@@ -447,9 +447,9 @@ body {
 
 .hex-title-label {
     position: absolute !important;
-    top: 10px !important;
+    top: 20px !important;
     left: 50% !important;
-    transform: translateX(-50%) !important; /* Центрируем по горизонтали */
+    transform: translateX(-50%) !important;
     z-index: 3 !important;
     color: #000 !important;
     font-size: 24px !important;
@@ -461,7 +461,7 @@ body {
 
 .hex-stats-label {
     position: absolute !important;
-    bottom: 10px !important;
+    bottom: 20px !important;
     left: 50% !important;
     transform: translateX(-50%) !important; /* Центрируем по горизонтали */
     z-index: 3 !important;
@@ -479,7 +479,7 @@ body {
 
 .type-icon-container {
     position: absolute !important;
-    top: 40% !important; /* Верхний правый квадрант */
+    top: 33% !important; /* Верхний правый квадрант */
     right: 10px !important;
     z-index: 4 !important;
     font-size: 24px !important;
@@ -490,7 +490,7 @@ body {
 
 .explored-icon-container {
     position: absolute !important;
-    top: 40% !important;
+    top: 33% !important;
     left: 10px !important;
     z-index: 4 !important;
     font-size: 22px !important;
@@ -501,7 +501,7 @@ body {
 
 .mapped-icon-container {
     position: absolute !important;
-    top: 60% !important;
+    top: 55% !important;
     left: 10px !important;
     z-index: 4 !important;
     font-size: 22px !important;
@@ -517,7 +517,7 @@ body {
 /* Контейнер для значка типа местности */
 .terrain-icon-container {
     position: absolute !important;
-    top: 60% !important;
+    top: 55% !important;
     right: 10px !important;
     z-index: 4 !important;
     font-size: 22px !important;
