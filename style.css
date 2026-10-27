@@ -475,10 +475,9 @@ body {
     z-index: 999999 !important;
     pointer-events: none !important;
     transform-origin: bottom center !important;
-    transition: left 1.3s cubic-bezier(0.25, 1, 0.5, 1),
-    top 1.3s cubic-bezier(0.25, 1, 0.5, 1),
-    transform 1.3s cubic-bezier(0.25, 1, 0.5, 1),
-    opacity 1.3s ease-out !important;
+    transition: left 1.3s linear,
+    top 1.3s linear,
+    opacity 0.2s ease-out !important;
 }
 
 /* Легенда */

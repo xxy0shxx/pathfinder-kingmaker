@@ -669,10 +669,12 @@ function saveMenu() {
                         startY = startRect.top + startRect.height / 2;
                     }
 
+                    // 2. Координаты финиша (текущий гекс)
                     const targetRect = currentHexElement.getBoundingClientRect();
                     const targetX = targetRect.left + targetRect.width / 2;
                     const targetY = targetRect.top + targetRect.height / 2;
 
+                    // 3. Создаем летящий флаг
                     const flyingFlag = document.createElement('div');
                     flyingFlag.className = 'global-flying-flag';
                     flyingFlag.innerHTML = `
@@ -681,6 +683,7 @@ function saveMenu() {
                 </div>
             `;
 
+                    // Старт: на боку (-90 градусов)
                     flyingFlag.style.left = `${startX - 9}px`;
                     flyingFlag.style.top = `${startY - 50}px`;
                     flyingFlag.style.transform = 'scale(2.5) rotate(-90deg)';
@@ -688,6 +691,7 @@ function saveMenu() {
 
                     document.body.appendChild(flyingFlag);
 
+                    // 4. Полет по прямой без замедления (синхронизировано с CSS линейным переходом)
                     setTimeout(() => {
                         flyingFlag.style.opacity = '1';
                         flyingFlag.style.left = `${targetX - 9}px`;
@@ -695,12 +699,13 @@ function saveMenu() {
                         flyingFlag.style.transform = 'scale(1) rotate(-90deg)';
                     }, 20);
 
+                    // 5. МГНОВЕННЫЙ КЛЕВОК НА ПОЛНОЙ СКОРОСТИ (За 50мс до упора в гекс)
                     setTimeout(() => {
-                        flyingFlag.style.transition = 'transform 0.05s cubic-bezier(0.25, 1, 0.5, 1)';
-                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
-                    }, 1250); // 1300мс - 50мс
+                        flyingFlag.style.transition = 'transform 0.05s ease-out';
+                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)'; // Резкий удар в землю
+                    }, 1250); // 1300мс (общий полет) - 50мс (время на поворот)
 
-
+                    // 6. Окончательное приземление и замена на машущий флаг
                     setTimeout(() => {
                         flyingFlag.remove();
 
