@@ -877,10 +877,22 @@ body {
     font-size: 20px;
     font-weight: bold;
     color: #dfbc6f;
-    text-shadow: 0 0 5px rgba(223, 188, 111, 0.6), 0 0 10px rgba(0, 0, 0, 0.8);
+    text-shadow: 0 0 4px rgba(223, 188, 111, 0.7), 0 0 8px rgba(0, 0, 0, 0.9);
     pointer-events: none;
     user-select: none;
     z-index: 10001;
-    opacity: 0.85;
     font-family: monospace;
+    animation: runeBreathe 3.5s ease-in-out infinite;
+    will-change: opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+@keyframes runeBreathe {
+    0%, 100% {
+        opacity: 0.01;
+    }
+    50% {
+        opacity: 0.99;
+    }
 }

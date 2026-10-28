@@ -1157,7 +1157,15 @@ if (btnToggle && legendCont) {
 
 const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'];
 
+let lastFrameWidth = 0;
+let lastFrameHeight = 0;
+
 function updateFrameRunes(width, height) {
+    if (width === lastFrameWidth && height === lastFrameHeight) return;
+
+    lastFrameWidth = width;
+    lastFrameHeight = height;
+
     const frame = document.querySelector('.kingmaker-frame');
     if (!frame) return;
 
@@ -1179,6 +1187,8 @@ function updateFrameRunes(width, height) {
         runeElement.style.top = `${top}px`;
         runeElement.style.transform = 'translate(-50%, -50%)';
 
+        runeElement.style.animationDelay = `${Math.random() * -5}s`;
+
         runeElement.textContent = RUNE_POOL[Math.floor(Math.random() * RUNE_POOL.length)];
         frame.appendChild(runeElement);
     }
@@ -1186,20 +1196,8 @@ function updateFrameRunes(width, height) {
     const innerWidth = width - 44;
     const innerHeight = height - 44;
 
-    for (let l = padding; l < innerWidth - padding; l += step) {
-        createRune(l, cTop);
-    }
-
-    for (let l = padding; l < innerWidth - padding; l += step) {
-        createRune(l, cBottom);
-    }
-
-    for (let t = padding; t < innerHeight - padding; t += step) {
-        createRune(cLeft, t);
-    }
-
-    for (let t = padding; t < innerHeight - padding; t += step) {
-        createRune(cRight, t);
-    }
+    for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cTop); }
+    for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cBottom); }
+    for (let t = padding; t < innerHeight - padding; t += step) { createRune(cLeft, t); }
+    for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
 }
-
