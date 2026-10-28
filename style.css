@@ -145,12 +145,13 @@ body {
     width: 100%;
     padding: 10px;
     background: #090f0b;
-    border: 1px solid #543e0d;
+    border: 1px solid #543e0d !important;
     border-radius: 3px;
     color: #ebd291;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     background-color: #090f0b !important;
+    box-sizing: border-box;
 }
 
 .box select option {
@@ -169,8 +170,11 @@ body {
 
 .box input[type="text"]:focus,
 .box textarea:focus,
-.box select:focus {
-    border-color: #b89445;
+.box select:focus,
+.box input[type="text"]:hover,
+.box textarea:hover,
+.box select:hover {
+    border-color: #b89445 !important;
     box-shadow: 0 0 5px rgba(184, 148, 69, 0.4);
 }
 
@@ -184,18 +188,30 @@ body {
     padding: 2px;
 }
 
+.buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 25px;
+    width: 100%;
+}
+
 .buttons .btn {
     flex: 1;
-    padding: 11px 16px;
+    padding: 11px 8px;
     border: 1px solid #543e0d;
     border-radius: 4px;
     cursor: pointer;
-    font: bold 13px sans-serif;
+    font: bold 12px sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: all 0.2s ease;
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    white-space: nowrap;
+    text-align: center;
 }
+
 .buttons .btn {
     padding: 10px 20px;
     border: none;
@@ -203,6 +219,7 @@ body {
     cursor: pointer;
     font: bold 14px sans-serif;
 }
+
 .btn.del {
     background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%);
     color: #f7baba;
