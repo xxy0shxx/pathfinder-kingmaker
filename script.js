@@ -654,24 +654,31 @@ function saveMenu() {
                     const flyingFlag = document.createElement('div');
                     flyingFlag.className = 'global-flying-flag';
                     flyingFlag.innerHTML = `
-                <div class="squad-pole" style="height: 50px; width: 6px; background: #333; margin-left: 6px; border-radius: 2px; border: 1px solid #000;">
-                    <div class="squad-flag" style="width: 30px; height: 20px; background: #c0392b; clip-path: polygon(0 0, 100% 50%, 0 100%); border: 2px solid #ffffff; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
-                </div>
-            `;
+                        <div class="squad-pole" style="height: 50px; width: 6px; background: #333; margin-left: 6px; border-radius: 2px; border: 1px solid #000;">
+                            <div class="squad-flag" style="width: 30px; height: 20px; background: #c0392b; clip-path: polygon(0 0, 100% 50%, 0 100%); border: 2px solid #ffffff; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
+                        </div>
+                    `;
 
-                    flyingFlag.style.left = `${startX - 9}px`;
-                    flyingFlag.style.top = `${startY - 50}px`;
-                    flyingFlag.style.transform = 'scale(2.5) rotate(-90deg)';
+                    flyingFlag.style.position = 'fixed';
+                    flyingFlag.style.left = '0px';
+                    flyingFlag.style.top = '0px';
+
+                    const startTranslateX = startX - 9;
+                    const startTranslateY = startY - 50;
+                    flyingFlag.style.transform = `translate3d(${startTranslateX}px, ${startTranslateY}px, 0) scale(2.5) rotate(-90deg)`;
                     flyingFlag.style.opacity = '0';
 
                     document.body.appendChild(flyingFlag);
 
-                    setTimeout(() => {
-                        flyingFlag.style.opacity = '1';
-                        flyingFlag.style.left = `${targetX - 9}px`;
-                        flyingFlag.style.top = `${targetY - 50}px`;
-                        flyingFlag.style.transform = 'scale(1) rotate(-90deg)';
-                    }, 20);
+                    const targetTranslateX = targetX - 9;
+                    const targetTranslateY = targetY - 50;
+
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            flyingFlag.style.opacity = '1';
+                            flyingFlag.style.transform = `translate3d(${targetTranslateX}px, ${targetTranslateY}px, 0) scale(1) rotate(-90deg)`;
+                        });
+                    });
 
                     function createBurst(x, y) {
                         const burstContainer = document.createElement('div');
@@ -693,8 +700,9 @@ function saveMenu() {
                     }
 
                     setTimeout(() => {
+                        // Финальный легкий наклон при приземлении тоже делаем через translate3d, сохраняя позицию
                         flyingFlag.style.transition = 'transform 0.05s ease-out';
-                        flyingFlag.style.transform = 'scale(1) rotate(-5deg)';
+                        flyingFlag.style.transform = `translate3d(${targetTranslateX}px, ${targetTranslateY}px, 0) scale(1) rotate(-5deg)`;
 
                         createBurst(targetX, targetY);
                     }, 1250);

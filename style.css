@@ -316,7 +316,7 @@ body {
     box-shadow:
             0 10px 30px rgba(0, 0, 0, 0.85),
             inset 0 0 15px rgba(0, 0, 0, 0.6);
-    width: 500px;
+    width: 540px;
     pointer-events: auto;
 }
 .main-controls {
@@ -588,9 +588,8 @@ body {
     z-index: 999999 !important;
     pointer-events: none !important;
     transform-origin: bottom center !important;
-    transition: left 1.3s linear,
-    top 1.3s linear,
-    opacity 0.2s ease-out !important;
+    transition: transform 1.3s linear, opacity 0.2s ease-out !important;
+    will-change: transform, opacity;
 }
 
 .legend-container {
