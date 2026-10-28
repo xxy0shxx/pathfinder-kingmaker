@@ -1,4 +1,10 @@
 * { box-sizing: border-box; }
+html, body {
+    touch-action: none !important;
+}
+.pop-menu {
+    touch-action: auto !important;
+}
 body {
     margin: 0;
     padding: 0;

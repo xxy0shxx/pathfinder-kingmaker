@@ -513,6 +513,23 @@ function openMenu(hexId) {
         }
     });
 
+    if ('ontouchstart' in window) {
+        const inpTitle = document.getElementById('inpTitle');
+        const inpDesc = document.getElementById('inpDesc');
+
+        inpTitle.setAttribute('readonly', 'true');
+        inpDesc.setAttribute('readonly', 'true');
+
+        inpTitle.onclick = function() {
+            let newTitle = prompt("Введите название гекса:", inpTitle.value);
+            if (newTitle !== null) inpTitle.value = newTitle;
+        };
+
+        inpDesc.onclick = function() {
+            let newDesc = prompt("Введите описание гекса:", inpDesc.value);
+            if (newDesc !== null) inpDesc.value = newDesc;
+        };
+    }
     modal.classList.add('open');
 }
 
@@ -532,7 +549,10 @@ function closeMenu() {
     modal.classList.remove('open');
     currentHexId = null;
 
+    window.scrollTo(0, 0);
+
     setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
         if (typeof updateMapTransform === 'function') {
             updateMapTransform();
         }
