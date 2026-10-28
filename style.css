@@ -632,7 +632,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #543e0d !important; /* Контур темной бронзы */
+    border-bottom: 1px solid #543e0d !important;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -789,24 +789,19 @@ body {
 }
 
 .kingmaker-frame {
-    position: fixed;
+    position: relative;
     pointer-events: none;
     z-index: 10000;
     box-sizing: border-box;
     transition: none;
-
-    /* ВОЗВРАЩАЕМ ФИЗИЧЕСКИЙ BORDER, который был в самом начале */
     border: 22px solid transparent;
-
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
     will-change: top, left, width, height;
 }
 
-/* Отрисовку рамки делаем внутри через псевдоэлемент */
 .kingmaker-frame::before {
     content: '';
     position: absolute;
-    /* Растягиваем его на всю область, включая border */
     top: -22px;
     left: -22px;
     right: -22px;
@@ -828,8 +823,6 @@ body {
     pointer-events: none;
 }
 
-
-
 .frame-corner {
     position: absolute;
     width: 34px;
@@ -837,7 +830,7 @@ body {
     background: linear-gradient(135deg, #a68032, #543e0d);
     border: 2px solid #36260d;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-    z-index: 10002; /* Немного приподнимем для надежности */
+    z-index: 10002;
 }
 
 .frame-corner::before {
@@ -874,4 +867,19 @@ body {
         transform-origin: left top;
         width: 117.6% !important;
     }
+}
+
+.hex-rune {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #dfbc6f;
+    text-shadow: 0 0 5px rgba(223, 188, 111, 0.6), 0 0 10px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    user-select: none;
+    z-index: 10001;
+    opacity: 0.85;
+    font-family: monospace;
 }

@@ -1059,6 +1059,8 @@ if (viewport && mapContainer) {
                 frame.style.width = `${Math.ceil(frameWidth)}px`;
                 frame.style.height = `${Math.ceil(frameHeight)}px`;
 
+                updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
+
                 const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
                 const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
                 const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
@@ -1154,3 +1156,52 @@ if (btnToggle && legendCont) {
 } else {
     console.error("Ошибка: Элементы легенды не найдены в DOM! Проверьте правильность вставки HTML.");
 }
+
+const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ', '𐌿', '𐌾', '𐌵'];
+
+function updateFrameRunes(width, height) {
+    const frame = document.querySelector('.kingmaker-frame');
+    if (!frame) return;
+
+    frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
+
+    const step = 50;
+    const padding = 15;
+
+    const cTop = -11;
+    const cLeft = -11;
+    const cBottom = height - 33;
+    const cRight = width - 33;
+
+    function createRune(left, top) {
+        const runeElement = document.createElement('div');
+        runeElement.className = 'hex-rune';
+
+        runeElement.style.left = `${left}px`;
+        runeElement.style.top = `${top}px`;
+        runeElement.style.transform = 'translate(-50%, -50%)';
+
+        runeElement.textContent = RUNE_POOL[Math.floor(Math.random() * RUNE_POOL.length)];
+        frame.appendChild(runeElement);
+    }
+
+    const innerWidth = width - 44;
+    const innerHeight = height - 44;
+
+    for (let l = padding; l < innerWidth - padding; l += step) {
+        createRune(l, cTop);
+    }
+
+    for (let l = padding; l < innerWidth - padding; l += step) {
+        createRune(l, cBottom);
+    }
+
+    for (let t = padding; t < innerHeight - padding; t += step) {
+        createRune(cLeft, t);
+    }
+
+    for (let t = padding; t < innerHeight - padding; t += step) {
+        createRune(cRight, t);
+    }
+}
+
