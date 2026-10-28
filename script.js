@@ -889,6 +889,8 @@ let x = 0;
 let y = 0;
 
 if (viewport && mapContainer) {
+    mapContainer.style.transformOrigin = '100% 0';
+
     function updateMapTransform() {
         mapContainer.style.transform = `translate(${x}px, ${y}px) scale(${currentZoom})`;
     }
@@ -898,6 +900,7 @@ if (viewport && mapContainer) {
 
         isDragging = true;
         hasMoved = false;
+
         startX = e.pageX - x;
         startY = e.pageY - y;
     });

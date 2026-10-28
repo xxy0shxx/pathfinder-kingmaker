@@ -21,10 +21,11 @@ body {
 .map-container {
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
     width: 3840px;
     height: 1280px;
     user-select: none;
+    transform-origin: 100% 0;
 }
 
 .map-image {
