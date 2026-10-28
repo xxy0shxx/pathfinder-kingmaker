@@ -529,10 +529,14 @@ function closeMenu() {
         document.activeElement.blur();
     }
 
-    resetMobileViewportZoom();
-
     modal.classList.remove('open');
     currentHexId = null;
+
+    setTimeout(() => {
+        if (typeof updateMapTransform === 'function') {
+            updateMapTransform();
+        }
+    }, 300);
 }
 
 function resetMobileViewportZoom() {

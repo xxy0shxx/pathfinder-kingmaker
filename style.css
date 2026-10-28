@@ -837,21 +837,21 @@ body {
 @media (max-width: 1024px) {
     .box input[type="text"],
     .box textarea,
-    .box select {
-        /* Браузер видит 16px и НЕ увеличивает экран при клике */
+    .box select,
+    .box select option {
         font-size: 16px !important;
-
-        /* Визуально уменьшаем элемент обратно до нужного размера (например, до ~13px) */
-        transform: scale(0.85);
-
-        /* Компенсируем сжатие, чтобы верстка не ехала */
-        width: 117.6% !important;
-        transform-origin: left center;
-        margin-bottom: -2px;
     }
 
-    /* Для textarea центрирование по левому верхнему углу */
+    .box input[type="text"],
+    .box select {
+        transform: scale(0.85);
+        transform-origin: left center;
+        width: 117.6% !important;
+    }
+
     .box textarea {
+        transform: scale(0.85);
         transform-origin: left top;
+        width: 117.6% !important;
     }
 }
