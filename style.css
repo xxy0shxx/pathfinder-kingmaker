@@ -301,8 +301,9 @@ body {
 
 .music-controller {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    bottom: 40px !important;
+    left: 40px !important;
+
     z-index: 10005;
     display: flex;
     flex-direction: column;
@@ -315,7 +316,7 @@ body {
     box-shadow:
             0 10px 30px rgba(0, 0, 0, 0.85),
             inset 0 0 15px rgba(0, 0, 0, 0.6);
-    width: 540px;
+    width: 640px;
     pointer-events: auto;
 }
 .main-controls {
@@ -661,32 +662,54 @@ body {
 }
 
 #btnExport, #btnImport {
+    /* Меняем фиксированное позиционирование на нижнюю часть экрана */
+    position: fixed;
+    bottom: 40px !important; /* Отступ от нижнего края экрана */
+    z-index: 10005;
+
     padding: 12px 22px;
     border-radius: 4px;
     font: bold 12px sans-serif;
     transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border: 1px solid #543e0d;
     box-sizing: border-box;
     cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
+/* Экспорт встает левее (отступ 40px от края + ширина кнопки импорта с зазором) */
 #btnExport {
+    right: 195px !important;
     background: linear-gradient(180deg, #42351f 0%, #292011 100%);
     color: #ebd291;
+    border: 1px solid #543e0d;
 }
 
-/* Импорт — стиль глубокой кованой зелени (как кнопка Сохранить) */
+/* Импорт встает четко в правый угол с отступом 40px */
 #btnImport {
+    right: 40px !important;
     background: linear-gradient(180deg, #1e3c27 0%, #112417 100%);
     color: #dfbc6f;
-    border-color: #3e6349;
+    border: 1px solid #3e6349;
 }
 
+/* Эффекты наведения (подсветка рамок золотом) */
 #btnExport:hover, #btnImport:hover {
     transform: translateY(-2px);
     filter: brightness(1.2);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+#btnExport:hover {
+    border-color: #b89445 !important;
+}
+#btnImport:hover {
+    border-color: #dfbc6f !important;
+}
+
+#btnExport:active, #btnImport:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 #btnExport:active, #btnImport:active {
