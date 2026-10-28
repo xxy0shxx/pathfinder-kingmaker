@@ -1054,10 +1054,10 @@ if (viewport && mapContainer) {
                     frameHeight = viewRect.bottom - frameTop;
                 }
 
-                frame.style.left = `${frameLeft}px`;
-                frame.style.top = `${frameTop}px`;
-                frame.style.width = `${frameWidth}px`;
-                frame.style.height = `${frameHeight}px`;
+                frame.style.left = `${Math.floor(frameLeft)}px`;
+                frame.style.top = `${Math.floor(frameTop)}px`;
+                frame.style.width = `${Math.ceil(frameWidth)}px`;
+                frame.style.height = `${Math.ceil(frameHeight)}px`;
 
                 const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
                 const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
