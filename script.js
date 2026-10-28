@@ -544,208 +544,232 @@ function saveMenu() {
     const regionLevelVal = document.getElementById('inpRegionLevel').value;
 
     const currentHexElement = document.getElementById('visual_' + currentHexId);
+    const currentShape = document.getElementById('shape_' + currentHexId);
 
-    if (squadHereVal && currentHexElement) {
-        const isAlreadyHere = mapData[currentHexId] && mapData[currentHexId].squadHere;
+    if (squadHereVal) {
+        for (let id in mapData) {
+            if (id !== currentHexId && mapData[id].squadHere === true) {
+                mapData[id].squadHere = false;
 
-        if (!isAlreadyHere) {
-            const startHex = document.getElementById('visual_hex_0_0');
-            let startX = 0, startY = 0;
-            if (startHex) {
-                const startRect = startHex.getBoundingClientRect();
-                startX = startRect.left + startRect.width / 2;
-                startY = startRect.top + startRect.height / 2;
-            }
-
-            const targetRect = currentHexElement.getBoundingClientRect();
-            const targetX = targetRect.left + targetRect.width / 2;
-            const targetY = targetRect.top + targetRect.height / 2;
-
-            const flyingFlag = document.createElement('div');
-            flyingFlag.className = 'global-flying-flag';
-            flyingFlag.innerHTML = `
-                <div class="squad-pole" style="height: 50px; width: 6px; background: #333; margin-left: 6px; border-radius: 2px; border: 1px solid #000;">
-                    <div class="squad-flag" style="width: 30px; height: 20px; background: #c0392b; clip-path: polygon(0 0, 100% 50%, 0 100%); border: 2px solid #ffffff; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
-                </div>
-            `;
-
-            const sX = startX - 9;
-            const sY = startY - 50;
-            const tX = targetX - 9;
-            const tY = targetY - 50;
-
-            flyingFlag.style.setProperty('--start-x', `${sX}px`);
-            flyingFlag.style.setProperty('--start-y', `${sY}px`);
-            flyingFlag.style.setProperty('--target-x', `${tX}px`);
-            flyingFlag.style.setProperty('--target-y', `${tY}px`);
-
-            document.body.appendChild(flyingFlag);
-
-            function createBurst(x, y) {
-                const burstContainer = document.createElement('div');
-                burstContainer.className = 'flag-impact-burst';
-                burstContainer.style.left = `${x}px`;
-                burstContainer.style.top = `${y}px`;
-
-                const sparksCount = 8;
-                for (let i = 0; i < sparksCount; i++) {
-                    const spark = document.createElement('div');
-                    spark.className = 'impact-spark';
-                    const currentAngle = (360 / sparksCount) * i;
-                    spark.style.setProperty('--angle', `${currentAngle}deg`);
-                    burstContainer.appendChild(spark);
+                const oldHexElement = document.getElementById('visual_' + id);
+                if (oldHexElement) {
+                    oldHexElement.classList.remove('squad-dark');
+                    const oldFlag = oldHexElement.querySelector('.squad-flag-container');
+                    if (oldFlag) oldFlag.style.display = 'none';
                 }
-
-                document.body.appendChild(burstContainer);
-                setTimeout(() => { burstContainer.remove(); }, 250);
             }
-
-            setTimeout(() => {
-                flyingFlag.style.animation = 'none';
-                flyingFlag.style.transition = 'transform 0.05s ease-out';
-                flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
-                createBurst(targetX, targetY);
-            }, 1300);
-
-            setTimeout(() => { flyingFlag.remove(); }, 1400);
         }
     }
 
-    setTimeout(() => {
+    if (currentHexElement) {
         if (squadHereVal) {
-            for (let id in mapData) {
-                if (id !== currentHexId && mapData[id].squadHere === true) {
-                    mapData[id].squadHere = false;
-                    const oldHexElement = document.getElementById('visual_' + id);
-                    if (oldHexElement) {
-                        oldHexElement.classList.remove('squad-dark');
-                        const oldFlag = oldHexElement.querySelector('.squad-flag-container');
-                        if (oldFlag) oldFlag.style.display = 'none';
-                    }
-                }
+            currentHexElement.classList.add('squad-dark');
+        } else {
+            currentHexElement.classList.remove('squad-dark');
+        }
+
+        const tLabel = currentHexElement.querySelector('.hex-title-label');
+        if (tLabel) tLabel.textContent = titleVal;
+
+        const sLabel = currentHexElement.querySelector('.hex-stats-label');
+        if (sLabel) {
+            if (diffVal && regionLevelVal) {
+                sLabel.textContent = `🎲${diffVal}💀${regionLevelVal}`;
+            } else if (diffVal) {
+                sLabel.textContent = `🎲${diffVal}`;
+            } else if (regionLevelVal) {
+                sLabel.textContent = `💀${regionLevelVal}`;
+            } else {
+                sLabel.textContent = '';
+            }
+            sLabel.style.display = (diffVal || regionLevelVal) ? 'block' : 'none';
+        }
+
+        const typeElem = currentHexElement.querySelector('.type-icon-container');
+        if (typeElem) {
+            if (typeVal === "") {
+                typeElem.style.display = 'none';
+            } else {
+                typeElem.style.display = 'block';
+                let icon = '';
+                if (typeVal === 'landmark') icon = '🏛️';
+                else if (typeVal === 'resource') icon = '💎';
+                else if (typeVal === 'quest') icon = '⚜️';
+                else if (typeVal === 'mystery') icon = '❓';
+                typeElem.textContent = icon;
             }
         }
 
-        const currentShape = document.getElementById('shape_' + currentHexId);
-        if (currentHexElement) {
+        const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
+        if (terrainElem) {
+            if (terrainVal === "") {
+                terrainElem.style.display = 'none';
+            } else {
+                terrainElem.style.display = 'block';
+                let icon = '';
+                if (terrainVal === 'swamp') icon = '🐸';
+                else if (terrainVal === 'forest') icon = '🌲';
+                else if (terrainVal === 'water') icon = '🌊';
+                else if (terrainVal === 'arctic') icon = '❄️';
+                else if (terrainVal === 'mountain') icon = '⛰️';
+                else if (terrainVal === 'plains') icon = '🌾';
+                terrainElem.textContent = icon;
+            }
+        }
+
+        const exploredElem = currentHexElement.querySelector('.explored-icon-container');
+        if (exploredElem) {
+            exploredElem.style.display = exploredVal ? 'block' : 'none';
+            exploredElem.textContent = exploredVal ? '🔍' : '';
+        }
+
+        const mappedElem = currentHexElement.querySelector('.mapped-icon-container');
+        if (mappedElem) {
+            mappedElem.style.display = mapMappedVal ? 'block' : 'none';
+            mappedElem.textContent = mapMappedVal ? '📜' : '';
+        }
+
+        const flagElem = currentHexElement.querySelector('.squad-flag-container');
+        if (flagElem) {
             if (squadHereVal) {
-                currentHexElement.classList.add('squad-dark');
-            } else {
-                currentHexElement.classList.remove('squad-dark');
-            }
+                const isAlreadyHere = mapData[currentHexId] && mapData[currentHexId].squadHere;
 
-            const tLabel = currentHexElement.querySelector('.hex-title-label');
-            if (tLabel) tLabel.textContent = titleVal;
-
-            const sLabel = currentHexElement.querySelector('.hex-stats-label');
-            if (sLabel) {
-                if (diffVal && regionLevelVal) sLabel.textContent = `🎲${diffVal}💀${regionLevelVal}`;
-                else if (diffVal) sLabel.textContent = `🎲${diffVal}`;
-                else if (regionLevelVal) sLabel.textContent = `💀${regionLevelVal}`;
-                else sLabel.textContent = '';
-                sLabel.style.display = (diffVal || regionLevelVal) ? 'block' : 'none';
-            }
-
-            const typeElem = currentHexElement.querySelector('.type-icon-container');
-            if (typeElem) {
-                if (typeVal === "") {
-                    typeElem.style.display = 'none';
-                } else {
-                    typeElem.style.display = 'block';
-                    let icon = '';
-                    if (typeVal === 'landmark') icon = '🏛️';
-                    else if (typeVal === 'resource') icon = '💎';
-                    else if (typeVal === 'quest') icon = '⚜️';
-                    else if (typeVal === 'mystery') icon = '❓';
-                    typeElem.textContent = icon;
-                }
-            }
-
-            const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
-            if (terrainElem) {
-                if (terrainVal === "") {
-                    terrainElem.style.display = 'none';
-                } else {
-                    terrainElem.style.display = 'block';
-                    let icon = '';
-                    if (terrainVal === 'swamp') icon = '🐸';
-                    else if (terrainVal === 'forest') icon = '🌲';
-                    else if (terrainVal === 'water') icon = '🌊';
-                    else if (terrainVal === 'arctic') icon = '❄️';
-                    else if (terrainVal === 'mountain') icon = '⛰️';
-                    else if (terrainVal === 'plains') icon = '🌾';
-                    terrainElem.textContent = icon;
-                }
-            }
-
-            const exploredElem = currentHexElement.querySelector('.explored-icon-container');
-            if (exploredElem) {
-                exploredElem.style.display = exploredVal ? 'block' : 'none';
-                exploredElem.textContent = exploredVal ? '🔍' : '';
-            }
-
-            const mappedElem = currentHexElement.querySelector('.mapped-icon-container');
-            if (mappedElem) {
-                mappedElem.style.display = mapMappedVal ? 'block' : 'none';
-                mappedElem.textContent = mapMappedVal ? '📜' : '';
-            }
-
-            const flagElem = currentHexElement.querySelector('.squad-flag-container');
-            if (flagElem) {
-                if (squadHereVal) {
-                    // Ставим флаг в гекс только ПОСЛЕ того, как анимация полета завершится
-                    setTimeout(() => {
-                        flagElem.style.display = 'block';
-                        flagElem.classList.add('active-flag');
-                    }, 1300);
-                } else {
-                    flagElem.style.style = 'none';
+                if (!isAlreadyHere) {
+                    flagElem.style.display = 'none';
                     flagElem.classList.remove('active-flag');
-                }
-            }
-        }
 
-        if (currentShape) {
-            if (colorVal !== 'transparent') {
-                currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
-            } else {
-                currentShape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
-            }
-        }
+                    const startHex = document.getElementById('visual_hex_0_0');
+                    let startX = 0;
+                    let startY = 0;
+                    if (startHex) {
+                        const startRect = startHex.getBoundingClientRect();
+                        startX = startRect.left + startRect.width / 2;
+                        startY = startRect.top + startRect.height / 2;
+                    }
 
-        mapData[currentHexId] = {
-            title: titleVal,
-            text: descVal,
-            color: colorVal,
-            difficulty: diffVal,
-            explored: exploredVal,
-            mapMapped: mapMappedVal,
-            squadHere: squadHereVal,
-            type: typeVal,
-            terrain: terrainVal,
-            regionLevel: regionLevelVal,
-            hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited),
-            lastSaved: new Date().toLocaleString()
-        };
+                    const targetRect = currentHexElement.getBoundingClientRect();
+                    const targetX = targetRect.left + targetRect.width / 2;
+                    const targetY = targetRect.top + targetRect.height / 2;
 
-        localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+                    const flyingFlag = document.createElement('div');
+                    flyingFlag.className = 'global-flying-flag';
+                    flyingFlag.innerHTML = `
+                        <div class="squad-pole" style="height: 50px; width: 6px; background: #333; margin-left: 6px; border-radius: 2px; border: 1px solid #000;">
+                            <div class="squad-flag" style="width: 30px; height: 20px; background: #c0392b; clip-path: polygon(0 0, 100% 50%, 0 100%); border: 2px solid #ffffff; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
+                        </div>
+                    `;
 
-        for (let id in mapData) {
-            const vHex = document.getElementById('visual_' + id);
-            if (vHex) {
-                const data = mapData[id];
-                if (data && (data.explored || data.hasVisited)) {
-                    vHex.classList.remove('fog-active');
+                    const sX = startX - 9;
+                    const sY = startY - 50;
+                    const tX = targetX - 9;
+                    const tY = targetY - 50;
+
+                    flyingFlag.style.setProperty('--start-x', `${sX}px`);
+                    flyingFlag.style.setProperty('--start-y', `${sY}px`);
+                    flyingFlag.style.setProperty('--target-x', `${tX}px`);
+                    flyingFlag.style.setProperty('--target-y', `${tY}px`);
+
+                    document.body.appendChild(flyingFlag);
+
+                    function createBurst(x, y) {
+                        const burstContainer = document.createElement('div');
+                        burstContainer.className = 'flag-impact-burst';
+                        burstContainer.style.left = `${x}px`;
+                        burstContainer.style.top = `${y}px`;
+
+                        const sparksCount = 8;
+                        for (let i = 0; i < sparksCount; i++) {
+                            const spark = document.createElement('div');
+                            spark.className = 'impact-spark';
+                            const currentAngle = (360 / sparksCount) * i;
+                            spark.style.setProperty('--angle', `${currentAngle}deg`);
+                            burstContainer.appendChild(spark);
+                        }
+
+                        document.body.appendChild(burstContainer);
+                        setTimeout(() => { burstContainer.remove(); }, 250);
+                    }
+
+                    setTimeout(() => {
+                        flyingFlag.style.animation = 'none';
+
+                        flyingFlag.style.transition = 'transform 0.05s ease-out';
+                        flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
+
+                        createBurst(targetX, targetY);
+                    }, 1300);
+
+                    setTimeout(() => {
+                        flyingFlag.remove();
+
+                        flagElem.style.display = 'block';
+                        flagElem.style.animation = 'flagAppear 0.05s forwards';
+
+                        setTimeout(() => {
+                            flagElem.style.animation = '';
+                            flagElem.classList.add('active-flag');
+                        }, 50);
+                    }, 1300);
+
+                    setTimeout(() => {
+                        createBurst(targetX - 45, targetY + 40);
+                    }, 1430);
+
+                    setTimeout(() => {
+                        createBurst(targetX + 45, targetY - 40);
+                    }, 1610);
+
                 } else {
-                    vHex.classList.add('fog-active');
+                    flagElem.style.display = 'block';
+                    flagElem.classList.add('active-flag');
                 }
+            } else {
+                flagElem.style.display = 'none';
+                flagElem.classList.remove('active-flag');
+                flagElem.style.animation = '';
             }
         }
-    }, 50);
+    }
+
+    if (currentShape) {
+        if (colorVal !== 'transparent') {
+            currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
+        } else {
+            currentShape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+        }
+    }
+
+    mapData[currentHexId] = {
+        title: titleVal,
+        text: descVal,
+        color: colorVal,
+        difficulty: diffVal,
+        explored: exploredVal,
+        mapMapped: mapMappedVal,
+        squadHere: squadHereVal,
+        type: typeVal,
+        terrain: terrainVal,
+        regionLevel: regionLevelVal,
+        hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited),
+        lastSaved: new Date().toLocaleString()
+    };
+
+    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+
+    for (let id in mapData) {
+        const vHex = document.getElementById('visual_' + id);
+        if (vHex) {
+            const data = mapData[id];
+            if (data && (data.explored || data.hasVisited)) {
+                vHex.classList.remove('fog-active');
+            } else {
+                vHex.classList.add('fog-active');
+            }
+        }
+    }
 
     closeMenu();
 }
-
 
 const btnSave = document.getElementById('btnSave');
 if (btnSave) btnSave.addEventListener('click', saveMenu);
