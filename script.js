@@ -918,6 +918,15 @@ if (viewport && mapContainer) {
             frame.style.top = `${frameTop}px`;
             frame.style.width = `${frameWidth}px`;
             frame.style.height = `${frameHeight}px`;
+
+            const clipLeft = frameLeft - viewRect.left;
+            const clipTop = frameTop - viewRect.top;
+
+            if (frameWidth > 0 && frameHeight > 0) {
+                viewport.style.clipPath = `inset(${clipTop}px ${viewRect.width - (clipLeft + frameWidth)}px ${viewRect.height - (clipTop + frameHeight)}px ${clipLeft}px)`;
+            } else {
+                viewport.style.clipPath = 'none';
+            }
         }
     }
 
