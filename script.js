@@ -891,8 +891,28 @@ let y = 0;
 if (viewport && mapContainer) {
     mapContainer.style.transformOrigin = '100% 0';
 
+    const frame = document.querySelector('.kingmaker-frame');
+
     function updateMapTransform() {
         mapContainer.style.transform = `translate(${x}px, ${y}px) scale(${currentZoom})`;
+
+        if (frame && viewport && mapContainer) {
+            const mapRect = mapContainer.getBoundingClientRect();
+            const viewRect = viewport.getBoundingClientRect();
+
+            const frameLeft = Math.max(viewRect.left, mapRect.left);
+            const frameTop = Math.max(viewRect.top, mapRect.top);
+            const frameRight = Math.min(viewRect.right, mapRect.right);
+            const frameBottom = Math.min(viewRect.bottom, mapRect.bottom);
+
+            const frameWidth = Math.max(0, frameRight - frameLeft);
+            const frameHeight = Math.max(0, frameBottom - frameTop);
+
+            frame.style.left = `${frameLeft}px`;
+            frame.style.top = `${frameTop}px`;
+            frame.style.width = `${frameWidth}px`;
+            frame.style.height = `${frameHeight}px`;
+        }
     }
 
     viewport.addEventListener('mousedown', (e) => {
