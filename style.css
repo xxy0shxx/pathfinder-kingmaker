@@ -611,32 +611,59 @@ body {
     z-index: 10000;
     box-sizing: border-box;
     border: 22px solid transparent;
-    border-image: linear-gradient(to bottom right, #b8860b, #d4af37, #aa7c11, #d4af37, #8b6508) 22 round;
+    border-image: linear-gradient(
+            to bottom right,
+            #8a6421 0%,
+            #1e3625 15%,
+            #b89445 30%,
+            #152e1d 50%,
+            #a68032 70%,
+            #1c3324 85%,
+            #6e4e14 100%
+    ) 22 round;
     box-shadow:
-            inset 0 0 20px rgba(0, 0, 0, 0.9),
-            inset 0 0 40px rgba(84, 62, 13, 0.6),
-            0 0 15px rgba(0, 0, 0, 0.5);
+            inset 0 0 22px rgba(0, 0, 0, 0.95),
+            inset 0 0 40px rgba(21, 46, 29, 0.6),
+            0 10px 25px rgba(0, 0, 0, 0.7);
     transition: none;
 }
 
 .frame-corner {
     position: absolute;
-    width: 32px;
-    height: 32px;
-    background: #d4af37;
-    border: 2px solid #543e0d;
-    box-shadow: 0 0 10px rgba(0,0,0,0.7);
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #a68032, #543e0d);
+    border: 2px solid #36260d;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    z-index: 10001;
 }
 
 .frame-corner::before {
     content: '';
     position: absolute;
     inset: 4px;
-    border: 1px solid #543e0d;
-    background: #aa7c11;
+    border: 2px solid #23472e;
+    background: linear-gradient(135deg, #184024, #0b2112);
+    box-shadow: inset 0 0 8px rgba(35, 71, 46, 0.8);
 }
 
-.top-left { top: -7px; left: -7px; clip-path: polygon(0 0, 100% 0, 100% 30%, 30% 100%, 0 100%); }
-.top-right { top: -7px; right: -7px; clip-path: polygon(0 0, 100% 0, 100% 100%, 70% 100%, 0 30%); }
-.bottom-left { bottom: -7px; left: -7px; clip-path: polygon(0 0, 30% 0, 100% 70%, 100% 100%, 0 100%); }
-.bottom-right { bottom: -7px; right: -7px; clip-path: polygon(70% 0, 100% 30%, 100% 100%, 0 100%, 0 70%); }
+.top-left {
+    top: -24px;
+    left: -24px;
+    clip-path: polygon(0 0, 100% 0, 100% 35%, 35% 100%, 0 100%);
+}
+.top-right {
+    top: -24px;
+    right: -24px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 65% 100%, 0 35%);
+}
+.bottom-left {
+    bottom: -24px;
+    left: -24px;
+    clip-path: polygon(0 0, 35% 0, 100% 65%, 100% 100%, 0 100%);
+}
+.bottom-right {
+    bottom: -24px;
+    right: -24px;
+    clip-path: polygon(65% 0, 100% 35%, 100% 100%, 0 100%, 0 65%);
+}
