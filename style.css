@@ -600,7 +600,7 @@ body {
         opacity: 0;
         transform: translate3d(var(--start-x), var(--start-y), 0) scale(2.5) rotate(-90deg);
     }
-    5% {
+    1% {
         opacity: 1;
     }
     100% {
