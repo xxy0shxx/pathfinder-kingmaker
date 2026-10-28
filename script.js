@@ -898,6 +898,53 @@ let x = 0;
 let y = 0;
 
 if (viewport && mapContainer) {
+
+    viewport.addEventListener('touchstart', (e) => {
+
+        if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
+
+        isDragging = true;
+        hasMoved = false;
+
+        const touch = e.touches[0];
+        startX = touch.pageX - x;
+        startY = touch.pageY - y;
+    }, { passive: true });
+
+    // Движение пальцем по экрану (Аналог mousemove)
+    viewport.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        if (e.cancelable) e.preventDefault();
+
+        const touch = e.touches[0];
+        let newX = touch.pageX - startX;
+        let newY = touch.pageY - startY;
+
+        if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
+            hasMoved = true;
+        }
+
+        const maxLimitX = 3840 * 1.5;
+        const minLimitX = -3840 * 1.5;
+        const maxLimitY = 1280 * 1.1;
+        const minLimitY = -1280 * 1.1;
+
+        x = Math.max(minLimitX, Math.min(maxLimitX, newX));
+        y = Math.max(minLimitY, Math.min(maxLimitY, newY));
+
+        updateMapTransform();
+    }, { passive: false });
+
+    viewport.addEventListener('touchend', () => {
+        isDragging = false;
+        setTimeout(() => { hasMoved = false; }, 50);
+    });
+
+    viewport.addEventListener('touchcancel', () => {
+        isDragging = false;
+    });
+
     mapContainer.style.transformOrigin = '100% 0';
 
     const frame = document.querySelector('.kingmaker-frame');

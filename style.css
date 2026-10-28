@@ -16,6 +16,7 @@ body {
     cursor: grab;
     pointer-events: auto !important;
     contain: layout;
+    touch-action: none;
 }
 .map-viewport:active { cursor: grabbing; }
 
