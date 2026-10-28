@@ -913,10 +913,10 @@ if (viewport && mapContainer) {
             hasMoved = true;
         }
 
-        const maxLimitX = 3840 * 0.5;
-        const minLimitX = -3840 * 0.5;
-        const maxLimitY = 1280 * 0.5;
-        const minLimitY = -1280 * 0.5;
+        const maxLimitX = 3840 * 0.7;
+        const minLimitX = -3840 * 0.7;
+        const maxLimitY = 1280 * 0.7;
+        const minLimitY = -1280 * 0.7;
 
         x = Math.max(minLimitX, Math.min(maxLimitX, newX));
         y = Math.max(minLimitY, Math.min(maxLimitY, newY));
