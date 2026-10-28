@@ -911,12 +911,26 @@ if (viewport && mapContainer) {
         startY = touch.pageY - y;
     }, { passive: true });
 
+    // Касание пальцем экрана (Аналог mousedown)
+    viewport.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
+
+        isDragging = true;
+        hasMoved = false;
+
+        // Жестко берем первое касание (индекс 0), чтобы Chrome не путал координаты
+        const touch = e.touches[0];
+        startX = touch.pageX - x;
+        startY = touch.pageY - y;
+    }, { passive: true });
+
     // Движение пальцем по экрану (Аналог mousemove)
     viewport.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
 
         if (e.cancelable) e.preventDefault();
 
+        // Жестко берем первое касание (индекс 0) для непрерывного отслеживания
         const touch = e.touches[0];
         let newX = touch.pageX - startX;
         let newY = touch.pageY - startY;
