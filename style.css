@@ -307,12 +307,14 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: rgba(20, 20, 20, 0.9);
+    background: linear-gradient(135deg, #112618 0%, #09140d 100%);
     padding: 14px;
-    border-radius: 6px;
-    border: 2px solid #d4af37;
-    box-shadow: 0 6px 22px rgba(0,0,0,0.7);
-    backdrop-filter: blur(5px);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    border-image: linear-gradient(to bottom right, #a68032, #543e0d) 2 round;
+    box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.85),
+            inset 0 0 15px rgba(0, 0, 0, 0.6);
     width: 540px;
     pointer-events: auto;
 }
@@ -331,37 +333,53 @@ body {
 }
 .music-controls-row select {
     padding: 6px 10px;
-    border: 1px solid rgba(212, 175, 55, 0.4);
-    border-radius: 4px;
-    background: #111;
-    color: #f3e5ab;
+    border: 1px solid #543e0d !important;
+    border-radius: 3px;
+    background-color: #090f0b !important;
+    color: #ebd291 !important;
     font-size: 14px;
     outline: none;
-    flex-grow: 1;
+    flex-grow: 1 !important; /* Список занимает всё оставшееся место */
     cursor: pointer;
 }
-.main-controls button {
-    padding: 8px 12px;
-    font: bold 14px sans-serif;
-    background: #34495e;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    color: #fff;
-    border-radius: 4px;
+.music-controls-row select option {
+    background-color: #090f0b !important;
+    color: #ebd291 !important;
+}
+.main-controls button,
+.music-controls-row button {
+    flex: none !important; /* Отменяем растягивание из стилей меню */
+    width: auto !important;
+    padding: 8px 12px !important;
+    font: bold 14px sans-serif !important;
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    border: 1px solid #543e0d !important;
+    color: #ebd291 !important;
+    border-radius: 4px !important;
     cursor: pointer;
     transition: all 0.2s ease;
-    white-space: nowrap;
+    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    letter-spacing: normal !important;
+    box-shadow: none !important;
 }
-.main-controls button:hover {
-    background: #415b76;
-    border-color: #d4af37;
-    color: #d4af37;
+.main-controls button:hover,
+.music-controls-row button:hover {
+    filter: brightness(1.2) !important;
+    border-color: #b89445 !important;
 }
-.main-controls button.active {
-    background: rgba(212, 175, 55, 0.2);
-    border-color: #d4af37;
-    color: #d4af37;
+.main-controls button.active,
+.music-controls-row button.active {
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    border-color: #3e6349 !important;
+    color: #dfbc6f !important;
 }
-#btnMusic { flex-grow: 2; }
+#btnMusic {
+    flex-grow: 2 !important; /* Возвращаем исходную пропорцию кнопке играть */
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    color: #dfbc6f !important;
+    border-color: #3e6349 !important;
+}
 
 .player-timeline {
     display: flex;
@@ -379,19 +397,18 @@ body {
 .timeline-bg {
     flex-grow: 1;
     height: 6px;
-    background: #333;
+    background: #090f0b;
     border-radius: 3px;
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid #543e0d;
 }
 .timeline-fill {
     height: 100%;
     width: 0%;
-    background: #d4af37;
+    background: linear-gradient(90deg, #a68032, #dfbc6f);
     border-radius: 3px;
-    transition: width 0.1s linear;
 }
 .volume-box {
     display: flex;
@@ -406,50 +423,52 @@ body {
     width: 80px;
     height: 4px;
     cursor: pointer;
-    accent-color: #d4af37;
+    accent-color: #a68032;
 }
 
+.volume-icon { color: #dfbc6f; }
+.time-lbl { color: #ebd291; }
+
+
 .dropdown-playlist {
-    background: rgba(15, 15, 15, 0.95);
-    border: 2px solid #d4af37;
+    background: #090f0b;
+    border: 2px solid #543e0d;
     border-top: none;
     border-radius: 0 0 6px 6px;
     margin-top: -2px;
     max-height: 0;
-    overflow: hidden;
+    overflow: hidden; /* Жестко прячем контент, включая надпись "Список композиций" */
     transition: max-height 0.25s ease-out;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
 }
-.dropdown-playlist.open { max-height: 220px; overflow-y: auto; }
+
+.dropdown-playlist.open {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
 .playlist-header {
-    background: rgba(212, 175, 55, 0.15);
-    color: #d4af37;
-    padding: 6px 12px;
-    font: bold 12px sans-serif;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    background: rgba(21, 46, 29, 0.4);
+    color: #dfbc6f;
+    border-bottom: 1px solid #543e0d;
 }
-.playlist-tracks { display: flex; flex-direction: column; }
+
 .playlist-item {
-    padding: 8px 12px;
-    color: #ccc;
-    font: 13px sans-serif;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.02);
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: #ebd291;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.1);
 }
-.playlist-item:hover { background: rgba(212, 175, 55, 0.1); color: #fff; }
+
+.playlist-item:hover {
+    background: rgba(21, 46, 29, 0.3);
+    color: #fff;
+}
+
 .playlist-item.current {
-    background: rgba(212, 175, 55, 0.2);
-    color: #d4af37;
-    font-weight: bold;
-    border-left: 3px solid #d4af37;
+    background: rgba(21, 46, 29, 0.5);
+    color: #dfbc6f;
+    border-left: 3px solid #a68032;
 }
 
 .squad-pole {
@@ -643,30 +662,36 @@ body {
 
 #btnExport, #btnImport {
     padding: 12px 22px;
-    border-radius: 8px;
-    font: bold 14px sans-serif;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 4px;
+    font: bold 12px sans-serif;
+    transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    border: 1px solid #543e0d;
+    box-sizing: border-box;
+    cursor: pointer;
 }
 #btnExport {
-    background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%);
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%);
+    color: #ebd291;
 }
+
+/* Импорт — стиль глубокой кованой зелени (как кнопка Сохранить) */
 #btnImport {
-    background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%);
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%);
+    color: #dfbc6f;
+    border-color: #3e6349;
 }
+
 #btnExport:hover, #btnImport:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.4);
-    border-color: #d4af37;
-    filter: brightness(1.1);
+    filter: brightness(1.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
-#btnExport:active, #btnImport:active { transform: translateY(0); }
+
+#btnExport:active, #btnImport:active {
+    transform: translateY(0);
+}
 
 .flag-impact-burst {
     position: fixed !important;
