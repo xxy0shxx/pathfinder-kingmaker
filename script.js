@@ -549,10 +549,7 @@ function closeMenu() {
     modal.classList.remove('open');
     currentHexId = null;
 
-    window.scrollTo(0, 0);
-
     setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
         if (typeof updateMapTransform === 'function') {
             updateMapTransform();
         }
