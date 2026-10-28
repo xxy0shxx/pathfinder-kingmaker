@@ -659,26 +659,17 @@ function saveMenu() {
                         </div>
                     `;
 
-                    flyingFlag.style.position = 'fixed';
-                    flyingFlag.style.left = '0px';
-                    flyingFlag.style.top = '0px';
+                    const sX = startX - 9;
+                    const sY = startY - 50;
+                    const tX = targetX - 9;
+                    const tY = targetY - 50;
 
-                    const startTranslateX = startX - 9;
-                    const startTranslateY = startY - 50;
-                    flyingFlag.style.transform = `translate3d(${startTranslateX}px, ${startTranslateY}px, 0) scale(2.5) rotate(-90deg)`;
-                    flyingFlag.style.opacity = '0';
+                    flyingFlag.style.setProperty('--start-x', `${sX}px`);
+                    flyingFlag.style.setProperty('--start-y', `${sY}px`);
+                    flyingFlag.style.setProperty('--target-x', `${tX}px`);
+                    flyingFlag.style.setProperty('--target-y', `${tY}px`);
 
                     document.body.appendChild(flyingFlag);
-
-                    const targetTranslateX = targetX - 9;
-                    const targetTranslateY = targetY - 50;
-
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            flyingFlag.style.opacity = '1';
-                            flyingFlag.style.transform = `translate3d(${targetTranslateX}px, ${targetTranslateY}px, 0) scale(1) rotate(-90deg)`;
-                        });
-                    });
 
                     function createBurst(x, y) {
                         const burstContainer = document.createElement('div');
@@ -700,12 +691,13 @@ function saveMenu() {
                     }
 
                     setTimeout(() => {
-                        // Финальный легкий наклон при приземлении тоже делаем через translate3d, сохраняя позицию
+                        flyingFlag.style.animation = 'none';
+
                         flyingFlag.style.transition = 'transform 0.05s ease-out';
-                        flyingFlag.style.transform = `translate3d(${targetTranslateX}px, ${targetTranslateY}px, 0) scale(1) rotate(-5deg)`;
+                        flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
 
                         createBurst(targetX, targetY);
-                    }, 1250);
+                    }, 1300);
 
                     setTimeout(() => {
                         flyingFlag.remove();

@@ -588,8 +588,25 @@ body {
     z-index: 999999 !important;
     pointer-events: none !important;
     transform-origin: bottom center !important;
-    transition: transform 1.3s linear, opacity 0.2s ease-out !important;
+    left: 0px !important;
+    top: 0px !important;
     will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+    animation: windowsSmoothFly 1.3s linear forwards;
+}
+
+@keyframes windowsSmoothFly {
+    0% {
+        opacity: 0;
+        transform: translate3d(var(--start-x), var(--start-y), 0) scale(2.5) rotate(-90deg);
+    }
+    5% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(var(--target-x), var(--target-y), 0) scale(1) rotate(-90deg);
+    }
 }
 
 .legend-container {
