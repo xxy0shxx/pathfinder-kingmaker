@@ -84,14 +84,19 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #fff;
-    color: #333;
+    background: linear-gradient(135deg, #112618 0%, #09140d 100%);
+    color: #ebd291;
     padding: 25px;
-    border-radius: 8px;
+    border-radius: 4px;
     width: 440px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    border: 3px solid transparent;
+    border-image: linear-gradient(to bottom right, #a68032, #543e0d, #b89445) 3 round;
+    box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.85),
+            inset 0 0 20px rgba(0, 0, 0, 0.6);
     z-index: 10010;
     pointer-events: auto;
+    font-family: sans-serif;
 }
 .pop-menu.open { display: block; }
 
@@ -109,33 +114,87 @@ body {
     justify-content: space-between;
     gap: 10px;
     margin-bottom: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(84, 62, 13, 0.3);
+}
+.checkbox-row label {
+    color: #ebd291;
+    font-size: 13px;
+    cursor: pointer;
+    margin: 0;
+}
+.checkbox-row input[type="checkbox"] {
+    accent-color: #a68032;
+    cursor: pointer;
 }
 .box { margin-bottom: 15px; }
 .box label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     font-weight: bold;
-    color: #555;
+    color: #dfbc6f;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
 }
-.box input, .box textarea, .box select {
+.box input[type="text"],
+.box textarea,
+.box select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: #333;
-    background: #fff;
+    background: #090f0b;
+    border: 1px solid #543e0d;
+    border-radius: 3px;
+    color: #ebd291;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #090f0b !important;
 }
+
+.box select option {
+    background-color: #090f0b !important;
+    color: #ebd291 !important;
+    padding: 8px;
+}
+.box select option:hover,
+.box select option:focus,
+.box select option:active,
+.box select option:checked {
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    background-color: #1e3c27 !important;
+    color: #dfbc6f !important;
+}
+
+.box input[type="text"]:focus,
+.box textarea:focus,
+.box select:focus {
+    border-color: #b89445;
+    box-shadow: 0 0 5px rgba(184, 148, 69, 0.4);
+}
+
 .box input[type="color"] {
     width: 60px;
     height: 35px;
     cursor: pointer;
+    background: #090f0b;
+    border: 1px solid #543e0d;
+    border-radius: 3px;
+    padding: 2px;
 }
 
-.buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 20px;
+.buttons .btn {
+    flex: 1;
+    padding: 11px 16px;
+    border: 1px solid #543e0d;
+    border-radius: 4px;
+    cursor: pointer;
+    font: bold 13px sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 .buttons .btn {
     padding: 10px 20px;
@@ -144,9 +203,33 @@ body {
     cursor: pointer;
     font: bold 14px sans-serif;
 }
-.btn.del { background: #e74c3c; color: #fff; }
-.btn.cc { background: #95a5a6; color: #fff; }
-.btn.ok { background: #2ecc71; color: #fff; }
+.btn.del {
+    background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%);
+    color: #f7baba;
+    border-color: #823030;
+}
+.btn.del:hover {
+    filter: brightness(1.2);
+    border-color: #ff7675;
+}
+.btn.cc {
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%);
+    color: #ebd291;
+}
+.btn.cc:hover {
+    filter: brightness(1.2);
+    border-color: #ebd291;
+}
+.btn.ok {
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%);
+    color: #dfbc6f;
+    border-color: #3e6349;
+}
+.btn.ok:hover {
+    filter: brightness(1.2);
+    border-color: #dfbc6f;
+    box-shadow: 0 0 8px rgba(223, 188, 111, 0.3);
+}
 
 .color-preset-btn {
     width: 36px;
