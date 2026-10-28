@@ -2,12 +2,12 @@
 body {
     margin: 0;
     padding: 0;
-    background: #222;
+    background: radial-gradient(circle, #223d29 0%, #16291b 50%, #3d2d14 100%);
     font-family: sans-serif;
     color: #fff;
     overflow: hidden;
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
 }
-
 .map-viewport {
     width: 100vw;
     height: 100vh;
