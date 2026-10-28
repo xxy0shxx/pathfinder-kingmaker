@@ -871,7 +871,13 @@ document.addEventListener('DOMContentLoaded', () => {
      initializeMusicPlayer();    
      initColorPresets();        
      populateDifficultySelect(); 
-     buildHexGrid();            
+     buildHexGrid();
+
+    setTimeout(() => {
+        updateMapTransform();
+        const frame = document.querySelector('.kingmaker-frame');
+        if (frame) frame.style.opacity = '1';
+    }, 100);
 });
 
 let currentZoom = 1.0;
