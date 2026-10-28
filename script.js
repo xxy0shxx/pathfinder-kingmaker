@@ -1,4 +1,3 @@
-let currentSquadHex = localStorage.getItem('hexMapSquadLocation') || null;
 const hexRadius = 78;
 const rows = 12;
 const cols = 30;
@@ -556,25 +555,6 @@ function closeMenu() {
     }, 300);
 }
 
-function resetMobileViewportZoom() {
-    if (!('ontouchstart' in window)) return;
-
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
-    if (!viewportMeta) return;
-
-    const originalContent = viewportMeta.getAttribute('content');
-
-    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-
-    setTimeout(() => {
-        viewportMeta.setAttribute('content', originalContent);
-
-        if (typeof updateMapTransform === 'function') {
-            updateMapTransform();
-        }
-    }, 320);
-}
-
 function saveMenu() {
     if (!currentHexId) return;
 
@@ -963,24 +943,11 @@ if (viewport && mapContainer) {
         startY = touch.pageY - y;
     }, { passive: true });
 
-    // Касание пальцем экрана (Аналог mousedown)
-    viewport.addEventListener('touchstart', (e) => {
-        if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
-
-        isDragging = true;
-        hasMoved = false;
-
-        const touch = e.touches[0];
-        startX = touch.pageX - x;
-        startY = touch.pageY - y;
-    }, { passive: true });
-
     viewport.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
 
         if (e.cancelable) e.preventDefault();
 
-        // Жестко берем первое касание (индекс 0) для непрерывного отслеживания
         const touch = e.touches[0];
         let newX = touch.pageX - startX;
         let newY = touch.pageY - startY;
