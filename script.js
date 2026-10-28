@@ -525,8 +525,33 @@ function convertHexToRgbStandard(hex) {
 }
 
 function closeMenu() {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
+
+    resetMobileViewportZoom();
+
     modal.classList.remove('open');
     currentHexId = null;
+}
+
+function resetMobileViewportZoom() {
+    if (!('ontouchstart' in window)) return;
+
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (!viewportMeta) return;
+
+    const originalContent = viewportMeta.getAttribute('content');
+
+    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+
+    setTimeout(() => {
+        viewportMeta.setAttribute('content', originalContent);
+
+        if (typeof updateMapTransform === 'function') {
+            updateMapTransform();
+        }
+    }, 320);
 }
 
 function saveMenu() {

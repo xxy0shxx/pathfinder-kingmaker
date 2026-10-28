@@ -833,3 +833,25 @@ body {
 .top-right { top: -24px; right: -24px; }
 .bottom-left { bottom: -24px; left: -24px; }
 .bottom-right { bottom: -24px; right: -24px; }
+
+@media (max-width: 1024px) {
+    .box input[type="text"],
+    .box textarea,
+    .box select {
+        /* Браузер видит 16px и НЕ увеличивает экран при клике */
+        font-size: 16px !important;
+
+        /* Визуально уменьшаем элемент обратно до нужного размера (например, до ~13px) */
+        transform: scale(0.85);
+
+        /* Компенсируем сжатие, чтобы верстка не ехала */
+        width: 117.6% !important;
+        transform-origin: left center;
+        margin-bottom: -2px;
+    }
+
+    /* Для textarea центрирование по левому верхнему углу */
+    .box textarea {
+        transform-origin: left top;
+    }
+}
