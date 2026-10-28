@@ -151,12 +151,15 @@ function playNextRandomTrack() {
 
 function updatePlayerButtonUI(isPlayingNow) {
     if (!musicButton) return;
-    const trackName = formatTrackName(playlist[currentTrackIdx]);
+
     if (isPlayingNow) {
-        musicButton.innerHTML = `⏸ Пауза: <span style="font-size:13px;font-weight:normal;">${trackName}</span>`;
-        musicButton.style.backgroundColor = '#e74c3c'; musicButton.style.color = '#fff';
+        musicButton.innerHTML = `⏸ Пауза`;
+        musicButton.style.backgroundColor = '#e74c3c';
+        musicButton.style.color = '#fff';
     } else {
-        musicButton.innerHTML = `🎵 Включить музыку`; musicButton.style.backgroundColor = ''; musicButton.style.color = '';
+        musicButton.innerHTML = `🎵 Включить музыку`;
+        musicButton.style.backgroundColor = '';
+        musicButton.style.color = '';
     }
 }
 

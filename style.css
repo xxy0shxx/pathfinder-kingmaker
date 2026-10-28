@@ -316,7 +316,7 @@ body {
     box-shadow:
             0 10px 30px rgba(0, 0, 0, 0.85),
             inset 0 0 15px rgba(0, 0, 0, 0.6);
-    width: 640px;
+    width: 500px;
     pointer-events: auto;
 }
 .main-controls {
@@ -340,7 +340,7 @@ body {
     color: #ebd291 !important;
     font-size: 14px;
     outline: none;
-    flex-grow: 1 !important; /* Список занимает всё оставшееся место */
+    flex-grow: 1 !important;
     cursor: pointer;
 }
 .music-controls-row select option {
@@ -349,7 +349,7 @@ body {
 }
 .main-controls button,
 .music-controls-row button {
-    flex: none !important; /* Отменяем растягивание из стилей меню */
+    flex: none !important;
     width: auto !important;
     padding: 8px 12px !important;
     font: bold 14px sans-serif !important;
@@ -376,7 +376,7 @@ body {
     color: #dfbc6f !important;
 }
 #btnMusic {
-    flex-grow: 2 !important; /* Возвращаем исходную пропорцию кнопке играть */
+    flex-grow: 2 !important;
     background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
     color: #dfbc6f !important;
     border-color: #3e6349 !important;
@@ -438,7 +438,7 @@ body {
     border-radius: 0 0 6px 6px;
     margin-top: -2px;
     max-height: 0;
-    overflow: hidden; /* Жестко прячем контент, включая надпись "Список композиций" */
+    overflow: hidden;
     transition: max-height 0.25s ease-out;
     box-shadow: 0 10px 20px rgba(0,0,0,0.6);
     display: flex;
@@ -594,28 +594,34 @@ body {
 }
 
 .legend-container {
-    background: rgba(15, 15, 15, 0.95);
-    border: 2px solid #d4af37;
+    background: linear-gradient(135deg, #112618 0%, #09140d 100%) !important;
+    border: 2px solid transparent !important;
+    border-image: linear-gradient(to bottom right, #a68032, #543e0d) 2 round !important;
     margin-bottom: 5px;
     border-radius: 4px;
     overflow: hidden;
     z-index: 10006;
+    box-shadow:
+            0 10px 25px rgba(0, 0, 0, 0.85),
+            inset 0 0 15px rgba(0, 0, 0, 0.6);
 }
 .legend-header {
-    background: rgba(212, 175, 55, 0.15);
-    color: #d4af37;
+    background: rgba(21, 46, 29, 0.4) !important;
+    color: #dfbc6f !important; /* Насыщенное золото */
     padding: 8px 12px;
-    font: bold 14px sans-serif;
+    font: bold 14px sans-serif !important;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    border-bottom: 1px solid #543e0d !important; /* Контур темной бронзы */
     cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 .legend-header button {
-    background: none;
-    border: none;
-    color: #d4af37;
+    background: none !important;
+    border: none !important;
+    color: #dfbc6f !important;
     cursor: pointer;
     font-size: 18px;
     padding: 0 5px;
@@ -630,26 +636,39 @@ body {
     max-height: 500px;
     padding: 10px;
 }
-.legend-group { margin-bottom: 15px; }
+
+.legend-group {
+    margin-bottom: 10px;
+}
+
+.legend-group:not(:first-child) {
+    margin-top: 22px;
+}
+
 .legend-group p {
-    margin: 0 0 5px 0;
-    font: 11px sans-serif;
-    color: #d4af37;
+    margin: 0 0 10px 0;
+    font: bold 12px sans-serif !important;
+    color: #dfbc6f !important;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding-bottom: 2px;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.5) !important;
+    padding-bottom: 6px;
 }
+
 .legend-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    font: 13px sans-serif;
-    color: #ccc;
+    font: 13px sans-serif !important;
+    color: #ebd291 !important;
 }
+
 .legend-grid span {
     padding: 2px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(84, 62, 13, 0.15) !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .visual-hex.fog-active::after {
@@ -662,9 +681,8 @@ body {
 }
 
 #btnExport, #btnImport {
-    /* Меняем фиксированное позиционирование на нижнюю часть экрана */
     position: fixed;
-    bottom: 40px !important; /* Отступ от нижнего края экрана */
+    bottom: 40px !important;
     z-index: 10005;
 
     padding: 12px 22px;
@@ -678,7 +696,7 @@ body {
     white-space: nowrap;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
-/* Экспорт встает левее (отступ 40px от края + ширина кнопки импорта с зазором) */
+
 #btnExport {
     right: 195px !important;
     background: linear-gradient(180deg, #42351f 0%, #292011 100%);
@@ -686,7 +704,6 @@ body {
     border: 1px solid #543e0d;
 }
 
-/* Импорт встает четко в правый угол с отступом 40px */
 #btnImport {
     right: 40px !important;
     background: linear-gradient(180deg, #1e3c27 0%, #112417 100%);
@@ -694,7 +711,6 @@ body {
     border: 1px solid #3e6349;
 }
 
-/* Эффекты наведения (подсветка рамок золотом) */
 #btnExport:hover, #btnImport:hover {
     transform: translateY(-2px);
     filter: brightness(1.2);
