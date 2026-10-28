@@ -871,16 +871,22 @@ fileInput.addEventListener('change', function(e) {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-     initializeMusicPlayer();    
-     initColorPresets();        
-     populateDifficultySelect(); 
-     buildHexGrid();
+    initializeMusicPlayer();
+    initColorPresets();
+    populateDifficultySelect();
+    buildHexGrid();
 
     setTimeout(() => {
         updateMapTransform();
         const frame = document.querySelector('.kingmaker-frame');
         if (frame) frame.style.opacity = '1';
-    }, 100);
+    }, 150);
+});
+
+window.addEventListener('resize', () => {
+    if (typeof updateMapTransform === 'function') {
+        updateMapTransform();
+    }
 });
 
 let currentZoom = 1.0;
