@@ -906,27 +906,55 @@ if (viewport && mapContainer) {
             const mapRect = mapContainer.getBoundingClientRect();
             const viewRect = viewport.getBoundingClientRect();
 
-            const frameLeft = Math.max(viewRect.left, mapRect.left);
-            const frameTop = Math.max(viewRect.top, mapRect.top);
-            const frameRight = Math.min(viewRect.right, mapRect.right);
-            const frameBottom = Math.min(viewRect.bottom, mapRect.bottom);
+            const cleanLeft = Math.max(viewRect.left, mapRect.left);
+            const cleanTop = Math.max(viewRect.top, mapRect.top);
+            const cleanRight = Math.min(viewRect.right, mapRect.right);
+            const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
 
-            const frameWidth = Math.max(0, frameRight - frameLeft);
-            const frameHeight = Math.max(0, frameBottom - frameTop);
+            const baseWidth = Math.max(0, cleanRight - cleanLeft);
+            const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
-            frame.style.left = `${frameLeft}px`;
-            frame.style.top = `${frameTop}px`;
-            frame.style.width = `${frameWidth}px`;
-            frame.style.height = `${frameHeight}px`;
+            if (baseWidth > 0 && baseHeight > 0) {
+                const borderWidth = 22;
+                frame.style.display = 'block';
 
-            const clipLeft = frameLeft - viewRect.left;
-            const clipTop = frameTop - viewRect.top;
+                let frameLeft = cleanLeft - borderWidth;
+                let frameTop = cleanTop - borderWidth;
+                let frameWidth = baseWidth + (borderWidth * 2);
+                let frameHeight = baseHeight + (borderWidth * 2);
 
-            if (frameWidth > 0 && frameHeight > 0) {
-                viewport.style.clipPath = `inset(${clipTop}px ${viewRect.width - (clipLeft + frameWidth)}px ${viewRect.height - (clipTop + frameHeight)}px ${clipLeft}px)`;
+                if (frameLeft < viewRect.left) {
+                    frameWidth -= (viewRect.left - frameLeft);
+                    frameLeft = viewRect.left;
+                }
+                if (frameTop < viewRect.top) {
+                    frameHeight -= (viewRect.top - frameTop);
+                    frameTop = viewRect.top;
+                }
+                if (frameLeft + frameWidth > viewRect.right) {
+                    frameWidth = viewRect.right - frameLeft;
+                }
+                if (frameTop + frameHeight > viewRect.bottom) {
+                    frameHeight = viewRect.bottom - frameTop;
+                }
+
+                frame.style.left = `${frameLeft}px`;
+                frame.style.top = `${frameTop}px`;
+                frame.style.width = `${frameWidth}px`;
+                frame.style.height = `${frameHeight}px`;
+
+                const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
+                const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
+                const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
+                const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
+
+                mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
             } else {
-                viewport.style.clipPath = 'none';
+                frame.style.display = 'none';
+                mapContainer.style.clipPath = 'none';
             }
+
+            viewport.style.clipPath = 'none';
         }
     }
 

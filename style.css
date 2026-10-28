@@ -11,13 +11,11 @@ body {
 .map-viewport {
     width: 100vw;
     height: 100vh;
-    overflow: hidden; /* Уже должно быть, но проверяем */
+    overflow: hidden;
     position: relative;
     cursor: grab;
     pointer-events: auto !important;
-
-    /* Добавляем изолированный контекст отображения, чтобы браузер гарантированно резал слои */
-    contain: paint;
+    contain: layout;
 }
 .map-viewport:active { cursor: grabbing; }
 
@@ -29,6 +27,7 @@ body {
     height: 1280px;
     user-select: none;
     transform-origin: 100% 0;
+    will-change: transform, clip-path;
 }
 
 .map-image {
@@ -617,7 +616,7 @@ body {
             inset 0 0 20px rgba(0, 0, 0, 0.9),
             inset 0 0 40px rgba(84, 62, 13, 0.6),
             0 0 15px rgba(0, 0, 0, 0.5);
-    transition: top 0.05s ease-out, left 0.05s ease-out, width 0.05s ease-out, height 0.05s ease-out;
+    transition: none;
 }
 
 .frame-corner {
