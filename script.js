@@ -970,13 +970,11 @@ if (viewport && mapContainer) {
         isDragging = true;
         hasMoved = false;
 
-        // Жестко берем первое касание (индекс 0), чтобы Chrome не путал координаты
         const touch = e.touches[0];
         startX = touch.pageX - x;
         startY = touch.pageY - y;
     }, { passive: true });
 
-    // Движение пальцем по экрану (Аналог mousemove)
     viewport.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
 
@@ -1157,7 +1155,7 @@ if (btnToggle && legendCont) {
     console.error("Ошибка: Элементы легенды не найдены в DOM! Проверьте правильность вставки HTML.");
 }
 
-const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ', '𐌿', '𐌾', '𐌵'];
+const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'];
 
 function updateFrameRunes(width, height) {
     const frame = document.querySelector('.kingmaker-frame');
@@ -1166,7 +1164,7 @@ function updateFrameRunes(width, height) {
     frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
 
     const step = 50;
-    const padding = 15;
+    const padding = 20;
 
     const cTop = -11;
     const cLeft = -11;
