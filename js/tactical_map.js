@@ -329,7 +329,8 @@ function bindTacticalTooltip(square, squareId) {
 
         if (focusedEntityId && focusedEntityId !== squareId) {
             const sourceData = campMapData[focusedEntityId];
-            const speedLimit = sourceData ? parseInt(sourceData.speed) : 30;
+//            const speedLimit = sourceData ? parseInt(sourceData.speed) : 30;
+            const speedLimit = (sourceData && sourceData.speed && !isNaN(parseInt(sourceData.speed))) ? parseInt(sourceData.speed) : 30;
 
             const pathData = calculatePathAndCost(focusedEntityId, squareId, speedLimit);
 
@@ -872,6 +873,9 @@ function bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel) {
                 return;
             }
 
+            if (typeof clearVisualPath === 'function') clearVisualPath();
+            focusedEntityId = null;
+
             campMapData[squareId] = {
                 heroHere: entityType === 'hero',
                 monsterHere: entityType === 'monster',
@@ -879,6 +883,7 @@ function bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel) {
                 distance: oldData.distance || '5',
                 direction: oldData.direction || 'N',
                 color: oldData.color || 'transparent',
+                speed: oldData.speed || '30',
                 explored: true,
                 hasVisited: entityType === 'hero' || (campMapData[squareId] && campMapData[squareId].hasVisited),
                 lastSaved: new Date().toLocaleString()
@@ -890,7 +895,7 @@ function bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel) {
 
             const oldSquareElement = document.getElementById('visual_' + fromId);
             if (oldSquareElement) {
-                oldSquareElement.classList.remove('squad-dark');
+                oldSquareElement.classList.remove('squad-dark', 'focused-entity');
                 const oldStar = oldSquareElement.querySelector('.square-star-label');
                 if (oldStar) oldStar.textContent = '';
             }
