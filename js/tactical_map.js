@@ -134,10 +134,12 @@ function buildTacticalGrid() {
 
             const crownLabel = document.createElement('span');
             crownLabel.className = 'square-crown-label';
+            crownLabel.setAttribute('draggable', 'true');
             square.appendChild(crownLabel);
 
             const monsterLabel = document.createElement('span');
             monsterLabel.className = 'square-monster-label';
+            monsterLabel.setAttribute('draggable', 'true');
             square.appendChild(monsterLabel);
 
             if (!campMapData[squareId] || (!campMapData[squareId].explored && !campMapData[squareId].hasVisited)) {
@@ -161,6 +163,8 @@ function buildTacticalGrid() {
                 if (modal.classList.contains('open')) closeMenu();
                 else openTacticalMenu(squareId);
             });
+
+            bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel);
 
             bindTacticalTooltip(square, squareId);
             gridLayer.appendChild(square);
@@ -727,3 +731,82 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { capture: true });
     }
 });
+
+function bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel) {
+    const handleDragStart = (e, type) => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({ fromId: squareId, type: type }));
+        e.dataTransfer.effectAllowed = 'move';
+
+        isDragging = false;
+    };
+
+    crownLabel.addEventListener('dragstart', (e) => handleDragStart(e, 'hero'));
+    monsterLabel.addEventListener('dragstart', (e) => handleDragStart(e, 'monster'));
+
+    square.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        if (!square.classList.contains('drag-over')) {
+            square.classList.add('drag-over');
+        }
+    });
+
+    square.addEventListener('dragleave', () => {
+        square.classList.remove('drag-over');
+    });
+
+    square.addEventListener('drop', (e) => {
+        e.preventDefault();
+        square.classList.remove('drag-over');
+
+        try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            const fromId = data.fromId;
+            const entityType = data.type;
+
+            if (fromId === squareId) return;
+
+            const oldData = campMapData[fromId];
+            if (!oldData) return;
+
+            if (campMapData[squareId] && (campMapData[squareId].heroHere || campMapData[squareId].monsterHere)) {
+                alert("Эта клетка уже занята другим персонажем!");
+                return;
+            }
+
+            // Переносим параметры на новое место жительства
+            campMapData[squareId] = {
+                heroHere: entityType === 'hero',
+                monsterHere: entityType === 'monster',
+                measurement: oldData.measurement || '',
+                distance: oldData.distance || '5',
+                direction: oldData.direction || 'N',
+                color: oldData.color || 'transparent',
+                explored: true,
+                hasVisited: entityType === 'hero' || (campMapData[squareId] && campMapData[squareId].hasVisited),
+                lastSaved: new Date().toLocaleString()
+            };
+
+            delete campMapData[fromId];
+
+            localStorage.setItem('campMapSystemData', JSON.stringify(campMapData));
+
+            const oldSquareElement = document.getElementById('visual_' + fromId);
+            if (oldSquareElement) {
+                oldSquareElement.classList.remove('squad-dark');
+                const oldStar = oldSquareElement.querySelector('.square-star-label');
+                if (oldStar) oldStar.textContent = '';
+            }
+
+            const newStar = square.querySelector('.square-star-label');
+            if (newStar) newStar.textContent = '★';
+            if (entityType === 'hero') square.classList.add('squad-dark');
+
+            recalculateCampFogOfWar();
+
+        } catch (err) {
+            console.error("Ошибка обработки Drag-and-Drop перемещения:", err);
+        }
+    });
+}

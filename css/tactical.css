@@ -134,3 +134,19 @@
     0%, 100% { transform: translate(-50%, -50%) scale(1); }
     50% { transform: translate(-50%, -50%) scale(1.15); }
 }
+
+.square-crown-label,
+.square-monster-label {
+    pointer-events: auto !important;
+    cursor: grab !important;
+}
+
+.square-crown-label:active,
+.square-monster-label:active {
+    cursor: grabbing !important;
+}
+
+.tactical-square.drag-over {
+    box-shadow: inset 0 0 12px #dfbc6f !important;
+    background-color: rgba(223, 188, 111, 0.2) !important;
+}
