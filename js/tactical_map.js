@@ -293,46 +293,6 @@ function deleteTacticalSquare() {
     closeCampMenu();
 }
 
-function clearVisualPath() {
-    document.querySelectorAll('.tactical-square').forEach(cell => {
-        cell.classList.remove('path-cell');
-        const costLabel = cell.querySelector('.square-path-cost');
-        if (costLabel) costLabel.textContent = '';
-    });
-}
-
-function handleTacticalSquareClick(squareId) {
-    if (modal.classList.contains('open') || (campModal && campModal.classList.contains('open'))) {
-        closeCampMenu();
-        return;
-    }
-
-    const data = campMapData[squareId];
-    const squareElement = document.getElementById('visual_' + squareId);
-    if (!squareElement) return;
-
-    if (data && (data.heroHere || data.monsterHere)) {
-        if (focusedEntityId === squareId) {
-            squareElement.classList.remove('focused-entity');
-            focusedEntityId = null;
-            clearVisualPath();
-        } else {
-
-            if (focusedEntityId) {
-                const oldFocused = document.getElementById('visual_' + focusedEntityId);
-                if (oldFocused) oldFocused.classList.remove('focused-entity');
-            }
-
-            focusedEntityId = squareId;
-            squareElement.classList.add('focused-entity');
-            clearVisualPath();
-        }
-    } else {
-
-        openTacticalMenu(squareId);
-    }
-}
-
 function bindTacticalTooltip(square, squareId) {
     const tooltip = document.getElementById('hexTooltip');
     if (!tooltip) return;
@@ -375,25 +335,42 @@ function bindTacticalTooltip(square, squareId) {
 
             if (pathData) {
                 clearVisualPath();
+
                 pathData.cells.forEach(cellKey => {
                     const cellEl = document.getElementById(`visual_square_${cellKey}`);
-                    if (cellEl) cellEl.classList.add('path-cell');
+                    if (cellEl) {
+                        if (pathData.jumpFlags[cellKey]) {
+                            cellEl.classList.add('path-cell-jump');
+
+                            const costLabel = cellEl.querySelector('.square-path-cost');
+                            if (costLabel) {
+                                costLabel.textContent = 'JUMP';
+                                costLabel.style.color = '#f1c40f';
+                            }
+                        } else {
+                            cellEl.classList.add('path-cell');
+                        }
+                    }
                 });
 
                 paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px; color: #2ecc71;">`;
-                paramsBlock += `📐 <b>Расчет логистики перемещения:</b><br>`;
-                paramsBlock += `• Всего дистанции: <b>${pathData.totalFeet} фт.</b><br>`;
+                paramsBlock += `📐 <b>Логистика пути + Прыжки:</b><br>`;
+                paramsBlock += `• Эквивалент пути: <b>${pathData.totalFeet} фт.</b><br>`;
+
+                const hasJumps = Object.keys(pathData.jumpFlags).length > 0;
+                if (hasJumps) {
+                    paramsBlock += `• Особенности: <span style="color:#f1c40f;font-weight:bold;">Использован прыжок 🦘</span><br>`;
+                }
 
                 if (pathData.actions <= 3) {
-                    let actionText = pathData.actions === 1 ? '1-е перемещение' : (pathData.actions === 2 ? '2-е перемещение' : '3-е перемещение (Марш-бросок)');
-                    paramsBlock += `• Потребуется действий: <span style="font-weight:bold;color:#fff;">${pathData.actions} / 3</span><br>`;
-                    paramsBlock += `• Статус: <b>Добегает (${actionText})</b></div>`;
+                    paramsBlock += `• Всего действий: <span style="font-weight:bold;color:#fff;">${pathData.actions} / 3</span><br>`;
+                    paramsBlock += `• Статус: <b>Маршрут доступен за 1 ход</b></div>`;
                 } else {
-                    paramsBlock += `• Потребуется действий: <span style="font-weight:bold;color:#ff7675;">${pathData.actions} / 3</span><br>`
-                    paramsBlock += `• Статус: <span style="color:#ff7675;font-weight:bold;">❌ Слишком далеко за 1 ход</span></div>`;
+                    paramsBlock += `• Всего действий: <span style="font-weight:bold;color:#ff7675;">${pathData.actions} / 3</span><br>`;
+                    paramsBlock += `• Статус: <span style="color:#ff7675;font-weight:bold;">❌ Превышает лимит (3 действия)</span></div>`;
                 }
             } else {
-                paramsBlock += `<div style="border-top:1px dashed #ff7675;padding-top:6px;margin-top:6px;color:#ff7675;">❌ <b>Путь заблокирован стенами</b></div>`;
+                paramsBlock += `<div style="border-top:1px dashed #ff7675;padding-top:6px;margin-top:6px;color:#ff7675;">❌ <b>Путь заблокирован преградами</b></div>`;
             }
         }
 
@@ -413,8 +390,6 @@ function bindTacticalTooltip(square, squareId) {
         if (focusedEntityId) clearVisualPath();
     });
 }
-
-
 
 const campModal = document.getElementById('campMenu');
 
@@ -987,25 +962,27 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
     const start = parseCoords(startId);
     const target = parseCoords(targetId);
 
-    // Очередь для поиска (Дейкстра)
     const queue = [];
     const distances = {};
     const parents = {};
+    const jumpFlags = {};
 
     const startKey = `${start.r}_${start.c}`;
-    distances[startKey] = 0;
-    queue.push({ r: start.r, c: start.c, dist: 0 });
+    distances[startKey] = { feet: 0, actions: 0, currentActionSpentFeet: 0, cameByJump: false };
+    queue.push({ r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false });
 
     while (queue.length > 0) {
-        queue.sort((a, b) => a.dist - b.dist);
+        queue.sort((a, b) => {
+            if (a.actions !== b.actions) return a.actions - b.actions;
+            return a.feet - b.feet;
+        });
+
         const curr = queue.shift();
         const currKey = `${curr.r}_${curr.c}`;
+        const currState = distances[currKey];
 
-        if (curr.r === target.r && curr.c === target.c) {
-            break;
-        }
-
-        if (curr.dist > distances[currKey]) continue;
+        if (curr.r === target.r && curr.c === target.c) break;
+        if (curr.actions > currState.actions || (curr.actions === currState.actions && curr.feet > currState.feet)) continue;
 
         const neighbors = [
             { r: curr.r - 1, c: curr.c },
@@ -1023,17 +1000,85 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
 
             if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'destructible')) continue;
 
-            let stepCost = 5;
-            if (nData && (nData.obstacle === 'bushes' || nData.obstacle === 'forest' || nData.obstacle === 'water')) {
-                stepCost = 10;
+            let stepCost = (nData && ['bushes', 'forest', 'water'].includes(nData.obstacle)) ? 10 : 5;
+
+            let nextActions = currState.actions;
+            let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
+
+            if (currState.currentActionSpentFeet === 0 || nextSpentFeet > speedLimit) {
+                nextActions += 1;
+                nextSpentFeet = stepCost;
+                if (stepCost > speedLimit) continue;
             }
 
-            const newDist = curr.dist + stepCost;
+            let nextTotalFeet = currState.feet + stepCost;
+            const nextState = { feet: nextTotalFeet, actions: nextActions, currentActionSpentFeet: nextSpentFeet, cameByJump: false };
 
-            if (distances[nKey] === undefined || newDist < distances[nKey]) {
-                distances[nKey] = newDist;
-                parents[nKey] = currKey;
-                queue.push({ r: n.r, c: n.c, dist: newDist });
+            if (distances[nKey] === undefined ||
+                nextState.actions < distances[nKey].actions ||
+                (nextState.actions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
+
+                distances[nKey] = nextState;
+                parents[nKey] = { parentKey: currKey, isJump: false };
+                queue.push({ r: n.r, c: n.c, actions: nextActions, feet: nextTotalFeet, cameByJump: false });
+            }
+        }
+
+        if (curr.cameByJump) continue;
+
+        let obstacleNearby = false;
+        const checkDirections = [
+            { r: curr.r, c: curr.c }, // Текущая клетка
+            { r: curr.r - 1, c: curr.c }, { r: curr.r + 1, c: curr.c },
+            { r: curr.r, c: curr.c - 1 }, { r: curr.r, c: curr.c + 1 }
+        ];
+
+        for (let cd of checkDirections) {
+            if (cd.r >= 0 && cd.r < campParams.rows && cd.c >= 0 && cd.c < campParams.cols) {
+                const checkId = `square_${cd.r}_${cd.c}`;
+                const checkData = campMapData[checkId];
+                if (checkData && checkData.obstacle && checkData.obstacle !== '') {
+                    obstacleNearby = true;
+                    break;
+                }
+            }
+        }
+
+        if (!obstacleNearby) continue;
+
+        const jumpCellsCount = (speedLimit >= 30) ? 3 : 2;
+        const jumpFeetDist = jumpCellsCount * 5;
+
+        const jumpTargets = [
+            { r: curr.r - jumpCellsCount, c: curr.c },
+            { r: curr.r + jumpCellsCount, c: curr.c },
+            { r: curr.r, c: curr.c - jumpCellsCount },
+            { r: curr.r, c: curr.c + jumpCellsCount }
+        ];
+
+        for (let jt of jumpTargets) {
+            if (jt.r < 0 || jt.r >= campParams.rows || jt.c < 0 || jt.c >= campParams.cols) continue;
+
+            const targetCellId = `square_${jt.r}_${jt.c}`;
+            const targetCellKey = `${jt.r}_${jt.c}`;
+            const targetData = campMapData[targetCellId];
+
+            if (targetData && (targetData.obstacle === 'wall' || targetData.obstacle === 'destructible')) continue;
+            if (!checkLineOfSight(curr.r, curr.c, jt.r, jt.c)) continue;
+
+            let nextActions = currState.actions + 1;
+            let nextSpentFeet = 0;
+            let nextTotalFeet = currState.feet + jumpFeetDist;
+
+            const nextState = { feet: nextTotalFeet, actions: nextActions, currentActionSpentFeet: nextSpentFeet, cameByJump: true };
+
+            if (distances[targetCellKey] === undefined ||
+                nextState.actions < distances[targetCellKey].actions ||
+                (nextState.actions === distances[targetCellKey].actions && nextState.feet < distances[targetCellKey].feet)) {
+
+                distances[targetCellKey] = nextState;
+                parents[targetCellKey] = { parentKey: currKey, isJump: true };
+                queue.push({ r: jt.r, c: jt.c, actions: nextActions, feet: nextTotalFeet, cameByJump: true });
             }
         }
     }
@@ -1042,28 +1087,37 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
     if (distances[targetKey] === undefined) return null;
 
     const pathCells = [];
-    let currKey = targetKey;
-    while (currKey) {
-        pathCells.push(currKey);
-        currKey = parents[currKey];
+    let currNode = parents[targetKey];
+    let currentKey = targetKey;
+
+    pathCells.push(targetKey);
+
+    while (currNode) {
+        if (currNode.isJump) {
+            jumpFlags[currentKey] = true;
+        }
+        currentKey = currNode.parentKey;
+        pathCells.push(currentKey);
+        currNode = parents[currentKey];
     }
     pathCells.reverse();
 
-    const totalFt = distances[targetKey];
-    const movesNeeded = Math.ceil(totalFt / speedLimit);
-
     return {
         cells: pathCells,
-        totalFeet: totalFt,
-        actions: movesNeeded
+        jumpFlags: jumpFlags,
+        totalFeet: distances[targetKey].feet,
+        actions: distances[targetKey].actions
     };
 }
 
 function clearVisualPath() {
     document.querySelectorAll('.tactical-square').forEach(cell => {
-        cell.classList.remove('path-cell');
+        cell.classList.remove('path-cell', 'path-cell-jump'); // ДОБАВЛЕН КЛАСС path-cell-jump ДЛЯ ОЧИСТКИ
         const costLabel = cell.querySelector('.square-path-cost');
-        if (costLabel) costLabel.textContent = '';
+        if (costLabel) {
+            costLabel.textContent = '';
+            costLabel.style.color = '';
+        }
     });
 }
 
@@ -1085,7 +1139,7 @@ function handleTacticalSquareClick(squareId) {
         } else {
             if (focusedEntityId) {
                 const oldFocused = document.getElementById('visual_' + focusedEntityId);
-                oldFocused.classList.remove('focused-entity');
+                if (oldFocused) oldFocused.classList.remove('focused-entity');
             }
             focusedEntityId = squareId;
             squareElement.classList.add('focused-entity');
@@ -1095,4 +1149,3 @@ function handleTacticalSquareClick(squareId) {
         openTacticalMenu(squareId);
     }
 }
-
