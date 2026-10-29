@@ -1179,7 +1179,7 @@ function initFrameStyleControls() {
 
     const styles = [
         { id: 'norunes', icon: '🔲', title: 'Без рун' },
-        { id: 'runes', icon: 'ᚠ', title: 'С рунами' },
+        { id: 'runes', icon: 'ᚱ', title: 'С рунами' },
         { id: 'ornament', icon: '⚜️', title: 'Орнамент' }
     ];
 
