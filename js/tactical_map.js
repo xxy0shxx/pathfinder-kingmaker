@@ -84,9 +84,7 @@ function switchMapMode(mode) {
         if (hexLayer) hexLayer.style.display = 'none';
         if (gridLayer) {
             gridLayer.style.display = 'grid';
-//            if (gridLayer.children.length === 0) {
-                buildTacticalGrid();
-//            }
+            buildTacticalGrid();
         }
 
         const clickableMap = document.getElementById('clickableMap');
@@ -118,6 +116,7 @@ function buildTacticalGrid() {
     gridLayer.style.gridTemplateRows = `repeat(${campParams.rows}, ${campParams.squareSize}px)`;
 
 
+
     for (let r = 0; r < campParams.rows; r++) {
         for (let c = 0; c < campParams.cols; c++) {
             const squareId = `square_${r}_${c}`;
@@ -142,6 +141,10 @@ function buildTacticalGrid() {
             monsterLabel.setAttribute('draggable', 'true');
             square.appendChild(monsterLabel);
 
+            const obstacleLabel = document.createElement('span');
+            obstacleLabel.className = 'square-obstacle-label';
+            square.appendChild(obstacleLabel);
+
             if (!campMapData[squareId] || (!campMapData[squareId].explored && !campMapData[squareId].hasVisited)) {
                 square.classList.add('fog-active');
             }
@@ -165,7 +168,6 @@ function buildTacticalGrid() {
             });
 
             bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel);
-
             bindTacticalTooltip(square, squareId);
             gridLayer.appendChild(square);
         }
@@ -196,13 +198,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-
 function saveTacticalSquare() {
     const id = currentHexId;
     if (!id) return;
 
     const heroHereVal = document.getElementById('inpCampHeroHere').checked;
-    const monsterHereVal = document.getElementById('inpCampMonsterHere').checked; // Получаем значение монстра
+    const monsterHereVal = document.getElementById('inpCampMonsterHere').checked;
+    const obstacleVal = document.getElementById('inpCampObstacle').value;
     const measurementVal = document.getElementById('inpCampMeasurement').value;
     const distanceVal = document.getElementById('inpCampDistance').value;
     const directionVal = document.getElementById('inpCampDirection').value;
@@ -233,7 +235,8 @@ function saveTacticalSquare() {
 
     campMapData[id] = {
         heroHere: heroHereVal,
-        monsterHere: monsterHereVal, // Сохраняем монстра в базу
+        monsterHere: monsterHereVal,
+        obstacle: obstacleVal,
         measurement: measurementVal,
         distance: distanceVal,
         direction: directionVal,
@@ -268,6 +271,9 @@ function deleteTacticalSquare() {
 
         const monster = squareElement.querySelector('.square-monster-label');
         if (monster) monster.textContent = '';
+
+        const obs = squareElement.querySelector('.square-obstacle-label');
+        if (obs) obs.textContent = '';
     }
 
     recalculateCampFogOfWar();
@@ -366,6 +372,7 @@ function initCampColorPresets() {
 function openTacticalMenu(squareId) {
     currentHexId = squareId;
 
+    const inpObstacle = document.getElementById('inpCampObstacle');
     const inpHeroHere = document.getElementById('inpCampHeroHere');
     const inpMonsterHere = document.getElementById('inpCampMonsterHere'); // Чекбокс монстра
     const inpMeasurement = document.getElementById('inpCampMeasurement');
@@ -380,11 +387,13 @@ function openTacticalMenu(squareId) {
         if (inpMeasurement) inpMeasurement.value = campMapData[squareId].measurement || '';
         if (inpDistance) inpDistance.value = campMapData[squareId].distance || '5';
         currentColor = campMapData[squareId].color || 'transparent';
+        if (inpObstacle) inpObstacle.value = campMapData[squareId].obstacle || '';
     } else {
         if (inpHeroHere) inpHeroHere.checked = false;
         if (inpMonsterHere) inpMonsterHere.checked = false;
         if (inpMeasurement) inpMeasurement.value = '';
         if (inpDistance) inpDistance.value = '5';
+        if (inpObstacle) inpObstacle.value = '';
     }
 
     if (inpColor) inpColor.value = currentColor;
@@ -448,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCampDelete) btnCampDelete.addEventListener('click', deleteTacticalSquare);
 });
 
+
 function recalculateCampFogOfWar() {
     const cellAuras = {};
 
@@ -461,6 +471,10 @@ function recalculateCampFogOfWar() {
             if (crown) crown.textContent = '';
             const monster = squareElement.querySelector('.square-monster-label');
             if (monster) monster.textContent = '';
+            const obstacle = squareElement.querySelector('.square-obstacle-label');
+            if (obstacle) obstacle.textContent = '';
+
+            squareElement.classList.remove('obstacle-wall', 'obstacle-destructible');
 
             const savedData = campMapData[squareId];
 
@@ -490,6 +504,16 @@ function recalculateCampFogOfWar() {
                     squareElement.style.boxShadow = '';
                 }
             }
+
+            if (savedData && savedData.obstacle) {
+                if (savedData.obstacle === 'wall') {
+                    squareElement.classList.add('obstacle-wall');
+                    if (obstacle) obstacle.textContent = '🧱';
+                } else if (savedData.obstacle === 'destructible') {
+                    squareElement.classList.add('obstacle-destructible');
+                    if (obstacle) obstacle.textContent = '📦';
+                }
+            }
         }
     }
 
@@ -504,6 +528,7 @@ function recalculateCampFogOfWar() {
             processEntityAura(id, data, cellAuras, true);
         }
     }
+
     for (let id in campMapData) {
         const data = campMapData[id];
         if (data && data.monsterHere) {
@@ -515,7 +540,6 @@ function recalculateCampFogOfWar() {
             if (isVisibleToPlayers) {
                 const monster = squareElement.querySelector('.square-monster-label');
                 if (monster) monster.textContent = '👿';
-
                 processEntityAura(id, data, cellAuras, false);
             }
         }
@@ -579,6 +603,10 @@ function processEntityAura(id, data, cellAuras, shouldRevealFog) {
                 }
 
                 if (inZone) {
+                    if (!checkLineOfSight(centerR, centerC, r, c)) {
+                        continue;
+                    }
+
                     const targetId = `square_${r}_${c}`;
                     const targetElement = document.getElementById('visual_' + targetId);
 
@@ -775,7 +803,6 @@ function bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel) {
                 return;
             }
 
-            // Переносим параметры на новое место жительства
             campMapData[squareId] = {
                 heroHere: entityType === 'hero',
                 monsterHere: entityType === 'monster',
@@ -809,4 +836,55 @@ function bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel) {
             console.error("Ошибка обработки Drag-and-Drop перемещения:", err);
         }
     });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const inpObstacle = document.getElementById('inpCampObstacle');
+    const inpHeroCheck = document.getElementById('inpCampHeroHere');
+    const inpMonsterCheck = document.getElementById('inpCampMonsterHere');
+
+    if (inpObstacle && inpHeroCheck && inpMonsterCheck) {
+        inpObstacle.addEventListener('change', () => {
+            if (inpObstacle.value !== '') {
+                inpHeroCheck.checked = false;
+                inpMonsterCheck.checked = false;
+            }
+        });
+    }
+});
+
+function checkLineOfSight(r1, c1, r2, c2) {
+    if (r1 === r2 && c1 === c2) return true;
+
+    let dr = Math.abs(r2 - r1);
+    let dc = Math.abs(c2 - c1);
+    let sr = (r1 < r2) ? 1 : -1;
+    let sc = (c1 < c2) ? 1 : -1;
+    let err = dc - dr;
+
+    let currR = r1;
+    let currC = c1;
+
+    while (true) {
+        if (currR === r2 && currC === c2) return true;
+
+        if (currR !== r1 || currC !== c1) {
+            const checkId = `square_${currR}_${currC}`;
+            const cellData = campMapData[checkId];
+
+            if (cellData && (cellData.obstacle === 'wall' || cellData.obstacle === 'destructible')) {
+                return false;
+            }
+        }
+
+        let e2 = 2 * err;
+        if (e2 > -dr) {
+            err -= dr;
+            currC += sc;
+        }
+        if (e2 < dc) {
+            err += dc;
+            currR += sr;
+        }
+    }
 }

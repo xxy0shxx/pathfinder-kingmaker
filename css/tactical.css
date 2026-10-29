@@ -149,3 +149,28 @@
     box-shadow: inset 0 0 12px #dfbc6f !important;
     background-color: rgba(223, 188, 111, 0.2) !important;
 }
+
+.square-obstacle-label {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 6 !important;
+    font-size: 20px !important;
+    pointer-events: none !important;
+    user-select: none !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
+}
+
+.tactical-square.obstacle-wall {
+    background-color: rgba(60, 60, 60, 0.85) !important;
+    border: 2px solid #555 !important;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8) !important;
+}
+
+.tactical-square.obstacle-destructible {
+    background-color: rgba(139, 69, 19, 0.45) !important;
+    border: 1px dashed #8b4513 !important;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.6) !important;
+}
+

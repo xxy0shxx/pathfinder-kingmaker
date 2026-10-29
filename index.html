@@ -241,6 +241,15 @@
     </div>
 
     <div class="box">
+        <label for="inpCampObstacle">Тип объекта / Препятствие</label>
+        <select id="inpCampObstacle">
+            <option value="">Нет (Пустая клетка)</option>
+            <option value="wall">🧱 Стена (Непробиваемая)</option>
+            <option value="destructible">📦 Разрушаемый объект (Бочка/Ящик)</option>
+        </select>
+    </div>
+
+    <div class="box">
         <label>Цвет заливки</label>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
             <input type="color" id="inpCampColor" value="#ff0000">
