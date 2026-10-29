@@ -115,3 +115,22 @@
     border-color: #823030 !important;
     color: #f7baba !important;
 }
+
+/* Метка-монстр по центру клетки лагеря */
+.square-monster-label {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 6 !important;
+    font-size: 20px !important; /* Крупный эмодзи */
+    pointer-events: none !important;
+    user-select: none !important;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9) !important;
+    animation: monsterBreathe 2.5s infinite ease-in-out; /* Чуть более быстрая зловещая пульсация */
+}
+
+@keyframes monsterBreathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.15); }
+}

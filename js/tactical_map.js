@@ -99,7 +99,6 @@ function switchMapMode(mode) {
     }
 }
 
-
 function buildTacticalGrid() {
     const gridLayer = document.getElementById('tacticalGridLayer');
     if (!gridLayer) return;
@@ -118,6 +117,7 @@ function buildTacticalGrid() {
     gridLayer.style.gridTemplateColumns = `repeat(${campParams.cols}, ${campParams.squareSize}px)`;
     gridLayer.style.gridTemplateRows = `repeat(${campParams.rows}, ${campParams.squareSize}px)`;
 
+
     for (let r = 0; r < campParams.rows; r++) {
         for (let c = 0; c < campParams.cols; c++) {
             const squareId = `square_${r}_${c}`;
@@ -135,6 +135,10 @@ function buildTacticalGrid() {
             const crownLabel = document.createElement('span');
             crownLabel.className = 'square-crown-label';
             square.appendChild(crownLabel);
+
+            const monsterLabel = document.createElement('span');
+            monsterLabel.className = 'square-monster-label';
+            square.appendChild(monsterLabel);
 
             if (!campMapData[squareId] || (!campMapData[squareId].explored && !campMapData[squareId].hasVisited)) {
                 square.classList.add('fog-active');
@@ -162,6 +166,7 @@ function buildTacticalGrid() {
             gridLayer.appendChild(square);
         }
     }
+
     recalculateCampFogOfWar();
 }
 document.addEventListener('DOMContentLoaded', () => {
@@ -187,15 +192,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
 function saveTacticalSquare() {
     const id = currentHexId;
     if (!id) return;
 
     const heroHereVal = document.getElementById('inpCampHeroHere').checked;
+    const monsterHereVal = document.getElementById('inpCampMonsterHere').checked; // Получаем значение монстра
     const measurementVal = document.getElementById('inpCampMeasurement').value;
     const distanceVal = document.getElementById('inpCampDistance').value;
-    const colorVal = document.getElementById('inpCampColor').value || 'transparent';
     const directionVal = document.getElementById('inpCampDirection').value;
+    const colorVal = document.getElementById('inpCampColor').value || 'transparent';
 
     const squareElement = document.getElementById('visual_' + id);
 
@@ -211,6 +218,8 @@ function saveTacticalSquare() {
             squareElement.classList.remove('squad-dark');
         }
 
+        squareElement.classList.remove('monster-dark');
+
         if (colorVal !== 'transparent') {
             squareElement.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
         } else {
@@ -220,6 +229,7 @@ function saveTacticalSquare() {
 
     campMapData[id] = {
         heroHere: heroHereVal,
+        monsterHere: monsterHereVal, // Сохраняем монстра в базу
         measurement: measurementVal,
         distance: distanceVal,
         direction: directionVal,
@@ -251,6 +261,9 @@ function deleteTacticalSquare() {
 
         const crown = squareElement.querySelector('.square-crown-label');
         if (crown) crown.textContent = '';
+
+        const monster = squareElement.querySelector('.square-monster-label');
+        if (monster) monster.textContent = '';
     }
 
     recalculateCampFogOfWar();
@@ -262,58 +275,39 @@ function bindTacticalTooltip(square, squareId) {
     if (!tooltip) return;
 
     square.addEventListener('mouseenter', () => {
-        if (campMapData[squareId] && (campMapData[squareId].heroHere || campMapData[squareId].measurement || campMapData[squareId].color)) {
+        const squareElement = document.getElementById('visual_' + squareId);
+        const isFoggy = squareElement ? squareElement.classList.contains('fog-active') : false;
+
+        if (campMapData[squareId]) {
             const data = campMapData[squareId];
 
-            let content = `<div class="tooltip-title">🔳 Клетка ${squareId.replace('square_', '[')}]</div>`;
+            if (data.monsterHere && isFoggy) return;
 
+            let content = `<div class="tooltip-title">⛺ Клетка [${squareId.replace('square_', '')}]</div>`;
             let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.4;">';
 
             if (data.heroHere) {
-                paramsBlock += `<div style="margin-bottom: 6px; color: #ff7675;">👑 <b>Герой в клетке</b></div>`;
+                paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
+            }
+
+            if (data.monsterHere) {
+                paramsBlock += `<div style="margin-bottom: 6px; color: #ff7675;">👿 <b>Монстр обнаружен!</b></div>`;
             }
 
             if (data.measurement) {
-                let typeText = '';
-                let typeIcon = '';
-
-                if (data.measurement === 'radius') {
-                    typeText = 'Радиус';
-                    typeIcon = '⭕';
-                } else if (data.measurement === 'diameter') {
-                    typeText = 'Диаметр';
-                    typeIcon = '↔️';
-                } else if (data.measurement === 'cone') {
-                    typeText = 'Конус';
-                    typeIcon = '📐';
-                }
-
+                let typeText = data.measurement === 'radius' ? 'Радиус' : (data.measurement === 'diameter' ? 'Диаметр' : 'Конус');
+                let typeIcon = data.measurement === 'radius' ? '⭕' : (data.measurement === 'diameter' ? '↔️' : '📐');
                 const ft = data.distance || '5';
-                paramsBlock += `<div style="margin-bottom: 4px;">${typeIcon} <b>Зона действия:</b> ${typeText} (${ft} фт.)</div>`;
+
+                paramsBlock += `<div style="margin-bottom: 4px;">${typeIcon} <b>Зона:</b> ${typeText} (${ft} фт.)</div>`;
 
                 if (data.measurement === 'cone' && data.direction) {
-                    let dirText = '';
-                    switch (data.direction) {
-                        case 'N':  dirText = '⬆️ Север'; break;
-                        case 'NE': dirText = '↗️ Северо-Восток'; break;
-                        case 'E':  dirText = '➡️ Восток'; break;
-                        case 'SE': dirText = '↘️ Юго-Восток'; break;
-                        case 'S':  dirText = '⬇️ Юг'; break;
-                        case 'SW': dirText = '↙️ Юго-Запад'; break;
-                        case 'W':  dirText = '⬅️ Запад'; break;
-                        case 'NW': dirText = '↖️ Северо-Запад'; break;
-                        default:   dirText = data.direction;
-                    }
+                    let dirText = { 'N': '⬆️ Север', 'NE': '↗️ Северо-Восток', 'E': '➡️ Восток', 'SE': '↘️ Юго-Восток', 'S': '⬇️ Юг', 'SW': '↙️ Юго-Запад', 'W': '⬅️ Запад', 'NW': '↖️ Северо-Запад' }[data.direction] || data.direction;
                     paramsBlock += `<div style="margin-bottom: 4px; padding-left: 24px; color: #dfbc6f;">🧭 <b>Направление:</b> ${dirText}</div>`;
                 }
             }
 
-            if (data.lastSaved) {
-                paramsBlock += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ Изменено: ${data.lastSaved}</div>`;
-            }
-
             paramsBlock += '</div>';
-
             tooltip.innerHTML = content + paramsBlock;
             tooltip.style.display = 'block';
         }
@@ -369,6 +363,7 @@ function openTacticalMenu(squareId) {
     currentHexId = squareId;
 
     const inpHeroHere = document.getElementById('inpCampHeroHere');
+    const inpMonsterHere = document.getElementById('inpCampMonsterHere'); // Чекбокс монстра
     const inpMeasurement = document.getElementById('inpCampMeasurement');
     const inpDistance = document.getElementById('inpCampDistance');
     const inpColor = document.getElementById('inpCampColor');
@@ -377,11 +372,13 @@ function openTacticalMenu(squareId) {
 
     if (campMapData[squareId]) {
         if (inpHeroHere) inpHeroHere.checked = !!campMapData[squareId].heroHere;
+        if (inpMonsterHere) inpMonsterHere.checked = !!campMapData[squareId].monsterHere; // Считываем монстра
         if (inpMeasurement) inpMeasurement.value = campMapData[squareId].measurement || '';
         if (inpDistance) inpDistance.value = campMapData[squareId].distance || '5';
         currentColor = campMapData[squareId].color || 'transparent';
     } else {
         if (inpHeroHere) inpHeroHere.checked = false;
+        if (inpMonsterHere) inpMonsterHere.checked = false;
         if (inpMeasurement) inpMeasurement.value = '';
         if (inpDistance) inpDistance.value = '5';
     }
@@ -458,6 +455,8 @@ function recalculateCampFogOfWar() {
 
             const crown = squareElement.querySelector('.square-crown-label');
             if (crown) crown.textContent = '';
+            const monster = squareElement.querySelector('.square-monster-label');
+            if (monster) monster.textContent = '';
 
             const savedData = campMapData[squareId];
 
@@ -471,7 +470,6 @@ function recalculateCampFogOfWar() {
                     squareElement.style.backgroundColor = '';
                 }
             } else {
-                // Если туман включен — работает стандартная логика скрытия
                 if (savedData && savedData.explored) {
                     squareElement.classList.remove('fog-active');
                     squareElement.style.backgroundImage = '';
@@ -497,53 +495,24 @@ function recalculateCampFogOfWar() {
             const squareElement = document.getElementById('visual_' + id);
             if (squareElement) {
                 const crown = squareElement.querySelector('.square-crown-label');
-                if (crown) crown.textContent = '👑'; // Рисуем корону герою
+                if (crown) crown.textContent = '👑';
             }
+            processEntityAura(id, data, cellAuras, true);
+        }
+    }
+    for (let id in campMapData) {
+        const data = campMapData[id];
+        if (data && data.monsterHere) {
+            const squareElement = document.getElementById('visual_' + id);
+            if (!squareElement) continue;
 
-            if (data.measurement && data.distance) {
-                const parts = id.split('_');
-                const centerR = parseInt(parts[1]);
-                const centerC = parseInt(parts[2]);
+            const isVisibleToPlayers = !squareElement.classList.contains('fog-active');
 
-                const ftDistance = parseInt(data.distance) || 5;
-                let cellRadius = Math.round(ftDistance / 5);
+            if (isVisibleToPlayers) {
+                const monster = squareElement.querySelector('.square-monster-label');
+                if (monster) monster.textContent = '👿';
 
-                if (data.measurement === 'diameter') {
-                    cellRadius = Math.round((ftDistance / 2) / 5);
-                }
-
-                if (cellRadius <= 0) continue;
-
-                for (let r = centerR - cellRadius; r <= centerR + cellRadius; r++) {
-                    for (let c = centerC - cellRadius; c <= centerC + cellRadius; c++) {
-                        if (r >= 0 && r < campParams.rows && c >= 0 && c < campParams.cols) {
-
-                            let inZone = false;
-
-                            if (data.measurement === 'cone') {
-                                inZone = isCellInCone(centerR, centerC, r, c, cellRadius, data.direction || 'N');
-                            } else {
-                                const distR = r - centerR;
-                                const distC = c - centerC;
-                                inZone = Math.sqrt(distR * distR + distC * distC) <= cellRadius + 0.5;
-                            }
-
-                            if (inZone) {
-                                const targetId = `square_${r}_${c}`;
-
-                                if (!cellAuras[targetId]) {
-                                    cellAuras[targetId] = [];
-                                }
-
-                                if (data.color && data.color !== 'transparent') {
-                                    cellAuras[targetId].push(data.color);
-                                } else {
-                                    cellAuras[targetId].push('rgba(255, 255, 255, 0.08)');
-                                }
-                            }
-                        }
-                    }
-                }
+                processEntityAura(id, data, cellAuras, false);
             }
         }
     }
@@ -551,10 +520,6 @@ function recalculateCampFogOfWar() {
     for (let targetId in cellAuras) {
         const targetElement = document.getElementById('visual_' + targetId);
         if (!targetElement) continue;
-
-        if (isCampFogEnabled) {
-            targetElement.classList.remove('fog-active');
-        }
 
         const targetSavedData = campMapData[targetId];
         const hasOwnColor = targetSavedData && targetSavedData.color && targetSavedData.color !== 'transparent';
@@ -577,6 +542,58 @@ function recalculateCampFogOfWar() {
 
                 targetElement.style.backgroundImage = gradientLayers;
                 targetElement.style.boxShadow = 'inset 0 0 8px rgba(255, 255, 255, 0.35)';
+            }
+        }
+    }
+}
+
+function processEntityAura(id, data, cellAuras, shouldRevealFog) {
+    if (!data.measurement || !data.distance) return;
+
+    const parts = id.split('_');
+    const centerR = parseInt(parts[1]);
+    const centerC = parseInt(parts[2]);
+
+    const ftDistance = parseInt(data.distance) || 5;
+    let cellRadius = data.measurement === 'radius' ? Math.round(ftDistance / 5) : Math.round((ftDistance / 2) / 5);
+    if (data.measurement === 'cone') cellRadius = Math.round(ftDistance / 5);
+
+    if (cellRadius <= 0) return;
+
+    for (let r = centerR - cellRadius; r <= centerR + cellRadius; r++) {
+        for (let c = centerC - cellRadius; c <= centerC + cellRadius; c++) {
+            if (r >= 0 && r < campParams.rows && c >= 0 && c < campParams.cols) {
+
+                let inZone = false;
+
+                if (data.measurement === 'cone') {
+                    inZone = isCellInCone(centerR, centerC, r, c, cellRadius, data.direction || 'N');
+                } else {
+                    const distR = r - centerR;
+                    const distC = c - centerC;
+                    inZone = Math.sqrt(distR * distR + distC * distC) <= cellRadius + 0.5;
+                }
+
+                if (inZone) {
+                    const targetId = `square_${r}_${c}`;
+                    const targetElement = document.getElementById('visual_' + targetId);
+
+                    if (targetElement) {
+                        if (shouldRevealFog) {
+                            targetElement.classList.remove('fog-active');
+                        }
+
+                        if (!cellAuras[targetId]) {
+                            cellAuras[targetId] = [];
+                        }
+
+                        if (data.color && data.color !== 'transparent') {
+                            cellAuras[targetId].push(data.color);
+                        } else {
+                            cellAuras[targetId].push('rgba(255, 255, 255, 0.08)');
+                        }
+                    }
+                }
             }
         }
     }
@@ -643,6 +660,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentMapMode === 'camp') {
                 recalculateCampFogOfWar();
             }
+        });
+    }
+
+    const inpHero = document.getElementById('inpCampHeroHere');
+    const inpMonster = document.getElementById('inpCampMonsterHere');
+
+    if (inpHero && inpMonster) {
+        inpHero.addEventListener('change', () => {
+            if (inpHero.checked) inpMonster.checked = false;
+        });
+        inpMonster.addEventListener('change', () => {
+            if (inpMonster.checked) inpHero.checked = false;
         });
     }
 });
