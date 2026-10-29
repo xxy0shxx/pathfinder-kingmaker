@@ -675,3 +675,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnExport = document.getElementById('btnExport');
+    const fileInput = document.getElementById('fileInput');
+
+    if (btnExport) {
+        btnExport.addEventListener('click', (e) => {
+            if (currentMapMode === 'camp') {
+                e.stopImmediatePropagation();
+
+                const jsonString = JSON.stringify(campMapData, null, 4);
+                const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+                const dataStr = URL.createObjectURL(blob);
+
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "camp_data.json");
+                document.body.appendChild(downloadAnchor);
+
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                URL.revokeObjectURL(dataStr);
+            }
+        }, { capture: true });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (currentMapMode === 'camp') {
+                e.stopImmediatePropagation();
+
+                const files = e.target.files;
+                if (!files || files.length === 0) return;
+
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        campMapData = JSON.parse(evt.target.result);
+                        localStorage.setItem('campMapSystemData', JSON.stringify(campMapData));
+
+                        buildTacticalGrid();
+                        alert('Данные тактической карты лагеря успешно импортированы!');
+                    } catch (err) {
+                        alert('Ошибка при чтении JSON файла лагеря.');
+                    }
+                    fileInput.value = '';
+                };
+                reader.readAsText(files[0]);
+            }
+        }, { capture: true });
+    }
+});
