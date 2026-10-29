@@ -118,32 +118,35 @@ function buildTacticalGrid() {
             const square = document.createElement('div');
             square.className = 'tactical-square';
             square.setAttribute('id', `visual_${squareId}`);
-
             square.style.width = campParams.squareSize + 'px';
             square.style.height = campParams.squareSize + 'px';
+
+            const starLabel = document.createElement('span');
+            starLabel.className = 'square-star-label';
+            square.appendChild(starLabel);
 
             if (!campMapData[squareId] || (!campMapData[squareId].explored && !campMapData[squareId].hasVisited)) {
                 square.classList.add('fog-active');
             }
 
-            if (campMapData[squareId] && campMapData[squareId].color && campMapData[squareId].color !== 'transparent') {
-                square.style.backgroundColor = convertHexToRgba(campMapData[squareId].color, 0.37);
+            if (campMapData[squareId]) {
+                starLabel.textContent = '★';
+                if (campMapData[squareId].color && campMapData[squareId].color !== 'transparent') {
+                    square.style.backgroundColor = convertHexToRgba(campMapData[squareId].color, 0.37);
+                }
+                if (campMapData[squareId].heroHere) {
+                    square.classList.add('squad-dark');
+                }
             }
 
             square.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 if (hasMoved) return;
-
-                if (modal.classList.contains('open')) {
-                    closeMenu();
-                } else {
-                    openTacticalMenu(squareId);
-                }
+                if (modal.classList.contains('open')) closeMenu();
+                else openTacticalMenu(squareId);
             });
 
             bindTacticalTooltip(square, squareId);
-
             gridLayer.appendChild(square);
         }
     }
@@ -175,7 +178,6 @@ function saveTacticalSquare() {
     const id = currentHexId;
     if (!id) return;
 
-    const titleVal = document.getElementById('inpCampTitle').value;
     const heroHereVal = document.getElementById('inpCampHeroHere').checked;
     const measurementVal = document.getElementById('inpCampMeasurement').value;
     const distanceVal = document.getElementById('inpCampDistance').value;
@@ -184,6 +186,11 @@ function saveTacticalSquare() {
     const squareElement = document.getElementById('visual_' + id);
 
     if (squareElement) {
+        squareElement.classList.remove('fog-active');
+
+        const star = squareElement.querySelector('.square-star-label');
+        if (star) star.textContent = '★';
+
         if (heroHereVal) {
             squareElement.classList.add('squad-dark');
         } else {
@@ -198,7 +205,6 @@ function saveTacticalSquare() {
     }
 
     campMapData[id] = {
-        title: titleVal,
         heroHere: heroHereVal,
         measurement: measurementVal,
         distance: distanceVal,
@@ -209,8 +215,6 @@ function saveTacticalSquare() {
     };
 
     localStorage.setItem('campMapSystemData', JSON.stringify(campMapData));
-
-    // Пересчитываем динамический туман войны вокруг всех героев
     recalculateCampFogOfWar();
     closeCampMenu();
 }
@@ -226,6 +230,9 @@ function deleteTacticalSquare() {
     if (squareElement) {
         squareElement.classList.remove('squad-dark');
         squareElement.style.backgroundColor = '';
+
+        const star = squareElement.querySelector('.square-star-label');
+        if (star) star.textContent = '';
     }
 
     recalculateCampFogOfWar();
@@ -310,7 +317,6 @@ function initCampColorPresets() {
 function openTacticalMenu(squareId) {
     currentHexId = squareId;
 
-    const inpTitle = document.getElementById('inpCampTitle');
     const inpHeroHere = document.getElementById('inpCampHeroHere');
     const inpMeasurement = document.getElementById('inpCampMeasurement');
     const inpDistance = document.getElementById('inpCampDistance');
@@ -319,13 +325,11 @@ function openTacticalMenu(squareId) {
     let currentColor = 'transparent';
 
     if (campMapData[squareId]) {
-        inpTitle.value = campMapData[squareId].title || '';
         if (inpHeroHere) inpHeroHere.checked = !!campMapData[squareId].heroHere;
         if (inpMeasurement) inpMeasurement.value = campMapData[squareId].measurement || '';
         if (inpDistance) inpDistance.value = campMapData[squareId].distance || '5';
         currentColor = campMapData[squareId].color || 'transparent';
     } else {
-        inpTitle.value = '';
         if (inpHeroHere) inpHeroHere.checked = false;
         if (inpMeasurement) inpMeasurement.value = '';
         if (inpDistance) inpDistance.value = '5';
