@@ -470,7 +470,7 @@ function openTacticalMenu(squareId) {
 
     const inpObstacle = document.getElementById('inpCampObstacle');
     const inpHeroHere = document.getElementById('inpCampHeroHere');
-    const inpMonsterHere = document.getElementById('inpCampMonsterHere'); // Чекбокс монстра
+    const inpMonsterHere = document.getElementById('inpCampMonsterHere');
     const inpMeasurement = document.getElementById('inpCampMeasurement');
     const inpDistance = document.getElementById('inpCampDistance');
     const inpColor = document.getElementById('inpCampColor');
@@ -479,12 +479,13 @@ function openTacticalMenu(squareId) {
 
     if (campMapData[squareId]) {
         if (inpHeroHere) inpHeroHere.checked = !!campMapData[squareId].heroHere;
-        if (inpMonsterHere) inpMonsterHere.checked = !!campMapData[squareId].monsterHere; // Считываем монстра
+        if (inpMonsterHere) inpMonsterHere.checked = !!campMapData[squareId].monsterHere;
         if (inpMeasurement) inpMeasurement.value = campMapData[squareId].measurement || '';
         if (inpDistance) inpDistance.value = campMapData[squareId].distance || '5';
         currentColor = campMapData[squareId].color || 'transparent';
         if (inpObstacle) inpObstacle.value = campMapData[squareId].obstacle || '';
         document.getElementById('inpCampSpeed').value = campMapData[squareId].speed || '30';
+        document.getElementById('inpCampDistance').value = campMapData[squareId].distance || '30';
     } else {
         if (inpHeroHere) inpHeroHere.checked = false;
         if (inpMonsterHere) inpMonsterHere.checked = false;
@@ -492,6 +493,7 @@ function openTacticalMenu(squareId) {
         if (inpDistance) inpDistance.value = '5';
         if (inpObstacle) inpObstacle.value = '';
         document.getElementById('inpCampSpeed').value = '30';
+        document.getElementById('inpCampDistance').value = '30';
     }
 
     if (inpColor) inpColor.value = currentColor;
