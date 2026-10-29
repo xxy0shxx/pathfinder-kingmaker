@@ -150,7 +150,7 @@ function buildTacticalGrid() {
 }
 
 function openTacticalMenu(squareId) {
-    currentHexId = squareId; // Используем глобальную переменную как указатель текущего ID ячейки
+    currentHexId = squareId;
 
     const inpExplored = document.getElementById('inpExplored');
     const inpMapMapped = document.getElementById('inpMapMapped');
@@ -222,28 +222,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function saveTacticalSquare() {
     const id = currentHexId;
-    const titleVal = document.getElementById('inpTitle').value;
-    const descVal = document.getElementById('inpDesc').value;
-    const colorVal = document.getElementById('inpColor').value || 'transparent';
-    const diffVal = difficultySelect ? difficultySelect.value : '';
-    const exploredVal = document.getElementById('inpExplored').checked;
-    const mapMappedVal = document.getElementById('inpMapMapped').checked;
-    const squadHereVal = document.getElementById('inpSquadHere').checked;
-    const typeVal = document.getElementById('inpType').value;
-    const terrainVal = document.getElementById('inpTerrain').value;
-    const regionLevelVal = document.getElementById('inpRegionLevel').value;
+    if (!id) return;
+
+    const titleVal = document.getElementById('inpCampTitle').value;
+    const heroHereVal = document.getElementById('inpCampHeroHere').checked;
+    const measurementVal = document.getElementById('inpCampMeasurement').value;
+    const colorVal = document.getElementById('inpCampColor').value || 'transparent';
 
     const squareElement = document.getElementById('visual_' + id);
 
     if (squareElement) {
-        if (exploredVal) {
-            squareElement.classList.remove('fog-active');
-        } else {
-            squareElement.classList.add('fog-active');
-        }
+        squareElement.classList.remove('fog-active');
 
-        // Подсветка отряда
-        if (squadHereVal) {
+        if (heroHereVal) {
             squareElement.classList.add('squad-dark');
         } else {
             squareElement.classList.remove('squad-dark');
@@ -258,35 +249,33 @@ function saveTacticalSquare() {
 
     campMapData[id] = {
         title: titleVal,
-        text: descVal,
+        heroHere: heroHereVal,
+        measurement: measurementVal,
         color: colorVal,
-        difficulty: diffVal,
-        explored: exploredVal,
-        mapMapped: mapMappedVal,
-        squadHere: squadHereVal,
-        type: typeVal,
-        terrain: terrainVal,
-        regionLevel: regionLevelVal,
-        hasVisited: squadHereVal || (campMapData[id] && campMapData[id].hasVisited),
+        explored: true, // Клетка становится видимой
+        hasVisited: heroHereVal || (campMapData[id] && campMapData[id].hasVisited),
         lastSaved: new Date().toLocaleString()
     };
 
     localStorage.setItem('campMapSystemData', JSON.stringify(campMapData));
-    closeMenu();
+    closeCampMenu();
 }
+
 
 function deleteTacticalSquare() {
     const id = currentHexId;
+    if (!id) return;
+
     delete campMapData[id];
     localStorage.setItem('campMapSystemData', JSON.stringify(campMapData));
 
     const squareElement = document.getElementById('visual_' + id);
     if (squareElement) {
-        squareElement.classList.add('fog-active');
+        squareElement.classList.add('fog-active'); // Возвращаем туман войны
         squareElement.classList.remove('squad-dark');
         squareElement.style.backgroundColor = '';
     }
-    closeMenu();
+    closeCampMenu();
 }
 
 function bindTacticalTooltip(square, squareId) {
@@ -294,14 +283,26 @@ function bindTacticalTooltip(square, squareId) {
     if (!tooltip) return;
 
     square.addEventListener('mouseenter', () => {
-        if (campMapData[squareId] && (campMapData[squareId].title || campMapData[squareId].text)) {
+        if (campMapData[squareId] && (campMapData[squareId].title || campMapData[squareId].heroHere || campMapData[squareId].measurement)) {
             const data = campMapData[squareId];
+
+            // Заголовок тултипа
             let content = `<div class="tooltip-title">⛺ ${data.title || 'Квадрат ' + squareId}</div>`;
 
-            let paramsBlock = '';
-            paramsBlock += `<div>${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не изучен</b>'}</div>`;
-            if (data.squadHere) paramsBlock += `<div style="color: #ff7675;">🚩 <b>Отряд здесь</b></div>`;
-            if (data.text) paramsBlock += `<div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
+            // Формируем блок параметров
+            let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">';
+
+            if (data.heroHere) {
+                paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">👑 <b>Герой в клетке</b></div>`;
+            }
+
+            if (data.measurement) {
+                const measureText = data.measurement === 'radius' ? 'Радиус' : 'Диаметр';
+                const measureIcon = data.measurement === 'radius' ? '⭕' : '↔️';
+                paramsBlock += `<div style="margin-bottom: 4px;">${measureIcon} <b>Зона действия:</b> ${measureText}</div>`;
+            }
+
+            paramsBlock += '</div>';
 
             tooltip.innerHTML = content + paramsBlock;
             tooltip.style.display = 'block';
@@ -318,3 +319,111 @@ function bindTacticalTooltip(square, squareId) {
         tooltip.innerHTML = '';
     });
 }
+
+const campModal = document.getElementById('campMenu');
+
+function initCampColorPresets() {
+    const container = document.getElementById('campColorPresetsContainer');
+    if (!container || container.children.length > 0) return;
+
+    const presets = [
+        { color: 'transparent', label: '✖' },
+        { color: '#2ecc71', label: '' },
+        { color: '#3498db', label: '' },
+        { color: '#e74c3c', label: '' },
+        { color: '#f1c40f', label: '' },
+        { color: '#9b59b6', label: '' },
+        { color: '#e67e22', label: '' }
+    ];
+
+    presets.forEach(p => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'color-preset-btn';
+        if (p.color === 'transparent') {
+            b.classList.add('transparent-preset');
+            b.textContent = p.label;
+        } else {
+            b.style.backgroundColor = p.color;
+        }
+        b.addEventListener('click', () => {
+            document.getElementById('inpCampColor').value = p.color;
+            container.querySelectorAll('.color-preset-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+        });
+        container.appendChild(b);
+    });
+}
+
+function openTacticalMenu(squareId) {
+    currentHexId = squareId;
+
+    const inpTitle = document.getElementById('inpCampTitle');
+    const inpHeroHere = document.getElementById('inpCampHeroHere');
+    const inpMeasurement = document.getElementById('inpCampMeasurement');
+    const inpColor = document.getElementById('inpCampColor');
+
+    let currentColor = 'transparent';
+
+    if (campMapData[squareId]) {
+        inpTitle.value = campMapData[squareId].title || '';
+        if (inpHeroHere) inpHeroHere.checked = !!campMapData[squareId].heroHere;
+        if (inpMeasurement) inpMeasurement.value = campMapData[squareId].measurement || '';
+        currentColor = campMapData[squareId].color || 'transparent';
+    } else {
+        inpTitle.value = '';
+        if (inpHeroHere) inpHeroHere.checked = false;
+        if (inpMeasurement) inpMeasurement.value = '';
+    }
+
+    if (inpColor) inpColor.value = currentColor;
+
+    const container = document.getElementById('campColorPresetsContainer');
+    if (container) {
+        container.querySelectorAll('.color-preset-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
+                btn.classList.add('active');
+            } else if (btn.style.backgroundColor === convertHexToRgbStandard(currentColor)) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    if ('ontouchstart' in window && inpTitle) {
+        inpTitle.setAttribute('readonly', 'true');
+        inpTitle.onclick = function() {
+            let newTitle = prompt("Введите название клетки ():", inpTitle.value);
+            if (newTitle !== null) inpTitle.value = newTitle;
+        };
+    }
+
+    if (campModal) campModal.classList.add('open');
+}
+
+function closeCampMenu() {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+    }
+    if (campModal) campModal.classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initCampColorPresets();
+
+    if (campModal) {
+        campModal.addEventListener('click', function(e) {
+            if (e.target === campModal) { closeCampMenu(); }
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnCampSave = document.getElementById('btnCampSave');
+    const btnCampCancel = document.getElementById('btnCampCancel');
+    const btnCampDelete = document.getElementById('btnCampDelete');
+
+    if (btnCampSave) btnCampSave.addEventListener('click', saveTacticalSquare);
+    if (btnCampCancel) btnCampCancel.addEventListener('click', closeCampMenu);
+    if (btnCampDelete) btnCampDelete.addEventListener('click', deleteTacticalSquare);
+});

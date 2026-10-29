@@ -190,6 +190,41 @@
     </div>
 </div>
 
+<div class="pop-menu" id="campMenu">
+    <div class="box">
+        <label for="inpCampTitle">Название клетки</label>
+        <input type="text" id="inpCampTitle" placeholder="Введите название...">
+    </div>
+
+    <div class="checkbox-row">
+        <label for="inpCampHeroHere">Герой здесь</label>
+        <input type="checkbox" id="inpCampHeroHere">
+    </div>
+
+    <div class="box">
+        <label for="inpCampMeasurement">Зона действия</label>
+        <select id="inpCampMeasurement">
+            <option value="">Не задано</option>
+            <option value="radius">Радиус</option>
+            <option value="diameter">Диаметр</option>
+        </select>
+    </div>
+
+    <div class="box">
+        <label>Цвет заливки</label>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+            <input type="color" id="inpCampColor" value="#ff0000">
+        </div>
+        <div id="campColorPresetsContainer" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+    </div>
+
+    <div class="buttons">
+        <button type="button" class="btn del" id="btnCampDelete">Удалить</button>
+        <button type="button" class="btn cc" id="btnCampCancel">Отмена</button>
+        <button type="button" class="btn ok" id="btnCampSave">Сохранить</button>
+    </div>
+</div>
+
 <script src="js/main.js"></script>
 <script src="js/tactical_map.js"></script>
 </body>
