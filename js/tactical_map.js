@@ -79,9 +79,9 @@ function switchMapMode(mode) {
         if (hexLayer) hexLayer.style.display = 'none';
         if (gridLayer) {
             gridLayer.style.display = 'grid';
-            if (gridLayer.children.length === 0) {
+//            if (gridLayer.children.length === 0) {
                 buildTacticalGrid();
-            }
+//            }
         }
 
         const clickableMap = document.getElementById('clickableMap');
@@ -92,6 +92,7 @@ function switchMapMode(mode) {
         updateMapTransform();
     }
 }
+
 
 function buildTacticalGrid() {
     const gridLayer = document.getElementById('tacticalGridLayer');
@@ -155,6 +156,7 @@ function buildTacticalGrid() {
             gridLayer.appendChild(square);
         }
     }
+    recalculateCampFogOfWar();
 }
 document.addEventListener('DOMContentLoaded', () => {
     const btnSave = document.getElementById('btnSave');
@@ -254,21 +256,54 @@ function bindTacticalTooltip(square, squareId) {
     if (!tooltip) return;
 
     square.addEventListener('mouseenter', () => {
-        if (campMapData[squareId] && (campMapData[squareId].title || campMapData[squareId].heroHere || campMapData[squareId].measurement)) {
+        if (campMapData[squareId] && (campMapData[squareId].heroHere || campMapData[squareId].measurement || campMapData[squareId].color)) {
             const data = campMapData[squareId];
 
-            let content = `<div class="tooltip-title">⛺ ${data.title || 'Квадрат ' + squareId}</div>`;
+            let content = `<div class="tooltip-title">🔳 Клетка ${squareId.replace('square_', '[')}]</div>`;
 
-            let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">';
+            let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.4;">';
 
             if (data.heroHere) {
-                paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">👑 <b>Герой в клетке</b></div>`;
+                paramsBlock += `<div style="margin-bottom: 6px; color: #ff7675;">👑 <b>Герой в клетке</b></div>`;
             }
 
             if (data.measurement) {
-                const measureText = data.measurement === 'radius' ? 'Радиус' : 'Диаметр';
-                const measureIcon = data.measurement === 'radius' ? '⭕' : '↔️';
-                paramsBlock += `<div style="margin-bottom: 4px;">${measureIcon} <b>Зона действия:</b> ${measureText}</div>`;
+                let typeText = '';
+                let typeIcon = '';
+
+                if (data.measurement === 'radius') {
+                    typeText = 'Радиус';
+                    typeIcon = '⭕';
+                } else if (data.measurement === 'diameter') {
+                    typeText = 'Диаметр';
+                    typeIcon = '↔️';
+                } else if (data.measurement === 'cone') {
+                    typeText = 'Конус';
+                    typeIcon = '📐';
+                }
+
+                const ft = data.distance || '5';
+                paramsBlock += `<div style="margin-bottom: 4px;">${typeIcon} <b>Зона действия:</b> ${typeText} (${ft} фт.)</div>`;
+
+                if (data.measurement === 'cone' && data.direction) {
+                    let dirText = '';
+                    switch (data.direction) {
+                        case 'N':  dirText = '⬆️ Север'; break;
+                        case 'NE': dirText = '↗️ Северо-Восток'; break;
+                        case 'E':  dirText = '➡️ Восток'; break;
+                        case 'SE': dirText = '↘️ Юго-Восток'; break;
+                        case 'S':  dirText = '⬇️ Юг'; break;
+                        case 'SW': dirText = '↙️ Юго-Запад'; break;
+                        case 'W':  dirText = '⬅️ Запад'; break;
+                        case 'NW': dirText = '↖️ Северо-Запад'; break;
+                        default:   dirText = data.direction;
+                    }
+                    paramsBlock += `<div style="margin-bottom: 4px; padding-left: 24px; color: #dfbc6f;">🧭 <b>Направление:</b> ${dirText}</div>`;
+                }
+            }
+
+            if (data.lastSaved) {
+                paramsBlock += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ Изменено: ${data.lastSaved}</div>`;
             }
 
             paramsBlock += '</div>';
@@ -383,6 +418,10 @@ function closeCampMenu() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initCampColorPresets();
+
+    if (currentMapMode === 'camp') {
+        buildTacticalGrid();
+    }
 
     if (campModal) {
         campModal.addEventListener('click', function(e) {
