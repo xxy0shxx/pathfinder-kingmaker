@@ -148,55 +148,6 @@ function buildTacticalGrid() {
         }
     }
 }
-
-function openTacticalMenu(squareId) {
-    currentHexId = squareId;
-
-    const inpExplored = document.getElementById('inpExplored');
-    const inpMapMapped = document.getElementById('inpMapMapped');
-    const inpSquadHere = document.getElementById('inpSquadHere');
-    const inpType = document.getElementById('inpType');
-    const inpTerrain = document.getElementById('inpTerrain');
-    const inpRegionLevel = document.getElementById('inpRegionLevel');
-    const inpColor = document.getElementById('inpColor');
-
-    let currentColor = 'transparent';
-
-    if (campMapData[squareId]) {
-        document.getElementById('inpTitle').value = campMapData[squareId].title || '';
-        document.getElementById('inpDesc').value = campMapData[squareId].text || '';
-        if (difficultySelect) difficultySelect.value = campMapData[squareId].difficulty || '';
-        if (inpExplored) inpExplored.checked = !!campMapData[squareId].explored;
-        if (inpMapMapped) inpMapMapped.checked = !!campMapData[squareId].mapMapped;
-        if (inpType) inpType.value = campMapData[squareId].type || '';
-        if (inpTerrain) inpTerrain.value = campMapData[squareId].terrain || '';
-        if (inpRegionLevel) inpRegionLevel.value = campMapData[squareId].regionLevel || '';
-        currentColor = campMapData[squareId].color || 'transparent';
-    } else {
-        document.getElementById('inpTitle').value = '';
-        document.getElementById('inpDesc').value = '';
-        if (difficultySelect) difficultySelect.value = '';
-        if (inpExplored) inpExplored.checked = false;
-        if (inpMapMapped) inpMapMapped.checked = false;
-        if (inpType) inpType.value = '';
-        if (inpTerrain) inpTerrain.value = '';
-        if (inpRegionLevel) inpRegionLevel.value = '';
-    }
-
-    if (inpSquadHere) inpSquadHere.checked = campMapData[squareId] ? !!campMapData[squareId].squadHere : false;
-    if (inpColor) inpColor.value = currentColor;
-
-    document.querySelectorAll('.color-preset-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
-            btn.classList.add('active');
-        } else if (btn.style.backgroundColor === convertHexToRgbStandard(currentColor)) {
-            btn.classList.add('active');
-        }
-    });
-
-    modal.classList.add('open');
-}
 document.addEventListener('DOMContentLoaded', () => {
     const btnSave = document.getElementById('btnSave');
     const btnDelete = document.getElementById('btnDelete');
@@ -227,13 +178,12 @@ function saveTacticalSquare() {
     const titleVal = document.getElementById('inpCampTitle').value;
     const heroHereVal = document.getElementById('inpCampHeroHere').checked;
     const measurementVal = document.getElementById('inpCampMeasurement').value;
+    const distanceVal = document.getElementById('inpCampDistance').value;
     const colorVal = document.getElementById('inpCampColor').value || 'transparent';
 
     const squareElement = document.getElementById('visual_' + id);
 
     if (squareElement) {
-        squareElement.classList.remove('fog-active');
-
         if (heroHereVal) {
             squareElement.classList.add('squad-dark');
         } else {
@@ -251,16 +201,19 @@ function saveTacticalSquare() {
         title: titleVal,
         heroHere: heroHereVal,
         measurement: measurementVal,
+        distance: distanceVal,
         color: colorVal,
-        explored: true, // Клетка становится видимой
+        explored: true,
         hasVisited: heroHereVal || (campMapData[id] && campMapData[id].hasVisited),
         lastSaved: new Date().toLocaleString()
     };
 
     localStorage.setItem('campMapSystemData', JSON.stringify(campMapData));
+
+    // Пересчитываем динамический туман войны вокруг всех героев
+    recalculateCampFogOfWar();
     closeCampMenu();
 }
-
 
 function deleteTacticalSquare() {
     const id = currentHexId;
@@ -271,10 +224,11 @@ function deleteTacticalSquare() {
 
     const squareElement = document.getElementById('visual_' + id);
     if (squareElement) {
-        squareElement.classList.add('fog-active'); // Возвращаем туман войны
         squareElement.classList.remove('squad-dark');
         squareElement.style.backgroundColor = '';
     }
+
+    recalculateCampFogOfWar();
     closeCampMenu();
 }
 
@@ -286,10 +240,8 @@ function bindTacticalTooltip(square, squareId) {
         if (campMapData[squareId] && (campMapData[squareId].title || campMapData[squareId].heroHere || campMapData[squareId].measurement)) {
             const data = campMapData[squareId];
 
-            // Заголовок тултипа
             let content = `<div class="tooltip-title">⛺ ${data.title || 'Квадрат ' + squareId}</div>`;
 
-            // Формируем блок параметров
             let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">';
 
             if (data.heroHere) {
@@ -361,6 +313,7 @@ function openTacticalMenu(squareId) {
     const inpTitle = document.getElementById('inpCampTitle');
     const inpHeroHere = document.getElementById('inpCampHeroHere');
     const inpMeasurement = document.getElementById('inpCampMeasurement');
+    const inpDistance = document.getElementById('inpCampDistance');
     const inpColor = document.getElementById('inpCampColor');
 
     let currentColor = 'transparent';
@@ -369,11 +322,13 @@ function openTacticalMenu(squareId) {
         inpTitle.value = campMapData[squareId].title || '';
         if (inpHeroHere) inpHeroHere.checked = !!campMapData[squareId].heroHere;
         if (inpMeasurement) inpMeasurement.value = campMapData[squareId].measurement || '';
+        if (inpDistance) inpDistance.value = campMapData[squareId].distance || '5';
         currentColor = campMapData[squareId].color || 'transparent';
     } else {
         inpTitle.value = '';
         if (inpHeroHere) inpHeroHere.checked = false;
         if (inpMeasurement) inpMeasurement.value = '';
+        if (inpDistance) inpDistance.value = '5';
     }
 
     if (inpColor) inpColor.value = currentColor;
@@ -388,14 +343,6 @@ function openTacticalMenu(squareId) {
                 btn.classList.add('active');
             }
         });
-    }
-
-    if ('ontouchstart' in window && inpTitle) {
-        inpTitle.setAttribute('readonly', 'true');
-        inpTitle.onclick = function() {
-            let newTitle = prompt("Введите название клетки ():", inpTitle.value);
-            if (newTitle !== null) inpTitle.value = newTitle;
-        };
     }
 
     if (campModal) campModal.classList.add('open');
@@ -427,3 +374,57 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCampCancel) btnCampCancel.addEventListener('click', closeCampMenu);
     if (btnCampDelete) btnCampDelete.addEventListener('click', deleteTacticalSquare);
 });
+
+function recalculateCampFogOfWar() {
+    for (let r = 0; r < campParams.rows; r++) {
+        for (let c = 0; c < campParams.cols; c++) {
+            const squareId = `square_${r}_${c}`;
+            const squareElement = document.getElementById('visual_' + squareId);
+            if (!squareElement) continue;
+
+            const savedData = campMapData[squareId];
+            if (savedData && savedData.explored) {
+                squareElement.classList.remove('fog-active');
+            } else {
+                squareElement.classList.add('fog-active');
+            }
+        }
+    }
+
+    for (let id in campMapData) {
+        const data = campMapData[id];
+        if (data && data.heroHere && data.measurement && data.distance) {
+            const parts = id.split('_');
+            const centerR = parseInt(parts[1]);
+            const centerC = parseInt(parts[2]);
+
+            let cellRadius = 0;
+            const ftDistance = parseInt(data.distance) || 5;
+
+            if (data.measurement === 'radius') {
+                cellRadius = Math.round(ftDistance / 5);
+            } else if (data.measurement === 'diameter') {
+                cellRadius = Math.round((ftDistance / 2) / 5);
+            }
+
+            if (cellRadius <= 0) continue;
+
+            for (let r = centerR - cellRadius; r <= centerR + cellRadius; r++) {
+                for (let c = centerC - cellRadius; c <= centerC + cellRadius; c++) {
+                    if (r >= 0 && r < campParams.rows && c >= 0 && c < campParams.cols) {
+                        const distR = r - centerR;
+                        const distC = c - centerC;
+                        const currentCellDist = Math.sqrt(distR * distR + distC * distC);
+                        if (currentCellDist <= cellRadius + 0.5) {
+                            const targetId = `square_${r}_${c}`;
+                            const targetElement = document.getElementById('visual_' + targetId);
+                            if (targetElement) {
+                                targetElement.classList.remove('fog-active');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
