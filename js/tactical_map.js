@@ -10,6 +10,7 @@ const campParams = {
 campParams.cols = Math.floor(campParams.width / campParams.squareSize) + 1;
 campParams.rows = Math.floor(campParams.height / campParams.squareSize) + 1;
 
+let isCampFogEnabled = true;
 let globalMapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 let campMapData = JSON.parse(localStorage.getItem('campMapSystemData')) || {};
 
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMapSelector();
 });
 
+
 function switchMapMode(mode) {
     currentMapMode = mode;
 
@@ -56,6 +58,8 @@ function switchMapMode(mode) {
     y = 0;
     currentZoom = 1.0;
 
+    const btnToggleFog = document.getElementById('btnToggleFog');
+
     if (mode === 'global') {
         mapImg.src = 'img/map_global.png';
         mapContainer.style.width = '3840px';
@@ -68,6 +72,7 @@ function switchMapMode(mode) {
 
         const clickableMap = document.getElementById('clickableMap');
         if (clickableMap) clickableMap.style.display = 'block';
+        if (btnToggleFog) btnToggleFog.style.display = 'none';
 
     } else if (mode === 'camp') {
         mapImg.src = campParams.src;
@@ -86,6 +91,7 @@ function switchMapMode(mode) {
 
         const clickableMap = document.getElementById('clickableMap');
         if (clickableMap) clickableMap.style.display = 'none';
+        if (btnToggleFog) btnToggleFog.style.display = 'flex';
     }
 
     if (typeof updateMapTransform === 'function') {
@@ -416,6 +422,7 @@ function closeCampMenu() {
     if (campModal) campModal.classList.remove('open');
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
     initCampColorPresets();
 
@@ -454,20 +461,32 @@ function recalculateCampFogOfWar() {
 
             const savedData = campMapData[squareId];
 
-            if (savedData && savedData.explored) {
+            if (!isCampFogEnabled) {
                 squareElement.classList.remove('fog-active');
                 squareElement.style.backgroundImage = '';
                 squareElement.style.boxShadow = '';
-                if (savedData.color && savedData.color !== 'transparent') {
+                if (savedData && savedData.color && savedData.color !== 'transparent') {
                     squareElement.style.backgroundColor = convertHexToRgba(savedData.color, 0.37);
                 } else {
                     squareElement.style.backgroundColor = '';
                 }
             } else {
-                squareElement.classList.add('fog-active');
-                squareElement.style.backgroundColor = '';
-                squareElement.style.backgroundImage = '';
-                squareElement.style.boxShadow = '';
+                // Если туман включен — работает стандартная логика скрытия
+                if (savedData && savedData.explored) {
+                    squareElement.classList.remove('fog-active');
+                    squareElement.style.backgroundImage = '';
+                    squareElement.style.boxShadow = '';
+                    if (savedData.color && savedData.color !== 'transparent') {
+                        squareElement.style.backgroundColor = convertHexToRgba(savedData.color, 0.37);
+                    } else {
+                        squareElement.style.backgroundColor = '';
+                    }
+                } else {
+                    squareElement.classList.add('fog-active');
+                    squareElement.style.backgroundColor = '';
+                    squareElement.style.backgroundImage = '';
+                    squareElement.style.boxShadow = '';
+                }
             }
         }
     }
@@ -533,7 +552,9 @@ function recalculateCampFogOfWar() {
         const targetElement = document.getElementById('visual_' + targetId);
         if (!targetElement) continue;
 
-        targetElement.classList.remove('fog-active');
+        if (isCampFogEnabled) {
+            targetElement.classList.remove('fog-active');
+        }
 
         const targetSavedData = campMapData[targetId];
         const hasOwnColor = targetSavedData && targetSavedData.color && targetSavedData.color !== 'transparent';
@@ -548,6 +569,7 @@ function recalculateCampFogOfWar() {
                 targetElement.style.boxShadow = `inset 0 0 6px ${col.startsWith('rgba') ? 'rgba(255,255,255,0.2)' : convertHexToRgba(col, 0.3)}`;
             } else if (auras.length > 1) {
                 targetElement.style.backgroundColor = 'transparent';
+
                 const gradientLayers = auras.map(col => {
                     const rgbaColor = col.startsWith('rgba') ? col : convertHexToRgba(col, 0.40);
                     return `linear-gradient(${rgbaColor}, ${rgbaColor})`;
@@ -558,7 +580,6 @@ function recalculateCampFogOfWar() {
             }
         }
     }
-
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -596,3 +617,32 @@ function isCellInCone(centerR, centerC, r, c, radius, direction) {
         default: return false;
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnToggleFog = document.getElementById('btnToggleFog');
+
+    if (currentMapMode === 'camp') {
+        buildTacticalGrid();
+        if (btnToggleFog) btnToggleFog.style.display = 'flex';
+    } else {
+        if (btnToggleFog) btnToggleFog.style.display = 'none';
+    }
+
+    if (btnToggleFog) {
+        btnToggleFog.addEventListener('click', () => {
+            isCampFogEnabled = !isCampFogEnabled;
+            if (isCampFogEnabled) {
+                btnToggleFog.classList.remove('fog-disabled');
+                btnToggleFog.classList.add('active');
+                btnToggleFog.textContent = '👁️';
+            } else {
+                btnToggleFog.classList.add('fog-disabled');
+                btnToggleFog.classList.remove('active');
+                btnToggleFog.textContent = '👓';
+            }
+            if (currentMapMode === 'camp') {
+                recalculateCampFogOfWar();
+            }
+        });
+    }
+});

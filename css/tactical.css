@@ -70,7 +70,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.99);
     z-index: 5;
     pointer-events: none;
 }
@@ -108,4 +108,10 @@
 @keyframes crownBreathe {
     0%, 100% { transform: translate(-50%, -50%) scale(1); }
     50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.btn-map-select.fog-disabled {
+    background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
+    border-color: #823030 !important;
+    color: #f7baba !important;
 }
