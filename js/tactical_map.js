@@ -313,7 +313,7 @@ function bindTacticalTooltip(square, squareId) {
             else if (data.obstacle === 'destructible') { obstacleName = '📦 Ящик / Бочка'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО</span>'; }
             else if (data.obstacle === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
             else if (data.obstacle === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
-            else if (data.obstacle === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
+            else if (data.obstacle === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;font-weight:bold;">Риск 🎲 d20 (Вилка хода)</span>'; }
             else if (data.obstacle === 'stones') { obstacleName = '🪨 Камни / Валуны'; movementCostText = '<span style="color:#e67e22;font-weight:bold;">ТОЛЬКО ПРЫЖОК</span>'; }
             else if (data.obstacle === 'ice') { obstacleName = '❄️ Скользкий лед'; movementCostText = '<span style="color:#74b9ff;font-weight:bold;">5 футов (Проверка d20)</span>'; }
             else if (data.obstacle === 'web') { obstacleName = '🕸️ Липкая паутина'; movementCostText = '<span style="color:#ffeaa7;font-weight:bold;">5 футов (Проверка d20)</span>'; }
@@ -327,12 +327,11 @@ function bindTacticalTooltip(square, squareId) {
             if (data.monsterHere) paramsBlock += `<div style="margin-bottom: 6px; color: #ff7675;">👿 <b>Монстр обнаружен!</b></div>`;
         }
 
-        paramsBlock += `<div style="margin-bottom: 4px;">🏞️ <b>Объект:</b> ${obstacleName}</div>`;
-        paramsBlock += `<div style="margin-bottom: 8px;">🏃‍♂️ <b>Цена входа:</b> ${movementCostText}</div>`;
+        paramsBlock += `<div style="margin-bottom: 4px;">📍 <b>Объект:</b> ${obstacleName}</div>`;
+        paramsBlock += `<div style="margin-bottom: 8px;">👣 <b>Цена перехода:</b> ${movementCostText}</div>`;
 
         if (focusedEntityId && focusedEntityId !== squareId) {
             const sourceData = campMapData[focusedEntityId];
-//            const speedLimit = sourceData ? parseInt(sourceData.speed) : 30;
             const speedLimit = (sourceData && sourceData.speed && !isNaN(parseInt(sourceData.speed))) ? parseInt(sourceData.speed) : 30;
 
             const pathData = calculatePathAndCost(focusedEntityId, squareId, speedLimit);
@@ -370,23 +369,31 @@ function bindTacticalTooltip(square, squareId) {
 
                 let routeHasIce = false;
                 let routeHasWeb = false;
+                let routeHasWater = false;
 
                 pathData.cells.forEach(cellKey => {
                     const cellData = campMapData[`square_${cellKey}`];
                     if (cellData && cellData.obstacle === 'ice') routeHasIce = true;
                     if (cellData && cellData.obstacle === 'web') routeHasWeb = true;
+                    if (cellData && cellData.obstacle === 'water') routeHasWater = true;
                 });
 
                 if (routeHasIce) {
                     paramsBlock += `<span style="color:#74b9ff;">❄️ <b>Пересекается скользкий лед:</b></span><br>`;
-                    paramsBlock += `• Возможный ход: <b style="color:#ff7675;">от 5 фт. (1 кл.)</b> до <b>${speedLimit} фт. (${speedLimit / 5} кл.)</b><br>`;
-                    paramsBlock += `<span style="font-size:12px;color:#aaa;line-height:1.2;display:block;margin-top:2px;">*При провале d20 персонаж может поскользнуться и упасть.</span><br>`;
+                    paramsBlock += `• Возможный ход: <b>🎲 от 5 фт. (1 кл.)</b> до <b>${speedLimit} фт. (${speedLimit / 5} кл.)</b><br>`;
+                    paramsBlock += `<span style="font-size:12px;color:#aaa;line-height:1.2;display:block;margin-top:2px;">*При провале 🎲 d20 персонаж может поскользнуться и упасть.</span><br>`;
                 }
 
                 if (routeHasWeb) {
                     paramsBlock += `<span style="color:#ffeaa7;">🕸️ <b>Пересекается липкая паутина:</b></span><br>`;
-                    paramsBlock += `• Возможный ход: <b style="color:#ff7675;">от 5 фт. (1 кл.)</b> до <b>${speedLimit} фт. (${speedLimit / 5} кл.)</b><br>`;
-                    paramsBlock += `<span style="font-size:12px;color:#aaa;line-height:1.2;display:block;margin-top:2px;">*При провале d20 персонаж завязнет на месте.</span><br>`;
+                    paramsBlock += `• Возможный ход: <b>🎲 от 5 фт. (1 кл.)</b> до <b>${speedLimit} фт. (${speedLimit / 5} кл.)</b><br>`;
+                    paramsBlock += `<span style="font-size:12px;color:#aaa;line-height:1.2;display:block;margin-top:2px;">*При провале 🎲 d20 персонаж завязнет на месте.</span><br>`;
+                }
+
+                if (routeHasWater) {
+                    paramsBlock += `<span style="color:#74b9ff;">🌊 <b>Пересекается глубокая вода:</b></span><br>`;
+                    paramsBlock += `• Возможный ход: <b>🎲 от 5 фт. (1 кл.)</b> до <b>${speedLimit} фт. (${speedLimit / 5} кл.)</b><br>`;
+                    paramsBlock += `<span style="font-size:12px;color:#aaa;line-height:1.2;display:block;margin-top:2px;">*При провале 🎲 d20 персонаж начнет тонуть или завязнет в иле.</span><br>`;
                 }
 
                 const hasJumps = Object.keys(pathData.jumpFlags).length > 0;
@@ -1024,7 +1031,6 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
         if (curr.r === target.r && curr.c === target.c) break;
         if (curr.actions > currState.actions || (curr.actions === currState.actions && curr.feet > currState.feet)) continue;
 
-        // --- 1. ОБЫЧНОЕ ДВИЖЕНИЕ ---
         const neighbors = [
             { r: curr.r - 1, c: curr.c },
             { r: curr.r + 1, c: curr.c },
@@ -1039,10 +1045,9 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
             const nKey = `${n.r}_${n.c}`;
             const nData = campMapData[nId];
 
-//            if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'destructible')) continue;
             if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'destructible' || nData.obstacle === 'stones')) continue;
 
-            let stepCost = (nData && ['bushes', 'forest', 'water'].includes(nData.obstacle)) ? 10 : 5;
+            let stepCost = (nData && ['bushes', 'forest',].includes(nData.obstacle)) ? 10 : 5;
             let nextActions = currState.actions;
             let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
 
