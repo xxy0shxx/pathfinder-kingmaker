@@ -6,22 +6,25 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Pathfinder Kingmaker Map</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/tactical.css">
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 </head>
 <body>
+
+<div class="map-selector-controls">
+    <button type="button" id="btnMapGlobal" class="btn-map-select active" title="Глобальная карта">🗺️ Глобальная</button>
+    <button type="button" id="btnMapCamp" class="btn-map-select" title="Карта лагеря">⛺ Лагерь</button>
+</div>
+
 <div class="map-viewport" id="viewport">
     <div class="map-container" id="mapContainer">
-        <img src="img/map_global.png" class="map-image" usemap="#hexMap" id="mapImg" alt="Map Grid">
-        <div class="hex-visual-layer" id="visualLayer"></div>
-        <map name="hexMap" id="clickableMap"></map>
+        <img src="img/map_global.png" class="map-image" id="mapImg" alt="Pathfinder Map">
+        <map name="clickableMap" id="clickableMap"></map>
+        <div class="hex-layer" id="visualLayer"></div>
+        <div class="grid-layer" id="tacticalGridLayer" style="display: none;"></div>
     </div>
-    <div class="kingmaker-frame">
-        <div class="frame-corner top-left"></div>
-        <div class="frame-corner top-right"></div>
-        <div class="frame-corner bottom-left"></div>
-        <div class="frame-corner bottom-right"></div>
-    </div>
+    <div class="kingmaker-frame"></div>
 </div>
 
 <div class="pop-menu" id="hexMenu">
@@ -187,6 +190,7 @@
     </div>
 </div>
 
-<script src="js/script.js"></script>
+<script src="js/main.js"></script>
+<script src="js/tactical_map.js"></script>
 </body>
 </html>
