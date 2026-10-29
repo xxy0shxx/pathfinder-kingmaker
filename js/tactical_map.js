@@ -164,6 +164,19 @@ function buildTacticalGrid() {
                 handleTacticalSquareClick(squareId);
             });
 
+            square.addEventListener('dblclick', function (e) {
+                e.preventDefault(); e.stopPropagation();
+                if (hasMoved) return;
+
+                if (focusedEntityId === squareId) {
+                    square.classList.remove('focused-entity');
+                    focusedEntityId = null;
+                    clearVisualPath();
+                }
+
+                openTacticalMenu(squareId);
+            });
+
             bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel);
             bindTacticalTooltip(square, squareId);
             gridLayer.appendChild(square);
@@ -1072,7 +1085,7 @@ function handleTacticalSquareClick(squareId) {
         } else {
             if (focusedEntityId) {
                 const oldFocused = document.getElementById('visual_' + focusedEntityId);
-                if (oldFocused) oldFocused.classList.remove('focused-entity');
+                oldFocused.classList.remove('focused-entity');
             }
             focusedEntityId = squareId;
             squareElement.classList.add('focused-entity');
@@ -1082,3 +1095,4 @@ function handleTacticalSquareClick(squareId) {
         openTacticalMenu(squareId);
     }
 }
+
