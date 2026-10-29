@@ -939,6 +939,18 @@ body {
 }
 
 .btn-frame-style:active { transform: translateY(0); }
+.kingmaker-frame::before,
+.kingmaker-frame.frame-style-runes::before,
+.kingmaker-frame.frame-style-norunes::before,
+.kingmaker-frame.frame-style-ornament::before {
+    background: linear-gradient(
+            to bottom right,
+            #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%,
+            #a68032 70%, #1c3324 85%, #6e4e14 100%
+    ) !important;
+    background-size: 100% 100% !important;
+    background-position: 0 0 !important;
+}
 
 .kingmaker-frame .frame-corner {
     display: block !important;
@@ -947,40 +959,13 @@ body {
     z-index: 10002;
 }
 
-.kingmaker-frame.frame-style-runes::before {
-    background: linear-gradient(
-            to bottom right,
-            #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%,
-            #a68032 70%, #1c3324 85%, #6e4e14 100%
-    );
-}
-
-.kingmaker-frame.frame-style-norunes::before {
-    background: linear-gradient(
-            to bottom right,
-            #4a3b1c 0%, #2b2210 25%, #5c4a24 50%, #2b2210 75%, #4a3b1c 100%
-    );
-}
-.kingmaker-frame.frame-style-norunes {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(0,0,0,0.5);
-}
-
 .kingmaker-frame.frame-style-ornament::before {
     background:
-            linear-gradient(45deg, rgba(84, 62, 13, 0.6) 24%, transparent 25%, transparent 74%, rgba(84, 62, 13, 0.6) 75%),
-            linear-gradient(-45deg, rgba(84, 62, 13, 0.6) 24%, transparent 25%, transparent 74%, rgba(84, 62, 13, 0.6) 75%),
-            linear-gradient(45deg, rgba(223, 188, 111, 0.3) 24%, transparent 25%, transparent 74%, rgba(223, 188, 111, 0.3) 75%),
-            linear-gradient(-45deg, rgba(223, 188, 111, 0.3) 24%, transparent 25%, transparent 74%, rgba(223, 188, 111, 0.3) 75%),
-            linear-gradient(to right, #4a350b 0%, #a68032 50%, #4a350b 100%);
-
-    background-size: 16px 16px, 16px 16px, 16px 16px, 16px 16px, 100% 100%;
-
-    background-position: 0 0, 0 0, 8px 8px, 8px 8px, 0 0;
-
-    filter: drop-shadow(0 0 2px rgba(0,0,0,0.4));
-}
-
-.kingmaker-frame.frame-style-ornament .frame-corner::before {
-    background: linear-gradient(135deg, #a68032, #112417);
-    border: 2px double #dfbc6f;
+            linear-gradient(45deg, rgba(0, 0, 0, 0.4) 24%, transparent 25%, transparent 74%, rgba(0, 0, 0, 0.4) 75%),
+            linear-gradient(-45deg, rgba(0, 0, 0, 0.4) 24%, transparent 25%, transparent 74%, rgba(0, 0, 0, 0.4) 75%),
+            linear-gradient(45deg, rgba(255, 255, 255, 0.15) 24%, transparent 25%, transparent 74%, rgba(255, 255, 255, 0.15) 75%),
+            linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 24%, transparent 25%, transparent 74%, rgba(255, 255, 255, 0.15) 75%),
+            linear-gradient(to bottom right, #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%, #a68032 70%, #1c3324 85%, #6e4e14 100%) !important;
+    background-size: 16px 16px, 16px 16px, 16px 16px, 16px 16px, 100% 100% !important;
+    background-position: 0 0, 0 0, 8px 8px, 8px 8px, 0 0 !important;
 }
