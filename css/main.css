@@ -1145,32 +1145,36 @@ body {
     top: calc(50vh - 275px) !important;
     left: calc(50vw - 325px) !important;
 
-    z-index: 10015;
-    background: linear-gradient(135deg, #112618 0%, #09140d 100%) !important;
+    z-index: 10015 !important;
+    background: linear-gradient(135deg, rgba(17, 38, 24, 0.96) 0%, rgba(9, 20, 13, 0.99) 100%) !important;
 
-    border: 3px solid transparent;
+    border: 3px solid transparent !important;
     border-image: linear-gradient(to bottom right, #a68032, #543e0d, #b89445) 3 round !important;
-    border-radius: 6px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), inset 0 0 30px rgba(0, 0, 0, 0.7);
-    display: flex;
-    flex-direction: column;
+    border-radius: 6px !important;
 
-    transition: opacity 0.25s ease, visibility 0.25s ease !important;
-    transform: none !important;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(0, 0, 0, 0.7) !important;
+    display: flex !important;
+    flex-direction: column !important;
+
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+
+    transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
     animation: none !important;
-    visibility: visible !important;
 }
 
 .quest-log-container.ui-collapsed {
+    transform: translate(0, 0) scale(0.9) rotate(0deg) !important;
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
-    transform: none !important;
 }
 
 .quest-log-container:not(.ui-collapsed) {
-    top: 40px !important;
+    transform: translate(0, 0) scale(1) rotate(0deg) !important;
     opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
 }
 
 .quest-log-header {

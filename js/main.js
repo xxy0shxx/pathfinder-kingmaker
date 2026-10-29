@@ -1403,11 +1403,10 @@ function focusOnHex(hexId) {
     if (!vHex) return;
 
     const parts = hexId.split('_');
-    const r = parseInt(parts[1], 10);
-    const c = parseInt(parts[2], 10);
+    const r = parseInt(parts, 10);
+    const c = parseInt(parts, 10);
     const widthBetweenHexes = hexRadius * Math.sqrt(3);
     const heightBetweenHexes = hexRadius * 1.5;
-
     let cx = offsetX + c * widthBetweenHexes;
     let cy = offsetY + r * heightBetweenHexes;
     if (r % 2 !== 0) {
@@ -1416,6 +1415,8 @@ function focusOnHex(hexId) {
 
     const vpW = window.innerWidth;
     const vpH = window.innerHeight;
+
+    currentZoom = 1.5;
 
     x = (vpW / 2) - (cx * currentZoom);
     y = (vpH / 2) - (cy * currentZoom);
@@ -1434,5 +1435,3 @@ function focusOnHex(hexId) {
         vHex.classList.remove('hex-focused-flash');
     }, 3600);
 }
-
-
