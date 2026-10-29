@@ -457,6 +457,7 @@ function recalculateCampFogOfWar() {
             if (savedData && savedData.explored) {
                 squareElement.classList.remove('fog-active');
                 squareElement.style.backgroundImage = '';
+                squareElement.style.boxShadow = '';
                 if (savedData.color && savedData.color !== 'transparent') {
                     squareElement.style.backgroundColor = convertHexToRgba(savedData.color, 0.37);
                 } else {
@@ -466,6 +467,7 @@ function recalculateCampFogOfWar() {
                 squareElement.classList.add('fog-active');
                 squareElement.style.backgroundColor = '';
                 squareElement.style.backgroundImage = '';
+                squareElement.style.boxShadow = '';
             }
         }
     }
@@ -526,6 +528,7 @@ function recalculateCampFogOfWar() {
             }
         }
     }
+
     for (let targetId in cellAuras) {
         const targetElement = document.getElementById('visual_' + targetId);
         if (!targetElement) continue;
@@ -540,19 +543,23 @@ function recalculateCampFogOfWar() {
 
             if (auras.length === 1) {
                 const col = auras[0];
-                targetElement.style.backgroundColor = col.startsWith('rgba') ? col : convertHexToRgba(col, 0.22);
+                targetElement.style.backgroundImage = '';
+                targetElement.style.backgroundColor = col.startsWith('rgba') ? col : convertHexToRgba(col, 0.45);
+                targetElement.style.boxShadow = `inset 0 0 6px ${col.startsWith('rgba') ? 'rgba(255,255,255,0.2)' : convertHexToRgba(col, 0.3)}`;
             } else if (auras.length > 1) {
+                targetElement.style.backgroundColor = 'transparent';
                 const gradientLayers = auras.map(col => {
-                    const rgbaColor = col.startsWith('rgba') ? col : convertHexToRgba(col, 0.20);
+                    const rgbaColor = col.startsWith('rgba') ? col : convertHexToRgba(col, 0.40);
                     return `linear-gradient(${rgbaColor}, ${rgbaColor})`;
                 }).join(', ');
 
                 targetElement.style.backgroundImage = gradientLayers;
+                targetElement.style.boxShadow = 'inset 0 0 8px rgba(255, 255, 255, 0.35)';
             }
         }
     }
-}
 
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const inpMeasurement = document.getElementById('inpCampMeasurement');
