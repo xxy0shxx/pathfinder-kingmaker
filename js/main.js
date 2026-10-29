@@ -1382,10 +1382,11 @@ function renderQuestLog(filterStatus = 'active') {
             questItem.addEventListener('click', () => {
                 focusOnHex(hexId);
 
-                const masterBtn = document.querySelector('.master-toggle-btn');
-                if (masterBtn && masterBtn.classList.contains('ui-active')) {
-                    masterBtn.click();
+                const questLog = document.getElementById('questLogContainer');
+                if (questLog) {
+                    questLog.classList.add('ui-collapsed');
                 }
+
             });
 
             listContainer.appendChild(questItem);
@@ -1416,18 +1417,22 @@ function focusOnHex(hexId) {
     const vpW = window.innerWidth;
     const vpH = window.innerHeight;
 
-    currentZoom = 1.0;
-
-    x = (vpW / 2) - cx;
-    y = (vpH / 2) - cy;
+    x = (vpW / 2) - (cx * currentZoom);
+    y = (vpH / 2) - (cy * currentZoom);
 
     if (typeof updateMapTransform === 'function') {
         updateMapTransform();
     }
 
+    const frame = document.querySelector('.kingmaker-frame');
+    if (frame && typeof updateFrameRunes === 'function') {
+        updateFrameRunes(frame.offsetWidth, frame.offsetHeight);
+    }
+
     vHex.classList.add('hex-focused-flash');
     setTimeout(() => {
         vHex.classList.remove('hex-focused-flash');
-    }, 1500);
+    }, 3600);
 }
+
 
