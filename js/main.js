@@ -1282,7 +1282,6 @@ function initUnifiedUICollapse() {
     const btnMapCamp = document.getElementById('btnMapCamp');
     const questLog = document.getElementById('questLogContainer');
 
-    // Проверяем, существует ли уже панель, чтобы не дублировать её в DOM
     let rightPanel = document.querySelector('.right-controls-panel');
     if (!rightPanel) {
         rightPanel = document.createElement('div');
@@ -1293,8 +1292,6 @@ function initUnifiedUICollapse() {
     if (btnExport) rightPanel.appendChild(btnExport);
     if (btnImport) rightPanel.appendChild(btnImport);
     if (styleControls) rightPanel.appendChild(styleControls);
-
-    // Скрываем все элементы по умолчанию при первой загрузке
     if (player) player.classList.add('ui-collapsed');
     if (mapControls) mapControls.classList.add('ui-collapsed');
     if (btnToggleFog) btnToggleFog.classList.add('ui-collapsed');
@@ -1404,16 +1401,25 @@ function focusOnHex(hexId) {
     const vHex = document.getElementById('visual_' + hexId);
     if (!vHex) return;
 
-    const hexX = parseFloat(vHex.style.left);
-    const hexY = parseFloat(vHex.style.top);
-    const hexW = parseFloat(vHex.style.width);
-    const hexH = parseFloat(vHex.style.height);
+    const parts = hexId.split('_');
+    const r = parseInt(parts[1], 10);
+    const c = parseInt(parts[2], 10);
+    const widthBetweenHexes = hexRadius * Math.sqrt(3);
+    const heightBetweenHexes = hexRadius * 1.5;
+
+    let cx = offsetX + c * widthBetweenHexes;
+    let cy = offsetY + r * heightBetweenHexes;
+    if (r % 2 !== 0) {
+        cx += widthBetweenHexes / 2;
+    }
+
     const vpW = window.innerWidth;
     const vpH = window.innerHeight;
 
     currentZoom = 1.0;
-    x = (vpW / 2) - (hexX + hexW / 2);
-    y = (vpH / 2) - (hexY + hexH / 2);
+
+    x = (vpW / 2) - cx;
+    y = (vpH / 2) - cy;
 
     if (typeof updateMapTransform === 'function') {
         updateMapTransform();
@@ -1424,3 +1430,4 @@ function focusOnHex(hexId) {
         vHex.classList.remove('hex-focused-flash');
     }, 1500);
 }
+

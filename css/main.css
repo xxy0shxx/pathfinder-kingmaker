@@ -9,8 +9,6 @@ body {
     box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
 }
 .map-viewport {
-    /*width: 100vw;*/
-    /*height: 100vh;*/
     height: 100dvh;
     overflow: hidden;
     position: relative;
@@ -626,7 +624,7 @@ body {
 }
 .legend-header {
     background: rgba(21, 46, 29, 0.4) !important;
-    color: #dfbc6f !important; /* Насыщенное золото */
+    color: #dfbc6f !important;
     padding: 8px 12px;
     font: bold 14px sans-serif !important;
     display: flex;
@@ -1140,17 +1138,15 @@ body {
 
 .quest-log-container {
     position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) scale(1) !important;
-    z-index: 10015;
-    background: linear-gradient(135deg, #112618 0%, #09140d 100%) !important;
-
 
     width: 650px !important;
-    max-width: 90vw !important;
     height: 550px !important;
-    max-height: 80vh !important;
+
+    top: calc(50vh - 275px) !important;
+    left: calc(50vw - 325px) !important;
+
+    z-index: 10015;
+    background: linear-gradient(135deg, #112618 0%, #09140d 100%) !important;
 
     border: 3px solid transparent;
     border-image: linear-gradient(to bottom right, #a68032, #543e0d, #b89445) 3 round !important;
@@ -1159,14 +1155,17 @@ body {
     display: flex;
     flex-direction: column;
 
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.25s ease !important;
-    transform-origin: center center !important;
+    transition: opacity 0.25s ease, visibility 0.25s ease !important;
+    transform: none !important;
+    animation: none !important;
+    visibility: visible !important;
 }
 
 .quest-log-container.ui-collapsed {
-    transform: translate(-50%, -50%) scale(0.85) !important;
     opacity: 0 !important;
+    visibility: hidden !important;
     pointer-events: none !important;
+    transform: none !important;
 }
 
 .quest-log-container:not(.ui-collapsed) {
@@ -1237,7 +1236,6 @@ body {
     border-color: #b89445;
     background: rgba(21, 46, 29, 0.25);
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    transform: translateY(-1px);
 }
 
 .quest-item-title {
