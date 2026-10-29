@@ -441,19 +441,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function recalculateCampFogOfWar() {
+    const cellAuras = {};
+
     for (let r = 0; r < campParams.rows; r++) {
         for (let c = 0; c < campParams.cols; c++) {
             const squareId = `square_${r}_${c}`;
             const squareElement = document.getElementById('visual_' + squareId);
             if (!squareElement) continue;
 
-            const savedData = campMapData[squareId];
-
             const crown = squareElement.querySelector('.square-crown-label');
             if (crown) crown.textContent = '';
 
+            const savedData = campMapData[squareId];
+
             if (savedData && savedData.explored) {
                 squareElement.classList.remove('fog-active');
+                squareElement.style.backgroundImage = '';
                 if (savedData.color && savedData.color !== 'transparent') {
                     squareElement.style.backgroundColor = convertHexToRgba(savedData.color, 0.37);
                 } else {
@@ -462,6 +465,7 @@ function recalculateCampFogOfWar() {
             } else {
                 squareElement.classList.add('fog-active');
                 squareElement.style.backgroundColor = '';
+                squareElement.style.backgroundImage = '';
             }
         }
     }
@@ -472,7 +476,7 @@ function recalculateCampFogOfWar() {
             const squareElement = document.getElementById('visual_' + id);
             if (squareElement) {
                 const crown = squareElement.querySelector('.square-crown-label');
-                if (crown) crown.textContent = '👑';
+                if (crown) crown.textContent = '👑'; // Рисуем корону герою
             }
 
             if (data.measurement && data.distance) {
@@ -505,14 +509,15 @@ function recalculateCampFogOfWar() {
 
                             if (inZone) {
                                 const targetId = `square_${r}_${c}`;
-                                const targetElement = document.getElementById('visual_' + targetId);
-                                if (targetElement) {
-                                    targetElement.classList.remove('fog-active');
 
-                                    const targetSavedData = campMapData[targetId];
-                                    if ((!targetSavedData || !targetSavedData.color || targetSavedData.color === 'transparent') && data.color && data.color !== 'transparent') {
-                                        targetElement.style.backgroundColor = convertHexToRgba(data.color, 0.25);
-                                    }
+                                if (!cellAuras[targetId]) {
+                                    cellAuras[targetId] = [];
+                                }
+
+                                if (data.color && data.color !== 'transparent') {
+                                    cellAuras[targetId].push(data.color);
+                                } else {
+                                    cellAuras[targetId].push('rgba(255, 255, 255, 0.08)');
                                 }
                             }
                         }
@@ -521,7 +526,33 @@ function recalculateCampFogOfWar() {
             }
         }
     }
+    for (let targetId in cellAuras) {
+        const targetElement = document.getElementById('visual_' + targetId);
+        if (!targetElement) continue;
+
+        targetElement.classList.remove('fog-active');
+
+        const targetSavedData = campMapData[targetId];
+        const hasOwnColor = targetSavedData && targetSavedData.color && targetSavedData.color !== 'transparent';
+
+        if (!hasOwnColor) {
+            const auras = cellAuras[targetId];
+
+            if (auras.length === 1) {
+                const col = auras[0];
+                targetElement.style.backgroundColor = col.startsWith('rgba') ? col : convertHexToRgba(col, 0.22);
+            } else if (auras.length > 1) {
+                const gradientLayers = auras.map(col => {
+                    const rgbaColor = col.startsWith('rgba') ? col : convertHexToRgba(col, 0.20);
+                    return `linear-gradient(${rgbaColor}, ${rgbaColor})`;
+                }).join(', ');
+
+                targetElement.style.backgroundImage = gradientLayers;
+            }
+        }
+    }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const inpMeasurement = document.getElementById('inpCampMeasurement');
