@@ -190,3 +190,25 @@
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7) !important;
     background-color: rgba(40, 40, 40, 0.3) !important;
 }
+
+.tactical-square.focused-entity {
+    box-shadow: inset 0 0 15px #3498db !important;
+    outline: 2px solid #3498db !important;
+}
+
+.tactical-square.path-cell {
+    box-shadow: inset 0 0 8px #2ecc71 !important;
+}
+
+.square-path-cost {
+    position: absolute !important;
+    bottom: 2px !important;
+    right: 4px !important;
+    z-index: 7 !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    color: #2ecc71 !important;
+    text-shadow: 0 1px 3px #000 !important;
+    pointer-events: none !important;
+    user-select: none !important;
+}

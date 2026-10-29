@@ -11,6 +11,7 @@ campParams.cols = Math.floor(campParams.width / campParams.squareSize) + 1;
 campParams.rows = Math.floor(campParams.height / campParams.squareSize) + 1;
 
 let isCampFogEnabled = true;
+let focusedEntityId = null;
 let globalMapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 let campMapData = JSON.parse(localStorage.getItem('campMapSystemData')) || {};
 
@@ -160,8 +161,7 @@ function buildTacticalGrid() {
             square.addEventListener('click', function (e) {
                 e.preventDefault(); e.stopPropagation();
                 if (hasMoved) return;
-                if (modal.classList.contains('open')) closeMenu();
-                else openTacticalMenu(squareId);
+                handleTacticalSquareClick(squareId);
             });
 
             bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel);
@@ -207,6 +207,7 @@ function saveTacticalSquare() {
     const distanceVal = document.getElementById('inpCampDistance').value;
     const directionVal = document.getElementById('inpCampDirection').value;
     const colorVal = document.getElementById('inpCampColor').value || 'transparent';
+    const speedVal = document.getElementById('inpCampSpeed').value;
 
     const squareElement = document.getElementById('visual_' + id);
 
@@ -239,6 +240,7 @@ function saveTacticalSquare() {
         distance: distanceVal,
         direction: directionVal,
         color: colorVal,
+        speed: speedVal,
         explored: true,
         hasVisited: heroHereVal || (campMapData[id] && campMapData[id].hasVisited),
         lastSaved: new Date().toLocaleString()
@@ -278,6 +280,46 @@ function deleteTacticalSquare() {
     closeCampMenu();
 }
 
+function clearVisualPath() {
+    document.querySelectorAll('.tactical-square').forEach(cell => {
+        cell.classList.remove('path-cell');
+        const costLabel = cell.querySelector('.square-path-cost');
+        if (costLabel) costLabel.textContent = '';
+    });
+}
+
+function handleTacticalSquareClick(squareId) {
+    if (modal.classList.contains('open') || (campModal && campModal.classList.contains('open'))) {
+        closeCampMenu();
+        return;
+    }
+
+    const data = campMapData[squareId];
+    const squareElement = document.getElementById('visual_' + squareId);
+    if (!squareElement) return;
+
+    if (data && (data.heroHere || data.monsterHere)) {
+        if (focusedEntityId === squareId) {
+            squareElement.classList.remove('focused-entity');
+            focusedEntityId = null;
+            clearVisualPath();
+        } else {
+
+            if (focusedEntityId) {
+                const oldFocused = document.getElementById('visual_' + focusedEntityId);
+                if (oldFocused) oldFocused.classList.remove('focused-entity');
+            }
+
+            focusedEntityId = squareId;
+            squareElement.classList.add('focused-entity');
+            clearVisualPath();
+        }
+    } else {
+
+        openTacticalMenu(squareId);
+    }
+}
+
 function bindTacticalTooltip(square, squareId) {
     const tooltip = document.getElementById('hexTooltip');
     if (!tooltip) return;
@@ -286,76 +328,65 @@ function bindTacticalTooltip(square, squareId) {
         const squareElement = document.getElementById('visual_' + squareId);
         const isFoggy = squareElement ? squareElement.classList.contains('fog-active') : false;
 
-        if (campMapData[squareId]) {
-            const data = campMapData[squareId];
+        let content = `<div class="tooltip-title">⛺ Клетка [${squareId.replace('square_', '')}]</div>`;
+        let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.4;">';
 
-            if (data.monsterHere && isFoggy) return;
+        const data = campMapData[squareId];
 
-            let content = `<div class="tooltip-title">⛺ Кетка [${squareId.replace('square_', '')}]</div>`;
-            let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.4;">';
-
-            if (data.heroHere) {
-                paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
-            }
-            if (data.monsterHere) {
-                paramsBlock += `<div style="margin-bottom: 6px; color: #ff7675;">👿 <b>Монстр обнаружен!</b></div>`;
-            }
-
-            let movementCostText = '5 футов (Обычная)';
-            let obstacleName = 'Чистая земля';
-            let isPassable = true;
-
-            if (data.obstacle) {
-                if (data.obstacle === 'wall') {
-                    obstacleName = '🧱 Стена';
-                    movementCostText = '<span style="color: #ff7675; font-weight: bold;">НЕПРОХОДИМО</span>';
-                    isPassable = false;
-                } else if (data.obstacle === 'destructible') {
-                    obstacleName = '📦 Ящик / Бочка';
-                    movementCostText = '<span style="color: #ff7675; font-weight: bold;">НЕПРОХОДИМО</span>';
-                    isPassable = false;
-                } else if (data.obstacle === 'bushes') {
-                    obstacleName = '🌿 Густые кусты';
-                    movementCostText = '<span style="color: #f1c40f; font-weight: bold;">10 футов (Труднопроходимая)</span>';
-                } else if (data.obstacle === 'forest') {
-                    obstacleName = '🌲 Чаща леса';
-                    movementCostText = '<span style="color: #f1c40f; font-weight: bold;">10 утов (Труднопроходимая)</span>';
-                } else if (data.obstacle === 'water') {
-                    obstacleName = '🌊 Глубокая вода';
-                    movementCostText = '<span style="color: #f1c40f; font-weight: bold;">10 футов (Труднопроходимая)</span>';
-                }
-            }
-
-            paramsBlock += `<div style="margin-bottom: 4px;">🏞️ <b>Объект:</b> ${obstacleName}</div>`;
-            paramsBlock += `<div style="margin-bottom: 8px;">🏃‍♂️ <b>Цена входа:</b> ${movementCostText}</div>`;
-
-            if (isPassable) {
-                const cost = data.obstacle ? 10 : 5;
-                paramsBlock += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 6px; margin-top: 6px; font-size: 13px; color: #ebd291;">`;
-                paramsBlock += `📊 <b>Доступность маневра (остаток хода):</b><br>`;
-                paramsBlock += `• Скорость 15 фт: останется <b>${15 - cost} фт.</b><br>`;
-                paramsBlock += `• Скорость 20 фт: останется <b>${20 - cost} фт.</b><br>`;
-                paramsBlock += `• Скорость 30 фт: останется <b>${30 - cost} фт.</b><br>`;
-                paramsBlock += `• Скорость 40 фт: останется <b>${40 - cost} фт.</b></div>`;
-            }
-
-            if (data.measurement) {
-                let typeText = data.measurement === 'radius' ? 'Радиус' : (data.measurement === 'diameter' ? 'Диаметр' : 'Конус');
-                let typeIcon = data.measurement === 'radius' ? '⭕' : (data.measurement === 'diameter' ? '↔️' : '📐');
-                const ft = data.distance || '5';
-
-                paramsBlock += `<div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;">${typeIcon} <b>Зона действия:</b> ${typeText} (${ft} фт.)</div>`;
-
-                if (data.measurement === 'cone' && data.direction) {
-                    let dirText = { 'N': '⬆️ Север', 'NE': '↗️ Северо-Восток', 'E': '➡️ Восток', 'SE': '↘️ Юго-Восток', 'S': '⬇️ Юг', 'SW': '↙️ Юго-Запад', 'W': '⬅️ Запад', 'NW': '↖️ Северо-Запад' }[data.direction] || data.direction;
-                    paramsBlock += `<div style="margin-bottom: 4px; padding-left: 24px; color: #dfbc6f;">🧭 <b>Направление:</b> ${dirText}</div>`;
-                }
-            }
-
-            paramsBlock += '</div>';
-            tooltip.innerHTML = content + paramsBlock;
-            tooltip.style.display = 'block';
+        let obstacleName = 'Чистая земля';
+        let movementCostText = '5 футов';
+        if (data && data.obstacle) {
+            if (data.obstacle === 'wall') { obstacleName = '🧱 Стена'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО</span>'; }
+            else if (data.obstacle === 'destructible') { obstacleName = '📦 Ящик / Бочка'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО</span>'; }
+            else if (data.obstacle === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
+            else if (data.obstacle === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
+            else if (data.obstacle === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
         }
+
+        if (data && data.monsterHere && isFoggy) {
+            obstacleName = 'Чистая земля';
+            movementCostText = '5 футов';
+        } else if (data) {
+            if (data.heroHere) paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
+            if (data.monsterHere) paramsBlock += `<div style="margin-bottom: 6px; color: #ff7675;">👿 <b>Монстр обнаружен!</b></div>`;
+        }
+
+        paramsBlock += `<div style="margin-bottom: 4px;">🏞️ <b>Объект:</b> ${obstacleName}</div>`;
+        paramsBlock += `<div style="margin-bottom: 8px;">🏃‍♂️ <b>Цена входа:</b> ${movementCostText}</div>`;
+
+        if (focusedEntityId && focusedEntityId !== squareId) {
+            const sourceData = campMapData[focusedEntityId];
+            const speedLimit = sourceData ? parseInt(sourceData.speed) : 30;
+
+            const pathData = calculatePathAndCost(focusedEntityId, squareId, speedLimit);
+
+            if (pathData) {
+                clearVisualPath();
+                pathData.cells.forEach(cellKey => {
+                    const cellEl = document.getElementById(`visual_square_${cellKey}`);
+                    if (cellEl) cellEl.classList.add('path-cell');
+                });
+
+                paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px; color: #2ecc71;">`;
+                paramsBlock += `📐 <b>Расчет логистики перемещения:</b><br>`;
+                paramsBlock += `• Всего дистанции: <b>${pathData.totalFeet} фт.</b><br>`;
+
+                if (pathData.actions <= 3) {
+                    let actionText = pathData.actions === 1 ? '1-е перемещение' : (pathData.actions === 2 ? '2-е перемещение' : '3-е перемещение (Марш-бросок)');
+                    paramsBlock += `• Потребуется действий: <span style="font-weight:bold;color:#fff;">${pathData.actions} / 3</span><br>`;
+                    paramsBlock += `• Статус: <b>Добегает (${actionText})</b></div>`;
+                } else {
+                    paramsBlock += `• Потребуется действий: <span style="font-weight:bold;color:#ff7675;">${pathData.actions} / 3</span><br>`
+                    paramsBlock += `• Статус: <span style="color:#ff7675;font-weight:bold;">❌ Слишком далеко за 1 ход</span></div>`;
+                }
+            } else {
+                paramsBlock += `<div style="border-top:1px dashed #ff7675;padding-top:6px;margin-top:6px;color:#ff7675;">❌ <b>Путь заблокирован стенами</b></div>`;
+            }
+        }
+
+        paramsBlock += '</div>';
+        tooltip.innerHTML = content + paramsBlock;
+        tooltip.style.display = 'block';
     });
 
     square.addEventListener('mousemove', (e) => {
@@ -366,8 +397,11 @@ function bindTacticalTooltip(square, squareId) {
     square.addEventListener('mouseleave', () => {
         tooltip.style.display = 'none';
         tooltip.innerHTML = '';
+        if (focusedEntityId) clearVisualPath();
     });
 }
+
+
 
 const campModal = document.getElementById('campMenu');
 
@@ -423,12 +457,14 @@ function openTacticalMenu(squareId) {
         if (inpDistance) inpDistance.value = campMapData[squareId].distance || '5';
         currentColor = campMapData[squareId].color || 'transparent';
         if (inpObstacle) inpObstacle.value = campMapData[squareId].obstacle || '';
+        document.getElementById('inpCampSpeed').value = campMapData[squareId].speed || '30';
     } else {
         if (inpHeroHere) inpHeroHere.checked = false;
         if (inpMonsterHere) inpMonsterHere.checked = false;
         if (inpMeasurement) inpMeasurement.value = '';
         if (inpDistance) inpDistance.value = '5';
         if (inpObstacle) inpObstacle.value = '';
+        document.getElementById('inpCampSpeed').value = '30';
     }
 
     if (inpColor) inpColor.value = currentColor;
@@ -924,5 +960,125 @@ function checkLineOfSight(r1, c1, r2, c2) {
             err += dc;
             currR += sr;
         }
+    }
+}
+
+function calculatePathAndCost(startId, targetId, speedLimit) {
+    if (!startId || !targetId) return null;
+
+    const parseCoords = (id) => {
+        const parts = id.split('_');
+        return { r: parseInt(parts[1]), c: parseInt(parts[2]) };
+    };
+
+    const start = parseCoords(startId);
+    const target = parseCoords(targetId);
+
+    // Очередь для поиска (Дейкстра)
+    const queue = [];
+    const distances = {};
+    const parents = {};
+
+    const startKey = `${start.r}_${start.c}`;
+    distances[startKey] = 0;
+    queue.push({ r: start.r, c: start.c, dist: 0 });
+
+    while (queue.length > 0) {
+        queue.sort((a, b) => a.dist - b.dist);
+        const curr = queue.shift();
+        const currKey = `${curr.r}_${curr.c}`;
+
+        if (curr.r === target.r && curr.c === target.c) {
+            break;
+        }
+
+        if (curr.dist > distances[currKey]) continue;
+
+        const neighbors = [
+            { r: curr.r - 1, c: curr.c },
+            { r: curr.r + 1, c: curr.c },
+            { r: curr.r, c: curr.c - 1 },
+            { r: curr.r, c: curr.c + 1 }
+        ];
+
+        for (let n of neighbors) {
+            if (n.r < 0 || n.r >= campParams.rows || n.c < 0 || n.c >= campParams.cols) continue;
+
+            const nId = `square_${n.r}_${n.c}`;
+            const nKey = `${n.r}_${n.c}`;
+            const nData = campMapData[nId];
+
+            if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'destructible')) continue;
+
+            let stepCost = 5;
+            if (nData && (nData.obstacle === 'bushes' || nData.obstacle === 'forest' || nData.obstacle === 'water')) {
+                stepCost = 10;
+            }
+
+            const newDist = curr.dist + stepCost;
+
+            if (distances[nKey] === undefined || newDist < distances[nKey]) {
+                distances[nKey] = newDist;
+                parents[nKey] = currKey;
+                queue.push({ r: n.r, c: n.c, dist: newDist });
+            }
+        }
+    }
+
+    const targetKey = `${target.r}_${target.c}`;
+    if (distances[targetKey] === undefined) return null;
+
+    const pathCells = [];
+    let currKey = targetKey;
+    while (currKey) {
+        pathCells.push(currKey);
+        currKey = parents[currKey];
+    }
+    pathCells.reverse();
+
+    const totalFt = distances[targetKey];
+    const movesNeeded = Math.ceil(totalFt / speedLimit);
+
+    return {
+        cells: pathCells,
+        totalFeet: totalFt,
+        actions: movesNeeded
+    };
+}
+
+function clearVisualPath() {
+    document.querySelectorAll('.tactical-square').forEach(cell => {
+        cell.classList.remove('path-cell');
+        const costLabel = cell.querySelector('.square-path-cost');
+        if (costLabel) costLabel.textContent = '';
+    });
+}
+
+function handleTacticalSquareClick(squareId) {
+    if (modal.classList.contains('open') || (campModal && campModal.classList.contains('open'))) {
+        closeCampMenu();
+        return;
+    }
+
+    const data = campMapData[squareId];
+    const squareElement = document.getElementById('visual_' + squareId);
+    if (!squareElement) return;
+
+    if (data && (data.heroHere || data.monsterHere)) {
+        if (focusedEntityId === squareId) {
+            squareElement.classList.remove('focused-entity');
+            focusedEntityId = null;
+            clearVisualPath();
+        } else {
+            if (focusedEntityId) {
+                const oldFocused = document.getElementById('visual_' + focusedEntityId);
+                if (oldFocused) oldFocused.classList.remove('focused-entity');
+            }
+            focusedEntityId = squareId;
+            squareElement.classList.add('focused-entity');
+            clearVisualPath();
+        }
+    } else {
+        openTacticalMenu(squareId);
     }
 }
