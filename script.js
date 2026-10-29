@@ -1168,3 +1168,84 @@ function updateFrameRunes(width, height) {
     for (let t = padding; t < innerHeight - padding; t += step) { createRune(cLeft, t); }
     for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
 }
+
+let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'runes';
+
+function initFrameStyleControls() {
+    if (document.querySelector('.frame-style-controls')) return;
+
+    const controlsContainer = document.createElement('div');
+    controlsContainer.className = 'frame-style-controls';
+
+    const styles = [
+        { id: 'runes', icon: 'ᚠ', title: 'С рунами' },
+        { id: 'norunes', icon: '🔲', title: 'Без рун (Простая)' },
+        { id: 'ornament', icon: '⚜️', title: 'С ромбовидным орнаментом' }
+    ];
+
+    styles.forEach(s => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `btn-frame-style ${s.id === currentFrameStyle ? 'active' : ''}`;
+        btn.innerHTML = s.icon;
+        btn.title = s.title;
+
+        btn.addEventListener('click', () => {
+            currentFrameStyle = s.id;
+            localStorage.setItem('kingmakerFrameStyle', s.id);
+
+            controlsContainer.querySelectorAll('.btn-frame-style').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+
+            applyFrameStyle();
+        });
+
+        controlsContainer.appendChild(btn);
+    });
+
+    document.body.appendChild(controlsContainer);
+    applyFrameStyle();
+}
+
+function applyFrameStyle() {
+    const frame = document.querySelector('.kingmaker-frame');
+    if (!frame) return;
+
+    frame.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament');
+    frame.classList.add(`frame-style-${currentFrameStyle}`);
+
+    const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+    corners.forEach(cClass => {
+        if (!frame.querySelector(`.${cClass}`)) {
+            const corner = document.createElement('div');
+            corner.className = `frame-corner ${cClass}`;
+            frame.appendChild(corner);
+        }
+    });
+
+    if (currentFrameStyle === 'runes') {
+        if (typeof lastFrameWidth !== 'undefined' && typeof lastFrameHeight !== 'undefined') {
+            lastFrameWidth = 0;
+            lastFrameHeight = 0;
+            updateFrameRunes(frame.offsetWidth, frame.offsetHeight);
+        }
+    } else {
+        frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
+    }
+}
+
+const originalUpdateFrameRunes = updateFrameRunes;
+updateFrameRunes = function(width, height) {
+    if (currentFrameStyle !== 'runes') {
+        const frame = document.querySelector('.kingmaker-frame');
+        if (frame) frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
+        return;
+    }
+    if (typeof originalUpdateFrameRunes === 'function') {
+        originalUpdateFrameRunes(width, height);
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initFrameStyleControls();
+});
