@@ -969,12 +969,13 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
     const jumpFlags = {};
 
     const startKey = `${start.r}_${start.c}`;
-    distances[startKey] = { feet: 0, actions: 0, currentActionSpentFeet: 0, cameByJump: false };
-    queue.push({ r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false });
+    distances[startKey] = { feet: 0, actions: 0, currentActionSpentFeet: 0, cameByJump: false, jumpsCount: 0 };
+    queue.push({ r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
 
     while (queue.length > 0) {
         queue.sort((a, b) => {
             if (a.actions !== b.actions) return a.actions - b.actions;
+            if (a.jumpsCount !== b.jumpsCount) return b.jumpsCount - a.jumpsCount; // Больше прыжков в начале пути = выше приоритет
             return a.feet - b.feet;
         });
 
@@ -985,6 +986,7 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
         if (curr.r === target.r && curr.c === target.c) break;
         if (curr.actions > currState.actions || (curr.actions === currState.actions && curr.feet > currState.feet)) continue;
 
+        // --- 1. ОБЫЧНОЕ ДВИЖЕНИЕ ---
         const neighbors = [
             { r: curr.r - 1, c: curr.c },
             { r: curr.r + 1, c: curr.c },
@@ -1012,15 +1014,22 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
             }
 
             let nextTotalFeet = currState.feet + stepCost;
-            const nextState = { feet: nextTotalFeet, actions: nextActions, currentActionSpentFeet: nextSpentFeet, cameByJump: false };
+            const nextState = {
+                feet: nextTotalFeet,
+                actions: nextActions,
+                currentActionSpentFeet: nextSpentFeet,
+                cameByJump: false,
+                jumpsCount: currState.jumpsCount
+            };
 
             if (distances[nKey] === undefined ||
                 nextState.actions < distances[nKey].actions ||
-                (nextState.actions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
+                (nextState.actions === distances[nKey].actions && nextState.jumpsCount > distances[nKey].jumpsCount) ||
+                (nextState.actions === distances[nKey].actions && nextState.jumpsCount === distances[nKey].jumpsCount && nextState.feet < distances[nKey].feet)) {
 
                 distances[nKey] = nextState;
                 parents[nKey] = { parentKey: currKey, isJump: false };
-                queue.push({ r: n.r, c: n.c, actions: nextActions, feet: nextTotalFeet, cameByJump: false });
+                queue.push({ r: n.r, c: n.c, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: currState.jumpsCount });
             }
         }
 
@@ -1062,16 +1071,24 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
             let nextActions = currState.actions + 1;
             let nextSpentFeet = 0;
             let nextTotalFeet = currState.feet + jumpFeetDist;
+            let nextJumpsCount = currState.jumpsCount + 1;
 
-            const nextState = { feet: nextTotalFeet, actions: nextActions, currentActionSpentFeet: nextSpentFeet, cameByJump: true };
+            const nextState = {
+                feet: nextTotalFeet,
+                actions: nextActions,
+                currentActionSpentFeet: nextSpentFeet,
+                cameByJump: true,
+                jumpsCount: nextJumpsCount
+            };
 
             if (distances[targetCellKey] === undefined ||
                 nextState.actions < distances[targetCellKey].actions ||
-                (nextState.actions === distances[targetCellKey].actions && nextState.feet < distances[targetCellKey].feet)) {
+                (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount > distances[targetCellKey].jumpsCount) ||
+                (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount === distances[targetCellKey].jumpsCount && nextState.feet < distances[targetCellKey].feet)) {
 
                 distances[targetCellKey] = nextState;
                 parents[targetCellKey] = { parentKey: currKey, isJump: true };
-                queue.push({ r: jt.r, c: jt.c, actions: nextActions, feet: nextTotalFeet, cameByJump: true });
+                queue.push({ r: jt.r, c: jt.c, actions: nextActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: nextJumpsCount });
             }
         }
     }
@@ -1106,7 +1123,6 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
 
 function clearVisualPath() {
     document.querySelectorAll('.tactical-square').forEach(cell => {
-        // Удаляем все возможные классы путей и прыжков
         cell.classList.remove(
             'path-cell',
             'path-cell-jump',
@@ -1114,7 +1130,6 @@ function clearVisualPath() {
             'path-cell-jump-land'
         );
 
-        // Полностью очищаем текстовый маркер
         const costLabel = cell.querySelector('.square-path-cost');
         if (costLabel) {
             costLabel.textContent = '';
