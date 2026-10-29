@@ -125,6 +125,10 @@ function buildTacticalGrid() {
             starLabel.className = 'square-star-label';
             square.appendChild(starLabel);
 
+            const crownLabel = document.createElement('span');
+            crownLabel.className = 'square-crown-label';
+            square.appendChild(crownLabel);
+
             if (!campMapData[squareId] || (!campMapData[squareId].explored && !campMapData[squareId].hasVisited)) {
                 square.classList.add('fog-active');
             }
@@ -136,6 +140,7 @@ function buildTacticalGrid() {
                 }
                 if (campMapData[squareId].heroHere) {
                     square.classList.add('squad-dark');
+                    crownLabel.textContent = '👑';
                 }
             }
 
@@ -233,6 +238,9 @@ function deleteTacticalSquare() {
 
         const star = squareElement.querySelector('.square-star-label');
         if (star) star.textContent = '';
+
+        const crown = squareElement.querySelector('.square-crown-label');
+        if (crown) crown.textContent = '';
     }
 
     recalculateCampFogOfWar();
@@ -387,43 +395,62 @@ function recalculateCampFogOfWar() {
             if (!squareElement) continue;
 
             const savedData = campMapData[squareId];
+
+            const crown = squareElement.querySelector('.square-crown-label');
+            if (crown) crown.textContent = '';
+
             if (savedData && savedData.explored) {
                 squareElement.classList.remove('fog-active');
+                if (savedData.color && savedData.color !== 'transparent') {
+                    squareElement.style.backgroundColor = convertHexToRgba(savedData.color, 0.37);
+                } else {
+                    squareElement.style.backgroundColor = '';
+                }
             } else {
                 squareElement.classList.add('fog-active');
+                squareElement.style.backgroundColor = '';
             }
         }
     }
 
     for (let id in campMapData) {
         const data = campMapData[id];
-        if (data && data.heroHere && data.measurement && data.distance) {
-            const parts = id.split('_');
-            const centerR = parseInt(parts[1]);
-            const centerC = parseInt(parts[2]);
-
-            let cellRadius = 0;
-            const ftDistance = parseInt(data.distance) || 5;
-
-            if (data.measurement === 'radius') {
-                cellRadius = Math.round(ftDistance / 5);
-            } else if (data.measurement === 'diameter') {
-                cellRadius = Math.round((ftDistance / 2) / 5);
+        if (data && data.heroHere) {
+            const squareElement = document.getElementById('visual_' + id);
+            if (squareElement) {
+                const crown = squareElement.querySelector('.square-crown-label');
+                if (crown) crown.textContent = '👑'; // Ставим корону герою
             }
 
-            if (cellRadius <= 0) continue;
+            if (data.measurement && data.distance) {
+                const parts = id.split('_');
+                const centerR = parseInt(parts[1]);
+                const centerC = parseInt(parts[2]);
 
-            for (let r = centerR - cellRadius; r <= centerR + cellRadius; r++) {
-                for (let c = centerC - cellRadius; c <= centerC + cellRadius; c++) {
-                    if (r >= 0 && r < campParams.rows && c >= 0 && c < campParams.cols) {
-                        const distR = r - centerR;
-                        const distC = c - centerC;
-                        const currentCellDist = Math.sqrt(distR * distR + distC * distC);
-                        if (currentCellDist <= cellRadius + 0.5) {
-                            const targetId = `square_${r}_${c}`;
-                            const targetElement = document.getElementById('visual_' + targetId);
-                            if (targetElement) {
-                                targetElement.classList.remove('fog-active');
+                const ftDistance = parseInt(data.distance) || 5;
+                let cellRadius = data.measurement === 'radius' ? Math.round(ftDistance / 5) : Math.round((ftDistance / 2) / 5);
+
+                if (cellRadius <= 0) continue;
+
+                for (let r = centerR - cellRadius; r <= centerR + cellRadius; r++) {
+                    for (let c = centerC - cellRadius; c <= centerC + cellRadius; c++) {
+                        if (r >= 0 && r < campParams.rows && c >= 0 && c < campParams.cols) {
+
+                            const distR = r - centerR;
+                            const distC = c - centerC;
+                            const currentCellDist = Math.sqrt(distR * distR + distC * distC);
+
+                            if (currentCellDist <= cellRadius + 0.5) {
+                                const targetId = `square_${r}_${c}`;
+                                const targetElement = document.getElementById('visual_' + targetId);
+                                if (targetElement) {
+                                    targetElement.classList.remove('fog-active');
+
+                                    const targetSavedData = campMapData[targetId];
+                                    if ((!targetSavedData || !targetSavedData.color || targetSavedData.color === 'transparent') && data.color && data.color !== 'transparent') {
+                                        targetElement.style.backgroundColor = convertHexToRgba(data.color, 0.25);
+                                    }
+                                }
                             }
                         }
                     }
