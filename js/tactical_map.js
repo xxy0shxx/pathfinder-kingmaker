@@ -470,7 +470,7 @@ function recalculateCampFogOfWar() {
                     squareElement.style.backgroundColor = '';
                 }
             } else {
-                if (savedData && savedData.explored) {
+                if (savedData && savedData.explored && !savedData.monsterHere) {
                     squareElement.classList.remove('fog-active');
                     squareElement.style.backgroundImage = '';
                     squareElement.style.boxShadow = '';
