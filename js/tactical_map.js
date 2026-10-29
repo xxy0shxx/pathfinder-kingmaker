@@ -187,6 +187,7 @@ function saveTacticalSquare() {
     const measurementVal = document.getElementById('inpCampMeasurement').value;
     const distanceVal = document.getElementById('inpCampDistance').value;
     const colorVal = document.getElementById('inpCampColor').value || 'transparent';
+    const directionVal = document.getElementById('inpCampDirection').value;
 
     const squareElement = document.getElementById('visual_' + id);
 
@@ -213,6 +214,7 @@ function saveTacticalSquare() {
         heroHere: heroHereVal,
         measurement: measurementVal,
         distance: distanceVal,
+        direction: directionVal,
         color: colorVal,
         explored: true,
         hasVisited: heroHereVal || (campMapData[id] && campMapData[id].hasVisited),
@@ -357,6 +359,18 @@ function openTacticalMenu(squareId) {
         });
     }
 
+    const directionBox = document.getElementById('campDirectionBox');
+    const inpDirection = document.getElementById('inpCampDirection');
+    if (directionBox && inpDirection) {
+        if (campMapData[squareId] && campMapData[squareId].measurement === 'cone') {
+            directionBox.style.display = 'block';
+            inpDirection.value = campMapData[squareId].direction || 'N';
+        } else {
+            directionBox.style.display = 'none';
+            inpDirection.value = 'N';
+        }
+    }
+
     if (campModal) campModal.classList.add('open');
 }
 
@@ -419,7 +433,7 @@ function recalculateCampFogOfWar() {
             const squareElement = document.getElementById('visual_' + id);
             if (squareElement) {
                 const crown = squareElement.querySelector('.square-crown-label');
-                if (crown) crown.textContent = '👑'; // Ставим корону герою
+                if (crown) crown.textContent = '👑';
             }
 
             if (data.measurement && data.distance) {
@@ -428,7 +442,11 @@ function recalculateCampFogOfWar() {
                 const centerC = parseInt(parts[2]);
 
                 const ftDistance = parseInt(data.distance) || 5;
-                let cellRadius = data.measurement === 'radius' ? Math.round(ftDistance / 5) : Math.round((ftDistance / 2) / 5);
+                let cellRadius = Math.round(ftDistance / 5);
+
+                if (data.measurement === 'diameter') {
+                    cellRadius = Math.round((ftDistance / 2) / 5);
+                }
 
                 if (cellRadius <= 0) continue;
 
@@ -436,11 +454,17 @@ function recalculateCampFogOfWar() {
                     for (let c = centerC - cellRadius; c <= centerC + cellRadius; c++) {
                         if (r >= 0 && r < campParams.rows && c >= 0 && c < campParams.cols) {
 
-                            const distR = r - centerR;
-                            const distC = c - centerC;
-                            const currentCellDist = Math.sqrt(distR * distR + distC * distC);
+                            let inZone = false;
 
-                            if (currentCellDist <= cellRadius + 0.5) {
+                            if (data.measurement === 'cone') {
+                                inZone = isCellInCone(centerR, centerC, r, c, cellRadius, data.direction || 'N');
+                            } else {
+                                const distR = r - centerR;
+                                const distC = c - centerC;
+                                inZone = Math.sqrt(distR * distR + distC * distC) <= cellRadius + 0.5;
+                            }
+
+                            if (inZone) {
                                 const targetId = `square_${r}_${c}`;
                                 const targetElement = document.getElementById('visual_' + targetId);
                                 if (targetElement) {
@@ -457,5 +481,41 @@ function recalculateCampFogOfWar() {
                 }
             }
         }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const inpMeasurement = document.getElementById('inpCampMeasurement');
+    const directionBox = document.getElementById('campDirectionBox');
+
+    if (inpMeasurement && directionBox) {
+        inpMeasurement.addEventListener('change', () => {
+            if (inpMeasurement.value === 'cone') {
+                directionBox.style.display = 'block';
+            } else {
+                directionBox.style.display = 'none';
+            }
+        });
+    }
+});
+
+function isCellInCone(centerR, centerC, r, c, radius, direction) {
+    const distR = r - centerR;
+    const distC = c - centerC;
+
+    const currentDist = Math.sqrt(distR * distR + distC * distC);
+    if (currentDist > radius + 0.5) return false;
+    if (distR === 0 && distC === 0) return true;
+
+    switch (direction) {
+        case 'N':  return distR < 0 && Math.abs(distC) <= Math.abs(distR);
+        case 'S':  return distR > 0 && Math.abs(distC) <= Math.abs(distR);
+        case 'E':  return distC > 0 && Math.abs(distR) <= Math.abs(distC);
+        case 'W':  return distC < 0 && Math.abs(distR) <= Math.abs(distC);
+        case 'NE': return distR <= 0 && distC >= 0;
+        case 'SE': return distR >= 0 && distC >= 0;
+        case 'SW': return distR >= 0 && distC <= 0;
+        case 'NW': return distR <= 0 && distC <= 0;
+        default: return false;
     }
 }
