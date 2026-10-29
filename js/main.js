@@ -1246,6 +1246,53 @@ updateFrameRunes = function(width, height) {
     }
 };
 
+function initUnifiedUICollapse() {
+    const player = document.querySelector('.music-controller');
+    const btnExport = document.getElementById('btnExport');
+    const btnImport = document.getElementById('btnImport');
+    const styleControls = document.querySelector('.frame-style-controls');
+
+    const mapControls = document.querySelector('.map-selector-controls');
+    const btnToggleFog = document.getElementById('btnToggleFog');
+    const btnMapGlobal = document.getElementById('btnMapGlobal');
+    const btnMapCamp = document.getElementById('btnMapCamp');
+
+    if (player) player.classList.add('ui-collapsed');
+    if (mapControls) mapControls.classList.add('ui-collapsed');
+    if (btnToggleFog) btnToggleFog.classList.add('ui-collapsed');
+    if (btnMapGlobal) btnMapGlobal.classList.add('ui-collapsed');
+    if (btnMapCamp) btnMapCamp.classList.add('ui-collapsed');
+
+    const rightPanel = document.createElement('div');
+    rightPanel.className = 'right-controls-panel ui-collapsed';
+    document.body.appendChild(rightPanel);
+
+    if (btnExport) rightPanel.appendChild(btnExport);
+    if (btnImport) rightPanel.appendChild(btnImport);
+    if (styleControls) rightPanel.appendChild(styleControls);
+
+    const toggleMasterBtn = document.createElement('button');
+    toggleMasterBtn.type = 'button';
+    toggleMasterBtn.className = 'btn-ui-toggle master-toggle-btn';
+    toggleMasterBtn.innerHTML = '⚙️';
+    toggleMasterBtn.title = 'Показать/скрыть интерфейс управления';
+    document.body.appendChild(toggleMasterBtn);
+
+    toggleMasterBtn.addEventListener('click', () => {
+        const isCollapsed = rightPanel.classList.toggle('ui-collapsed');
+
+        if (player) player.classList.toggle('ui-collapsed', isCollapsed);
+        if (mapControls) mapControls.classList.toggle('ui-collapsed', isCollapsed);
+        if (btnToggleFog) btnToggleFog.classList.toggle('ui-collapsed', isCollapsed);
+        if (btnMapGlobal) btnMapGlobal.classList.toggle('ui-collapsed', isCollapsed);
+        if (btnMapCamp) btnMapCamp.classList.toggle('ui-collapsed', isCollapsed);
+
+        toggleMasterBtn.classList.toggle('ui-active', !isCollapsed);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initFrameStyleControls();
+    initUnifiedUICollapse();
 });
+
