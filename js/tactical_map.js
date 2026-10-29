@@ -1106,7 +1106,15 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
 
 function clearVisualPath() {
     document.querySelectorAll('.tactical-square').forEach(cell => {
-        cell.classList.remove('path-cell', 'path-cell-jump');
+        // Удаляем все возможные классы путей и прыжков
+        cell.classList.remove(
+            'path-cell',
+            'path-cell-jump',
+            'path-cell-jump-start',
+            'path-cell-jump-land'
+        );
+
+        // Полностью очищаем текстовый маркер
         const costLabel = cell.querySelector('.square-path-cost');
         if (costLabel) {
             costLabel.textContent = '';
