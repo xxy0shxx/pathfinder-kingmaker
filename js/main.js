@@ -1280,11 +1280,21 @@ function initUnifiedUICollapse() {
     const btnToggleFog = document.getElementById('btnToggleFog');
     const btnMapGlobal = document.getElementById('btnMapGlobal');
     const btnMapCamp = document.getElementById('btnMapCamp');
-
-    // Наш новый журнал квестов
     const questLog = document.getElementById('questLogContainer');
 
-    // По умолчанию прячем всё при загрузке страницы
+    // Проверяем, существует ли уже панель, чтобы не дублировать её в DOM
+    let rightPanel = document.querySelector('.right-controls-panel');
+    if (!rightPanel) {
+        rightPanel = document.createElement('div');
+        rightPanel.className = 'right-controls-panel ui-collapsed';
+        document.body.appendChild(rightPanel);
+    }
+
+    if (btnExport) rightPanel.appendChild(btnExport);
+    if (btnImport) rightPanel.appendChild(btnImport);
+    if (styleControls) rightPanel.appendChild(styleControls);
+
+    // Скрываем все элементы по умолчанию при первой загрузке
     if (player) player.classList.add('ui-collapsed');
     if (mapControls) mapControls.classList.add('ui-collapsed');
     if (btnToggleFog) btnToggleFog.classList.add('ui-collapsed');
@@ -1292,37 +1302,30 @@ function initUnifiedUICollapse() {
     if (btnMapCamp) btnMapCamp.classList.add('ui-collapsed');
     if (questLog) questLog.classList.add('ui-collapsed');
 
-    const rightPanel = document.createElement('div');
-    rightPanel.className = 'right-controls-panel ui-collapsed';
-    document.body.appendChild(rightPanel);
+    if (!document.querySelector('.master-toggle-btn')) {
+        const toggleMasterBtn = document.createElement('button');
+        toggleMasterBtn.type = 'button';
+        toggleMasterBtn.className = 'btn-ui-toggle master-toggle-btn';
+        toggleMasterBtn.innerHTML = '⚙️';
+        toggleMasterBtn.title = 'Показать/скрыть интерфейс управления';
+        document.body.appendChild(toggleMasterBtn);
 
-    if (btnExport) rightPanel.appendChild(btnExport);
-    if (btnImport) rightPanel.appendChild(btnImport);
-    if (styleControls) rightPanel.appendChild(styleControls);
+        toggleMasterBtn.addEventListener('click', () => {
+            const isCollapsed = rightPanel.classList.toggle('ui-collapsed');
 
-    const toggleMasterBtn = document.createElement('button');
-    toggleMasterBtn.type = 'button';
-    toggleMasterBtn.className = 'btn-ui-toggle master-toggle-btn';
-    toggleMasterBtn.innerHTML = '⚙️';
-    toggleMasterBtn.title = 'Показать/скрыть интерфейс управления';
-    document.body.appendChild(toggleMasterBtn);
+            if (player) player.classList.toggle('ui-collapsed', isCollapsed);
+            if (mapControls) mapControls.classList.toggle('ui-collapsed', isCollapsed);
+            if (btnToggleFog) btnToggleFog.classList.toggle('ui-collapsed', isCollapsed);
+            if (btnMapGlobal) btnMapGlobal.classList.toggle('ui-collapsed', isCollapsed);
+            if (btnMapCamp) btnMapCamp.classList.toggle('ui-collapsed', isCollapsed);
+            if (questLog) {
+                questLog.classList.toggle('ui-collapsed', isCollapsed);
+                if (!isCollapsed) renderQuestLog('active');
+            }
 
-    toggleMasterBtn.addEventListener('click', () => {
-        const isCollapsed = rightPanel.classList.toggle('ui-collapsed');
-
-        if (player) player.classList.toggle('ui-collapsed', isCollapsed);
-        if (mapControls) mapControls.classList.toggle('ui-collapsed', isCollapsed);
-        if (btnToggleFog) btnToggleFog.classList.toggle('ui-collapsed', isCollapsed);
-        if (btnMapGlobal) btnMapGlobal.classList.toggle('ui-collapsed', isCollapsed);
-        if (btnMapCamp) btnMapCamp.classList.toggle('ui-collapsed', isCollapsed);
-
-        if (questLog) {
-            questLog.classList.toggle('ui-collapsed', isCollapsed);
-            if (!isCollapsed) renderQuestLog('active');
-        }
-
-        toggleMasterBtn.classList.toggle('ui-active', !isCollapsed);
-    });
+            toggleMasterBtn.classList.toggle('ui-active', !isCollapsed);
+        });
+    }
 
     initQuestLogTabs();
 }
@@ -1381,6 +1384,11 @@ function renderQuestLog(filterStatus = 'active') {
 
             questItem.addEventListener('click', () => {
                 focusOnHex(hexId);
+
+                const masterBtn = document.querySelector('.master-toggle-btn');
+                if (masterBtn && masterBtn.classList.contains('ui-active')) {
+                    masterBtn.click();
+                }
             });
 
             listContainer.appendChild(questItem);
