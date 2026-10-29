@@ -202,7 +202,7 @@ function saveTacticalSquare() {
 
     const heroHereVal = document.getElementById('inpCampHeroHere').checked;
     const monsterHereVal = document.getElementById('inpCampMonsterHere').checked;
-    const obstacleVal = document.getElementById('inpCampObstacle').value;
+    const obstacleVal = document.getElementById('inpCampObstacle').value; // Читаем объединенное поле
     const measurementVal = document.getElementById('inpCampMeasurement').value;
     const distanceVal = document.getElementById('inpCampDistance').value;
     const directionVal = document.getElementById('inpCampDirection').value;
@@ -291,15 +291,52 @@ function bindTacticalTooltip(square, squareId) {
 
             if (data.monsterHere && isFoggy) return;
 
-            let content = `<div class="tooltip-title">⛺ Клетка [${squareId.replace('square_', '')}]</div>`;
+            let content = `<div class="tooltip-title">⛺ Кетка [${squareId.replace('square_', '')}]</div>`;
             let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.4;">';
 
             if (data.heroHere) {
                 paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
             }
-
             if (data.monsterHere) {
                 paramsBlock += `<div style="margin-bottom: 6px; color: #ff7675;">👿 <b>Монстр обнаружен!</b></div>`;
+            }
+
+            let movementCostText = '5 футов (Обычная)';
+            let obstacleName = 'Чистая земля';
+            let isPassable = true;
+
+            if (data.obstacle) {
+                if (data.obstacle === 'wall') {
+                    obstacleName = '🧱 Стена';
+                    movementCostText = '<span style="color: #ff7675; font-weight: bold;">НЕПРОХОДИМО</span>';
+                    isPassable = false;
+                } else if (data.obstacle === 'destructible') {
+                    obstacleName = '📦 Ящик / Бочка';
+                    movementCostText = '<span style="color: #ff7675; font-weight: bold;">НЕПРОХОДИМО</span>';
+                    isPassable = false;
+                } else if (data.obstacle === 'bushes') {
+                    obstacleName = '🌿 Густые кусты';
+                    movementCostText = '<span style="color: #f1c40f; font-weight: bold;">10 футов (Труднопроходимая)</span>';
+                } else if (data.obstacle === 'forest') {
+                    obstacleName = '🌲 Чаща леса';
+                    movementCostText = '<span style="color: #f1c40f; font-weight: bold;">10 утов (Труднопроходимая)</span>';
+                } else if (data.obstacle === 'water') {
+                    obstacleName = '🌊 Глубокая вода';
+                    movementCostText = '<span style="color: #f1c40f; font-weight: bold;">10 футов (Труднопроходимая)</span>';
+                }
+            }
+
+            paramsBlock += `<div style="margin-bottom: 4px;">🏞️ <b>Объект:</b> ${obstacleName}</div>`;
+            paramsBlock += `<div style="margin-bottom: 8px;">🏃‍♂️ <b>Цена входа:</b> ${movementCostText}</div>`;
+
+            if (isPassable) {
+                const cost = data.obstacle ? 10 : 5;
+                paramsBlock += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 6px; margin-top: 6px; font-size: 13px; color: #ebd291;">`;
+                paramsBlock += `📊 <b>Доступность маневра (остаток хода):</b><br>`;
+                paramsBlock += `• Скорость 15 фт: останется <b>${15 - cost} фт.</b><br>`;
+                paramsBlock += `• Скорость 20 фт: останется <b>${20 - cost} фт.</b><br>`;
+                paramsBlock += `• Скорость 30 фт: останется <b>${30 - cost} фт.</b><br>`;
+                paramsBlock += `• Скорость 40 фт: останется <b>${40 - cost} фт.</b></div>`;
             }
 
             if (data.measurement) {
@@ -307,7 +344,7 @@ function bindTacticalTooltip(square, squareId) {
                 let typeIcon = data.measurement === 'radius' ? '⭕' : (data.measurement === 'diameter' ? '↔️' : '📐');
                 const ft = data.distance || '5';
 
-                paramsBlock += `<div style="margin-bottom: 4px;">${typeIcon} <b>Зона:</b> ${typeText} (${ft} фт.)</div>`;
+                paramsBlock += `<div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;">${typeIcon} <b>Зона действия:</b> ${typeText} (${ft} фт.)</div>`;
 
                 if (data.measurement === 'cone' && data.direction) {
                     let dirText = { 'N': '⬆️ Север', 'NE': '↗️ Северо-Восток', 'E': '➡️ Восток', 'SE': '↘️ Юго-Восток', 'S': '⬇️ Юг', 'SW': '↙️ Юго-Запад', 'W': '⬅️ Запад', 'NW': '↖️ Северо-Запад' }[data.direction] || data.direction;
@@ -470,7 +507,7 @@ function recalculateCampFogOfWar() {
             const obstacle = squareElement.querySelector('.square-obstacle-label');
             if (obstacle) obstacle.textContent = '';
 
-            squareElement.classList.remove('obstacle-wall', 'obstacle-destructible');
+            squareElement.classList.remove('obstacle-wall');
 
             const savedData = campMapData[squareId];
 
@@ -506,8 +543,13 @@ function recalculateCampFogOfWar() {
                     squareElement.classList.add('obstacle-wall');
                     if (obstacle) obstacle.textContent = '🧱';
                 } else if (savedData.obstacle === 'destructible') {
-                    squareElement.classList.add('obstacle-destructible');
                     if (obstacle) obstacle.textContent = '📦';
+                } else if (savedData.obstacle === 'bushes') {
+                    if (obstacle) obstacle.textContent = '🌿';
+                } else if (savedData.obstacle === 'forest') {
+                    if (obstacle) obstacle.textContent = '🌲';
+                } else if (savedData.obstacle === 'water') {
+                    if (obstacle) obstacle.textContent = '🌊';
                 }
             }
         }

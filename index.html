@@ -241,11 +241,14 @@
     </div>
 
     <div class="box">
-        <label for="inpCampObstacle">Тип объекта / Препятствие</label>
+        <label for="inpCampObstacle">Объект и Проходимость</label>
         <select id="inpCampObstacle">
-            <option value="">Нет (Пустая клетка)</option>
-            <option value="wall">🧱 Стена (Непробиваемая)</option>
-            <option value="destructible">📦 Разрушаемый объект (Бочка/Ящик)</option>
+            <option value="">Обычная земля (Цена: 5 фт. хода)</option>
+            <option value="wall">🧱 Стена (НЕПРОХОДИМАЯ / Блокирует обзор)</option>
+            <option value="destructible">📦 Ящик / Бочка (НЕПРОХОДИМАЯ)</option>
+            <option value="bushes">🌿 Густые кусты (Труднопроходимая: 10 фт. хода)</option>
+            <option value="forest">🌲 Чаща леса (Труднопроходимая: 10 фт. хода)</option>
+            <option value="water">🌊 Глубокая вода (Труднопроходимая: 10 фт. хода)</option>
         </select>
     </div>
 
