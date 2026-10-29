@@ -101,6 +101,17 @@
         <input type="hidden" id="inpColor" value="">
     </div>
 
+    <div class="box" style="border-top: 1px dashed #543e0d; padding-top: 15px; margin-top: 15px;">
+        <label>⚜️ Квест в гексе</label>
+        <input type="text" id="inpQuestTitle" placeholder="Название задания">
+        <textarea id="inpQuestDesc" rows="2" placeholder="Описание задания, награда, зацепки..." style="margin-top: 8px;"></textarea>
+
+        <div class="checkbox-row" style="margin-top: 8px; margin-bottom: 0;">
+            <label for="inpQuestStatus">Задание выполнено</label>
+            <input type="checkbox" id="inpQuestStatus">
+        </div>
+    </div>
+
     <div class="buttons">
         <button class="btn del" id="btnDelete">Удалить</button>
         <div><button class="btn cc" id="btnCancel">Отмена</button></div>
@@ -157,6 +168,15 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="questLogContainer" class="quest-log-container ui-collapsed">
+        <div class="quest-log-header">⚜️ Журнал заданий</div>
+        <div class="quest-log-tabs">
+            <button type="button" class="quest-tab-btn active" id="tabActiveQuests">Активные</button>
+            <button type="button" class="quest-tab-btn" id="tabCompletedQuests">Завершенные</button>
+        </div>
+        <div id="questLogList" class="quest-log-list"></div>
     </div>
 
     <div class="main-controls" id="audioControls">

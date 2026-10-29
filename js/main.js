@@ -529,6 +529,17 @@ function openMenu(hexId) {
             if (newDesc !== null) inpDesc.value = newDesc;
         };
     }
+
+    if (mapData[hexId] && mapData[hexId].questData) {
+        document.getElementById('inpQuestTitle').value = mapData[hexId].questData.title || '';
+        document.getElementById('inpQuestDesc').value = mapData[hexId].questData.desc || '';
+        document.getElementById('inpQuestStatus').checked = mapData[hexId].questData.status === 'completed';
+    } else {
+        document.getElementById('inpQuestTitle').value = '';
+        document.getElementById('inpQuestDesc').value = '';
+        document.getElementById('inpQuestStatus').checked = false;
+    }
+
     modal.classList.add('open');
 }
 
@@ -568,6 +579,9 @@ function saveMenu() {
     const typeVal = document.getElementById('inpType').value;
     const terrainVal = document.getElementById('inpTerrain').value;
     const regionLevelVal = document.getElementById('inpRegionLevel').value;
+    const questTitleVal = document.getElementById('inpQuestTitle').value.trim();
+    const questDescVal = document.getElementById('inpQuestDesc').value.trim();
+    const questStatusVal = document.getElementById('inpQuestStatus').checked ? 'completed' : 'active';
 
     const currentHexElement = document.getElementById('visual_' + currentHexId);
     const currentShape = document.getElementById('shape_' + currentHexId);
@@ -777,10 +791,21 @@ function saveMenu() {
         terrain: terrainVal,
         regionLevel: regionLevelVal,
         hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited),
-        lastSaved: new Date().toLocaleString()
+        lastSaved: new Date().toLocaleString(),
+        questData: questTitleVal ? {
+            title: questTitleVal,
+            desc: questDescVal,
+            status: questStatusVal
+        } : null
     };
 
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+
+    const questLog = document.getElementById('questLogContainer');
+    if (questLog && !questLog.classList.contains('ui-collapsed')) {
+        const activeTab = document.querySelector('.quest-tab-btn.active');
+        renderQuestLog(activeTab && activeTab.id === 'tabCompletedQuests' ? 'completed' : 'active');
+    }
 
     for (let id in mapData) {
         const vHex = document.getElementById('visual_' + id);
@@ -1251,17 +1276,21 @@ function initUnifiedUICollapse() {
     const btnExport = document.getElementById('btnExport');
     const btnImport = document.getElementById('btnImport');
     const styleControls = document.querySelector('.frame-style-controls');
-
     const mapControls = document.querySelector('.map-selector-controls');
     const btnToggleFog = document.getElementById('btnToggleFog');
     const btnMapGlobal = document.getElementById('btnMapGlobal');
     const btnMapCamp = document.getElementById('btnMapCamp');
 
+    // Наш новый журнал квестов
+    const questLog = document.getElementById('questLogContainer');
+
+    // По умолчанию прячем всё при загрузке страницы
     if (player) player.classList.add('ui-collapsed');
     if (mapControls) mapControls.classList.add('ui-collapsed');
     if (btnToggleFog) btnToggleFog.classList.add('ui-collapsed');
     if (btnMapGlobal) btnMapGlobal.classList.add('ui-collapsed');
     if (btnMapCamp) btnMapCamp.classList.add('ui-collapsed');
+    if (questLog) questLog.classList.add('ui-collapsed');
 
     const rightPanel = document.createElement('div');
     rightPanel.className = 'right-controls-panel ui-collapsed';
@@ -1287,8 +1316,15 @@ function initUnifiedUICollapse() {
         if (btnMapGlobal) btnMapGlobal.classList.toggle('ui-collapsed', isCollapsed);
         if (btnMapCamp) btnMapCamp.classList.toggle('ui-collapsed', isCollapsed);
 
+        if (questLog) {
+            questLog.classList.toggle('ui-collapsed', isCollapsed);
+            if (!isCollapsed) renderQuestLog('active');
+        }
+
         toggleMasterBtn.classList.toggle('ui-active', !isCollapsed);
     });
+
+    initQuestLogTabs();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1296,3 +1332,87 @@ document.addEventListener('DOMContentLoaded', () => {
     initUnifiedUICollapse();
 });
 
+let currentQuestFilter = 'active';
+
+function initQuestLogTabs() {
+    const tabActive = document.getElementById('tabActiveQuests');
+    const tabCompleted = document.getElementById('tabCompletedQuests');
+
+    if (tabActive && tabCompleted) {
+        tabActive.addEventListener('click', () => {
+            tabActive.classList.add('active');
+            tabCompleted.classList.remove('active');
+            currentQuestFilter = 'active';
+            renderQuestLog('active');
+        });
+        tabCompleted.addEventListener('click', () => {
+            tabCompleted.classList.add('active');
+            tabActive.classList.remove('active');
+            currentQuestFilter = 'completed';
+            renderQuestLog('completed');
+        });
+    }
+}
+
+function renderQuestLog(filterStatus = 'active') {
+    const listContainer = document.getElementById('questLogList');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    let count = 0;
+
+    for (let hexId in mapData) {
+        const hex = mapData[hexId];
+        if (hex && hex.questData && hex.questData.status === filterStatus) {
+            count++;
+            const questItem = document.createElement('div');
+            questItem.className = `quest-log-item status-${filterStatus}`;
+
+            let objIcon = '⚜️';
+            if (hex.type === 'landmark') objIcon = '🏛️';
+            if (hex.type === 'resource') objIcon = '💎';
+            if (hex.type === 'mystery') objIcon = '❓';
+
+            questItem.innerHTML = `
+                <div class="quest-item-title">${objIcon} ${hex.questData.title}</div>
+                <div class="quest-item-location">📍 Регион: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
+                ${hex.questData.desc ? `<div class="quest-item-desc">${hex.questData.desc.replace(/\n/g, '<br>')}</div>` : ''}
+            `;
+
+            questItem.addEventListener('click', () => {
+                focusOnHex(hexId);
+            });
+
+            listContainer.appendChild(questItem);
+        }
+    }
+
+    if (count === 0) {
+        listContainer.innerHTML = `<div class="quest-log-empty">Нет заданий в этой категории</div>`;
+    }
+}
+
+function focusOnHex(hexId) {
+    const vHex = document.getElementById('visual_' + hexId);
+    if (!vHex) return;
+
+    const hexX = parseFloat(vHex.style.left);
+    const hexY = parseFloat(vHex.style.top);
+    const hexW = parseFloat(vHex.style.width);
+    const hexH = parseFloat(vHex.style.height);
+    const vpW = window.innerWidth;
+    const vpH = window.innerHeight;
+
+    currentZoom = 1.0;
+    x = (vpW / 2) - (hexX + hexW / 2);
+    y = (vpH / 2) - (hexY + hexH / 2);
+
+    if (typeof updateMapTransform === 'function') {
+        updateMapTransform();
+    }
+
+    vHex.classList.add('hex-focused-flash');
+    setTimeout(() => {
+        vHex.classList.remove('hex-focused-flash');
+    }, 1500);
+}
