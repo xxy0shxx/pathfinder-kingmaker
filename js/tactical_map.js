@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initMapSelector();
 });
 
-
 function switchMapMode(mode) {
     currentMapMode = mode;
 
@@ -115,8 +114,6 @@ function buildTacticalGrid() {
     gridLayer.style.gridTemplateColumns = `repeat(${campParams.cols}, ${campParams.squareSize}px)`;
     gridLayer.style.gridTemplateRows = `repeat(${campParams.rows}, ${campParams.squareSize}px)`;
 
-
-
     for (let r = 0; r < campParams.rows; r++) {
         for (let c = 0; c < campParams.cols; c++) {
             const squareId = `square_${r}_${c}`;
@@ -175,6 +172,7 @@ function buildTacticalGrid() {
 
     recalculateCampFogOfWar();
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     const btnSave = document.getElementById('btnSave');
     const btnDelete = document.getElementById('btnDelete');
@@ -432,7 +430,6 @@ function closeCampMenu() {
     if (campModal) campModal.classList.remove('open');
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
     initCampColorPresets();
 
@@ -456,7 +453,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnCampCancel) btnCampCancel.addEventListener('click', closeCampMenu);
     if (btnCampDelete) btnCampDelete.addEventListener('click', deleteTacticalSquare);
 });
-
 
 function recalculateCampFogOfWar() {
     const cellAuras = {};
