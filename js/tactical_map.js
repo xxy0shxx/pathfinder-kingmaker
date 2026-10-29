@@ -940,23 +940,18 @@ function checkLineOfSight(r1, c1, r2, c2) {
         }
 
         let e2 = 2 * err;
-        if (e2 > -dr) {
-            err -= dr;
-            currC += sc;
-        }
-        if (e2 < dc) {
-            err += dc;
-            currR += sr;
-        }
+        if (e2 > -dr) { err -= dr; currC += sc; }
+        if (e2 < dc) { err += dc; currR += sr; }
     }
 }
+
 
 function calculatePathAndCost(startId, targetId, speedLimit) {
     if (!startId || !targetId) return null;
 
     const parseCoords = (id) => {
         const parts = id.split('_');
-        return { r: parseInt(parts[1]), c: parseInt(parts[2]) };
+        return { r: parseInt(parts[1], 10), c: parseInt(parts[2], 10) };
     };
 
     const start = parseCoords(startId);
@@ -1026,34 +1021,14 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
 
         if (curr.cameByJump) continue;
 
-        let obstacleNearby = false;
-        const checkDirections = [
-            { r: curr.r, c: curr.c }, // Текущая клетка
-            { r: curr.r - 1, c: curr.c }, { r: curr.r + 1, c: curr.c },
-            { r: curr.r, c: curr.c - 1 }, { r: curr.r, c: curr.c + 1 }
-        ];
-
-        for (let cd of checkDirections) {
-            if (cd.r >= 0 && cd.r < campParams.rows && cd.c >= 0 && cd.c < campParams.cols) {
-                const checkId = `square_${cd.r}_${cd.c}`;
-                const checkData = campMapData[checkId];
-                if (checkData && checkData.obstacle && checkData.obstacle !== '') {
-                    obstacleNearby = true;
-                    break;
-                }
-            }
-        }
-
-        if (!obstacleNearby) continue;
-
         const jumpCellsCount = (speedLimit >= 30) ? 3 : 2;
         const jumpFeetDist = jumpCellsCount * 5;
 
         const jumpTargets = [
-            { r: curr.r - jumpCellsCount, c: curr.c },
-            { r: curr.r + jumpCellsCount, c: curr.c },
-            { r: curr.r, c: curr.c - jumpCellsCount },
-            { r: curr.r, c: curr.c + jumpCellsCount }
+            { r: curr.r - jumpCellsCount, c: curr.c, dr: -1, dc: 0 },
+            { r: curr.r + jumpCellsCount, c: curr.c, dr: 1, dc: 0 },
+            { r: curr.r, c: curr.c - jumpCellsCount, dr: 0, dc: -1 },
+            { r: curr.r, c: curr.c + jumpCellsCount, dr: 0, dc: 1 }
         ];
 
         for (let jt of jumpTargets) {
@@ -1065,6 +1040,23 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
 
             if (targetData && (targetData.obstacle === 'wall' || targetData.obstacle === 'destructible')) continue;
             if (!checkLineOfSight(curr.r, curr.c, jt.r, jt.c)) continue;
+
+            let hasObstacleInPath = false;
+            for (let i = 0; i < jumpCellsCount; i++) {
+                const checkR = curr.r + (jt.dr * i);
+                const checkC = curr.c + (jt.dc * i);
+
+                if (checkR >= 0 && checkR < campParams.rows && checkC >= 0 && checkC < campParams.cols) {
+                    const checkId = `square_${checkR}_${checkC}`;
+                    const checkData = campMapData[checkId];
+                    if (checkData && checkData.obstacle && checkData.obstacle !== '') {
+                        hasObstacleInPath = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasObstacleInPath) continue;
 
             let nextActions = currState.actions + 1;
             let nextSpentFeet = 0;
@@ -1087,8 +1079,8 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
     if (distances[targetKey] === undefined) return null;
 
     const pathCells = [];
-    let currNode = parents[targetKey];
     let currentKey = targetKey;
+    let currNode = parents[currentKey];
 
     pathCells.push(targetKey);
 
@@ -1112,7 +1104,7 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
 
 function clearVisualPath() {
     document.querySelectorAll('.tactical-square').forEach(cell => {
-        cell.classList.remove('path-cell', 'path-cell-jump'); // ДОБАВЛЕН КЛАСС path-cell-jump ДЛЯ ОЧИСТКИ
+        cell.classList.remove('path-cell', 'path-cell-jump');
         const costLabel = cell.querySelector('.square-path-cost');
         if (costLabel) {
             costLabel.textContent = '';
