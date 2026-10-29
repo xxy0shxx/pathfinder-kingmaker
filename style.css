@@ -699,12 +699,13 @@ body {
     pointer-events: none;
 }
 
-#btnExport, #btnImport {
-    position: fixed;
+#btnImport {
+    position: fixed !important;
+    right: 40px !important;
     bottom: 40px !important;
     z-index: 10005;
-
-    padding: 12px 22px;
+    width: 160px;
+    padding: 12px 0;
     border-radius: 4px;
     font: bold 12px sans-serif;
     transition: all 0.2s ease;
@@ -713,21 +714,33 @@ body {
     box-sizing: border-box;
     cursor: pointer;
     white-space: nowrap;
+    text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-#btnExport {
-    right: 195px !important;
-    background: linear-gradient(180deg, #42351f 0%, #292011 100%);
-    color: #ebd291;
-    border: 1px solid #543e0d;
-}
-
-#btnImport {
-    right: 40px !important;
     background: linear-gradient(180deg, #1e3c27 0%, #112417 100%);
     color: #dfbc6f;
     border: 1px solid #3e6349;
+}
+
+#btnExport {
+    position: fixed !important;
+    right: 40px !important;
+    bottom: 95px !important;
+    z-index: 10005;
+    width: 160px;
+    padding: 12px 0;
+    border-radius: 4px;
+    font: bold 12px sans-serif;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-sizing: border-box;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%);
+    color: #ebd291;
+    border: 1px solid #543e0d;
 }
 
 #btnExport:hover, #btnImport:hover {
@@ -735,12 +748,8 @@ body {
     filter: brightness(1.2);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
-#btnExport:hover {
-    border-color: #b89445 !important;
-}
-#btnImport:hover {
-    border-color: #dfbc6f !important;
-}
+#btnExport:hover { border-color: #b89445 !important; }
+#btnImport:hover { border-color: #dfbc6f !important; }
 
 #btnExport:active, #btnImport:active {
     transform: translateY(0);
@@ -898,16 +907,18 @@ body {
 }
 
 .frame-style-controls {
-    position: fixed;
-    bottom: 100px;
-    right: 40px;
+    position: fixed !important;
+    right: 40px !important;
+    bottom: 150px !important;
     z-index: 10005;
     display: flex;
     gap: 8px;
+    width: 160px;
+    justify-content: space-between;
 }
 
 .btn-frame-style {
-    width: 42px;
+    flex: 1;
     height: 42px;
     border-radius: 4px;
     font-size: 18px;

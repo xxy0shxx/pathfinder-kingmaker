@@ -1169,7 +1169,7 @@ function updateFrameRunes(width, height) {
     for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
 }
 
-let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'runes';
+let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
 
 function initFrameStyleControls() {
     if (document.querySelector('.frame-style-controls')) return;
@@ -1178,9 +1178,9 @@ function initFrameStyleControls() {
     controlsContainer.className = 'frame-style-controls';
 
     const styles = [
+        { id: 'norunes', icon: '🔲', title: 'Без рун' },
         { id: 'runes', icon: 'ᚠ', title: 'С рунами' },
-        { id: 'norunes', icon: '🔲', title: 'Без рун (Простая)' },
-        { id: 'ornament', icon: '⚜️', title: 'С ромбовидным орнаментом' }
+        { id: 'ornament', icon: '⚜️', title: 'Орнамент' }
     ];
 
     styles.forEach(s => {
