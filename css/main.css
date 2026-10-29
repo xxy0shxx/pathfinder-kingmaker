@@ -1072,11 +1072,20 @@ body {
     margin: 0 !important;
 }
 
-.map-selector-controls.ui-collapsed,
-#btnToggleFog.ui-collapsed,
-#btnMapGlobal.ui-collapsed,
+#btnToggleFog.ui-collapsed {
+    bottom: -60px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+#btnMapGlobal.ui-collapsed {
+    bottom: -110px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 #btnMapCamp.ui-collapsed {
-    transform: translate(0, 350px) scale(0.7) !important;
+    bottom: -160px !important;
     opacity: 0 !important;
     pointer-events: none !important;
 }
@@ -1106,8 +1115,25 @@ body {
     margin: 0 !important;
 }
 
+#btnToggleFog,
 #btnMapGlobal,
 #btnMapCamp {
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
-    transform-origin: center bottom !important;
+    transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+#btnToggleFog:not(.ui-collapsed) {
+    bottom: 201px !important;
+    opacity: 1 !important;
+}
+
+#btnMapGlobal:not(.ui-collapsed) {
+    bottom: 147px !important;
+    opacity: 1 !important;
+}
+
+#btnMapCamp:not(.ui-collapsed) {
+    bottom: 95px !important;
+    opacity: 1 !important;
 }
