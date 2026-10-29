@@ -339,14 +339,21 @@ function bindTacticalTooltip(square, squareId) {
                 pathData.cells.forEach(cellKey => {
                     const cellEl = document.getElementById(`visual_square_${cellKey}`);
                     if (cellEl) {
-                        if (pathData.jumpFlags[cellKey]) {
-                            cellEl.classList.add('path-cell-jump');
+                        let costLabel = cellEl.querySelector('.square-path-cost');
+                        if (!costLabel) {
+                            costLabel = document.createElement('span');
+                            costLabel.className = 'square-path-cost';
+                            cellEl.appendChild(costLabel);
+                        }
 
-                            const costLabel = cellEl.querySelector('.square-path-cost');
-                            if (costLabel) {
-                                costLabel.textContent = 'JUMP';
-                                costLabel.style.color = '#f1c40f';
-                            }
+                        if (pathData.jumpFlags[cellKey] === 'start') {
+                            cellEl.classList.add('path-cell-jump-start');
+                            costLabel.textContent = 'JUMP 🦘';
+                            costLabel.style.color = '#ff9f43';
+                        } else if (pathData.jumpFlags[cellKey] === 'land') {
+                            cellEl.classList.add('path-cell-jump-land');
+                            costLabel.textContent = 'LAND 🎯';
+                            costLabel.style.color = '#10ac84';
                         } else {
                             cellEl.classList.add('path-cell');
                         }
@@ -945,7 +952,6 @@ function checkLineOfSight(r1, c1, r2, c2) {
     }
 }
 
-
 function calculatePathAndCost(startId, targetId, speedLimit) {
     if (!startId || !targetId) return null;
 
@@ -996,7 +1002,6 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
             if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'destructible')) continue;
 
             let stepCost = (nData && ['bushes', 'forest', 'water'].includes(nData.obstacle)) ? 10 : 5;
-
             let nextActions = currState.actions;
             let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
 
@@ -1039,24 +1044,20 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
             const targetData = campMapData[targetCellId];
 
             if (targetData && (targetData.obstacle === 'wall' || targetData.obstacle === 'destructible')) continue;
-            if (!checkLineOfSight(curr.r, curr.c, jt.r, jt.c)) continue;
 
-            let hasObstacleInPath = false;
-            for (let i = 0; i < jumpCellsCount; i++) {
+            let obstacleInPath = false;
+            for (let i = 1; i < jumpCellsCount; i++) {
                 const checkR = curr.r + (jt.dr * i);
                 const checkC = curr.c + (jt.dc * i);
-
-                if (checkR >= 0 && checkR < campParams.rows && checkC >= 0 && checkC < campParams.cols) {
-                    const checkId = `square_${checkR}_${checkC}`;
-                    const checkData = campMapData[checkId];
-                    if (checkData && checkData.obstacle && checkData.obstacle !== '') {
-                        hasObstacleInPath = true;
-                        break;
-                    }
+                const checkId = `square_${checkR}_${checkC}`;
+                const checkData = campMapData[checkId];
+                if (checkData && checkData.obstacle && checkData.obstacle !== '') {
+                    obstacleInPath = true;
+                    break;
                 }
             }
 
-            if (!hasObstacleInPath) continue;
+            if (!obstacleInPath) continue;
 
             let nextActions = currState.actions + 1;
             let nextSpentFeet = 0;
@@ -1086,7 +1087,8 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
 
     while (currNode) {
         if (currNode.isJump) {
-            jumpFlags[currentKey] = true;
+            jumpFlags[currentKey] = 'land';
+            jumpFlags[currNode.parentKey] = 'start';
         }
         currentKey = currNode.parentKey;
         pathCells.push(currentKey);
