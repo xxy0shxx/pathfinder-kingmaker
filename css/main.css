@@ -1019,9 +1019,9 @@ body {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
 }
 
-#btnToggleFog { bottom: 203px !important; }
-#btnMapGlobal { bottom: 149px !important; }
-#btnMapCamp   { bottom: 95px !important; }
+#btnMapGlobal { bottom: 203px !important; }
+#btnMapCamp { bottom: 149px !important; }
+#btnToggleFog { bottom: 95px !important; }
 
 #btnToggleFog.ui-collapsed   { bottom: -60px !important; opacity: 0 !important; pointer-events: none !important; }
 #btnMapGlobal.ui-collapsed   { bottom: -110px !important; opacity: 0 !important; pointer-events: none !important; }
@@ -1126,4 +1126,27 @@ body {
     background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
     border-color: #3e6349 !important;
     color: #dfbc6f !important;
+}
+
+#btnExport,
+#btnImport {
+    background: linear-gradient(180deg, #a68032 0%, #543e0d 100%) !important;
+    color: #ebd291 !important;
+    border: 1px solid #b89445 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+#btnExport:hover,
+#btnImport:hover {
+    background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
+    border-color: #ebd291 !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px rgba(184, 148, 69, 0.6), 0 6px 18px rgba(0, 0, 0, 0.6) !important;
+}
+
+#btnExport:active,
+#btnImport:active {
+    background: linear-gradient(180deg, #543e0d 0%, #36260d 100%) !important;
+    border-color: #a68032 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
 }
