@@ -1,4 +1,4 @@
-const hexRadius = 78;
+const hexRadius = 77.96;
 const rows = 12;
 const cols = 30;
 const offsetX = -106;
@@ -922,6 +922,8 @@ fileInput.addEventListener('change', function(e) {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    groupMenuFields();
+
     initializeMusicPlayer();
     initColorPresets();
     populateDifficultySelect();
@@ -1433,4 +1435,34 @@ function focusOnHex(hexId) {
     setTimeout(() => {
         vHex.classList.remove('hex-focused-flash');
     }, 3600);
+}
+
+function groupMenuFields() {
+    const inpType = document.getElementById('inpType');
+    const inpTerrain = document.getElementById('inpTerrain');
+    const difficultySelect = document.getElementById('inpDifficulty');
+    const inpRegionLevel = document.getElementById('inpRegionLevel');
+
+    if (!inpType || !inpTerrain || !difficultySelect || !inpRegionLevel) return;
+
+    const boxType = inpType.closest('.box');
+    const boxTerrain = inpTerrain.closest('.box');
+    const boxDiff = difficultySelect.closest('.box');
+    const boxLevel = inpRegionLevel.closest('.box');
+
+    if (boxType && boxTerrain) {
+        const rowObjects = document.createElement('div');
+        rowObjects.className = 'box-row-combined';
+        boxType.parentNode.insertBefore(rowObjects, boxType);
+        rowObjects.appendChild(boxType);
+        rowObjects.appendChild(boxTerrain);
+    }
+
+    if (boxDiff && boxLevel) {
+        const rowStats = document.createElement('div');
+        rowStats.className = 'box-row-combined';
+        boxDiff.parentNode.insertBefore(rowStats, boxDiff);
+        rowStats.appendChild(boxDiff);
+        rowStats.appendChild(boxLevel);
+    }
 }

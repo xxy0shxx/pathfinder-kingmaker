@@ -855,24 +855,10 @@ body {
 .bottom-right { bottom: -24px; right: -24px; }
 
 @media (max-width: 1024px) {
-    .box input[type="text"],
-    .box textarea,
-    .box select,
-    .box select option {
-        font-size: 16px !important;
-    }
-
-    .box input[type="text"],
-    .box select {
-        transform: scale(0.85);
-        transform-origin: left center;
-        width: 117.6% !important;
-    }
-
-    .box textarea {
-        transform: scale(0.85);
-        transform-origin: left top;
-        width: 117.6% !important;
+    .box-row-combined .box input[type="text"],
+    .box-row-combined .box select {
+        width: 100% !important;
+        transform: none !important;
     }
 }
 
@@ -1327,4 +1313,18 @@ body {
 
 .btn-close-quest-log:active {
     transform: translateY(-50%) scale(0.95) !important;
+}
+
+.box-row-combined {
+    display: flex !important;
+    gap: 15px !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+}
+
+/* Переопределяем отступы для вложенных блоков .box, чтобы они не ломали сетку */
+.box-row-combined .box {
+    flex: 1 !important;
+    margin-bottom: 0 !important;
+    width: 100% !important;
 }
