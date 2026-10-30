@@ -28,6 +28,7 @@ const shuffleButton = document.getElementById('btnShuffle');
 let playlist = [];
 let currentTrackIdx = 0;
 let isLooping = false;
+let isShuffling = false;
 
 function formatTrackName(filename) {
     let name = filename.replace('.mp3', '');
@@ -71,7 +72,22 @@ async function initializeMusicPlayer() {
         if (musicButton) musicButton.addEventListener('click', toggleMusic);
         if (loopButton) loopButton.addEventListener('click', toggleLoop);
         if (playlistButton) playlistButton.addEventListener('click', togglePlaylistUI);
-        if (shuffleButton) shuffleButton.addEventListener('click', playNextRandomTrack);
+
+        //
+        if (shuffleButton) {
+            shuffleButton.addEventListener('click', () => {
+                isShuffling = !isShuffling;
+                shuffleButton.classList.toggle('active', isShuffling);
+
+                if (isShuffling) {
+                    shuffleButton.title = "Перемешивание ВКЛ";
+                    playNextRandomTrack();
+                } else {
+                    shuffleButton.title = "Перемешать треки";
+                }
+            });
+        }
+        //
 
         audioPlayer.addEventListener("timeupdate", () => {
             if (!audioPlayer.duration) return;
@@ -98,9 +114,20 @@ async function initializeMusicPlayer() {
             volumeSlider.addEventListener("input", (e) => { audioPlayer.volume = e.target.value; });
         }
 
+        //
         audioPlayer.addEventListener("ended", () => {
-            if (!isLooping) playNextRandomTrack();
+            if (isLooping) {
+                return;
+            }
+            if (isShuffling) {
+                playNextRandomTrack();
+            } else {
+                let nextIdx = currentTrackIdx + 1;
+                if (nextIdx >= playlist.length) nextIdx = 0;
+                loadTrack(nextIdx, true);
+            }
         });
+        //
 
         loadTrack(currentTrackIdx, false);
     } catch (error) {
