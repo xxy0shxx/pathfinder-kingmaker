@@ -1205,31 +1205,38 @@ function initFrameStyleControls() {
     controlsContainer.className = 'frame-style-controls';
 
     const styles = [
-        { id: 'norunes', icon: '🔲', title: 'Без рун' },
-        { id: 'runes', icon: 'ᚱ', title: 'С рунами' },
-        { id: 'ornament', icon: '⚜️', title: 'Орнамент' }
+        { id: 'norunes', icon: '🔲', title: 'Рамка: Без рун' },
+        { id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами' },
+        { id: 'ornament', icon: '⚜️', title: 'Рамка: Орнамент' }
     ];
 
-    styles.forEach(s => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `btn-frame-style ${s.id === currentFrameStyle ? 'active' : ''}`;
-        btn.innerHTML = s.icon;
-        btn.title = s.title;
+    const getCurrentIndex = () => styles.findIndex(s => s.id === currentFrameStyle);
 
-        btn.addEventListener('click', () => {
-            currentFrameStyle = s.id;
-            localStorage.setItem('kingmakerFrameStyle', s.id);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-frame-style active';
+    btn.style.width = '100%';
 
-            controlsContainer.querySelectorAll('.btn-frame-style').forEach(x => x.classList.remove('active'));
-            btn.classList.add('active');
+    function updateButtonUI() {
+        const currentStyle = styles[getCurrentIndex()] || styles[0];
+        btn.innerHTML = `${currentStyle.icon} Стиль`;
+        btn.title = currentStyle.title;
+    }
 
-            applyFrameStyle();
-        });
+    btn.addEventListener('click', () => {
+        let nextIdx = getCurrentIndex() + 1;
+        if (nextIdx >= styles.length) nextIdx = 0;
 
-        controlsContainer.appendChild(btn);
+        currentFrameStyle = styles[nextIdx].id;
+        localStorage.setItem('kingmakerFrameStyle', currentFrameStyle);
+
+        updateButtonUI();
+        applyFrameStyle();
     });
 
+    updateButtonUI();
+
+    controlsContainer.appendChild(btn);
     document.body.appendChild(controlsContainer);
     applyFrameStyle();
 }
