@@ -989,10 +989,36 @@ body {
 #btnToggleFog, #btnMapGlobal, #btnMapCamp {
     position: fixed !important;
     right: 96px !important;
+    width: 46px !important;
+    height: 44px !important;
     z-index: 10005;
     margin: 0 !important;
-    transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
+    padding: 0 !important;
+    font-size: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    border: 1px solid #543e0d !important;
+    color: #ebd291 !important;
+    transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
 }
+
+#btnToggleFog:hover, #btnMapGlobal:hover, #btnMapCamp:hover {
+    transform: translateY(-2px) !important;
+    filter: brightness(1.2) !important;
+    border-color: #b89445 !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6) !important;
+}
+
+#btnToggleFog:active, #btnMapGlobal:active, #btnMapCamp:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
 #btnToggleFog { bottom: 201px !important; }
 #btnMapGlobal { bottom: 147px !important; }
 #btnMapCamp   { bottom: 95px !important; }
@@ -1005,7 +1031,7 @@ body {
     position: fixed !important;
     right: 96px !important;
     z-index: 10005;
-    width: 42px !important;
+    width: 46px !important;
     display: block !important;
     margin: 0 !important;
     background: none !important;
