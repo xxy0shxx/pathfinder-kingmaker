@@ -1426,33 +1426,8 @@ function focusOnHex(hexId) {
     const vHex = document.getElementById('visual_' + hexId);
     if (!vHex) return;
 
-    const parts = hexId.split('_');
-    const r = parseInt(parts, 10);
-    const c = parseInt(parts, 10);
-    const widthBetweenHexes = hexRadius * Math.sqrt(3);
-    const heightBetweenHexes = hexRadius * 1.5;
-    let cx = offsetX + c * widthBetweenHexes;
-    let cy = offsetY + r * heightBetweenHexes;
-    if (r % 2 !== 0) {
-        cx += widthBetweenHexes / 2;
-    }
-
-    const vpW = window.innerWidth;
-    const vpH = window.innerHeight;
-
-    currentZoom = 1.5;
-
-    x = (vpW / 2) - (cx * currentZoom);
-    y = (vpH / 2) - (cy * currentZoom);
-
-    if (typeof updateMapTransform === 'function') {
-        updateMapTransform();
-    }
-
-    const frame = document.querySelector('.kingmaker-frame');
-    if (frame && typeof updateFrameRunes === 'function') {
-        updateFrameRunes(frame.offsetWidth, frame.offsetHeight);
-    }
+    isDragging = false;
+    hasMoved = false;
 
     vHex.classList.add('hex-focused-flash');
     setTimeout(() => {
