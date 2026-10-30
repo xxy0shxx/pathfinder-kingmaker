@@ -75,14 +75,19 @@ async function initializeMusicPlayer() {
 
         //
         if (shuffleButton) {
+            shuffleButton.textContent = "➔";
+            shuffleButton.title = "Перемешать треки";
+
             shuffleButton.addEventListener('click', () => {
                 isShuffling = !isShuffling;
                 shuffleButton.classList.toggle('active', isShuffling);
 
                 if (isShuffling) {
+                    shuffleButton.textContent = "🔀";
                     shuffleButton.title = "Перемешивание ВКЛ";
                     playNextRandomTrack();
                 } else {
+                    shuffleButton.textContent = "▶️";
                     shuffleButton.title = "Перемешать треки";
                 }
             });
