@@ -23,6 +23,7 @@ const progressFill = document.querySelector('.timeline-fill');
 const timeCurrent = document.getElementById('timeCurrent');
 const timeTotal = document.getElementById('timeTotal');
 const volumeSlider = document.getElementById('volumeSlider');
+const shuffleButton = document.getElementById('btnShuffle');
 
 let playlist = [];
 let currentTrackIdx = 0;
@@ -70,6 +71,7 @@ async function initializeMusicPlayer() {
         if (musicButton) musicButton.addEventListener('click', toggleMusic);
         if (loopButton) loopButton.addEventListener('click', toggleLoop);
         if (playlistButton) playlistButton.addEventListener('click', togglePlaylistUI);
+        if (shuffleButton) shuffleButton.addEventListener('click', playNextRandomTrack);
 
         audioPlayer.addEventListener("timeupdate", () => {
             if (!audioPlayer.duration) return;
@@ -1207,7 +1209,7 @@ function initFrameStyleControls() {
     const styles = [
         { id: 'norunes', icon: '🔲', title: 'Рамка: Без рун' },
         { id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами' },
-        { id: 'ornament', icon: '⚜️', title: 'Рамка: Орнамент' }
+        { id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент' }
     ];
 
     const getCurrentIndex = () => styles.findIndex(s => s.id === currentFrameStyle);
@@ -1328,7 +1330,7 @@ function initUnifiedUICollapse() {
         toggleQuestBtn = document.createElement('button');
         toggleQuestBtn.type = 'button';
         toggleQuestBtn.className = 'btn-ui-toggle quest-toggle-btn ui-collapsed';
-        toggleQuestBtn.innerHTML = '📜';
+        toggleQuestBtn.innerHTML = '⚜️';
         toggleQuestBtn.title = 'Открыть журнал заданий';
 
         toggleQuestBtn.style.setProperty('position', 'fixed', 'important');

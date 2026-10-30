@@ -1111,3 +1111,19 @@ body {
         transform: none !important;
     }
 }
+
+#btnShuffle {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+}
+
+#btnShuffle:hover {
+    filter: brightness(1.2) !important;
+    border-color: #b89445 !important;
+}
+
+#btnShuffle:active {
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    border-color: #3e6349 !important;
+    color: #dfbc6f !important;
+}
