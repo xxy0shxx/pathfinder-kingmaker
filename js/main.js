@@ -1219,7 +1219,7 @@ function initFrameStyleControls() {
 
     function updateButtonUI() {
         const currentStyle = styles[getCurrentIndex()] || styles[0];
-        btn.innerHTML = `${currentStyle.icon} Стиль`;
+        btn.innerHTML = `${currentStyle.icon}`;
         btn.title = currentStyle.title;
     }
 
@@ -1237,7 +1237,12 @@ function initFrameStyleControls() {
     updateButtonUI();
 
     controlsContainer.appendChild(btn);
-    document.body.appendChild(controlsContainer);
+    const rightPanel = document.querySelector('.right-controls-panel');
+    if (rightPanel) {
+        rightPanel.appendChild(controlsContainer);
+    } else {
+        document.body.appendChild(controlsContainer);
+    }
     applyFrameStyle();
 }
 
@@ -1297,9 +1302,16 @@ function initUnifiedUICollapse() {
         rightPanel.className = 'right-controls-panel ui-collapsed';
         document.body.appendChild(rightPanel);
     }
-
-    if (btnExport) rightPanel.appendChild(btnExport);
-    if (btnImport) rightPanel.appendChild(btnImport);
+    if (btnExport) {
+        btnExport.innerHTML = '📤';
+        btnExport.title = 'Экспорт JSON';
+        rightPanel.appendChild(btnExport);
+    }
+    if (btnImport) {
+        btnImport.innerHTML = '📥';
+        btnImport.title = 'Импорт JSON';
+        rightPanel.appendChild(btnImport);
+    }
     if (styleControls) rightPanel.appendChild(styleControls);
     if (player) player.classList.add('ui-collapsed');
     if (mapControls) mapControls.classList.add('ui-collapsed');

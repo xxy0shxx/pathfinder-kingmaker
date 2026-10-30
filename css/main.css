@@ -741,6 +741,66 @@ body {
     border: 1px solid #543e0d;
 }
 
+#btnExport,
+#btnImport,
+.btn-frame-style {
+    position: static !important;
+    width: 46px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 20px !important; /* Размер иконки */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.2s ease !important;
+}
+
+#btnExport {
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    color: #ebd291 !important;
+    border: 1px solid #543e0d !important;
+}
+
+#btnImport {
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    color: #dfbc6f !important;
+    border: 1px solid #3e6349 !important;
+}
+
+.btn-frame-style {
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    color: #ebd291 !important;
+    border: 1px solid #543e0d !important;
+}
+
+.btn-frame-style.active {
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    border-color: #dfbc6f !important;
+    color: #dfbc6f !important;
+}
+
+#btnExport:hover, #btnImport:hover, .btn-frame-style:hover {
+    transform: translateY(-2px) !important;
+    filter: brightness(1.2) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6) !important;
+}
+#btnExport:hover, .btn-frame-style:hover { border-color: #b89445 !important; }
+#btnImport:hover { border-color: #dfbc6f !important; }
+
+#btnExport:active, #btnImport:active, .btn-frame-style:active {
+    transform: translateY(0) !important;
+}
+
+.frame-style-controls {
+    position: static !important;
+    width: 46px !important;
+    margin: 0 !important;
+}
+
 #btnExport:hover, #btnImport:hover {
     transform: translateY(-2px);
     filter: brightness(1.2);
@@ -1081,14 +1141,14 @@ body {
     z-index: 10005;
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
-    width: 160px !important;
+    gap: 10px !important;
+    width: 46px !important;
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
     transform-origin: right bottom !important;
 }
 
 .right-controls-panel.ui-collapsed {
-    transform: translate(220px, 0) scale(0.8) !important;
+    transform: translate(100px, 0) scale(0.8) !important;
     opacity: 0 !important;
     pointer-events: none !important;
 }
