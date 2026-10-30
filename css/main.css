@@ -988,7 +988,7 @@ body {
 
 #btnToggleFog, #btnMapGlobal, #btnMapCamp {
     position: fixed !important;
-    right: 215px !important;
+    right: 96px !important;
     z-index: 10005;
     margin: 0 !important;
     transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
@@ -1003,7 +1003,7 @@ body {
 
 .map-selector-controls {
     position: fixed !important;
-    right: 215px !important;
+    right: 96px !important;
     z-index: 10005;
     width: 42px !important;
     display: block !important;
