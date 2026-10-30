@@ -1122,7 +1122,7 @@ body {
     border-color: #b89445 !important;
 }
 
-#btnShuffle:active {
+#btnShuffle.active {
     background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
     border-color: #3e6349 !important;
     color: #dfbc6f !important;
