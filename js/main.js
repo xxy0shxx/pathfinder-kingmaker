@@ -1325,6 +1325,30 @@ function initUnifiedUICollapse() {
     }
 
     initQuestLogTabs();
+    if (questLog && !questLog.querySelector('.btn-close-quest-log')) {
+        const header = questLog.querySelector('.quest-log-header');
+        if (header) {
+            header.style.position = 'relative';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close-quest-log';
+            closeBtn.innerHTML = '✖';
+            closeBtn.title = 'Закрыть журнал заданий';
+
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                questLog.classList.add('ui-collapsed');
+
+                const toggleMasterBtn = document.querySelector('.master-toggle-btn');
+                if (toggleMasterBtn && rightPanel && rightPanel.classList.contains('ui-collapsed')) {
+                    toggleMasterBtn.classList.remove('ui-active');
+                }
+            });
+
+            header.appendChild(closeBtn);
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
