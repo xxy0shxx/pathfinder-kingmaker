@@ -1318,7 +1318,72 @@ function initUnifiedUICollapse() {
     if (btnToggleFog) btnToggleFog.classList.add('ui-collapsed');
     if (btnMapGlobal) btnMapGlobal.classList.add('ui-collapsed');
     if (btnMapCamp) btnMapCamp.classList.add('ui-collapsed');
+
     if (questLog) questLog.classList.add('ui-collapsed');
+
+    const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
+
+    let toggleQuestBtn = document.querySelector('.quest-toggle-btn');
+    if (!toggleQuestBtn && questLog) {
+        toggleQuestBtn = document.createElement('button');
+        toggleQuestBtn.type = 'button';
+        toggleQuestBtn.className = 'btn-ui-toggle quest-toggle-btn ui-collapsed';
+        toggleQuestBtn.innerHTML = '📜';
+        toggleQuestBtn.title = 'Открыть журнал заданий';
+
+        toggleQuestBtn.style.setProperty('position', 'fixed', 'important');
+        toggleQuestBtn.style.setProperty('bottom', '40px', 'important');
+        toggleQuestBtn.style.setProperty('right', '96px', 'important');
+        toggleQuestBtn.style.setProperty('width', '46px', 'important');
+        toggleQuestBtn.style.setProperty('height', '44px', 'important');
+        toggleQuestBtn.style.setProperty('z-index', '10007', 'important');
+        toggleQuestBtn.style.setProperty('border-radius', '4px', 'important');
+        toggleQuestBtn.style.setProperty('font-size', '20px', 'important');
+        toggleQuestBtn.style.setProperty('display', 'flex', 'important');
+        toggleQuestBtn.style.setProperty('align-items', 'center', 'important');
+        toggleQuestBtn.style.setProperty('justify-content', 'center', 'important');
+        toggleQuestBtn.style.setProperty('cursor', 'pointer', 'important');
+        toggleQuestBtn.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.6)', 'important');
+        toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
+        toggleQuestBtn.style.setProperty('border', '1px solid #543e0d', 'important');
+        toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
+        toggleQuestBtn.style.setProperty('opacity', '0', 'important');
+        toggleQuestBtn.style.setProperty('pointer-events', 'none', 'important');
+        toggleQuestBtn.style.setProperty('transform', 'translateX(20px)', 'important');
+        toggleQuestBtn.style.setProperty('transition', 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', 'important');
+
+        toggleQuestBtn.addEventListener('mouseenter', () => {
+            if (questLog.classList.contains('ui-collapsed')) {
+                toggleQuestBtn.style.setProperty('border-color', '#b89445', 'important');
+                toggleQuestBtn.style.setProperty('filter', 'brightness(1.2)', 'important');
+            }
+        });
+        toggleQuestBtn.addEventListener('mouseleave', () => {
+            if (questLog.classList.contains('ui-collapsed')) {
+                toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
+                toggleQuestBtn.style.setProperty('filter', 'none', 'important');
+            }
+        });
+
+        document.body.appendChild(toggleQuestBtn);
+
+        toggleQuestBtn.addEventListener('click', () => {
+            const isLogCollapsed = questLog.classList.toggle('ui-collapsed');
+
+            if (!isLogCollapsed) {
+                if (typeof renderQuestLog === 'function') {
+                    renderQuestLog(filter);
+                }
+                toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+                toggleQuestBtn.style.setProperty('border-color', '#dfbc6f', 'important');
+                toggleQuestBtn.style.setProperty('color', '#dfbc6f', 'important');
+            } else {
+                toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
+                toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
+                toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
+            }
+        });
+    }
 
     if (!document.querySelector('.master-toggle-btn')) {
         const toggleMasterBtn = document.createElement('button');
@@ -1336,16 +1401,34 @@ function initUnifiedUICollapse() {
             if (btnToggleFog) btnToggleFog.classList.toggle('ui-collapsed', isCollapsed);
             if (btnMapGlobal) btnMapGlobal.classList.toggle('ui-collapsed', isCollapsed);
             if (btnMapCamp) btnMapCamp.classList.toggle('ui-collapsed', isCollapsed);
-            if (questLog) {
-                questLog.classList.toggle('ui-collapsed', isCollapsed);
-                if (!isCollapsed) renderQuestLog('active');
+            if (toggleQuestBtn) {
+                toggleQuestBtn.classList.toggle('ui-collapsed', isCollapsed);
+
+                if (isCollapsed) {
+                    toggleQuestBtn.style.setProperty('opacity', '0', 'important');
+                    toggleQuestBtn.style.setProperty('pointer-events', 'none', 'important');
+                    toggleQuestBtn.style.setProperty('transform', 'translateX(20px)', 'important');
+                    if (questLog) {
+                        questLog.classList.add('ui-collapsed');
+                    }
+                    toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
+                    toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
+                    toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
+                } else {
+                    toggleQuestBtn.style.setProperty('opacity', '1', 'important');
+                    toggleQuestBtn.style.setProperty('pointer-events', 'auto', 'important');
+                    toggleQuestBtn.style.setProperty('transform', 'translateX(0)', 'important');
+                }
             }
 
             toggleMasterBtn.classList.toggle('ui-active', !isCollapsed);
         });
     }
 
-    initQuestLogTabs();
+    if (typeof initQuestLogTabs === 'function') {
+        initQuestLogTabs();
+    }
+
     if (questLog && !questLog.querySelector('.btn-close-quest-log')) {
         const header = questLog.querySelector('.quest-log-header');
         if (header) {
@@ -1361,9 +1444,10 @@ function initUnifiedUICollapse() {
                 e.stopPropagation();
                 questLog.classList.add('ui-collapsed');
 
-                const toggleMasterBtn = document.querySelector('.master-toggle-btn');
-                if (toggleMasterBtn && rightPanel && rightPanel.classList.contains('ui-collapsed')) {
-                    toggleMasterBtn.classList.remove('ui-active');
+                if (toggleQuestBtn) {
+                    toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
+                    toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
+                    toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
                 }
             });
 
