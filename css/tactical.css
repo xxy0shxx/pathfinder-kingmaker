@@ -1,12 +1,13 @@
 .map-selector-controls {
-    position: fixed !important;
-    right: 215px !important;
-    bottom: 40px !important;
+    position: fixed;
+    right: 215px;
+    bottom: 40px;
     z-index: 10005;
     display: flex;
     flex-direction: column;
     gap: 13px;
     width: 42px;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
 }
 
 .btn-map-select {
@@ -42,12 +43,18 @@
     transform: translateY(0);
 }
 
+.btn-map-select.fog-disabled {
+    background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
+    border-color: #823030 !important;
+    color: #f7baba !important;
+}
+
 .grid-layer {
     position: absolute;
     top: 0;
     left: 0;
     display: grid;
-    pointer-events: auto !important;
+    pointer-events: auto;
 }
 
 .tactical-square {
@@ -79,93 +86,15 @@
     background: radial-gradient(circle, rgba(231, 76, 60, 0.6) 0%, rgba(231, 76, 60, 0) 70%);
 }
 
-.square-star-label {
-    position: absolute !important;
-    top: 2px !important;
-    right: 4px !important;
-    z-index: 6 !important;
-    font-size: 12px !important;
-    font-weight: bold !important;
-    color: #dfbc6f !important;
-    text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 1) !important;
-    pointer-events: none !important;
-    user-select: none !important;
-}
-
-.square-crown-label {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 6 !important;
-    font-size: 20px !important;
-    pointer-events: none !important;
-    user-select: none !important;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8) !important;
-    /*animation: crownBreathe 3s infinite ease-in-out;*/
-}
-
-@keyframes crownBreathe {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.1); }
-}
-
-.btn-map-select.fog-disabled {
-    background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
-    border-color: #823030 !important;
-    color: #f7baba !important;
-}
-
-.square-monster-label {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 6 !important;
-    font-size: 20px !important;
-    pointer-events: none !important;
-    user-select: none !important;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9) !important;
-    /*animation: monsterBreathe 2.5s infinite ease-in-out;*/
-}
-
-@keyframes monsterBreathe {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.15); }
-}
-
-.square-crown-label,
-.square-monster-label {
-    pointer-events: auto !important;
-    cursor: grab !important;
-}
-
-.square-crown-label:active,
-.square-monster-label:active {
-    cursor: grabbing !important;
-}
-
 .tactical-square.drag-over {
     box-shadow: inset 0 0 12px #dfbc6f !important;
     background-color: rgba(223, 188, 111, 0.2) !important;
 }
 
-.square-obstacle-label {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 6 !important;
-    font-size: 20px !important;
-    pointer-events: none !important;
-    user-select: none !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
-}
-
 .tactical-square.obstacle-wall {
-    background-color: rgba(60, 60, 60, 0.85) !important;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7) !important;
+    background-color: rgba(40, 40, 40, 0.3) !important;
     border: 2px solid #555 !important;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.8) !important;
 }
 
 .tactical-square.obstacle-destructible {
@@ -174,21 +103,22 @@
     box-shadow: inset 0 0 6px rgba(0,0,0,0.6) !important;
 }
 
-.square-obstacle-label {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 6 !important;
-    font-size: 20px !important;
-    pointer-events: none !important;
-    user-select: none !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
+.tactical-square.obstacle-stones {
+    background-color: rgba(95, 100, 105, 0.45) !important;
+    border: 1px solid #7f8c8d !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.75) !important;
 }
 
-.tactical-square.obstacle-wall {
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7) !important;
-    background-color: rgba(40, 40, 40, 0.3) !important;
+.tactical-square.obstacle-ice {
+    background-color: rgba(116, 185, 255, 0.22) !important;
+    border: 1px solid #74b9ff !important;
+    box-shadow: inset 0 0 10px rgba(116, 185, 255, 0.45) !important;
+}
+
+.tactical-square.obstacle-web {
+    background-color: rgba(255, 234, 167, 0.16) !important;
+    border: 1px dashed #ffeaa7 !important;
+    box-shadow: inset 0 0 6px rgba(255, 234, 167, 0.38) !important;
 }
 
 .tactical-square.focused-entity {
@@ -198,19 +128,6 @@
 
 .tactical-square.path-cell {
     box-shadow: inset 0 0 8px #2ecc71 !important;
-}
-
-.square-path-cost {
-    position: absolute !important;
-    bottom: 2px !important;
-    right: 4px !important;
-    z-index: 7 !important;
-    font-size: 10px !important;
-    font-weight: bold !important;
-    color: #2ecc71 !important;
-    text-shadow: 0 1px 3px #000 !important;
-    pointer-events: none !important;
-    user-select: none !important;
 }
 
 .tactical-square.path-cell-jump {
@@ -231,33 +148,11 @@
 }
 
 .square-path-cost {
-    position: absolute !important;
-    bottom: 2px !important;
-    right: 4px !important;
-    z-index: 10 !important;
-    font-size: 10px !important;
-    font-weight: bold !important;
-    text-shadow: 0 1px 3px #000, 0 0 4px #000 !important;
-    pointer-events: none !important;
-    user-select: none !important;
-}
-
-.tactical-square.obstacle-stones {
-    background-color: rgba(95, 100, 105, 0.45) !important;
-    border: 1px solid #7f8c8d !important;
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.75) !important;
-}
-
-/* Скользкий лед */
-.tactical-square.obstacle-ice {
-    background-color: rgba(116, 185, 255, 0.22) !important;
-    border: 1px solid #74b9ff !important;
-    box-shadow: inset 0 0 10px rgba(116, 185, 255, 0.45) !important;
-}
-
-/* Липкая паутина */
-.tactical-square.obstacle-web {
-    background-color: rgba(255, 234, 167, 0.16) !important;
-    border: 1px dashed #ffeaa7 !important;
-    box-shadow: inset 0 0 6px rgba(255, 234, 167, 0.38) !important;
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    z-index: 10;
+    font-size: 10px;
+    font-weight: bold;
+    text-shadow: 0 1px 3px #000, 0 0 4px #000;
 }
