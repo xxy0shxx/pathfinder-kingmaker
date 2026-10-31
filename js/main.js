@@ -1326,9 +1326,8 @@ function initUnifiedUICollapse() {
     const styleControls = document.querySelector('.frame-style-controls');
     const mapControls = document.querySelector('.map-selector-controls');
     const btnToggleFog = document.getElementById('btnToggleFog');
-    const btnMapGlobal = document.getElementById('btnMapGlobal');
-    const btnMapCamp = document.getElementById('btnMapCamp');
     const questLog = document.getElementById('questLogContainer');
+    const btnToggleMapMode = document.getElementById('btnToggleMapMode');
 
     let rightPanel = document.querySelector('.right-controls-panel');
     if (!rightPanel) {
@@ -1350,8 +1349,7 @@ function initUnifiedUICollapse() {
     if (player) player.classList.add('ui-collapsed');
     if (mapControls) mapControls.classList.add('ui-collapsed');
     if (btnToggleFog) btnToggleFog.classList.add('ui-collapsed');
-    if (btnMapGlobal) btnMapGlobal.classList.add('ui-collapsed');
-    if (btnMapCamp) btnMapCamp.classList.add('ui-collapsed');
+    if (btnToggleMapMode) btnToggleMapMode.classList.add('ui-collapsed');
 
     if (questLog) questLog.classList.add('ui-collapsed');
 
@@ -1433,8 +1431,7 @@ function initUnifiedUICollapse() {
             if (player) player.classList.toggle('ui-collapsed', isCollapsed);
             if (mapControls) mapControls.classList.toggle('ui-collapsed', isCollapsed);
             if (btnToggleFog) btnToggleFog.classList.toggle('ui-collapsed', isCollapsed);
-            if (btnMapGlobal) btnMapGlobal.classList.toggle('ui-collapsed', isCollapsed);
-            if (btnMapCamp) btnMapCamp.classList.toggle('ui-collapsed', isCollapsed);
+            if (btnToggleMapMode) btnToggleMapMode.classList.toggle('ui-collapsed', isCollapsed);
             if (toggleQuestBtn) {
                 toggleQuestBtn.classList.toggle('ui-collapsed', isCollapsed);
 
@@ -1493,6 +1490,32 @@ function initUnifiedUICollapse() {
 document.addEventListener('DOMContentLoaded', () => {
     initFrameStyleControls();
     initUnifiedUICollapse();
+    if (btnToggleMapMode) {
+        let currentMode = 'global';
+
+        btnToggleMapMode.addEventListener('click', () => {
+            if (currentMode === 'global') {
+                currentMode = 'camp';
+                btnToggleMapMode.innerHTML = '⛺';
+                btnToggleMapMode.title = 'Переключить на глобальную карту';
+                btnToggleMapMode.style.background = 'linear-gradient(180deg, #42351f 0%, #292011 100%)';
+                btnToggleMapMode.style.borderColor = '#543e0d';
+                btnToggleMapMode.style.color = '#ebd291';
+
+                console.log("Переключено на: Карта лагеря");
+
+            } else {
+                currentMode = 'global';
+                btnToggleMapMode.innerHTML = '🗺️';
+                btnToggleMapMode.title = 'Переключить на карту лагеря';
+                btnToggleMapMode.style.background = 'linear-gradient(180deg, #4f5d65 0%, #2c3539 100%)';
+                btnToggleMapMode.style.borderColor = '#d4af37';
+                btnToggleMapMode.style.color = '#d1d8e0';
+
+                console.log("Переключено на: Глобальная карта");
+            }
+        });
+    }
 });
 
 let currentQuestFilter = 'active';

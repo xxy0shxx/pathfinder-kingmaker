@@ -1075,3 +1075,34 @@ body {
     border-color: #dfbc6f !important;
     color: #dfbc6f !important;
 }
+
+#btnToggleFog, #btnToggleMapMode {
+    position: fixed !important;
+    right: 96px !important;
+    width: 46px !important;
+    height: 44px !important;
+    z-index: 10005 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
+}
+
+#btnToggleMapMode {
+    bottom: 149px !important;
+    background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%);
+    border: 1px solid #d4af37;
+    color: #d1d8e0;
+}
+#btnToggleFog {
+    bottom: 95px !important;
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    border: 1px solid #543e0d !important;
+    color: #ebd291 !important;
+}
+
+#btnToggleMapMode.ui-collapsed { bottom: -110px !important; opacity: 0 !important; pointer-events: none !important; }
+#btnToggleFog.ui-collapsed    { bottom: -60px !important; opacity: 0 !important; pointer-events: none !important; }

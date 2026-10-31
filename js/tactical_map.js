@@ -18,23 +18,29 @@ let campMapData = JSON.parse(localStorage.getItem('campMapSystemData')) || {};
 let currentMapMode = 'global';
 
 function initMapSelector() {
-    const btnGlobal = document.getElementById('btnMapGlobal');
-    const btnCamp = document.getElementById('btnMapCamp');
+    const btnToggleMapMode = document.getElementById('btnToggleMapMode');
+    if (!btnToggleMapMode) return;
 
-    if (!btnGlobal || !btnCamp) return;
+    currentMapMode = 'global';
 
-    btnGlobal.addEventListener('click', () => {
-        if (currentMapMode === 'global') return;
-        switchMapMode('global');
-        btnGlobal.classList.add('active');
-        btnCamp.classList.remove('active');
-    });
+    btnToggleMapMode.addEventListener('click', () => {
+        if (currentMapMode === 'global') {
+            switchMapMode('camp');
 
-    btnCamp.addEventListener('click', () => {
-        if (currentMapMode === 'camp') return;
-        switchMapMode('camp');
-        btnCamp.classList.add('active');
-        btnGlobal.classList.remove('active');
+            btnToggleMapMode.innerHTML = '⛺';
+            btnToggleMapMode.title = 'Переключить на глобальную карту';
+            btnToggleMapMode.style.background = 'linear-gradient(180deg, #42351f 0%, #292011 100%)';
+            btnToggleMapMode.style.borderColor = '#543e0d';
+            btnToggleMapMode.style.color = '#ebd291';
+        } else {
+            switchMapMode('global');
+
+            btnToggleMapMode.innerHTML = '🗺️';
+            btnToggleMapMode.title = 'Переключить на карту лагеря';
+            btnToggleMapMode.style.background = 'linear-gradient(180deg, #4f5d65 0%, #2c3539 100%)';
+            btnToggleMapMode.style.borderColor = '#d4af37';
+            btnToggleMapMode.style.color = '#d1d8e0';
+        }
     });
 }
 
