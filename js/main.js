@@ -1337,12 +1337,12 @@ function initUnifiedUICollapse() {
         document.body.appendChild(rightPanel);
     }
     if (btnExport) {
-        btnExport.innerHTML = '📤';
+        btnExport.innerHTML = '📥';
         btnExport.title = 'Экспорт JSON';
         rightPanel.appendChild(btnExport);
     }
     if (btnImport) {
-        btnImport.innerHTML = '📥';
+        btnImport.innerHTML = '📤';
         btnImport.title = 'Импорт JSON';
         rightPanel.appendChild(btnImport);
     }
