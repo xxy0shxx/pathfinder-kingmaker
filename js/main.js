@@ -10,6 +10,7 @@ const modal = document.getElementById('hexMenu');
 const difficultySelect = document.getElementById('inpDifficulty');
 let currentHexId = null;
 let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
+let showQuestTooltips = true;
 
 const audioPlayer = document.getElementById('bg-music');
 const musicButton = document.getElementById('btnMusic');
@@ -407,6 +408,10 @@ function buildHexGrid() {
             titleLabel.className = 'hex-title-label';
             vHex.appendChild(titleLabel);
 
+            const questMiniTooltip = document.createElement('div');
+            questMiniTooltip.className = 'hex-quest-mini-tooltip';
+            vHex.appendChild(questMiniTooltip);
+
             const statsLabel = document.createElement('span');
             statsLabel.className = 'hex-stats-label';
             vHex.appendChild(statsLabel);
@@ -485,6 +490,17 @@ function buildHexGrid() {
                     mappedElem.textContent = '📜';
                 } else {
                     mappedElem.style.display = 'none';
+                }
+                if (mapData[hexId] &&
+                    mapData[hexId].questData &&
+                    mapData[hexId].questData.title &&
+                    mapData[hexId].questData.title.trim() !== '' &&
+                    mapData[hexId].questData.status !== 'completed') {
+
+                    const questMiniTooltip = document.createElement('div');
+                    questMiniTooltip.className = 'hex-quest-mini-tooltip';
+                    questMiniTooltip.textContent = '⚜️ ' + mapData[hexId].questData.title.trim();
+                    vHex.appendChild(questMiniTooltip);
                 }
             }
             visualLayer.appendChild(vHex);
@@ -644,6 +660,21 @@ function saveMenu() {
 
         const tLabel = currentHexElement.querySelector('.hex-title-label');
         if (tLabel) tLabel.textContent = titleVal;
+
+        let qTooltip = currentHexElement.querySelector('.hex-quest-mini-tooltip');
+
+        if (questTitleVal && questStatusVal !== 'completed') {
+            if (!qTooltip) {
+                qTooltip = document.createElement('div');
+                qTooltip.className = 'hex-quest-mini-tooltip';
+                currentHexElement.appendChild(qTooltip);
+            }
+            qTooltip.textContent = '⚜️ ' + questTitleVal;
+        } else {
+            if (qTooltip) {
+                qTooltip.remove();
+            }
+        }
 
         const sLabel = currentHexElement.querySelector('.hex-stats-label');
         if (sLabel) {
@@ -1516,6 +1547,70 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const btnToggleTooltips = document.createElement('button');
+    btnToggleTooltips.type = 'button';
+    btnToggleTooltips.id = 'btnToggleTooltips';
+    btnToggleTooltips.className = 'btn-ui-toggle';
+    btnToggleTooltips.innerHTML = '💬';
+    btnToggleTooltips.title = 'Скрыть/Показать тултипы квестов';
+
+    btnToggleTooltips.style.setProperty('position', 'fixed', 'important');
+    btnToggleTooltips.style.setProperty('right', '96px', 'important');
+    btnToggleTooltips.style.setProperty('bottom', '203px', 'important');
+    btnToggleTooltips.style.setProperty('width', '46px', 'important');
+    btnToggleTooltips.style.setProperty('height', '44px', 'important');
+    btnToggleTooltips.style.setProperty('z-index', '10005', 'important');
+    btnToggleTooltips.style.setProperty('display', 'flex', 'important');
+    btnToggleTooltips.style.setProperty('align-items', 'center', 'important');
+    btnToggleTooltips.style.setProperty('justify-content', 'center', 'important');
+    btnToggleTooltips.style.setProperty('border-radius', '4px', 'important');
+    btnToggleTooltips.style.setProperty('cursor', 'pointer', 'important');
+    btnToggleTooltips.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.5)', 'important');
+    btnToggleTooltips.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+    btnToggleTooltips.style.setProperty('border', '1px solid #3e6349', 'important');
+    btnToggleTooltips.style.setProperty('color', '#dfbc6f', 'important');
+    btnToggleTooltips.style.setProperty('transition', 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', 'important');
+
+    document.body.appendChild(btnToggleTooltips);
+
+    btnToggleTooltips.addEventListener('click', () => {
+        const visualLayerEl = document.getElementById('visualLayer');
+        if (!visualLayerEl) return;
+
+        const isHidden = visualLayerEl.classList.toggle('hide-quest-tooltips');
+
+        if (!isHidden) {
+            btnToggleTooltips.style.background = 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)';
+            btnToggleTooltips.style.borderColor = '#3e6349';
+            btnToggleTooltips.style.color = '#dfbc6f';
+        } else {
+            btnToggleTooltips.style.background = 'linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%)';
+            btnToggleTooltips.style.borderColor = '#823030';
+            btnToggleTooltips.style.color = '#f7baba';
+        }
+    });
+
+    const masterBtn = document.querySelector('.master-toggle-btn');
+    if (masterBtn) {
+        masterBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                const player = document.querySelector('.music-controller');
+                const isCollapsed = player ? player.classList.contains('ui-collapsed') : true;
+                if (isCollapsed) {
+                    btnToggleTooltips.style.setProperty('bottom', '-160px', 'important');
+                    btnToggleTooltips.style.setProperty('opacity', '0', 'important');
+                    btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
+                } else {
+                    btnToggleTooltips.style.setProperty('bottom', '203px', 'important');
+                    btnToggleTooltips.style.setProperty('opacity', '1', 'important');
+                    btnToggleTooltips.style.setProperty('pointer-events', 'auto', 'important');
+                }
+            }, 50);
+        });
+    }
+
+
 });
 
 let currentQuestFilter = 'active';
