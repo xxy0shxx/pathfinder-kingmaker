@@ -30,12 +30,10 @@
 <div class="pop-menu" id="hexMenu">
     <img src="img/logo.png" class="menu-logo" alt="Pathfinder Logo">
     <h3 id="menuTitle" style="display: none;">Hex Setup</h3>
-
     <div class="box">
         <label>Название гекса:</label>
         <input type="text" id="inpTitle" maxlength="10">
     </div>
-
     <div class="checkbox-row">
         <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
             <input type="checkbox" id="inpExplored" style="width: auto; cursor: pointer; transform: scale(1.2);">
@@ -50,7 +48,6 @@
             <label for="inpSquadHere" style="margin-bottom: 0; cursor: pointer; font-size: 15px; color: #e74c3c; font-weight: bold;">🚩Отряд здесь</label>
         </div>
     </div>
-
     <div class="box">
         <label>Тип объекта на гексе:</label>
         <select id="inpType" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
@@ -60,7 +57,6 @@
             <option value="mystery">❓ Тайна</option>
         </select>
     </div>
-
     <div class="box">
         <label>Тип местности:</label>
         <select id="inpTerrain" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
@@ -73,32 +69,27 @@
             <option value="plains">🌾 Равнины (СЛ 12)</option>
         </select>
     </div>
-
     <div class="box">
         <label>📚Описание гекса:</label>
         <textarea id="inpDesc" rows="2" placeholder="Описание гекса..."></textarea>
     </div>
-
     <div class="box">
         <label>🎲Сложность региона:</label>
         <select id="inpDifficulty" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
             <option value="">--Выберите СЛ--</option>
         </select>
     </div>
-
     <div class="box">
         <label>💀Уровень региона:</label>
         <select id="inpRegionLevel" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
             <option value="">--Выберите уровень--</option>
         </select>
     </div>
-
     <div class="box">
         <label>Цвет гекса:</label>
         <div class="color-presets" id="colorPresetsContainer" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;"></div>
         <input type="hidden" id="inpColor" value="">
     </div>
-
     <div class="box" style="border-top: 1px dashed #543e0d; padding-top: 15px; margin-top: 15px;">
         <label>⚜️Задание в гексе</label>
         <input type="text" id="inpQuestTitle" placeholder="Название задания">
@@ -175,8 +166,8 @@
     <div id="questLogContainer" class="quest-log-container ui-collapsed">
         <div class="quest-log-header">⚜️ Журнал заданий</div>
         <div class="quest-log-tabs">
-            <button type="button" class="quest-tab-btn active" id="tabActiveQuests">⚠️Активные</button>
-            <button type="button" class="quest-tab-btn" id="tabCompletedQuests">✅Завершенные</button>
+            <button type="button" class="quest-tab-btn active" id="tabActiveQuests">⚠️ Активные</button>
+            <button type="button" class="quest-tab-btn" id="tabCompletedQuests">✅ Завершенные</button>
             <button type="button" class="quest-tab-btn" id="tabRumors">👂Слухи</button>
         </div>
         <div id="questLogList" class="quest-log-list"></div>

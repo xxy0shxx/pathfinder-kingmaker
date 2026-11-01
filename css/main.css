@@ -318,7 +318,7 @@ body {
     transform: translate(-50%, -50%);
     background: linear-gradient(135deg, #112618 0%, #09140d 100%);
     color: #ebd291;
-    padding: 12px 25px 25px 25px;
+    padding: 8px 25px 15px 25px;
     border-radius: 4px;
     width: 440px;
     border: 3px solid transparent;
@@ -344,9 +344,9 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     background: rgba(0, 0, 0, 0.2);
-    padding: 8px 12px;
+    padding: 4px 10px;
     border-radius: 4px;
     border: 1px solid rgba(84, 62, 13, 0.3);
 }
@@ -364,7 +364,7 @@ body {
 }
 
 .box {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 }
 
 .box label {
@@ -379,7 +379,7 @@ body {
 
 .box input[type="text"], .box textarea, .box select {
     width: 100%;
-    padding: 10px;
+    padding: 6px 8px;
     background: #090f0b !important;
     border: 1px solid #543e0d !important;
     border-radius: 3px;
@@ -405,7 +405,7 @@ body {
 .box-row-combined {
     display: flex;
     gap: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     width: 100%;
 }
 .box-row-combined .box {
@@ -438,12 +438,12 @@ body {
 .buttons {
     display: flex;
     gap: 10px;
-    margin-top: 25px;
+    margin-top: 8px;
     width: 100%;
 }
 .buttons .btn {
     flex: 1;
-    padding: 10px 20px;
+    padding: 8px 16px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
