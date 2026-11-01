@@ -700,15 +700,23 @@ function saveMenu() {
             if (textNode) textNode.textContent = titleVal;
         }
 
-        let qTooltip = currentHexElement.querySelector('.hex-quest-mini-tooltip');
+        let qTooltip = visualLayer.querySelector(`.hex-quest-mini-tooltip[data-hex-id="${currentHexId}"]`);
 
         if (questTitleVal && questStatusVal !== 'completed') {
             if (!qTooltip) {
                 qTooltip = document.createElement('div');
                 qTooltip.className = 'hex-quest-mini-tooltip';
-                currentHexElement.appendChild(qTooltip);
+                qTooltip.setAttribute('data-hex-id', currentHexId);
+                visualLayer.appendChild(qTooltip);
             }
             qTooltip.textContent = '⚜️ ' + questTitleVal;
+
+            const hexLeft = parseFloat(currentHexElement.style.left) || 0;
+            const hexTop = parseFloat(currentHexElement.style.top) || 0;
+            const hexWidth = parseFloat(currentHexElement.style.width) || 0;
+
+            qTooltip.style.left = (hexLeft + hexWidth / 2) + 'px';
+            qTooltip.style.top = (hexTop + 12) + 'px';
         } else {
             if (qTooltip) {
                 qTooltip.remove();
