@@ -404,9 +404,18 @@ function buildHexGrid() {
             if (mapData[hexId] && mapData[hexId].squadHere) vHex.classList.add('squad-dark');
             vHex.appendChild(shape);
 
-            const titleLabel = document.createElement('span');
-            titleLabel.className = 'hex-title-label';
-            vHex.appendChild(titleLabel);
+            const titleLabel = document.createElement('div');
+            titleLabel.className = 'hex-title-label-framed';
+            titleLabel.setAttribute('id', 'title_label_' + hexId);
+
+            const titleText = document.createElement('span');
+            titleText.className = 'hex-title-text';
+            titleLabel.appendChild(titleText);
+
+            titleLabel.style.left = cx + 'px';
+            titleLabel.style.top = (cy - hexRadius + 30) + 'px';
+
+            visualLayer.appendChild(titleLabel);
 
             const questMiniTooltip = document.createElement('div');
             questMiniTooltip.className = 'hex-quest-mini-tooltip';
@@ -443,7 +452,7 @@ function buildHexGrid() {
             vHex.appendChild(flagContainer);
 
             if (mapData[hexId]) {
-                if (mapData[hexId].title) titleLabel.textContent = mapData[hexId].title;
+                if (mapData[hexId].title) titleLabel.querySelector('.hex-title-text').textContent = mapData[hexId].title;
                 const diff = mapData[hexId].difficulty;
                 const lvl = mapData[hexId].regionLevel;
                 if (diff && lvl) statsLabel.textContent = `🎲${diff}💀${lvl}`;
@@ -502,7 +511,7 @@ function buildHexGrid() {
                     questMiniTooltip.className = 'hex-quest-mini-tooltip';
                     questMiniTooltip.textContent = '⚜️ ' + mapData[hexId].questData.title.trim();
                     questMiniTooltip.style.left = cx + 'px';
-                    questMiniTooltip.style.top = (cy - hexRadius) + 'px';
+                    questMiniTooltip.style.top = (cy - hexRadius + 12) + 'px';
                     visualLayer.appendChild(questMiniTooltip);
                 }
 
@@ -662,8 +671,11 @@ function saveMenu() {
             currentHexElement.classList.remove('squad-dark');
         }
 
-        const tLabel = currentHexElement.querySelector('.hex-title-label');
-        if (tLabel) tLabel.textContent = titleVal;
+        const tLabel = document.getElementById('title_label_' + currentHexId);
+        if (tLabel) {
+            const textNode = tLabel.querySelector('.hex-title-text');
+            if (textNode) textNode.textContent = titleVal;
+        }
 
         let qTooltip = currentHexElement.querySelector('.hex-quest-mini-tooltip');
 
@@ -908,6 +920,12 @@ document.getElementById('btnDelete').addEventListener('click', function() {
     
     if (shape) shape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
     if (label) label.textContent = '';
+
+    const globalLabel = document.getElementById('title_label_' + currentHexId);
+    if (globalLabel) {
+        const textNode = globalLabel.querySelector('.hex-title-text');
+        if (textNode) textNode.textContent = '';
+    }
 
     closeMenu();
 });

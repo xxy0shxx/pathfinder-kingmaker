@@ -122,20 +122,13 @@ body {
     50% { opacity: 1; }
 }
 
-.hex-title-label, .hex-stats-label {
+.hex-stats-label {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     z-index: 3;
     white-space: nowrap;
     pointer-events: none;
-}
-
-.hex-title-label {
-    top: 20px;
-    color: #000;
-    font: bold 24px sans-serif;
-    text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,1);
 }
 
 .hex-stats-label {
@@ -1163,4 +1156,40 @@ body {
 
 .visual-hex:hover {
     z-index: 10000 !important;
+}
+
+.hex-title-label-framed {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 10005;
+    padding: 6px 14px;
+    background: rgba(20, 20, 20, 0.95);
+    border: 2px solid #d4af37;
+    border-radius: 9px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 180px;
+}
+
+.hex-title-text {
+    color: #dfbc6f;
+    font: bold 14px/1.2 sans-serif;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.visual-hex:hover .hex-title-label-framed {
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3), 0 0 8px rgba(212, 175, 55, 0.2);
+    border-color: #ebd291;
+}
+
+.hex-title-label-framed:has(.hex-title-text:empty) {
+    display: none !important;
 }
