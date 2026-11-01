@@ -252,7 +252,7 @@ body {
     position: absolute;
     transform: translate(-50%, -50%);
     z-index: 10005;
-    padding: 6px 14px;
+    padding: 3px 6px;
     background: rgba(20, 20, 20, 0.95);
     border: 2px solid #d4af37;
     border-radius: 9px;
@@ -290,11 +290,11 @@ body {
     position: absolute;
     top: 20%;
     left: 50%;
-    transform: translate(-50%, -100%);
+    transform: translate(-50%, -90%);
     z-index: 100000 !important;
     background: rgba(20, 20, 20, 0.95);
     color: #dfbc6f;
-    padding: 6px 14px;
+    padding: 3px 6px;
     border-radius: 6px;
     border: 2px solid #d4af37;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.85);
@@ -999,8 +999,8 @@ body {
     50% { transform: translate(2px, -3px) rotate(5deg); }
 }
 @keyframes floatAnimHigher {
-    0%, 100% { transform: translate(-50%, -100%) translateY(0) rotate(-1deg); }
-    50% { transform: translate(-50%, -100%) translateY(-4px) rotate(1deg); }
+    0%, 100% { transform: translate(-50%, -90%) translateY(0) rotate(-1deg); }
+    50%      { transform: translate(-50%, -90%) translateY(-4px) rotate(1deg); }
 }
 @keyframes flagSwing {
     0%, 100% { transform: translate(-50%, -50%) rotate(-5deg); }
