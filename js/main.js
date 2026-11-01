@@ -1557,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnToggleTooltips.style.setProperty('position', 'fixed', 'important');
     btnToggleTooltips.style.setProperty('right', '96px', 'important');
-    btnToggleTooltips.style.setProperty('bottom', '203px', 'important');
+    btnToggleTooltips.style.setProperty('bottom', '-160px', 'important');
     btnToggleTooltips.style.setProperty('width', '46px', 'important');
     btnToggleTooltips.style.setProperty('height', '44px', 'important');
     btnToggleTooltips.style.setProperty('z-index', '10005', 'important');
@@ -1570,6 +1570,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleTooltips.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
     btnToggleTooltips.style.setProperty('border', '1px solid #3e6349', 'important');
     btnToggleTooltips.style.setProperty('color', '#dfbc6f', 'important');
+    btnToggleTooltips.style.setProperty('opacity', '0', 'important');
+    btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
     btnToggleTooltips.style.setProperty('transition', 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', 'important');
 
     document.body.appendChild(btnToggleTooltips);
