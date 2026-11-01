@@ -1768,6 +1768,7 @@ function attachMasterToggleLogic(rightPanel, player, mapControls, btnToggleFog, 
                     toggleQuestBtn.style.setProperty('opacity', '1', 'important');
                     toggleQuestBtn.style.setProperty('pointer-events', 'auto', 'important');
                     toggleQuestBtn.style.setProperty('transform', 'translateX(0)', 'important');
+                    toggleQuestBtn.style.setProperty('bottom', '149px', 'important');
                 }
             }
 
