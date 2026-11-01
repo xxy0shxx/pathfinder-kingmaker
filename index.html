@@ -50,40 +50,57 @@
     </div>
     <div class="box">
         <label>Тип объекта на гексе:</label>
-        <select id="inpType" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
-            <option value="">Обычный гекс</option>
-            <option value="landmark">🏛️ Достопримечательность</option>
-            <option value="resource">💎 Ресурс</option>
-            <option value="mystery">❓ Тайна</option>
-        </select>
+        <div class="custom-select" id="customSelectType">
+            <div class="custom-select-trigger" data-value="">Обычный гекс</div>
+            <div class="custom-options-container">
+                <div class="custom-option" data-value="">Обычный гекс</div>
+                <div class="custom-option" data-value="landmark">🏛 Достопримечательность</div>
+                <div class="custom-option" data-value="resource">💎 Ресурс</div>
+                <div class="custom-option" data-value="quest">⚜ Задание в гексе</div>
+                <div class="custom-option" data-value="mystery">❓ Тайна</div>
+            </div>
+            <input type="hidden" id="inpType" value="">
+        </div>
     </div>
     <div class="box">
         <label>Тип местности:</label>
-        <select id="inpTerrain" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
-            <option value="">Не указана</option>
-            <option value="swamp">🐸 Болото (СЛ 14)</option>
-            <option value="forest">🌲 Лес (СЛ 14)</option>
-            <option value="water">🌊 Вода (СЛ 17)</option>
-            <option value="arctic">❄️ Приполярье (СЛ 17)</option>
-            <option value="mountain">⛰️ Горы (СЛ 16)</option>
-            <option value="plains">🌾 Равнины (СЛ 12)</option>
-        </select>
+        <div class="custom-select" id="customSelectTerrain">
+            <div class="custom-select-trigger" data-value="">Не указана</div>
+            <div class="custom-options-container">
+                <div class="custom-option" data-value="">Не указана</div>
+                <div class="custom-option" data-value="swamp">🐸 Болото (СЛ 14)</div>
+                <div class="custom-option" data-value="forest">🌲 Лес (СЛ 14)</div>
+                <div class="custom-option" data-value="water">🌊 Вода (СЛ 17)</div>
+                <div class="custom-option" data-value="arctic">❄ Приполярье (СЛ 17)</div>
+                <div class="custom-option" data-value="mountain">⛰ Горы (СЛ 16)</div>
+                <div class="custom-option" data-value="plains">🌾 Равнины (СЛ 12)</div>
+            </div>
+            <input type="hidden" id="inpTerrain" value="">
+        </div>
     </div>
     <div class="box">
         <label>📚Описание гекса:</label>
         <textarea id="inpDesc" rows="2" placeholder="Описание гекса..."></textarea>
     </div>
     <div class="box">
-        <label>🎲Сложность региона:</label>
-        <select id="inpDifficulty" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
-            <option value="">Выберите СЛ</option>
-        </select>
+        <label>Сложность региона:</label>
+        <div class="custom-select" id="customSelectDifficulty">
+            <div class="custom-select-trigger" data-value="">Выберите СЛ</div>
+            <div class="custom-options-container" id="inpDifficultyContainer">
+                <div class="custom-option" data-value="">Выберите СЛ</div>
+            </div>
+            <input type="hidden" id="inpDifficulty" value="">
+        </div>
     </div>
     <div class="box">
-        <label>💀Уровень региона:</label>
-        <select id="inpRegionLevel" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: 16px;">
-            <option value="">Выберите уровень</option>
-        </select>
+        <label>Уровень региона:</label>
+        <div class="custom-select" id="customSelectRegionLevel">
+            <div class="custom-select-trigger" data-value="">Выберите уровень</div>
+            <div class="custom-options-container" id="inpRegionLevelContainer">
+                <div class="custom-option" data-value="">Выберите уровень</div>
+            </div>
+            <input type="hidden" id="inpRegionLevel" value="">
+        </div>
     </div>
     <div class="box">
         <label>Цвет гекса:</label>

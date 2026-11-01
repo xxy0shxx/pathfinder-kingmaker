@@ -205,20 +205,88 @@ document.addEventListener('click', (e) => {
 });
 
 function populateDifficultySelect() {
-    const regionLevelSelect = document.getElementById('inpRegionLevel');
-    if (!difficultySelect || !regionLevelSelect) return;
-    
-    for (let i = 1; i <= 40; i++) {
-        const optDiff = document.createElement('option');
-        optDiff.value = i;
-        optDiff.textContent = 'СЛ ' + i;
-        difficultySelect.appendChild(optDiff);
+    const diffContainer = document.getElementById('inpDifficultyContainer');
+    const levelContainer = document.getElementById('inpRegionLevelContainer');
+    if (!diffContainer || !levelContainer) return;
 
-        const optLvl = document.createElement('option');
-        optLvl.value = i;
+    for (let i = 1; i <= 40; i++) {
+        const optDiff = document.createElement('div');
+        optDiff.className = 'custom-option';
+        optDiff.setAttribute('data-value', i);
+        optDiff.textContent = 'СЛ ' + i;
+        diffContainer.appendChild(optDiff);
+
+        const optLvl = document.createElement('div');
+        optLvl.className = 'custom-option';
+        optLvl.setAttribute('data-value', i);
         optLvl.textContent = 'Уровень ' + i;
-        regionLevelSelect.appendChild(optLvl);
+        levelContainer.appendChild(optLvl);
     }
+
+    initCustomSelectLogic();
+}
+
+function setCustomSelectValue(selectId, value) {
+    const selectEl = document.getElementById(selectId);
+    if (!selectEl) return;
+    const trigger = selectEl.querySelector('.custom-select-trigger');
+    const hiddenInput = selectEl.querySelector('input[type="hidden"]');
+    const options = selectEl.querySelectorAll('.custom-option');
+
+    let targetOption = selectEl.querySelector(`.custom-option[data-value="${value}"]`);
+    if (!targetOption && options.length > 0) {
+        targetOption = options[0];
+    }
+
+    if (targetOption) {
+        options.forEach(opt => opt.classList.remove('selected'));
+        targetOption.classList.add('selected');
+        trigger.textContent = targetOption.textContent;
+        trigger.setAttribute('data-value', value);
+        hiddenInput.value = value;
+    }
+}
+
+function initCustomSelectLogic() {
+    document.querySelectorAll('.custom-select').forEach(select => {
+        const trigger = select.querySelector('.custom-select-trigger');
+        const container = select.querySelector('.custom-options-container');
+        const hiddenInput = select.querySelector('input[type="hidden"]');
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            document.querySelectorAll('.custom-select').forEach(otherSelect => {
+                if (otherSelect !== select) {
+                    otherSelect.classList.remove('active');
+                }
+            });
+
+            select.classList.toggle('active');
+        });
+
+        container.addEventListener('click', (e) => {
+            const option = e.target.closest('.custom-option');
+            if (!option) return;
+
+            const val = option.getAttribute('data-value');
+
+            select.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+
+            trigger.textContent = option.textContent;
+            trigger.setAttribute('data-value', val);
+            hiddenInput.value = val;
+
+            select.classList.remove('active');
+        });
+    });
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.custom-select').forEach(select => {
+            select.classList.remove('active');
+        });
+    });
 }
 
 function getHexCoordsArray(cx, cy, r) {
@@ -551,6 +619,10 @@ function openMenu(hexId) {
         currentColor = mapData[hexId].color || 'transparent';
 
         if (inpRumorDesc) inpRumorDesc.value = mapData[hexId].rumorText || '';
+        setCustomSelectValue('customSelectType', mapData[hexId].type || '');
+        setCustomSelectValue('customSelectTerrain', mapData[hexId].terrain || '');
+        setCustomSelectValue('customSelectDifficulty', mapData[hexId].difficulty || '');
+        setCustomSelectValue('customSelectRegionLevel', mapData[hexId].regionLevel || '');
     } else {
         if (document.getElementById('inpTitle')) document.getElementById('inpTitle').value = '';
         if (document.getElementById('inpDesc')) document.getElementById('inpDesc').value = '';
@@ -562,6 +634,12 @@ function openMenu(hexId) {
         if (inpRegionLevel) inpRegionLevel.value = '';
 
         if (inpRumorDesc) inpRumorDesc.value = '';
+        setCustomSelectValue('customSelectType', '');
+        setCustomSelectValue('customSelectTerrain', '');
+        setCustomSelectValue('customSelectDifficulty', '');
+        setCustomSelectValue('customSelectRegionLevel', '');
+
+        currentColor = 'transparent';
     }
 
     if (inpSquadHere) inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
