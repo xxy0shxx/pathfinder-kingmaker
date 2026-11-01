@@ -1661,7 +1661,7 @@ function initUnifiedUICollapse() {
     const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
 
     // ============================================================================
-    // ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ И СТИЛИЗАЦИЯ ПЛАВАЮЩЕЙ КНОПКИ ЖУРНАЛА (⚜️)
+    // ГЕНЕРАЦИЯ КНОПКИ ЖУРНАЛА (⚜️)
     // ============================================================================
     let toggleQuestBtn = document.querySelector('.quest-toggle-btn');
     if (!toggleQuestBtn && questLog) {
