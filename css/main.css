@@ -1193,3 +1193,13 @@ body {
 .hex-title-label-framed:has(.hex-title-text:empty) {
     display: none !important;
 }
+
+.quest-log-item.status-rumor {
+    border-left: 4px solid #a68032;
+    background: linear-gradient(90deg, rgba(84, 62, 13, 0.15) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.quest-log-item.status-rumor:hover {
+    border-left-color: #dfbc6f;
+    background: linear-gradient(90deg, rgba(166, 128, 50, 0.25) 0%, rgba(21, 46, 29, 0.35) 100%);
+}

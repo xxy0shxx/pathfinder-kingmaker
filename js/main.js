@@ -531,7 +531,7 @@ function convertHexToRgba(hex, alpha) {
 
 function openMenu(hexId) {
     currentHexId = hexId;
-    
+
     const inpExplored = document.getElementById('inpExplored');
     const inpMapMapped = document.getElementById('inpMapMapped');
     const inpSquadHere = document.getElementById('inpSquadHere');
@@ -540,29 +540,35 @@ function openMenu(hexId) {
     const inpRegionLevel = document.getElementById('inpRegionLevel');
     const inpColor = document.getElementById('inpColor');
 
+    const inpRumorDesc = document.getElementById('inpRumorDesc');
+
     let currentColor = 'transparent';
 
     if (mapData[hexId]) {
-        document.getElementById('inpTitle').value = mapData[hexId].title || '';
-        document.getElementById('inpDesc').value = mapData[hexId].text || '';
-        difficultySelect.value = mapData[hexId].difficulty || '';
-        inpExplored.checked = !!mapData[hexId].explored;
-        inpMapMapped.checked = !!mapData[hexId].mapMapped;
-        inpType.value = mapData[hexId].type || '';
-        inpTerrain.value = mapData[hexId].terrain || '';
-        inpRegionLevel.value = mapData[hexId].regionLevel || '';
+        if (document.getElementById('inpTitle')) document.getElementById('inpTitle').value = mapData[hexId].title || '';
+        if (document.getElementById('inpDesc')) document.getElementById('inpDesc').value = mapData[hexId].text || '';
+        if (difficultySelect) difficultySelect.value = mapData[hexId].difficulty || '';
+        if (inpExplored) inpExplored.checked = !!mapData[hexId].explored;
+        if (inpMapMapped) inpMapMapped.checked = !!mapData[hexId].mapMapped;
+        if (inpType) inpType.value = mapData[hexId].type || '';
+        if (inpTerrain) inpTerrain.value = mapData[hexId].terrain || '';
+        if (inpRegionLevel) inpRegionLevel.value = mapData[hexId].regionLevel || '';
         currentColor = mapData[hexId].color || 'transparent';
+
+        if (inpRumorDesc) inpRumorDesc.value = mapData[hexId].rumorText || '';
     } else {
-        document.getElementById('inpTitle').value = '';
-        document.getElementById('inpDesc').value = '';
-        difficultySelect.value = '';
-        inpExplored.checked = false;
-        inpMapMapped.checked = false;
-        inpType.value = '';
-        inpTerrain.value = '';
-        inpRegionLevel.value = '';
+        if (document.getElementById('inpTitle')) document.getElementById('inpTitle').value = '';
+        if (document.getElementById('inpDesc')) document.getElementById('inpDesc').value = '';
+        if (difficultySelect) difficultySelect.value = '';
+        if (inpExplored) inpExplored.checked = false;
+        if (inpMapMapped) inpMapMapped.checked = false;
+        if (inpType) inpType.value = '';
+        if (inpTerrain) inpTerrain.value = '';
+        if (inpRegionLevel) inpRegionLevel.value = '';
+
+        if (inpRumorDesc) inpRumorDesc.value = '';
     }
-    
+
     if (inpSquadHere) inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
     if (inpColor) inpColor.value = currentColor;
 
@@ -579,31 +585,46 @@ function openMenu(hexId) {
         const inpTitle = document.getElementById('inpTitle');
         const inpDesc = document.getElementById('inpDesc');
 
-        inpTitle.setAttribute('readonly', 'true');
-        inpDesc.setAttribute('readonly', 'true');
+        if (inpTitle) {
+            inpTitle.setAttribute('readonly', 'true');
+            inpTitle.onclick = function() {
+                let newTitle = prompt("Введите название гекса:", inpTitle.value);
+                if (newTitle !== null) inpTitle.value = newTitle;
+            };
+        }
 
-        inpTitle.onclick = function() {
-            let newTitle = prompt("Введите название гекса:", inpTitle.value);
-            if (newTitle !== null) inpTitle.value = newTitle;
-        };
+        if (inpDesc) {
+            inpDesc.setAttribute('readonly', 'true');
+            inpDesc.onclick = function() {
+                let newDesc = prompt("Введите описание гекса:", inpDesc.value);
+                if (newDesc !== null) inpDesc.value = newDesc;
+            };
+        }
 
-        inpDesc.onclick = function() {
-            let newDesc = prompt("Введите описание гекса:", inpDesc.value);
-            if (newDesc !== null) inpDesc.value = newDesc;
-        };
+        if (inpRumorDesc) {
+            inpRumorDesc.setAttribute('readonly', 'true');
+            inpRumorDesc.onclick = function() {
+                let newRumor = prompt("Введите слухи:", inpRumorDesc.value);
+                if (newRumor !== null) inpRumorDesc.value = newRumor;
+            };
+        }
     }
+
+    const inpQuestTitle = document.getElementById('inpQuestTitle');
+    const inpQuestDesc = document.getElementById('inpQuestDesc');
+    const inpQuestStatus = document.getElementById('inpQuestStatus');
 
     if (mapData[hexId] && mapData[hexId].questData) {
-        document.getElementById('inpQuestTitle').value = mapData[hexId].questData.title || '';
-        document.getElementById('inpQuestDesc').value = mapData[hexId].questData.desc || '';
-        document.getElementById('inpQuestStatus').checked = mapData[hexId].questData.status === 'completed';
+        if (inpQuestTitle) inpQuestTitle.value = mapData[hexId].questData.title || '';
+        if (inpQuestDesc) inpQuestDesc.value = mapData[hexId].questData.desc || '';
+        if (inpQuestStatus) inpQuestStatus.checked = mapData[hexId].questData.status === 'completed';
     } else {
-        document.getElementById('inpQuestTitle').value = '';
-        document.getElementById('inpQuestDesc').value = '';
-        document.getElementById('inpQuestStatus').checked = false;
+        if (inpQuestTitle) inpQuestTitle.value = '';
+        if (inpQuestDesc) inpQuestDesc.value = '';
+        if (inpQuestStatus) inpQuestStatus.checked = false;
     }
 
-    modal.classList.add('open');
+    if (modal) modal.classList.add('open');
 }
 
 function convertHexToRgbStandard(hex) {
@@ -645,6 +666,8 @@ function saveMenu() {
     const questTitleVal = document.getElementById('inpQuestTitle').value.trim();
     const questDescVal = document.getElementById('inpQuestDesc').value.trim();
     const questStatusVal = document.getElementById('inpQuestStatus').checked ? 'completed' : 'active';
+
+    const rumorTextVal = document.getElementById('inpRumorDesc').value.trim();
 
     const currentHexElement = document.getElementById('visual_' + currentHexId);
     const currentShape = document.getElementById('shape_' + currentHexId);
@@ -863,6 +886,7 @@ function saveMenu() {
     mapData[currentHexId] = {
         title: titleVal,
         text: descVal,
+        rumorText: rumorTextVal,
         color: colorVal,
         difficulty: diffVal,
         explored: exploredVal,
@@ -1642,21 +1666,26 @@ let currentQuestFilter = 'active';
 function initQuestLogTabs() {
     const tabActive = document.getElementById('tabActiveQuests');
     const tabCompleted = document.getElementById('tabCompletedQuests');
+    const tabRumors = document.getElementById('tabRumors');
 
-    if (tabActive && tabCompleted) {
+    if (tabActive && tabCompleted && tabRumors) {
         tabActive.addEventListener('click', () => {
-            tabActive.classList.add('active');
-            tabCompleted.classList.remove('active');
-            currentQuestFilter = 'active';
-            renderQuestLog('active');
+            setActiveTab(tabActive, 'active');
         });
         tabCompleted.addEventListener('click', () => {
-            tabCompleted.classList.add('active');
-            tabActive.classList.remove('active');
-            currentQuestFilter = 'completed';
-            renderQuestLog('completed');
+            setActiveTab(tabCompleted, 'completed');
+        });
+        tabRumors.addEventListener('click', () => {
+            setActiveTab(tabRumors, 'rumors');
         });
     }
+}
+
+function setActiveTab(tabElement, filterName) {
+    document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
+    tabElement.classList.add('active');
+    currentQuestFilter = filterName;
+    renderQuestLog(filterName);
 }
 
 function renderQuestLog(filterStatus = 'active') {
@@ -1668,38 +1697,64 @@ function renderQuestLog(filterStatus = 'active') {
 
     for (let hexId in mapData) {
         const hex = mapData[hexId];
-        if (hex && hex.questData && hex.questData.status === filterStatus) {
-            count++;
-            const questItem = document.createElement('div');
-            questItem.className = `quest-log-item status-${filterStatus}`;
+        if (!hex) continue;
 
-            let objIcon = '⚜️';
-            if (hex.type === 'landmark') objIcon = '🏛️';
-            if (hex.type === 'resource') objIcon = '💎';
-            if (hex.type === 'mystery') objIcon = '❓';
+        if (filterStatus === 'rumors') {
+            if (hex.rumorText && hex.rumorText.trim() !== '') {
+                count++;
+                const rumorItem = document.createElement('div');
+                rumorItem.className = 'quest-log-item status-rumor';
 
-            questItem.innerHTML = `
-                <div class="quest-item-title">${objIcon} ${hex.questData.title}</div>
-                <div class="quest-item-location">📍 Регион: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
-                ${hex.questData.desc ? `<div class="quest-item-desc">${hex.questData.desc.replace(/\n/g, '<br>')}</div>` : ''}
-            `;
+                rumorItem.innerHTML = `
+                    <div class="quest-item-title">🗣️ Наводка / Слух</div>
+                    <div class="quest-item-location">📍 Место действия: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
+                    <div class="quest-item-desc">${hex.rumorText.replace(/\n/g, '<br>')}</div>
+                `;
 
-            questItem.addEventListener('click', () => {
-                focusOnHex(hexId);
+                rumorItem.addEventListener('click', () => {
+                    focusOnHex(hexId);
+                    const questLog = document.getElementById('questLogContainer');
+                    if (questLog) questLog.classList.add('ui-collapsed');
+                });
 
-                const questLog = document.getElementById('questLogContainer');
-                if (questLog) {
-                    questLog.classList.add('ui-collapsed');
-                }
+                listContainer.appendChild(rumorItem);
+            }
+        }
+        else {
+            if (hex.questData && hex.questData.status === filterStatus) {
+                count++;
+                const questItem = document.createElement('div');
+                questItem.className = `quest-log-item status-${filterStatus}`;
 
-            });
+                let objIcon = '⚜️';
+                if (hex.type === 'landmark') objIcon = '🏛️';
+                if (hex.type === 'resource') objIcon = '💎';
+                if (hex.type === 'mystery') objIcon = '❓';
 
-            listContainer.appendChild(questItem);
+                questItem.innerHTML = `
+                    <div class="quest-item-title">${objIcon} ${hex.questData.title}</div>
+                    <div class="quest-item-location">📍 Регион: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
+                    ${hex.questData.desc ? `<div class="quest-item-desc">${hex.questData.desc.replace(/\n/g, '<br>')}</div>` : ''}
+                `;
+
+                questItem.addEventListener('click', () => {
+                    focusOnHex(hexId);
+                    const questLog = document.getElementById('questLogContainer');
+                    if (questLog) questLog.classList.add('ui-collapsed');
+                });
+
+                listContainer.appendChild(questItem);
+            }
         }
     }
 
     if (count === 0) {
-        listContainer.innerHTML = `<div class="quest-log-empty">Нет заданий в этой категории</div>`;
+        const messages = {
+            'active': 'Нет активных заданий',
+            'completed': 'Нет завершенных заданий',
+            'rumors': 'В тавернах Королевства пока не слышно новых зацепок...'
+        };
+        listContainer.innerHTML = `<div class="quest-log-empty">${messages[filterStatus] || 'Пусто'}</div>`;
     }
 }
 
