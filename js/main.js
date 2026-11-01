@@ -10,7 +10,6 @@ const modal = document.getElementById('hexMenu');
 const difficultySelect = document.getElementById('inpDifficulty');
 let currentHexId = null;
 let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
-let showQuestTooltips = true;
 
 const audioPlayer = document.getElementById('bg-music');
 const musicButton = document.getElementById('btnMusic');
@@ -74,7 +73,6 @@ async function initializeMusicPlayer() {
         if (loopButton) loopButton.addEventListener('click', toggleLoop);
         if (playlistButton) playlistButton.addEventListener('click', togglePlaylistUI);
 
-        //
         if (shuffleButton) {
             shuffleButton.textContent = "➔";
             shuffleButton.title = "Перемешать треки";
@@ -88,12 +86,11 @@ async function initializeMusicPlayer() {
                     shuffleButton.title = "Перемешивание ВКЛ";
                     playNextRandomTrack();
                 } else {
-                    shuffleButton.textContent = "▶️";
+                    shuffleButton.textContent = "➔";
                     shuffleButton.title = "Перемешать треки";
                 }
             });
         }
-        //
 
         audioPlayer.addEventListener("timeupdate", () => {
             if (!audioPlayer.duration) return;
@@ -120,7 +117,6 @@ async function initializeMusicPlayer() {
             volumeSlider.addEventListener("input", (e) => { audioPlayer.volume = e.target.value; });
         }
 
-        //
         audioPlayer.addEventListener("ended", () => {
             if (isLooping) {
                 return;
@@ -133,7 +129,6 @@ async function initializeMusicPlayer() {
                 loadTrack(nextIdx, true);
             }
         });
-        //
 
         loadTrack(currentTrackIdx, false);
     } catch (error) {
@@ -1040,21 +1035,6 @@ fileInput.addEventListener('change', function(e) {
     reader.readAsText(files[0]); 
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    groupMenuFields();
-
-    initializeMusicPlayer();
-    initColorPresets();
-    populateDifficultySelect();
-    buildHexGrid();
-
-    setTimeout(() => {
-        updateMapTransform();
-        const frame = document.querySelector('.kingmaker-frame');
-        if (frame) frame.style.opacity = '1';
-    }, 150);
-});
-
 window.addEventListener('resize', () => {
     if (typeof updateMapTransform === 'function') {
         updateMapTransform();
@@ -1250,7 +1230,6 @@ if (btnToggle && legendCont) {
         e.stopPropagation();
         legendCont.classList.toggle('open');
         btnToggle.textContent = legendCont.classList.contains('open') ? '🔽' : '🔼';
-        console.log("Легенда переключена!");
     });
 
     const header = document.querySelector('.legend-header');
@@ -1261,7 +1240,6 @@ if (btnToggle && legendCont) {
             e.stopPropagation();
             legendCont.classList.toggle('open');
             btnToggle.textContent = legendCont.classList.contains('open') ? '🔽' : '🔼';
-            console.log("Легенда нажата по заголовку!");
         });
     }
 } else {
@@ -1573,8 +1551,14 @@ function initUnifiedUICollapse() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    groupMenuFields();
+    initializeMusicPlayer();
+    initColorPresets();
+    populateDifficultySelect();
+    buildHexGrid();
     initFrameStyleControls();
     initUnifiedUICollapse();
+
     if (btnToggleMapMode) {
         let currentMode = 'global';
 
@@ -1586,9 +1570,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnToggleMapMode.style.background = 'linear-gradient(180deg, #42351f 0%, #292011 100%)';
                 btnToggleMapMode.style.borderColor = '#543e0d';
                 btnToggleMapMode.style.color = '#ebd291';
-
-                console.log("Переключено на: Карта лагеря");
-
             } else {
                 currentMode = 'global';
                 btnToggleMapMode.innerHTML = '🗺️';
@@ -1596,8 +1577,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnToggleMapMode.style.background = 'linear-gradient(180deg, #4f5d65 0%, #2c3539 100%)';
                 btnToggleMapMode.style.borderColor = '#d4af37';
                 btnToggleMapMode.style.color = '#d1d8e0';
-
-                console.log("Переключено на: Глобальная карта");
             }
         });
     }
@@ -1606,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleTooltips.type = 'button';
     btnToggleTooltips.id = 'btnToggleTooltips';
     btnToggleTooltips.className = 'btn-ui-toggle';
-    btnToggleTooltips.innerHTML = '💬';
+    btnToggleTooltips.innerHTML = '✨';
     btnToggleTooltips.title = 'Скрыть/Показать тултипы квестов';
 
     btnToggleTooltips.style.setProperty('position', 'fixed', 'important');
@@ -1666,7 +1645,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
+    setTimeout(() => {
+        if (typeof updateMapTransform === 'function') {
+            updateMapTransform();
+        }
+        const frame = document.querySelector('.kingmaker-frame');
+        if (frame) frame.style.opacity = '1';
+    }, 150);
 });
 
 let currentQuestFilter = 'active';
