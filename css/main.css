@@ -1131,3 +1131,33 @@ body {
     border-color: #ffffff !important;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.6) !important;
 }
+
+#questLogList {
+    scrollbar-width: auto !important;
+    scrollbar-color: #b89445 #050a06 !important;
+}
+
+#questLogList::-webkit-scrollbar {
+    width: 12px !important;
+    display: block !important;
+}
+
+#questLogList::-webkit-scrollbar-track {
+    background: #040905 !important;
+    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
+    border-radius: 2px !important;
+    margin: 15px 5px 15px 0;
+}
+
+#questLogList::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
+    border: 1px solid #543e0d !important;
+    border-radius: 2px !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+}
+
+#questLogList::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
+    border-color: #a68032 !important;
+    box-shadow: 0 0 8px rgba(166, 128, 50, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
+}
