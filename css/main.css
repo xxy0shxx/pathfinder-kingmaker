@@ -985,11 +985,28 @@ body {
     border-color: #d4af37 !important;
     color: #d1d8e0 !important;
 }
-#btnToggleFog { bottom: 95px !important;  background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important; border: 1px solid #543e0d !important; color: #ebd291 !important; }
-#btnToggleFog.ui-collapsed    { bottom: -60px !important; opacity: 0 !important; pointer-events: none !important; }
-#btnMapGlobal.ui-collapsed    { bottom: -110px !important; opacity: 0 !important; pointer-events: none !important; }
+#btnToggleFog {
+    bottom: 149px !important;  /* Было 95px */
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    border: 1px solid #543e0d !important;
+    color: #ebd291 !important;
+}
+#btnToggleFog.ui-collapsed {
+    bottom: -160px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+#btnMapGlobal.ui-collapsed {
+    bottom: -110px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
 #btnToggleMapMode.ui-collapsed,
-#btnMapCamp.ui-collapsed      { bottom: -160px !important; opacity: 0 !important; pointer-events: none !important; }
+#btnMapCamp.ui-collapsed {
+    bottom: -60px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
 
 .btn-ui-toggle.master-toggle-btn {
     position: fixed !important;
