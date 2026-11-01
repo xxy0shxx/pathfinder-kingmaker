@@ -4,12 +4,148 @@ const cols = 30;
 const offsetX = -106;
 const offsetY = 16;
 
+const minZoom = 0.5;
+const maxZoom = 3.0;
+let currentZoom = 1.0;
+
+let isDragging = false;
+let hasMoved = false;
+let startX = 0;
+let startY = 0;
+let x = 0;
+let y = 0;
+
 const clickableMap = document.getElementById('clickableMap');
 const visualLayer = document.getElementById('visualLayer');
+const viewport = document.getElementById('viewport');
+const mapContainer = document.getElementById('mapContainer');
 const modal = document.getElementById('hexMenu');
 const difficultySelect = document.getElementById('inpDifficulty');
+
 let currentHexId = null;
 let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
+
+const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'];
+let lastFrameWidth = 0;
+let lastFrameHeight = 0;
+let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
+let currentQuestFilter = 'active';
+
+// ============================================================================
+// ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    groupMenuFields();
+    initializeMusicPlayer();
+    initColorPresets();
+    populateDifficultySelect();
+
+    buildHexGrid();
+    initFrameStyleControls();
+    initUnifiedUICollapse();
+
+    const btnToggleMapMode = document.getElementById('btnToggleMapMode');
+    if (btnToggleMapMode) {
+        let currentMode = 'global';
+
+        btnToggleMapMode.addEventListener('click', () => {
+            if (currentMode === 'global') {
+                currentMode = 'camp';
+                btnToggleMapMode.innerHTML = '⛺';
+                btnToggleMapMode.title = 'Переключить на глобальную карту';
+                btnToggleMapMode.style.background = 'linear-gradient(180deg, #42351f 0%, #292011 100%)';
+                btnToggleMapMode.style.borderColor = '#543e0d';
+                btnToggleMapMode.style.color = '#ebd291';
+            } else {
+                currentMode = 'global';
+                btnToggleMapMode.innerHTML = '🗺️';
+                btnToggleMapMode.title = 'Переключить на карту лагеря';
+                btnToggleMapMode.style.background = 'linear-gradient(180deg, #4f5d65 0%, #2c3539 100%)';
+                btnToggleMapMode.style.borderColor = '#d4af37';
+                btnToggleMapMode.style.color = '#d1d8e0';
+            }
+        });
+    }
+
+    // Создание и инициализация кнопки скрытия тултипов квестов на карте
+    const btnToggleTooltips = document.createElement('button');
+    btnToggleTooltips.type = 'button';
+    btnToggleTooltips.id = 'btnToggleTooltips';
+    btnToggleTooltips.className = 'btn-ui-toggle';
+    btnToggleTooltips.innerHTML = '✨';
+    btnToggleTooltips.title = 'Скрыть/Показать тултипы квестов';
+
+    btnToggleTooltips.style.setProperty('position', 'fixed', 'important');
+    btnToggleTooltips.style.setProperty('right', '96px', 'important');
+    btnToggleTooltips.style.setProperty('bottom', '-160px', 'important');
+    btnToggleTooltips.style.setProperty('width', '46px', 'important');
+    btnToggleTooltips.style.setProperty('height', '44px', 'important');
+    btnToggleTooltips.style.setProperty('z-index', '10005', 'important');
+    btnToggleTooltips.style.setProperty('display', 'flex', 'important');
+    btnToggleTooltips.style.setProperty('align-items', 'center', 'important');
+    btnToggleTooltips.style.setProperty('justify-content', 'center', 'important');
+    btnToggleTooltips.style.setProperty('border-radius', '4px', 'important');
+    btnToggleTooltips.style.setProperty('cursor', 'pointer', 'important');
+    btnToggleTooltips.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.5)', 'important');
+    btnToggleTooltips.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+    btnToggleTooltips.style.setProperty('border', '1px solid #3e6349', 'important');
+    btnToggleTooltips.style.setProperty('color', '#dfbc6f', 'important');
+    btnToggleTooltips.style.setProperty('opacity', '0', 'important');
+    btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
+    btnToggleTooltips.style.setProperty('transition', 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', 'important');
+
+    document.body.appendChild(btnToggleTooltips);
+
+    btnToggleTooltips.addEventListener('click', () => {
+        const visualLayerEl = document.getElementById('visualLayer');
+        if (!visualLayerEl) return;
+
+        const isHidden = visualLayerEl.classList.toggle('hide-quest-tooltips');
+
+        if (!isHidden) {
+            btnToggleTooltips.style.background = 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)';
+            btnToggleTooltips.style.borderColor = '#3e6349';
+            btnToggleTooltips.style.color = '#dfbc6f';
+        } else {
+            btnToggleTooltips.style.background = 'linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%)';
+            btnToggleTooltips.style.borderColor = '#823030';
+            btnToggleTooltips.style.color = '#f7baba';
+        }
+    });
+
+    // Обработчик сворачивания элементов интерфейса кнопкой шестеренки
+    const masterBtn = document.querySelector('.master-toggle-btn');
+    if (masterBtn) {
+        masterBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                const player = document.querySelector('.music-controller');
+                const isCollapsed = player ? player.classList.contains('ui-collapsed') : true;
+                if (isCollapsed) {
+                    btnToggleTooltips.style.setProperty('bottom', '-160px', 'important');
+                    btnToggleTooltips.style.setProperty('opacity', '0', 'important');
+                    btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
+                } else {
+                    btnToggleTooltips.style.setProperty('bottom', '203px', 'important');
+                    btnToggleTooltips.style.setProperty('opacity', '1', 'important');
+                    btnToggleTooltips.style.setProperty('pointer-events', 'auto', 'important');
+                }
+            }, 50);
+        });
+    }
+
+    // Первичный расчет положения рамки и проявление карты
+    setTimeout(() => {
+        if (typeof updateMapTransform === 'function') {
+            updateMapTransform();
+        }
+        const frame = document.querySelector('.kingmaker-frame');
+        if (frame) frame.style.opacity = '1';
+    }, 150);
+});
+// ============================================================================
+// АУДИОПЛЕЕР — ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И СЛУЖЕБНЫЕ ФУНКЦИИ
+// ============================================================================
 
 const audioPlayer = document.getElementById('bg-music');
 const musicButton = document.getElementById('btnMusic');
@@ -36,6 +172,11 @@ function formatTrackName(filename) {
     name = name.replace(/audio\//gi, '').replace(/\s+/g, ' ').trim();
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
+
+// ============================================================================
+// АСИНХРОННАЯ ИНИЦИАЛИЗАЦИЯ И СИНХРОНИЗАЦИЯ С ЭЛЕМЕНТАМИ ИНТЕРФЕЙСА
+// ============================================================================
+
 async function initializeMusicPlayer() {
     if (!audioPlayer) return;
     audioPlayer.volume = 0.25;
@@ -92,49 +233,60 @@ async function initializeMusicPlayer() {
             });
         }
 
-        audioPlayer.addEventListener("timeupdate", () => {
-            if (!audioPlayer.duration) return;
-            const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-            if (progressFill) progressFill.style.width = `${pct}%`;
-            if (timeCurrent) timeCurrent.textContent = formatMusicTime(audioPlayer.currentTime);
-        });
-
-        audioPlayer.addEventListener("loadedmetadata", () => {
-            if (timeTotal) timeTotal.textContent = formatMusicTime(audioPlayer.duration);
-        });
-
-        if (progressBg) {
-            progressBg.addEventListener("click", (e) => {
-                if (!audioPlayer.duration) return;
-                const rect = progressBg.getBoundingClientRect();
-                const pct = (e.clientX - rect.left) / rect.width;
-                audioPlayer.currentTime = pct * audioPlayer.duration;
-            });
-        }
-
-        if (volumeSlider) {
-            volumeSlider.value = audioPlayer.volume;
-            volumeSlider.addEventListener("input", (e) => { audioPlayer.volume = e.target.value; });
-        }
-
-        audioPlayer.addEventListener("ended", () => {
-            if (isLooping) {
-                return;
-            }
-            if (isShuffling) {
-                playNextRandomTrack();
-            } else {
-                let nextIdx = currentTrackIdx + 1;
-                if (nextIdx >= playlist.length) nextIdx = 0;
-                loadTrack(nextIdx, true);
-            }
-        });
+        attachPlayerRuntimeEvents();
 
         loadTrack(currentTrackIdx, false);
     } catch (error) {
         console.error("Ошибка загрузки плейлиста:", error);
     }
 }
+// ============================================================================
+// РАНТАЙМ-СОБЫТИЯ ПЛЕЕРА (ТАЙМЛАЙН, ОБРЫВ ТРЕКА, ОБНОВЛЕНИЕ ВРЕМЕНИ)
+// ============================================================================
+
+function attachPlayerRuntimeEvents() {
+    audioPlayer.addEventListener("timeupdate", () => {
+        if (!audioPlayer.duration) return;
+        const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+        if (progressFill) progressFill.style.width = `${pct}%`;
+        if (timeCurrent) timeCurrent.textContent = formatMusicTime(audioPlayer.currentTime);
+    });
+
+    audioPlayer.addEventListener("loadedmetadata", () => {
+        if (timeTotal) timeTotal.textContent = formatMusicTime(audioPlayer.duration);
+    });
+
+    if (progressBg) {
+        progressBg.addEventListener("click", (e) => {
+            if (!audioPlayer.duration) return;
+            const rect = progressBg.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            audioPlayer.currentTime = pct * audioPlayer.duration;
+        });
+    }
+
+    if (volumeSlider) {
+        volumeSlider.value = audioPlayer.volume;
+        volumeSlider.addEventListener("input", (e) => { audioPlayer.volume = e.target.value; });
+    }
+
+    audioPlayer.addEventListener("ended", () => {
+        if (isLooping) {
+            return;
+        }
+        if (isShuffling) {
+            playNextRandomTrack();
+        } else {
+            let nextIdx = currentTrackIdx + 1;
+            if (nextIdx >= playlist.length) nextIdx = 0;
+            loadTrack(nextIdx, true);
+        }
+    });
+}
+
+// ============================================================================
+// КОНТРОЛЛЕРЫ ПЕРЕКЛЮЧЕНИЯ СОСТОЯНИЙ И ФУНКЦИИ УПРАВЛЕНИЯ ТРЕКАМИ
+// ============================================================================
 
 function loadTrack(idx, startPlaying = false) {
     if (idx < 0 || idx >= playlist.length) return;
@@ -163,7 +315,7 @@ function toggleMusic() {
 
 function toggleLoop() {
     isLooping = !isLooping; audioPlayer.loop = isLooping;
-    if (isLooping) { loopButton.classList.add('active'); loopButton.title = "Цикл ВКЛ"; } 
+    if (isLooping) { loopButton.classList.add('active'); loopButton.title = "Цикл ВКЛ"; }
     else { loopButton.classList.remove('active'); loopButton.title = "Зациклить трек"; }
 }
 
@@ -203,6 +355,9 @@ document.addEventListener('click', (e) => {
         playlistContainer.classList.remove('open'); playlistButton.classList.remove('active');
     }
 });
+// ============================================================================
+// ГЕНЕРАЦИЯ ДАННЫХ ДЛЯ СЕЛЕКТОВ СЛОЖНОСТИ И УРОВНЕЙ
+// ============================================================================
 
 function populateDifficultySelect() {
     const diffContainer = document.getElementById('inpDifficultyContainer');
@@ -226,6 +381,10 @@ function populateDifficultySelect() {
     initCustomSelectLogic();
 }
 
+// ============================================================================
+// ЛОГИКА И УПРАВЛЕНИЕ КАСТОМНЫМИ ВЫПАДАЮЩИМИ СПИСКАМИ (SELECT UI)
+// ============================================================================
+
 function setCustomSelectValue(selectId, value) {
     const selectEl = document.getElementById(selectId);
     if (!selectEl) return;
@@ -243,7 +402,9 @@ function setCustomSelectValue(selectId, value) {
         targetOption.classList.add('selected');
         trigger.textContent = targetOption.textContent;
         trigger.setAttribute('data-value', value);
-        hiddenInput.value = value;
+        if (hiddenInput) {
+            hiddenInput.value = value;
+        }
     }
 }
 
@@ -276,7 +437,9 @@ function initCustomSelectLogic() {
 
             trigger.textContent = option.textContent;
             trigger.setAttribute('data-value', val);
-            hiddenInput.value = val;
+            if (hiddenInput) {
+                hiddenInput.value = val;
+            }
 
             select.classList.remove('active');
         });
@@ -288,6 +451,9 @@ function initCustomSelectLogic() {
         });
     });
 }
+// ============================================================================
+// РАСЧЕТ ВЕРШИН РЕГУЛЯРНОГО ГЕКСАГОНА
+// ============================================================================
 
 function getHexCoordsArray(cx, cy, r) {
     let coords = [];
@@ -300,6 +466,10 @@ function getHexCoordsArray(cx, cy, r) {
     }
     return coords.join(',');
 }
+
+// ============================================================================
+// РЕНДЕРИНГ СЕТКИ — БАЗОВАЯ РАЗМЕТКА И НАЗНАЧЕНИЕ СОБЫТИЙ КЛИКА
+// ============================================================================
 
 function buildHexGrid() {
     clickableMap.innerHTML = '';
@@ -350,239 +520,252 @@ function buildHexGrid() {
                 }
             });
 
-            const tooltip = document.getElementById('hexTooltip');
-            vHex.addEventListener('mouseenter', function (e) {
-                if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
-                    const data = mapData[hexId];
-                    let content = '';
-                    if (data.title) {
-                        const star = data.explored ? '🔍 ' : '';
-                        const mapIcon = data.mapMapped ? '📜 ' : '';
-                        let statsLabel = '';
-                        if (data.difficulty && data.regionLevel) statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
-                        else if (data.difficulty) statsLabel = ` (СЛ ${data.difficulty})`;
-                        else if (data.regionLevel) statsLabel = ` (lvl ${data.regionLevel})`;
-                        let typeIcon = '';
-                        if (data.type === 'landmark') typeIcon = '🏛️ ';
-                        else if (data.type === 'resource') typeIcon = '💎 ';
-                        else if (data.type === 'quest') typeIcon = '⚜️ ';
-                        else if (data.type === 'mystery') typeIcon = '❓ ';
-                        let terrainIcon = '';
-                        if (data.terrain === 'swamp') terrainIcon = '🐸 ';
-                        else if (data.terrain === 'forest') terrainIcon = '🌲 ';
-                        else if (data.terrain === 'water') terrainIcon = '🌊 ';
-                        else if (data.terrain === 'arctic') terrainIcon = '❄️ ';
-                        else if (data.terrain === 'mountain') terrainIcon = '⛰️ ';
-                        else if (data.terrain === 'plains') terrainIcon = '🌾 ';
-                        content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
-                    }
-                    let paramsBlock = '';
-                    paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
-                    paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '❌ <b>Карта отсутствует</b>'}</div>`;
-                    if (data.squadHere) paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
-                    if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> СЛ ${data.difficulty}</div>`;
-                    if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> Уровень ${data.regionLevel}</div>`;
-                    if (data.type) {
-                        let typeText = '';
-                        let tIcon = '';
-                        if (data.type === 'landmark') {
-                            tIcon = '🏛️';
-                            typeText = 'Достопримечательность';
-                        }
-                        if (data.type === 'resource') {
-                            tIcon = '💎';
-                            typeText = 'Ресурс';
-                        }
-                        if (data.type === 'quest') {
-                            tIcon = '⚜️';
-                            typeText = 'Стандартное задание';
-                        }
-                        if (data.type === 'mystery') {
-                            tIcon = '❓';
-                            typeText = 'Тайна';
-                        }
-                        paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
-                    }
-                    if (data.terrain) {
-                        let terrainText = '';
-                        let terrIcon = '';
-                        if (data.terrain === 'swamp') {
-                            terrIcon = '🐸';
-                            terrainText = 'Болото (СЛ 14)';
-                        }
-                        if (data.terrain === 'forest') {
-                            terrIcon = '🌲';
-                            terrainText = 'Лес (СЛ 14)';
-                        }
-                        if (data.terrain === 'water') {
-                            terrIcon = '🌊';
-                            terrainText = 'Вода (СЛ 17)';
-                        }
-                        if (data.terrain === 'arctic') {
-                            terrIcon = '❄️';
-                            terrainText = 'Приполярье (СЛ 17)';
-                        }
-                        if (data.terrain === 'mountain') {
-                            terrIcon = '⛰️';
-                            terrainText = 'Горы (СЛ 16)';
-                        }
-                        if (data.terrain === 'plains') {
-                            terrIcon = '🌾';
-                            terrainText = 'Равнины (СЛ 12)';
-                        }
-                        paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
-                    }
-                    content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
-                    if (data.text) {
-                        content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
-                    }
+            attachHexTooltipEvents(vHex, hexId, cx, cy);
 
-                    if (data.lastSaved) {
-                        content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`;
-                    }
+            createHexSubLayers(vHex, hexId, cx, cy);
 
-                    tooltip.innerHTML = content;
-                    tooltip.style.display = 'block';
-                }
-            });
-
-            vHex.addEventListener('mousemove', (e) => {
-                if (tooltip) {
-                    tooltip.style.left = (e.clientX + 25) + 'px';
-                    tooltip.style.top = (e.clientY + 25) + 'px';
-                }
-            });
-
-            vHex.addEventListener('mouseleave', () => {
-                if (tooltip) {
-                    tooltip.style.display = 'none';
-                    tooltip.innerHTML = '';
-                }
-            });
-
-            const shape = document.createElement('div');
-            shape.className = 'hex-shape';
-            shape.setAttribute('id', 'shape_' + hexId);
-            if (mapData[hexId] && mapData[hexId].color) shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
-            if (mapData[hexId] && mapData[hexId].squadHere) vHex.classList.add('squad-dark');
-            vHex.appendChild(shape);
-
-            const titleLabel = document.createElement('div');
-            titleLabel.className = 'hex-title-label-framed';
-            titleLabel.setAttribute('id', 'title_label_' + hexId);
-
-            const titleText = document.createElement('span');
-            titleText.className = 'hex-title-text';
-            titleLabel.appendChild(titleText);
-
-            titleLabel.style.left = cx + 'px';
-            titleLabel.style.top = (cy - hexRadius + 30) + 'px';
-
-            visualLayer.appendChild(titleLabel);
-
-            const questMiniTooltip = document.createElement('div');
-            questMiniTooltip.className = 'hex-quest-mini-tooltip';
-            vHex.appendChild(questMiniTooltip);
-
-            const statsLabel = document.createElement('span');
-            statsLabel.className = 'hex-stats-label';
-            vHex.appendChild(statsLabel);
-
-            const exploredElem = document.createElement('div');
-            exploredElem.className = 'explored-icon-container';
-            vHex.appendChild(exploredElem);
-
-            const mappedElem = document.createElement('div');
-            mappedElem.className = 'mapped-icon-container';
-            vHex.appendChild(mappedElem);
-
-            const typeElem = document.createElement('div');
-            typeElem.className = 'type-icon-container';
-            vHex.appendChild(typeElem);
-
-            const terrainElem = document.createElement('div');
-            terrainElem.className = 'terrain-icon-container';
-            vHex.appendChild(terrainElem);
-
-            const flagContainer = document.createElement('div');
-            flagContainer.className = 'squad-flag-container';
-            const pole = document.createElement('div');
-            pole.className = 'squad-pole';
-            const flag = document.createElement('div');
-            flag.className = 'squad-flag';
-            pole.appendChild(flag);
-            flagContainer.appendChild(pole);
-            vHex.appendChild(flagContainer);
-
-            if (mapData[hexId]) {
-                if (mapData[hexId].title) titleLabel.querySelector('.hex-title-text').textContent = mapData[hexId].title;
-                const diff = mapData[hexId].difficulty;
-                const lvl = mapData[hexId].regionLevel;
-                if (diff && lvl) statsLabel.textContent = `🎲${diff}💀${lvl}`;
-                else if (diff) statsLabel.textContent = `🎲${diff}`;
-                else if (lvl) statsLabel.textContent = `💀${lvl}`;
-                statsLabel.style.display = (diff || lvl) ? 'block' : 'none';
-
-                if (mapData[hexId].terrain) {
-                    terrainElem.style.display = 'block';
-                    let icon = '';
-                    if (mapData[hexId].terrain === 'swamp') icon = '🐸';
-                    else if (mapData[hexId].terrain === 'forest') icon = '🌲';
-                    else if (mapData[hexId].terrain === 'water') icon = '🌊';
-                    else if (mapData[hexId].terrain === 'arctic') icon = '❄️';
-                    else if (mapData[hexId].terrain === 'mountain') icon = '⛰️';
-                    else if (mapData[hexId].terrain === 'plains') icon = '🌾';
-                    terrainElem.textContent = icon;
-                }
-
-                if (mapData[hexId].type) {
-                    typeElem.style.display = 'block';
-                    let icon = '';
-                    if (mapData[hexId].type === 'landmark') icon = '🏛️';
-                    else if (mapData[hexId].type === 'resource') icon = '💎';
-                    else if (mapData[hexId].type === 'quest') icon = '⚜️';
-                    else if (mapData[hexId].type === 'mystery') icon = '❓';
-                    typeElem.textContent = icon;
-                }
-
-                if (mapData[hexId].squadHere) {
-                    flagContainer.style.display = 'block';
-                    flagContainer.classList.add('active-flag');
-                }
-
-                if (mapData[hexId].explored) {
-                    exploredElem.style.display = 'block';
-                    exploredElem.textContent = '🔍';
-                } else {
-                    exploredElem.style.display = 'none';
-                }
-
-                if (mapData[hexId].mapMapped) {
-                    mappedElem.style.display = 'block';
-                    mappedElem.textContent = '📜';
-                } else {
-                    mappedElem.style.display = 'none';
-                }
-
-                if (mapData[hexId] &&
-                    mapData[hexId].questData &&
-                    mapData[hexId].questData.title &&
-                    mapData[hexId].questData.title.trim() !== '' &&
-                    mapData[hexId].questData.status !== 'completed') {
-
-                    const questMiniTooltip = document.createElement('div');
-                    questMiniTooltip.className = 'hex-quest-mini-tooltip';
-                    questMiniTooltip.textContent = '⚜️ ' + mapData[hexId].questData.title.trim();
-                    questMiniTooltip.style.left = cx + 'px';
-                    questMiniTooltip.style.top = (cy - hexRadius + 12) + 'px';
-                    visualLayer.appendChild(questMiniTooltip);
-                }
-
-            }
             visualLayer.appendChild(vHex);
         }
     }
 }
+// ============================================================================
+// ПОДБЛОК ТУЛТИПОВ — ДИНАМИЧЕСКИЙ СБОР МЕТАДАННЫХ ПРИ НАВЕДЕНИИ
+// ============================================================================
+
+function attachHexTooltipEvents(vHex, hexId, cx, cy) {
+    const tooltip = document.getElementById('hexTooltip');
+
+    vHex.addEventListener('mouseenter', function (e) {
+        if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
+            const data = mapData[hexId];
+            let content = '';
+
+            if (data.title) {
+                const star = data.explored ? '🔍 ' : '';
+                const mapIcon = data.mapMapped ? '📜 ' : '';
+                let statsLabel = '';
+                if (data.difficulty && data.regionLevel) {
+                    statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
+                } else if (data.difficulty) {
+                    statsLabel = ` (СЛ ${data.difficulty})`;
+                } else if (data.regionLevel) {
+                    statsLabel = ` (lvl ${data.regionLevel})`;
+                }
+
+                let typeIcon = '';
+                if (data.type === 'landmark') typeIcon = '🏛️ ';
+                else if (data.type === 'resource') typeIcon = '💎 ';
+                else if (data.type === 'quest') typeIcon = '⚜️ ';
+                else if (data.type === 'mystery') typeIcon = '❓ ';
+
+                let terrainIcon = '';
+                if (data.terrain === 'swamp') terrainIcon = '🐸 ';
+                else if (data.terrain === 'forest') terrainIcon = '🌲 ';
+                else if (data.terrain === 'water') terrainIcon = '🌊 ';
+                else if (data.terrain === 'arctic') terrainIcon = '❄️ ';
+                else if (data.terrain === 'mountain') terrainIcon = '⛰️ ';
+                else if (data.terrain === 'plains') terrainIcon = '🌾 ';
+
+                content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
+            }
+
+            let paramsBlock = '';
+            paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
+            paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '❌ <b>Карта отсутствует</b>'}</div>`;
+            if (data.squadHere) {
+                paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
+            }
+            if (data.difficulty) {
+                paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность regionа:</b> СЛ ${data.difficulty}</div>`;
+            }
+            if (data.regionLevel) {
+                paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень regionа:</b> Уровень ${data.regionLevel}</div>`;
+            }
+
+            if (data.type) {
+                let typeText = '';
+                let tIcon = '';
+                if (data.type === 'landmark') { tIcon = '🏛️'; typeText = 'Достопримечательность'; }
+                if (data.type === 'resource') { tIcon = '💎'; typeText = 'Ресурс'; }
+                if (data.type === 'quest') { tIcon = '⚜️'; typeText = 'Стандартное задание'; }
+                if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
+                paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
+            }
+
+            if (data.terrain) {
+                let terrainText = '';
+                let terrIcon = '';
+                if (data.terrain === 'swamp') { terrIcon = '🐸'; terrainText = 'Болото (СЛ 14)'; }
+                if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес (СЛ 14)'; }
+                if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода (СЛ 17)'; }
+                if (data.terrain === 'arctic') { terrIcon = '❄️'; terrainText = 'Приполярье (СЛ 17)'; }
+                if (data.terrain === 'mountain') { terrIcon = '⛰️'; terrainText = 'Горы (СЛ 16)'; }
+                if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины (СЛ 12)'; }
+                paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
+            }
+
+            content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
+
+            if (data.text) {
+                content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
+            }
+
+            if (data.lastSaved) {
+                content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`;
+            }
+
+            tooltip.innerHTML = content;
+            tooltip.style.display = 'block';
+        }
+    });
+
+    vHex.addEventListener('mousemove', (e) => {
+        if (tooltip) {
+            tooltip.style.left = (e.clientX + 25) + 'px';
+            tooltip.style.top = (e.clientY + 25) + 'px';
+        }
+    });
+
+    vHex.addEventListener('mouseleave', () => {
+        if (tooltip) {
+            tooltip.style.display = 'none';
+            tooltip.innerHTML = '';
+        }
+    });
+}
+// ============================================================================
+// СБОРКА ВНУТРЕННИХ DOM-СЛОЕВ, ИНДИКАТОРОВ И МАРКЕРОВ ГЕКСА
+// ============================================================================
+
+function createHexSubLayers(vHex, hexId, cx, cy) {
+    const shape = document.createElement('div');
+    shape.className = 'hex-shape';
+    shape.setAttribute('id', 'shape_' + hexId);
+    if (mapData[hexId] && mapData[hexId].color) {
+        shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
+    }
+    if (mapData[hexId] && mapData[hexId].squadHere) {
+        vHex.classList.add('squad-dark');
+    }
+    vHex.appendChild(shape);
+
+    const titleLabel = document.createElement('div');
+    titleLabel.className = 'hex-title-label-framed';
+    titleLabel.setAttribute('id', 'title_label_' + hexId);
+
+    const titleText = document.createElement('span');
+    titleText.className = 'hex-title-text';
+    titleLabel.appendChild(titleText);
+
+    titleLabel.style.left = cx + 'px';
+    titleLabel.style.top = (cy - hexRadius + 30) + 'px';
+
+    visualLayer.appendChild(titleLabel);
+
+    const questMiniTooltip = document.createElement('div');
+    questMiniTooltip.className = 'hex-quest-mini-tooltip';
+    vHex.appendChild(questMiniTooltip);
+
+    const statsLabel = document.createElement('span');
+    statsLabel.className = 'hex-stats-label';
+    vHex.appendChild(statsLabel);
+
+    const exploredElem = document.createElement('div');
+    exploredElem.className = 'explored-icon-container';
+    vHex.appendChild(exploredElem);
+
+    const mappedElem = document.createElement('div');
+    mappedElem.className = 'mapped-icon-container';
+    vHex.appendChild(mappedElem);
+
+    const typeElem = document.createElement('div');
+    typeElem.className = 'type-icon-container';
+    vHex.appendChild(typeElem);
+
+    const terrainElem = document.createElement('div');
+    terrainElem.className = 'terrain-icon-container';
+    vHex.appendChild(terrainElem);
+
+    const flagContainer = document.createElement('div');
+    flagContainer.className = 'squad-flag-container';
+    const pole = document.createElement('div');
+    pole.className = 'squad-pole';
+    const flag = document.createElement('div');
+    flag.className = 'squad-flag';
+    pole.appendChild(flag);
+    flagContainer.appendChild(pole);
+    vHex.appendChild(flagContainer);
+
+    if (mapData[hexId]) {
+        if (mapData[hexId].title) {
+            titleLabel.querySelector('.hex-title-text').textContent = mapData[hexId].title;
+        }
+        const diff = mapData[hexId].difficulty;
+        const lvl = mapData[hexId].regionLevel;
+        if (diff && lvl) statsLabel.textContent = `🎲${diff}💀${lvl}`;
+        else if (diff) statsLabel.textContent = `🎲${diff}`;
+        else if (lvl) statsLabel.textContent = `💀${lvl}`;
+        statsLabel.style.display = (diff || lvl) ? 'block' : 'none';
+
+        if (mapData[hexId].terrain) {
+            terrainElem.style.display = 'block';
+            let icon = '';
+            if (mapData[hexId].terrain === 'swamp') icon = '🐸';
+            else if (mapData[hexId].terrain === 'forest') icon = '🌲';
+            else if (mapData[hexId].terrain === 'water') icon = '🌊';
+            else if (mapData[hexId].terrain === 'arctic') icon = '❄️';
+            else if (mapData[hexId].terrain === 'mountain') icon = '⛰️';
+            else if (mapData[hexId].terrain === 'plains') icon = '🌾';
+            terrainElem.textContent = icon;
+        }
+
+        if (mapData[hexId].type) {
+            typeElem.style.display = 'block';
+            let icon = '';
+            if (mapData[hexId].type === 'landmark') icon = '🏛️';
+            else if (mapData[hexId].type === 'resource') icon = '💎';
+            else if (mapData[hexId].type === 'quest') icon = '⚜️';
+            else if (mapData[hexId].type === 'mystery') icon = '❓';
+            typeElem.textContent = icon;
+        }
+
+        if (mapData[hexId].squadHere) {
+            flagContainer.style.display = 'block';
+            flagContainer.classList.add('active-flag');
+        }
+
+        if (mapData[hexId].explored) {
+            exploredElem.style.display = 'block';
+            exploredElem.textContent = '🔍';
+        } else {
+            exploredElem.style.display = 'none';
+        }
+
+        if (mapData[hexId].mapMapped) {
+            mappedElem.style.display = 'block';
+            mappedElem.textContent = '📜';
+        } else {
+            mappedElem.style.display = 'none';
+        }
+
+        if (mapData[hexId].questData &&
+            mapData[hexId].questData.title &&
+            mapData[hexId].questData.title.trim() !== '' &&
+            mapData[hexId].questData.status !== 'completed') {
+
+            const qTooltip = document.createElement('div');
+            qTooltip.className = 'hex-quest-mini-tooltip';
+            qTooltip.textContent = '⚜️ ' + mapData[hexId].questData.title.trim();
+            qTooltip.style.left = cx + 'px';
+            qTooltip.style.top = (cy - hexRadius + 12) + 'px';
+            visualLayer.appendChild(qTooltip);
+        }
+    }
+}
+
+// ============================================================================
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ПРИВЕДЕНИЯ ФОРМАТОВ ЦВЕТА
+// ============================================================================
 
 function convertHexToRgba(hex, alpha) {
     if (!hex || hex === 'transparent') return 'rgba(0,0,0,0)';
@@ -591,6 +774,17 @@ function convertHexToRgba(hex, alpha) {
     let b = parseInt(hex.slice(5, 7), 16);
     return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
 }
+
+function convertHexToRgbStandard(hex) {
+    if (hex === 'transparent' || !hex) return '';
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+// ============================================================================
+// ФУНКЦИЯ ОТКРЫТИЯ МЕНЮ И СИНХРОНИЗАЦИИ ДАННЫХ ФОРМЫ С ХРАНИЛИЩЕМ
+// ============================================================================
 
 function openMenu(hexId) {
     currentHexId = hexId;
@@ -602,7 +796,6 @@ function openMenu(hexId) {
     const inpTerrain = document.getElementById('inpTerrain');
     const inpRegionLevel = document.getElementById('inpRegionLevel');
     const inpColor = document.getElementById('inpColor');
-
     const inpRumorDesc = document.getElementById('inpRumorDesc');
 
     let currentColor = 'transparent';
@@ -619,6 +812,7 @@ function openMenu(hexId) {
         currentColor = mapData[hexId].color || 'transparent';
 
         if (inpRumorDesc) inpRumorDesc.value = mapData[hexId].rumorText || '';
+
         setCustomSelectValue('customSelectType', mapData[hexId].type || '');
         setCustomSelectValue('customSelectTerrain', mapData[hexId].terrain || '');
         setCustomSelectValue('customSelectDifficulty', mapData[hexId].difficulty || '');
@@ -634,6 +828,8 @@ function openMenu(hexId) {
         if (inpRegionLevel) inpRegionLevel.value = '';
 
         if (inpRumorDesc) inpRumorDesc.value = '';
+
+        // Сброс кастомных селектов для пустой ячейки
         setCustomSelectValue('customSelectType', '');
         setCustomSelectValue('customSelectTerrain', '');
         setCustomSelectValue('customSelectDifficulty', '');
@@ -645,6 +841,7 @@ function openMenu(hexId) {
     if (inpSquadHere) inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
     if (inpColor) inpColor.value = currentColor;
 
+    // Установка активного класса для кнопок-пресетов цвета
     document.querySelectorAll('.color-preset-btn').forEach(btn => {
         btn.classList.remove('active');
         if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
@@ -654,6 +851,9 @@ function openMenu(hexId) {
         }
     });
 
+    // ============================================================================
+    // АДАПТАЦИЯ ТЕКСТОВЫХ ПОЛЕЙ ПОД ТАЧ-ИНТЕРФЕЙСЫ (MOBILE PROMPT)
+    // ============================================================================
     if ('ontouchstart' in window) {
         const inpTitle = document.getElementById('inpTitle');
         const inpDesc = document.getElementById('inpDesc');
@@ -699,14 +899,9 @@ function openMenu(hexId) {
 
     if (modal) modal.classList.add('open');
 }
-
-function convertHexToRgbStandard(hex) {
-    if (hex === 'transparent' || !hex) return '';
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-    return `rgb(${r}, ${g}, ${b})`;
-}
+// ============================================================================
+// ФУНКЦИИ ЗАКРЫТИЯ И ОЧИСТКИ ДАННЫХ ИЗ ФОРМЫ НА КАРТЕ
+// ============================================================================
 
 function closeMenu() {
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
@@ -722,6 +917,10 @@ function closeMenu() {
         }
     }, 300);
 }
+
+// ============================================================================
+// ФУНКЦИЯ СОХРАНЕНИЯ ДАННЫХ ГЕКСА
+// ============================================================================
 
 function saveMenu() {
     if (!currentHexId) return;
@@ -795,7 +994,6 @@ function saveMenu() {
                 qTooltip.remove();
             }
         }
-
         const sLabel = currentHexElement.querySelector('.hex-stats-label');
         if (sLabel) {
             if (diffVal && regionLevelVal) {
@@ -896,11 +1094,11 @@ function saveMenu() {
 
                     document.body.appendChild(flyingFlag);
 
-                    function createBurst(x, y) {
+                    function createBurst(bx, by) {
                         const burstContainer = document.createElement('div');
                         burstContainer.className = 'flag-impact-burst';
-                        burstContainer.style.left = `${x}px`;
-                        burstContainer.style.top = `${y}px`;
+                        burstContainer.style.left = `${bx}px`;
+                        burstContainer.style.top = `${by}px`;
 
                         const sparksCount = 8;
                         for (let i = 0; i < sparksCount; i++) {
@@ -1007,6 +1205,9 @@ function saveMenu() {
 
     closeMenu();
 }
+// ============================================================================
+// СЛУШАТЕЛИ КНОПОК ФОРМЫ И ЛОГИКА ПОЛНОГО УДАЛЕНИЯ ДАННЫХ ГЕКСА
+// ============================================================================
 
 const btnSave = document.getElementById('btnSave');
 if (btnSave) btnSave.addEventListener('click', saveMenu);
@@ -1014,39 +1215,51 @@ if (btnSave) btnSave.addEventListener('click', saveMenu);
 const btnCancel = document.getElementById('btnCancel');
 if (btnCancel) btnCancel.addEventListener('click', closeMenu);
 
-document.getElementById('btnDelete').addEventListener('click', function() {
-    if (!currentHexId) return;
-    
-    delete mapData[currentHexId];
-    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+const btnDelete = document.getElementById('btnDelete');
+if (btnDelete) {
+    btnDelete.addEventListener('click', function() {
+        if (!currentHexId) return;
 
-    const shape = document.getElementById('shape_' + currentHexId);
-    const label = document.getElementById('label_' + currentHexId);
-    
-    if (shape) shape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
-    if (label) label.textContent = '';
+        delete mapData[currentHexId];
+        localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-    const globalLabel = document.getElementById('title_label_' + currentHexId);
-    if (globalLabel) {
-        const textNode = globalLabel.querySelector('.hex-title-text');
-        if (textNode) textNode.textContent = '';
-    }
+        const shape = document.getElementById('shape_' + currentHexId);
+        const label = document.getElementById('label_' + currentHexId);
 
-    closeMenu();
-});
+        if (shape) shape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+        if (label) label.textContent = '';
 
-modal.addEventListener('click', function(e) {
-    if (e.target === modal) { closeMenu(); }
-});
+        const globalLabel = document.getElementById('title_label_' + currentHexId);
+        if (globalLabel) {
+            const textNode = globalLabel.querySelector('.hex-title-text');
+            if (textNode) textNode.textContent = '';
+        }
 
-document.getElementById('mapImg').addEventListener('click', function() {
-    if (!hasMoved) closeMenu();
-});
+        closeMenu();
+    });
+}
+
+if (modal) {
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) { closeMenu(); }
+    });
+}
+
+const mapImg = document.getElementById('mapImg');
+if (mapImg) {
+    mapImg.addEventListener('click', function() {
+        if (!hasMoved) closeMenu();
+    });
+}
+
+// ============================================================================
+// ИНИЦИАЛИЗАЦИЯ ПАЛИТРЫ ЦВЕТНЫХ КНОПОК-ПРЕСЕТОВ ГЕКСА
+// ============================================================================
 
 function initColorPresets() {
     const container = document.getElementById('colorPresetsContainer');
-    if (!container || container.children.length > 0) return; 
-    
+    if (!container || container.children.length > 0) return;
+
     const presets = [
         { color: 'transparent', label: '✖' },
         { color: '#2ecc71', label: '' },
@@ -1075,70 +1288,15 @@ function initColorPresets() {
         container.appendChild(b);
     });
 }
-
-document.getElementById('btnExport').addEventListener('click', function() {
-    const jsonString = JSON.stringify(mapData, null, 4);
-    const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
-    const dataStr = URL.createObjectURL(blob);
-
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "map_data.json");
-    document.body.appendChild(downloadAnchor);
-    
-    downloadAnchor.click();
-    downloadAnchor.remove();
-    URL.revokeObjectURL(dataStr); 
-});
-
-const fileInput = document.getElementById('fileInput');
-document.getElementById('btnImport').addEventListener('click', () => fileInput.click());
-
-fileInput.addEventListener('change', function(e) {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-        try {
-            mapData = JSON.parse(evt.target.result);
-            localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-            buildHexGrid(); 
-            alert('Данные успешно импортированы!');
-        } catch (err) {
-            alert('Ошибка при чтении JSON файла.');
-        }
-        fileInput.value = ''; 
-    };
-    reader.readAsText(files[0]); 
-});
-
-window.addEventListener('resize', () => {
-    if (typeof updateMapTransform === 'function') {
-        updateMapTransform();
-    }
-});
-
-let currentZoom = 1.0;
-const minZoom = 0.5;
-const maxZoom = 3.0;
-
-const viewport = document.getElementById('viewport');
-const mapContainer = document.getElementById('mapContainer');
-
-let isDragging = false;
-let hasMoved = false; 
-let startX, startY;
-
-let x = 0;
-let y = 0;
+// ============================================================================
+// НАСТРОЙКА ЖЕСТОВ И ТАЧ-СОБЫТИЙ СМЕЩЕНИЯ (MOBILE PAN & DRAG)
+// ============================================================================
 
 if (viewport && mapContainer) {
 
     viewport.addEventListener('touchstart', (e) => {
-
+        // Защита: отсекаем скролл карты, если жест начался на форме или кнопках управления
         if (e.target.closest('#hexMenu')) return;
-
         if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
 
         isDragging = true;
@@ -1151,7 +1309,6 @@ if (viewport && mapContainer) {
 
     viewport.addEventListener('touchmove', (e) => {
         if (e.target.closest('#hexMenu')) return;
-
         if (!isDragging) return;
 
         if (e.cancelable) e.preventDefault();
@@ -1160,6 +1317,7 @@ if (viewport && mapContainer) {
         let newX = touch.pageX - startX;
         let newY = touch.pageY - startY;
 
+        // Порог срабатывания: фильтрация случайного дрожания пальца
         if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
             hasMoved = true;
         }
@@ -1172,7 +1330,9 @@ if (viewport && mapContainer) {
         x = Math.max(minLimitX, Math.min(maxLimitX, newX));
         y = Math.max(minLimitY, Math.min(maxLimitY, newY));
 
-        updateMapTransform();
+        if (typeof updateMapTransform === 'function') {
+            updateMapTransform();
+        }
     }, { passive: false });
 
     viewport.addEventListener('touchend', () => {
@@ -1185,73 +1345,15 @@ if (viewport && mapContainer) {
     });
 
     mapContainer.style.transformOrigin = '100% 0';
+}
+// ============================================================================
+// НАСТРОЙКА СОБЫТИЙ МЫШИ ДЛЯ ДЕСКТРИПНОГО СМЕЩЕНИЯ (MOUSE PAN & DRAG)
+// ============================================================================
 
-    const frame = document.querySelector('.kingmaker-frame');
-
-    function updateMapTransform() {
-        mapContainer.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${currentZoom})`;
-
-        if (frame && viewport && mapContainer) {
-            const mapRect = mapContainer.getBoundingClientRect();
-            const viewRect = viewport.getBoundingClientRect();
-
-            const cleanLeft = Math.max(viewRect.left, mapRect.left);
-            const cleanTop = Math.max(viewRect.top, mapRect.top);
-            const cleanRight = Math.min(viewRect.right, mapRect.right);
-            const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
-
-            const baseWidth = Math.max(0, cleanRight - cleanLeft);
-            const baseHeight = Math.max(0, cleanBottom - cleanTop);
-
-            if (baseWidth > 0 && baseHeight > 0) {
-                const borderWidth = 22;
-                frame.style.display = 'block';
-
-                let frameLeft = cleanLeft - borderWidth;
-                let frameTop = cleanTop - borderWidth;
-                let frameWidth = baseWidth + (borderWidth * 2);
-                let frameHeight = baseHeight + (borderWidth * 2);
-
-                if (frameLeft < viewRect.left) {
-                    frameWidth -= (viewRect.left - frameLeft);
-                    frameLeft = viewRect.left;
-                }
-                if (frameTop < viewRect.top) {
-                    frameHeight -= (viewRect.top - frameTop);
-                    frameTop = viewRect.top;
-                }
-                if (frameLeft + frameWidth > viewRect.right) {
-                    frameWidth = viewRect.right - frameLeft;
-                }
-                if (frameTop + frameHeight > viewRect.bottom) {
-                    frameHeight = viewRect.bottom - frameTop;
-                }
-
-                frame.style.left = `${Math.floor(frameLeft)}px`;
-                frame.style.top = `${Math.floor(frameTop)}px`;
-                frame.style.width = `${Math.ceil(frameWidth)}px`;
-                frame.style.height = `${Math.ceil(frameHeight)}px`;
-
-                updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
-
-                const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
-                const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
-                const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
-                const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
-
-                mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
-            } else {
-                frame.style.display = 'none';
-                mapContainer.style.clipPath = 'none';
-            }
-
-            viewport.style.clipPath = 'none';
-        }
-    }
+if (viewport && mapContainer) {
 
     viewport.addEventListener('mousedown', (e) => {
         if (e.target.closest('#hexMenu')) return;
-
         if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
 
         isDragging = true;
@@ -1268,10 +1370,12 @@ if (viewport && mapContainer) {
         let newX = e.pageX - startX;
         let newY = e.pageY - startY;
 
+        // Порог смещения для исключения ложных микродвижений при клике
         if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
             hasMoved = true;
         }
 
+        // Геометрические границы удержания карты в пределах видимости
         const maxLimitX = 3840 * 1.5;
         const minLimitX = -3840 * 1.5;
         const maxLimitY = 1280 * 1.1;
@@ -1280,7 +1384,9 @@ if (viewport && mapContainer) {
         x = Math.max(minLimitX, Math.min(maxLimitX, newX));
         y = Math.max(minLimitY, Math.min(maxLimitY, newY));
 
-        updateMapTransform();
+        if (typeof updateMapTransform === 'function') {
+            updateMapTransform();
+        }
     });
 
     viewport.addEventListener('mouseleave', () => {
@@ -1292,6 +1398,9 @@ if (viewport && mapContainer) {
         setTimeout(() => { hasMoved = false; }, 50);
     });
 
+    // ============================================================================
+    // ОБРАБОТКА КОЛЕСА МЫШИ ДЛЯ ИЗМЕНЕНИЯ МАСШТАБА (ZOOM CONTROLLER)
+    // ============================================================================
     viewport.addEventListener('wheel', (e) => {
         e.preventDefault();
 
@@ -1300,40 +1409,84 @@ if (viewport && mapContainer) {
 
         if (newZoom >= minZoom && newZoom <= maxZoom) {
             currentZoom = newZoom;
-            updateMapTransform();
+            if (typeof updateMapTransform === 'function') {
+                updateMapTransform();
+            }
         }
     }, { passive: false });
+
 }
+// ============================================================================
+// ФУНКЦИЯ ДИНАМИЧЕСКОГО РАСЧЕТА МАТРИЦЫ И ИНСЕТ-КАДРИРОВАНИЯ (CLIP-PATH)
+// ============================================================================
 
-const btnToggle = document.getElementById('btnToggleLegend');
-const legendCont = document.getElementById('legendContainer');
+function updateMapTransform() {
+    mapContainer.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${currentZoom})`;
 
-if (btnToggle && legendCont) {
-    btnToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        legendCont.classList.toggle('open');
-        btnToggle.textContent = legendCont.classList.contains('open') ? '🔽' : '🔼';
-    });
+    const frame = document.querySelector('.kingmaker-frame');
 
-    const header = document.querySelector('.legend-header');
-    if (header) {
-        header.style.cursor = 'pointer';
-        header.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            legendCont.classList.toggle('open');
-            btnToggle.textContent = legendCont.classList.contains('open') ? '🔽' : '🔼';
-        });
+    if (frame && viewport && mapContainer) {
+        const mapRect = mapContainer.getBoundingClientRect();
+        const viewRect = viewport.getBoundingClientRect();
+
+        const cleanLeft = Math.max(viewRect.left, mapRect.left);
+        const cleanTop = Math.max(viewRect.top, mapRect.top);
+        const cleanRight = Math.min(viewRect.right, mapRect.right);
+        const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
+
+        const baseWidth = Math.max(0, cleanRight - cleanLeft);
+        const baseHeight = Math.max(0, cleanBottom - cleanTop);
+
+        if (baseWidth > 0 && baseHeight > 0) {
+            const borderWidth = 22;
+            frame.style.display = 'block';
+
+            let frameLeft = cleanLeft - borderWidth;
+            let frameTop = cleanTop - borderWidth;
+            let frameWidth = baseWidth + (borderWidth * 2);
+            let frameHeight = baseHeight + (borderWidth * 2);
+
+            if (frameLeft < viewRect.left) {
+                frameWidth -= (viewRect.left - frameLeft);
+                frameLeft = viewRect.left;
+            }
+            if (frameTop < viewRect.top) {
+                frameHeight -= (viewRect.top - frameTop);
+                frameTop = viewRect.top;
+            }
+            if (frameLeft + frameWidth > viewRect.right) {
+                frameWidth = viewRect.right - frameLeft;
+            }
+            if (frameTop + frameHeight > viewRect.bottom) {
+                frameHeight = viewRect.bottom - frameTop;
+            }
+
+            frame.style.left = `${Math.floor(frameLeft)}px`;
+            frame.style.top = `${Math.floor(frameTop)}px`;
+            frame.style.width = `${Math.ceil(frameWidth)}px`;
+            frame.style.height = `${Math.ceil(frameHeight)}px`;
+
+            if (typeof updateFrameRunes === 'function') {
+                updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
+            }
+
+            const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
+            const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
+            const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
+            const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
+
+            mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
+        } else {
+            frame.style.display = 'none';
+            mapContainer.style.clipPath = 'none';
+        }
+
+        viewport.style.clipPath = 'none';
     }
-} else {
-    console.error("Ошибка: Элементы легенды не найдены в DOM! Проверьте правильность вставки HTML.");
 }
-
-const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'];
-
-let lastFrameWidth = 0;
-let lastFrameHeight = 0;
+// ============================================================================
+// ГЕНЕРАЦИЯ И СЛУЧАЙНОЕ РАСПРЕДЕЛЕНИЕ РУН ПО ПЕРИМЕТРУ РАМКИ
+// ============================================================================
 
 function updateFrameRunes(width, height) {
     if (width === lastFrameWidth && height === lastFrameHeight) return;
@@ -1346,7 +1499,7 @@ function updateFrameRunes(width, height) {
 
     frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
 
-    const step = 50;
+    const step = 50; // Шаг размещения рун в пикселях
     const padding = 20;
 
     const cTop = -11;
@@ -1377,7 +1530,9 @@ function updateFrameRunes(width, height) {
     for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
 }
 
-let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
+// ============================================================================
+// ИНИЦИАЛИЗАЦИЯ И ФУНКЦИИ ПЕРЕКЛЮЧЕНИЯ СТИЛЕЙ РАМОК КАРТЫ
+// ============================================================================
 
 function initFrameStyleControls() {
     if (document.querySelector('.frame-style-controls')) return;
@@ -1465,6 +1620,9 @@ updateFrameRunes = function(width, height) {
         originalUpdateFrameRunes(width, height);
     }
 };
+// ============================================================================
+// ИНИЦИАЛИЗАЦИЯ СВОРАЧИВАНИЯ И УНИФИКАЦИИ ВСПЛЫВАЮЩИХ ПАНЕЛЕЙ ИНТЕРФЕЙСА
+// ============================================================================
 
 function initUnifiedUICollapse() {
     const player = document.querySelector('.music-controller');
@@ -1502,6 +1660,9 @@ function initUnifiedUICollapse() {
 
     const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
 
+    // ============================================================================
+    // ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ И СТИЛИЗАЦИЯ ПЛАВАЮЩЕЙ КНОПКИ ЖУРНАЛА (⚜️)
+    // ============================================================================
     let toggleQuestBtn = document.querySelector('.quest-toggle-btn');
     if (!toggleQuestBtn && questLog) {
         toggleQuestBtn = document.createElement('button');
@@ -1564,6 +1725,13 @@ function initUnifiedUICollapse() {
         });
     }
 
+    attachMasterToggleLogic(rightPanel, player, mapControls, btnToggleFog, btnToggleMapMode, toggleQuestBtn, questLog);
+}
+// ============================================================================
+// СВЯЗЫВАНИЕ МАСТЕР-КНОПКИ (ШЕСТЕРЕНКИ) С ПАНЕЛЯМИ УПРАВЛЕНИЯ
+// ============================================================================
+
+function attachMasterToggleLogic(rightPanel, player, mapControls, btnToggleFog, btnToggleMapMode, toggleQuestBtn, questLog) {
     if (!document.querySelector('.master-toggle-btn')) {
         const toggleMasterBtn = document.createElement('button');
         toggleMasterBtn.type = 'button';
@@ -1579,6 +1747,7 @@ function initUnifiedUICollapse() {
             if (mapControls) mapControls.classList.toggle('ui-collapsed', isCollapsed);
             if (btnToggleFog) btnToggleFog.classList.toggle('ui-collapsed', isCollapsed);
             if (btnToggleMapMode) btnToggleMapMode.classList.toggle('ui-collapsed', isCollapsed);
+
             if (toggleQuestBtn) {
                 toggleQuestBtn.classList.toggle('ui-collapsed', isCollapsed);
 
@@ -1634,111 +1803,9 @@ function initUnifiedUICollapse() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    groupMenuFields();
-    initializeMusicPlayer();
-    initColorPresets();
-    populateDifficultySelect();
-    buildHexGrid();
-    initFrameStyleControls();
-    initUnifiedUICollapse();
-
-    if (btnToggleMapMode) {
-        let currentMode = 'global';
-
-        btnToggleMapMode.addEventListener('click', () => {
-            if (currentMode === 'global') {
-                currentMode = 'camp';
-                btnToggleMapMode.innerHTML = '⛺';
-                btnToggleMapMode.title = 'Переключить на глобальную карту';
-                btnToggleMapMode.style.background = 'linear-gradient(180deg, #42351f 0%, #292011 100%)';
-                btnToggleMapMode.style.borderColor = '#543e0d';
-                btnToggleMapMode.style.color = '#ebd291';
-            } else {
-                currentMode = 'global';
-                btnToggleMapMode.innerHTML = '🗺️';
-                btnToggleMapMode.title = 'Переключить на карту лагеря';
-                btnToggleMapMode.style.background = 'linear-gradient(180deg, #4f5d65 0%, #2c3539 100%)';
-                btnToggleMapMode.style.borderColor = '#d4af37';
-                btnToggleMapMode.style.color = '#d1d8e0';
-            }
-        });
-    }
-
-    const btnToggleTooltips = document.createElement('button');
-    btnToggleTooltips.type = 'button';
-    btnToggleTooltips.id = 'btnToggleTooltips';
-    btnToggleTooltips.className = 'btn-ui-toggle';
-    btnToggleTooltips.innerHTML = '✨';
-    btnToggleTooltips.title = 'Скрыть/Показать тултипы квестов';
-
-    btnToggleTooltips.style.setProperty('position', 'fixed', 'important');
-    btnToggleTooltips.style.setProperty('right', '96px', 'important');
-    btnToggleTooltips.style.setProperty('bottom', '-160px', 'important');
-    btnToggleTooltips.style.setProperty('width', '46px', 'important');
-    btnToggleTooltips.style.setProperty('height', '44px', 'important');
-    btnToggleTooltips.style.setProperty('z-index', '10005', 'important');
-    btnToggleTooltips.style.setProperty('display', 'flex', 'important');
-    btnToggleTooltips.style.setProperty('align-items', 'center', 'important');
-    btnToggleTooltips.style.setProperty('justify-content', 'center', 'important');
-    btnToggleTooltips.style.setProperty('border-radius', '4px', 'important');
-    btnToggleTooltips.style.setProperty('cursor', 'pointer', 'important');
-    btnToggleTooltips.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.5)', 'important');
-    btnToggleTooltips.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
-    btnToggleTooltips.style.setProperty('border', '1px solid #3e6349', 'important');
-    btnToggleTooltips.style.setProperty('color', '#dfbc6f', 'important');
-    btnToggleTooltips.style.setProperty('opacity', '0', 'important');
-    btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
-    btnToggleTooltips.style.setProperty('transition', 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', 'important');
-
-    document.body.appendChild(btnToggleTooltips);
-
-    btnToggleTooltips.addEventListener('click', () => {
-        const visualLayerEl = document.getElementById('visualLayer');
-        if (!visualLayerEl) return;
-
-        const isHidden = visualLayerEl.classList.toggle('hide-quest-tooltips');
-
-        if (!isHidden) {
-            btnToggleTooltips.style.background = 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)';
-            btnToggleTooltips.style.borderColor = '#3e6349';
-            btnToggleTooltips.style.color = '#dfbc6f';
-        } else {
-            btnToggleTooltips.style.background = 'linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%)';
-            btnToggleTooltips.style.borderColor = '#823030';
-            btnToggleTooltips.style.color = '#f7baba';
-        }
-    });
-
-    const masterBtn = document.querySelector('.master-toggle-btn');
-    if (masterBtn) {
-        masterBtn.addEventListener('click', () => {
-            setTimeout(() => {
-                const player = document.querySelector('.music-controller');
-                const isCollapsed = player ? player.classList.contains('ui-collapsed') : true;
-                if (isCollapsed) {
-                    btnToggleTooltips.style.setProperty('bottom', '-160px', 'important');
-                    btnToggleTooltips.style.setProperty('opacity', '0', 'important');
-                    btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
-                } else {
-                    btnToggleTooltips.style.setProperty('bottom', '203px', 'important');
-                    btnToggleTooltips.style.setProperty('opacity', '1', 'important');
-                    btnToggleTooltips.style.setProperty('pointer-events', 'auto', 'important');
-                }
-            }, 50);
-        });
-    }
-
-    setTimeout(() => {
-        if (typeof updateMapTransform === 'function') {
-            updateMapTransform();
-        }
-        const frame = document.querySelector('.kingmaker-frame');
-        if (frame) frame.style.opacity = '1';
-    }, 150);
-});
-
-let currentQuestFilter = 'active';
+// ============================================================================
+// ИНИЦИАЛИЗАЦИЯ ВКЛАДОК ЖУРНАЛА ЗАДАНИЙ (АКТИВНЫЕ / ЗАВЕРШЕННЫЕ / СЛУХИ)
+// ============================================================================
 
 function initQuestLogTabs() {
     const tabActive = document.getElementById('tabActiveQuests');
@@ -1762,8 +1829,13 @@ function setActiveTab(tabElement, filterName) {
     document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
     tabElement.classList.add('active');
     currentQuestFilter = filterName;
-    renderQuestLog(filterName);
+    if (typeof renderQuestLog === 'function') {
+        renderQuestLog(filterName);
+    }
 }
+// ============================================================================
+// ГЕНЕРАЦИЯ СПИСКА ЗАДАНИЙ И СЛУХОВ В ДНЕВНИКЕ
+// ============================================================================
 
 function renderQuestLog(filterStatus = 'active') {
     const listContainer = document.getElementById('questLogList');
@@ -1835,6 +1907,10 @@ function renderQuestLog(filterStatus = 'active') {
     }
 }
 
+// ============================================================================
+// СИСТЕМА ФОКУСИРОВКИ И ФЛЭШ-ПОДСВЕТКИ ВЫБРАННОГО ГЕКСА
+// ============================================================================
+
 function focusOnHex(hexId) {
     const vHex = document.getElementById('visual_' + hexId);
     if (!vHex) return;
@@ -1848,17 +1924,21 @@ function focusOnHex(hexId) {
     }, 3600);
 }
 
+// ============================================================================
+// ОПТИМИЗАЦИЯ И СТРУКТУРИРОВАНИЕ СТРОК СЕЛЕКТОРОВ МОДАЛЬНОГО ОКНА
+// ============================================================================
+
 function groupMenuFields() {
     const inpType = document.getElementById('inpType');
     const inpTerrain = document.getElementById('inpTerrain');
-    const difficultySelect = document.getElementById('inpDifficulty');
+    const diffSelect = document.getElementById('inpDifficulty');
     const inpRegionLevel = document.getElementById('inpRegionLevel');
 
-    if (!inpType || !inpTerrain || !difficultySelect || !inpRegionLevel) return;
+    if (!inpType || !inpTerrain || !diffSelect || !inpRegionLevel) return;
 
     const boxType = inpType.closest('.box');
     const boxTerrain = inpTerrain.closest('.box');
-    const boxDiff = difficultySelect.closest('.box');
+    const boxDiff = diffSelect.closest('.box');
     const boxLevel = inpRegionLevel.closest('.box');
 
     if (boxType && boxTerrain) {
@@ -1878,11 +1958,63 @@ function groupMenuFields() {
     }
 }
 
+// ============================================================================
+// ЭКСПОРТ И ИМПОРТ СОХРАНЕНИЙ КАРТЫ КОРОЛЕВСТВА (ФАЙЛОВЫЙ МЕНЕДЖЕР)
+// ============================================================================
+
+const btnExport = document.getElementById('btnExport');
+if (btnExport) {
+    btnExport.addEventListener('click', function() {
+        const jsonString = JSON.stringify(mapData, null, 4);
+        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const dataStr = URL.createObjectURL(blob);
+
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "map_data.json");
+        document.body.appendChild(downloadAnchor);
+
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        URL.revokeObjectURL(dataStr);
+    });
+}
+
+const fileInput = document.getElementById('fileInput');
+const btnImport = document.getElementById('btnImport');
+if (btnImport && fileInput) {
+    btnImport.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                mapData = JSON.parse(evt.target.result);
+                localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+                buildHexGrid();
+                alert('Данные успешно импортированы!');
+            } catch (err) {
+                alert('Ошибка при чтении JSON файла.');
+            }
+            fileInput.value = '';
+        };
+        reader.readAsText(files[0]);
+    });
+}
+
+window.addEventListener('resize', () => {
+    if (typeof updateMapTransform === 'function') {
+        updateMapTransform();
+    }
+});
+
 if (modal) {
     ['mousedown', 'mousemove', 'mouseup', 'click', 'touchstart', 'touchmove', 'touchend'].forEach(eventType => {
         modal.addEventListener(eventType, (e) => {
             if (e.target === modal) return;
-
             e.stopPropagation();
         }, { passive: true });
     });
