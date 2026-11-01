@@ -54,6 +54,13 @@ body {
     pointer-events: auto;
     cursor: pointer;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    z-index: 1;
+    transition: z-index 0s;
+}
+
+.visual-hex:hover,
+.visual-hex:focus-within {
+    z-index: 9999 !important;
 }
 
 .hex-shape {
@@ -1109,8 +1116,10 @@ body {
 
 .hex-quest-mini-tooltip {
     position: absolute;
-    transform: translate(-50%, -50%);
-    z-index: 9000;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    z-index: 100000 !important;
     background: rgba(20, 20, 20, 0.95);
     color: #dfbc6f;
     padding: 6px 14px;
@@ -1126,7 +1135,12 @@ body {
     text-overflow: ellipsis;
     pointer-events: none;
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
-    animation: floatAnim 3.5s infinite ease-in-out;
+    animation: floatAnimHigher 3.5s infinite ease-in-out;
+}
+
+@keyframes floatAnimHigher {
+    0%, 100% { transform: translate(-50%, -100%) translateY(0) rotate(-1deg); }
+    50% { transform: translate(-50%, -100%) translateY(-4px) rotate(1deg); }
 }
 
 #btnToggleTooltips.ui-collapsed {
@@ -1145,4 +1159,8 @@ body {
 
 .visual-hex:has(.hex-quest-mini-tooltip) {
     z-index: 50;
+}
+
+.visual-hex:hover {
+    z-index: 10000 !important;
 }

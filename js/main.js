@@ -491,6 +491,7 @@ function buildHexGrid() {
                 } else {
                     mappedElem.style.display = 'none';
                 }
+
                 if (mapData[hexId] &&
                     mapData[hexId].questData &&
                     mapData[hexId].questData.title &&
@@ -500,8 +501,11 @@ function buildHexGrid() {
                     const questMiniTooltip = document.createElement('div');
                     questMiniTooltip.className = 'hex-quest-mini-tooltip';
                     questMiniTooltip.textContent = '⚜️ ' + mapData[hexId].questData.title.trim();
-                    vHex.appendChild(questMiniTooltip);
+                    questMiniTooltip.style.left = cx + 'px';
+                    questMiniTooltip.style.top = (cy - hexRadius) + 'px';
+                    visualLayer.appendChild(questMiniTooltip);
                 }
+
             }
             visualLayer.appendChild(vHex);
         }
