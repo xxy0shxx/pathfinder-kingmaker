@@ -1059,6 +1059,8 @@ if (viewport && mapContainer) {
 
     viewport.addEventListener('touchstart', (e) => {
 
+        if (e.target.closest('#hexMenu')) return;
+
         if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
 
         isDragging = true;
@@ -1070,6 +1072,8 @@ if (viewport && mapContainer) {
     }, { passive: true });
 
     viewport.addEventListener('touchmove', (e) => {
+        if (e.target.closest('#hexMenu')) return;
+
         if (!isDragging) return;
 
         if (e.cancelable) e.preventDefault();
@@ -1168,6 +1172,8 @@ if (viewport && mapContainer) {
     }
 
     viewport.addEventListener('mousedown', (e) => {
+        if (e.target.closest('#hexMenu')) return;
+
         if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
 
         isDragging = true;
@@ -1792,4 +1798,14 @@ function groupMenuFields() {
         rowStats.appendChild(boxDiff);
         rowStats.appendChild(boxLevel);
     }
+}
+
+if (modal) {
+    ['mousedown', 'mousemove', 'mouseup', 'click', 'touchstart', 'touchmove', 'touchend'].forEach(eventType => {
+        modal.addEventListener(eventType, (e) => {
+            if (e.target === modal) return;
+
+            e.stopPropagation();
+        }, { passive: true });
+    });
 }

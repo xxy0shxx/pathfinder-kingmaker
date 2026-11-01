@@ -395,6 +395,8 @@ body {
     font-size: 16px !important;
     line-height: 1.2 !important;
     box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #a68032 #090f0b;
 }
 
 .box select option {
@@ -1038,4 +1040,23 @@ body {
         width: 100%;
         transform: none;
     }
+}
+
+.box select::-webkit-scrollbar {
+    width: 10px;
+}
+
+.box select::-webkit-scrollbar-track {
+    background: #090f0b;
+    border-left: 1px solid rgba(84, 62, 13, 0.3);
+}
+
+.box select::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #a68032 0%, #543e0d 100%);
+    border-radius: 3px;
+    border: 1px solid #b89445;
+}
+
+.box select::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #b89445 0%, #ebd291 100%);
 }
