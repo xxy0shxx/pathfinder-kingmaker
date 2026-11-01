@@ -126,6 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnToggleTooltips.style.setProperty('opacity', '0', 'important');
                     btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
                 } else {
+                    // Если журнал открыт, тултипы сдвигаются на высоту открытого журнала (в вашем коде было 203px)
+                    // Если журнал теперь на позиции 149px, то при его открытии тултипы могут сдвигаться выше,
+                    // либо оставаться на своей позиции 95px в зависимости от вашего дизайна.
                     btnToggleTooltips.style.setProperty('bottom', '95px', 'important');
                     btnToggleTooltips.style.setProperty('opacity', '1', 'important');
                     btnToggleTooltips.style.setProperty('pointer-events', 'auto', 'important');
@@ -1672,7 +1675,7 @@ function initUnifiedUICollapse() {
         toggleQuestBtn.title = 'Открыть журнал заданий';
 
         toggleQuestBtn.style.setProperty('position', 'fixed', 'important');
-        toggleQuestBtn.style.setProperty('bottom', '40px', 'important');
+        toggleQuestBtn.style.setProperty('bottom', '149px', 'important');
         toggleQuestBtn.style.setProperty('right', '96px', 'important');
         toggleQuestBtn.style.setProperty('width', '46px', 'important');
         toggleQuestBtn.style.setProperty('height', '44px', 'important');
