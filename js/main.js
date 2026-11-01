@@ -1752,7 +1752,7 @@ function renderQuestLog(filterStatus = 'active') {
         const messages = {
             'active': 'Нет активных заданий',
             'completed': 'Нет завершенных заданий',
-            'rumors': 'В тавернах Королевства пока не слышно новых зацепок...'
+            'rumors': 'Тишина... Слишком подозрительная тишина. Никто не крадет коров, бандиты не грабят крестьян, а древние артефакты не светятся по ночам.'
         };
         listContainer.innerHTML = `<div class="quest-log-empty">${messages[filterStatus] || 'Пусто'}</div>`;
     }
