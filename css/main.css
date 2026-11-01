@@ -335,7 +335,7 @@ body {
     display: block;
     width: 65%;
     max-width: 180px;
-    margin: 0 auto 0;
+    margin: 0 auto;
     height: auto;
 }
 
@@ -389,14 +389,9 @@ body {
 }
 
 .box select {
-    width: 100%;
-    height: auto;
     padding: 3px 24px 3px 8px !important;
     font-size: 16px !important;
     line-height: 1.2 !important;
-    box-sizing: border-box;
-    scrollbar-width: thin;
-    scrollbar-color: #a68032 #090f0b;
 }
 
 .box select option {
@@ -423,6 +418,10 @@ body {
     margin-bottom: 0;
 }
 
+#colorPresetsContainer {
+    display: flex;
+    gap: 8px;
+}
 .color-preset-btn {
     width: 36px;
     height: 36px;
@@ -545,6 +544,7 @@ body {
     color: #dfbc6f;
     border-color: #3e6349;
 }
+
 .player-timeline {
     display: flex;
     align-items: center;
@@ -570,7 +570,7 @@ body {
 }
 .timeline-fill {
     height: 100%;
-    width: 0%;
+    width: 0;
     background: linear-gradient(90deg, #a68032, #dfbc6f);
     border-radius: 3px;
 }
@@ -585,6 +585,7 @@ body {
     cursor: pointer;
     accent-color: #a68032;
 }
+
 .dropdown-playlist {
     background: #090f0b;
     border: 2px solid #543e0d;
@@ -695,7 +696,6 @@ body {
     position: relative;
     pointer-events: none;
     z-index: 10000;
-    box-sizing: border-box;
     border: 22px solid transparent;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
     will-change: top, left, width, height;
@@ -706,7 +706,6 @@ body {
     top: -22px; left: -22px; right: -22px; bottom: -22px;
     padding: 22px;
     background: linear-gradient(to bottom right, #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%, #a68032 70%, #1c3324 85%, #6e4e14 100%);
-    background-size: 100% 100%;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -719,7 +718,6 @@ body {
     border: 2px solid #36260d;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
     z-index: 10002;
-    display: block;
 }
 .frame-corner::before {
     content: '';
@@ -733,6 +731,7 @@ body {
 .top-right    { top: -24px; right: -24px; }
 .bottom-left  { bottom: -24px; left: -24px; }
 .bottom-right { bottom: -24px; right: -24px; }
+
 .hex-rune {
     position: absolute;
     display: flex;
@@ -747,6 +746,7 @@ body {
     animation: runeBreathe 3.5s ease-in-out infinite;
     will-change: opacity;
 }
+
 .kingmaker-frame.frame-style-ornament::before {
     background:
             linear-gradient(45deg, rgba(84, 62, 13, 0.7) 24%, transparent 25%, transparent 74%, rgba(84, 62, 13, 0.7) 75%),
@@ -922,8 +922,8 @@ body {
     pointer-events: none !important;
 }
 
-#btnExport, #btnImport, .btn-frame-style {
-    position: static !important;
+#btnExport, #btnImport, .btn-frame-style,
+#btnToggleFog, #btnToggleMapMode, #btnMapGlobal, #btnMapCamp, #btnToggleTooltips {
     width: 46px !important;
     height: 44px !important;
     margin: 0 !important;
@@ -935,9 +935,13 @@ body {
     border-radius: 4px !important;
     cursor: pointer !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
+}
+#btnExport, #btnImport {
+    position: static !important;
 }
 .btn-frame-style {
+    position: static !important;
     background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
     border: 1px solid #543e0d !important;
     color: #ebd291 !important;
@@ -958,22 +962,12 @@ body {
 #btnToggleFog, #btnToggleMapMode, #btnMapGlobal, #btnMapCamp {
     position: fixed !important;
     right: 96px !important;
-    width: 46px !important;
-    height: 44px !important;
     z-index: 10005 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
 }
 #btnMapGlobal { bottom: 203px !important; background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important; border: 1px solid #d4af37 !important; color: #d1d8e0 !important; }
 #btnToggleMapMode, #btnMapCamp { bottom: 149px !important; background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important; border: 1px solid #543e0d !important; color: #ebd291 !important; }
 #btnToggleMapMode { background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important; border-color: #d4af37 !important; color: #d1d8e0 !important; }
 #btnToggleFog { bottom: 95px !important;  background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important; border: 1px solid #543e0d !important; color: #ebd291 !important; }
-
 #btnToggleFog.ui-collapsed    { bottom: -60px !important; opacity: 0 !important; pointer-events: none !important; }
 #btnMapGlobal.ui-collapsed    { bottom: -110px !important; opacity: 0 !important; pointer-events: none !important; }
 #btnToggleMapMode.ui-collapsed,
@@ -1002,6 +996,84 @@ body {
     transform: rotate(90deg) !important;
     background: linear-gradient(180deg, #2c3539 0%, #1a2022 100%) !important;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 22px rgba(255, 255, 255, 0.7) !important;
+}
+
+.pop-menu, .pop-menu textarea, .pop-menu select, .box select, #questLogList {
+    scrollbar-width: thin !important;
+    scrollbar-color: #ffd700 #050a06 !important;
+}
+.pop-menu::-webkit-scrollbar,
+.pop-menu textarea::-webkit-scrollbar,
+.pop-menu select::-webkit-scrollbar,
+.box select::-webkit-scrollbar,
+.box textarea#inpDesc::-webkit-scrollbar,
+#questLogList::-webkit-scrollbar {
+    width: 10px !important;
+    height: 10px !important;
+    display: block !important;
+}
+.pop-menu::-webkit-scrollbar-track,
+.pop-menu textarea::-webkit-scrollbar-track,
+.pop-menu select::-webkit-scrollbar-track,
+.box select::-webkit-scrollbar-track,
+.box textarea#inpDesc::-webkit-scrollbar-track,
+#questLogList::-webkit-scrollbar-track {
+    background: #050a06 !important;
+    border-left: 1px solid rgba(212, 175, 55, 0.3) !important;
+    border-radius: 4px !important;
+}
+.pop-menu::-webkit-scrollbar-thumb,
+.pop-menu textarea::-webkit-scrollbar-thumb,
+.pop-menu select::-webkit-scrollbar-thumb,
+.box select::-webkit-scrollbar-thumb,
+.box textarea#inpDesc::-webkit-scrollbar-thumb,
+#questLogList::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #b89445 0%, #ffd700 50%, #d4af37 100%) !important;
+    border-radius: 4px !important;
+    border: 1px solid #fff2a3 !important;
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5), inset 0 0 3px rgba(255, 255, 255, 0.5) !important;
+}
+.pop-menu::-webkit-scrollbar-thumb:hover,
+.pop-menu textarea::-webkit-scrollbar-thumb:hover,
+.pop-menu select::-webkit-scrollbar-thumb:hover,
+.box select::-webkit-scrollbar-thumb:hover,
+.box textarea#inpDesc::-webkit-scrollbar-thumb:hover,
+#questLogList::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ffd700 0%, #fff2a3 50%, #b89445 100%) !important;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.6) !important;
+    border-color: #ffffff !important;
+}
+
+#questLogList {
+    scrollbar-color: #b89445 #050a06 !important;
+}
+#questLogList::-webkit-scrollbar {
+    width: 12px !important;
+}
+#questLogList::-webkit-scrollbar-track {
+    background: #040905 !important;
+    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
+    margin: 15px 5px 15px 0;
+}
+#questLogList::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
+    border: 1px solid #543e0d !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+}
+#questLogList::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
+    border-color: #a68032 !important;
+}
+
+.box input[type="text"]:focus, .box textarea:focus, .box select:focus {
+    border-color: #ffd700 !important;
+    background-color: #050a06 !important;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.45), inset 0 0 6px rgba(255, 215, 0, 0.2) !important;
+    color: #ffffff !important;
+}
+.box input[type="text"]:hover:not(:focus), .box textarea:hover:not(:focus), .box select:hover:not(:focus) {
+    border-color: #d4af37 !important;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.25) !important;
 }
 
 @keyframes floatAnim {
@@ -1040,124 +1112,4 @@ body {
         width: 100%;
         transform: none;
     }
-}
-
-.pop-menu,
-.pop-menu textarea,
-.pop-menu select,
-.box select {
-    scrollbar-width: thin !important;
-    scrollbar-color: #ffd700 #050a06 !important;
-}
-
-.pop-menu::-webkit-scrollbar,
-.pop-menu textarea::-webkit-scrollbar,
-.pop-menu select::-webkit-scrollbar,
-.box select::-webkit-scrollbar {
-    width: 10px !important;
-    height: 10px !important;
-    display: block !important;
-}
-
-.pop-menu::-webkit-scrollbar-track,
-.pop-menu textarea::-webkit-scrollbar-track,
-.pop-menu select::-webkit-scrollbar-track,
-.box select::-webkit-scrollbar-track {
-    background: #050a06 !important;
-    border-left: 1px solid rgba(212, 175, 55, 0.3) !important;
-    border-radius: 4px !important;
-}
-
-.pop-menu::-webkit-scrollbar-thumb,
-.pop-menu textarea::-webkit-scrollbar-thumb,
-.pop-menu select::-webkit-scrollbar-thumb,
-.box select::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #b89445 0%, #ffd700 50%, #d4af37 100%) !important;
-    border-radius: 4px !important;
-    border: 1px solid #fff2a3 !important;
-    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5), inset 0 0 3px rgba(255, 255, 255, 0.5) !important;
-}
-
-.pop-menu::-webkit-scrollbar-thumb:hover,
-.pop-menu textarea::-webkit-scrollbar-thumb:hover,
-.pop-menu select::-webkit-scrollbar-thumb:hover,
-.box select::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #ffd700 0%, #fff2a3 50%, #b89445 100%) !important;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.6) !important;
-    border-color: #ffffff !important;
-}
-
-.box input[type="text"]:focus,
-.box textarea:focus,
-.box select:focus {
-    border-color: #ffd700 !important;
-    background-color: #050a06 !important;
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.45), inset 0 0 6px rgba(255, 215, 0, 0.2) !important;
-    color: #ffffff !important;
-}
-
-.box input[type="text"]:hover:not(:focus),
-.box textarea:hover:not(:focus),
-.box select:hover:not(:focus) {
-    border-color: #d4af37 !important;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.25) !important;
-}
-
-.box textarea#inpDesc {
-    scrollbar-width: thin !important;
-    scrollbar-color: #ffd700 #050a06 !important;
-}
-
-.box textarea#inpDesc::-webkit-scrollbar {
-    width: 8px !important;
-    display: block !important;
-}
-
-.box textarea#inpDesc::-webkit-scrollbar-track {
-    background: #050a06 !important;
-    border-left: 1px solid rgba(166, 128, 50, 0.2) !important;
-    border-radius: 4px !important;
-}
-
-.box textarea#inpDesc::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #d4af37 0%, #ffd700 50%, #b89445 100%) !important;
-    border: 1px solid #ffeaa7 !important;
-    border-radius: 4px !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
-}
-
-.box textarea#inpDesc::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #ffd700 0%, #fff2a3 50%, #f1c40f 100%) !important;
-    border-color: #ffffff !important;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.6) !important;
-}
-
-#questLogList {
-    scrollbar-width: auto !important;
-    scrollbar-color: #b89445 #050a06 !important;
-}
-
-#questLogList::-webkit-scrollbar {
-    width: 12px !important;
-    display: block !important;
-}
-
-#questLogList::-webkit-scrollbar-track {
-    background: #040905 !important;
-    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
-    border-radius: 2px !important;
-    margin: 15px 5px 15px 0;
-}
-
-#questLogList::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
-    border: 1px solid #543e0d !important;
-    border-radius: 2px !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
-}
-
-#questLogList::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
-    border-color: #a68032 !important;
-    box-shadow: 0 0 8px rgba(166, 128, 50, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
 }
