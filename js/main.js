@@ -1714,7 +1714,7 @@ function renderQuestLog(filterStatus = 'active') {
                 rumorItem.className = 'quest-log-item status-rumor';
 
                 rumorItem.innerHTML = `
-                    <div class="quest-item-title">🗣️ Наводка / Слух</div>
+                    <div class="quest-item-title">👂 Наводка / Слух</div>
                     <div class="quest-item-location">📍 Место действия: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
                     <div class="quest-item-desc">${hex.rumorText.replace(/\n/g, '<br>')}</div>
                 `;
