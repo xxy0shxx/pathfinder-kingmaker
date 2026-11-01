@@ -968,9 +968,23 @@ body {
     right: 96px !important;
     z-index: 10005 !important;
 }
-#btnMapGlobal { bottom: 203px !important; background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important; border: 1px solid #d4af37 !important; color: #d1d8e0 !important; }
-#btnToggleMapMode, #btnMapCamp { bottom: 149px !important; background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important; border: 1px solid #543e0d !important; color: #ebd291 !important; }
-#btnToggleMapMode { background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important; border-color: #d4af37 !important; color: #d1d8e0 !important; }
+#btnMapGlobal {
+    bottom: 203px !important;
+    background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important;
+    border: 1px solid #d4af37 !important;
+    color: #d1d8e0 !important;
+}
+#btnToggleMapMode, #btnMapCamp {
+    bottom: 203px !important;
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    border: 1px solid #543e0d !important;
+    color: #ebd291 !important;
+}
+#btnToggleMapMode {
+    background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important;
+    border-color: #d4af37 !important;
+    color: #d1d8e0 !important;
+}
 #btnToggleFog { bottom: 95px !important;  background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important; border: 1px solid #543e0d !important; color: #ebd291 !important; }
 #btnToggleFog.ui-collapsed    { bottom: -60px !important; opacity: 0 !important; pointer-events: none !important; }
 #btnMapGlobal.ui-collapsed    { bottom: -110px !important; opacity: 0 !important; pointer-events: none !important; }

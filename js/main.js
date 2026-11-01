@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnToggleTooltips.style.setProperty('opacity', '0', 'important');
                     btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
                 } else {
-                    btnToggleTooltips.style.setProperty('bottom', '203px', 'important');
+                    btnToggleTooltips.style.setProperty('bottom', '149px', 'important');
                     btnToggleTooltips.style.setProperty('opacity', '1', 'important');
                     btnToggleTooltips.style.setProperty('pointer-events', 'auto', 'important');
                 }
