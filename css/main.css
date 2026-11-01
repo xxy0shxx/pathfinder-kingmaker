@@ -1042,21 +1042,92 @@ body {
     }
 }
 
+.pop-menu,
+.pop-menu textarea,
+.pop-menu select,
+.box select {
+    scrollbar-width: thin !important;
+    scrollbar-color: #ffd700 #050a06 !important;
+}
+
+.pop-menu::-webkit-scrollbar,
+.pop-menu textarea::-webkit-scrollbar,
+.pop-menu select::-webkit-scrollbar,
 .box select::-webkit-scrollbar {
-    width: 10px;
+    width: 10px !important;
+    height: 10px !important;
+    display: block !important;
 }
 
+.pop-menu::-webkit-scrollbar-track,
+.pop-menu textarea::-webkit-scrollbar-track,
+.pop-menu select::-webkit-scrollbar-track,
 .box select::-webkit-scrollbar-track {
-    background: #090f0b;
-    border-left: 1px solid rgba(84, 62, 13, 0.3);
+    background: #050a06 !important;
+    border-left: 1px solid rgba(212, 175, 55, 0.3) !important;
+    border-radius: 4px !important;
 }
 
+.pop-menu::-webkit-scrollbar-thumb,
+.pop-menu textarea::-webkit-scrollbar-thumb,
+.pop-menu select::-webkit-scrollbar-thumb,
 .box select::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #a68032 0%, #543e0d 100%);
-    border-radius: 3px;
-    border: 1px solid #b89445;
+    background: linear-gradient(180deg, #b89445 0%, #ffd700 50%, #d4af37 100%) !important;
+    border-radius: 4px !important;
+    border: 1px solid #fff2a3 !important;
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5), inset 0 0 3px rgba(255, 255, 255, 0.5) !important;
 }
 
+.pop-menu::-webkit-scrollbar-thumb:hover,
+.pop-menu textarea::-webkit-scrollbar-thumb:hover,
+.pop-menu select::-webkit-scrollbar-thumb:hover,
 .box select::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #b89445 0%, #ebd291 100%);
+    background: linear-gradient(180deg, #ffd700 0%, #fff2a3 50%, #b89445 100%) !important;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.6) !important;
+    border-color: #ffffff !important;
+}
+
+.box input[type="text"]:focus,
+.box textarea:focus,
+.box select:focus {
+    border-color: #ffd700 !important;
+    background-color: #050a06 !important;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.45), inset 0 0 6px rgba(255, 215, 0, 0.2) !important;
+    color: #ffffff !important;
+}
+
+.box input[type="text"]:hover:not(:focus),
+.box textarea:hover:not(:focus),
+.box select:hover:not(:focus) {
+    border-color: #d4af37 !important;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.25) !important;
+}
+
+.box textarea#inpDesc {
+    scrollbar-width: thin !important;
+    scrollbar-color: #ffd700 #050a06 !important;
+}
+
+.box textarea#inpDesc::-webkit-scrollbar {
+    width: 8px !important;
+    display: block !important;
+}
+
+.box textarea#inpDesc::-webkit-scrollbar-track {
+    background: #050a06 !important;
+    border-left: 1px solid rgba(166, 128, 50, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.box textarea#inpDesc::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #d4af37 0%, #ffd700 50%, #b89445 100%) !important;
+    border: 1px solid #ffeaa7 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+}
+
+.box textarea#inpDesc::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ffd700 0%, #fff2a3 50%, #f1c40f 100%) !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.6) !important;
 }
