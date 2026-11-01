@@ -1189,7 +1189,7 @@ if (viewport && mapContainer) {
     const frame = document.querySelector('.kingmaker-frame');
 
     function updateMapTransform() {
-        mapContainer.style.transform = `translate(${x}px, ${y}px) scale(${currentZoom})`;
+        mapContainer.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${currentZoom})`;
 
         if (frame && viewport && mapContainer) {
             const mapRect = mapContainer.getBoundingClientRect();
