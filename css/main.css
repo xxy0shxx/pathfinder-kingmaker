@@ -251,6 +251,7 @@ body {
 .hex-title-label-framed {
     position: absolute;
     transform: translate(-50%, -50%);
+    backface-visibility: hidden;
     z-index: 10005;
     padding: 3px 6px;
     background: rgba(20, 20, 20, 0.95);
