@@ -537,15 +537,24 @@ body {
 }
 
 .legend-group p {
-    color: #dfbc6f !important;
+    color: #fff !important;
     font-family: "Tinos", serif !important;
     font-size: 16px !important;
     font-weight: bold !important;
     text-transform: uppercase !important;
-    margin: 0 0 8px 0 !important;
-    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
-    padding-bottom: 4px !important;
-    letter-spacing: 0.5px !important;
+    margin: 0 0 10px 0 !important;
+    letter-spacing: 1.5px !important;
+    padding-bottom: 6px !important;
+    text-align: center !important;
+    width: 100% !important;
+    display: block !important;
+    border-bottom: 1px solid #dfbc6f !important;
+
+    text-shadow:
+            0 0 4px #ffd875,
+            0 0 10px #dfbc6f,
+            0 0 20px rgba(223, 188, 111, 0.6),
+            0 2px 4px rgba(0, 0, 0, 0.9) !important;
 }
 
 .legend-grid {
@@ -563,12 +572,16 @@ body {
     font-size: 18px !important;
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    padding: 3px 0 5px 0 !important;
+    gap: 12px !important;
+    padding: 4px 0 6px 0 !important;
     white-space: nowrap !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
     border-bottom: 1px dashed rgba(138, 100, 33, 0.25) !important;
+}
+
+.legend-grid span::before {
+    content: "";
 }
 
 /* ============================================================================
