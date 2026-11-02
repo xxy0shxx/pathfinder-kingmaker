@@ -911,23 +911,32 @@ body {
 .right-controls-panel {
     position: fixed !important;
     right: 40px !important;
-    bottom: 95px !important;
+    bottom: 40px !important;
     z-index: 10005 !important;
-    display: flex !important;
-    flex-direction: column !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, 46px) !important;
     gap: 8px !important;
-    width: 46px !important;
-    transform-origin: right bottom !important;
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
+    pointer-events: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    visibility: visible !important;
 }
-.right-controls-panel.ui-collapsed {
-    transform: translate(0, 50px) scale(0.8) !important;
+
+.right-controls-panel button {
+    pointer-events: auto !important;
+    position: static !important;
+    will-change: transform, opacity;
+}
+
+.right-controls-panel.ui-collapsed button:not(.master-toggle-btn) {
+    transform: scale(0.6) translateY(40px) !important;
     opacity: 0 !important;
     pointer-events: none !important;
 }
 
 .right-controls-panel .btn-ui-toggle,
-.right-controls-panel .btn-frame-style {
+.right-controls-panel .btn-frame-style,
+.right-controls-panel #btnFrameStyle {
     width: 46px !important;
     height: 44px !important;
     margin: 0 !important;
@@ -943,390 +952,31 @@ body {
     border: 1px solid #543e0d !important;
     color: #ebd291 !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 
-.right-controls-panel .btn-ui-toggle:hover,
-.right-controls-panel .btn-frame-style:hover {
+.right-controls-panel .master-toggle-btn {
+    background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important;
+    border: 1px solid #778ca3 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 14px rgba(209, 216, 224, 0.3) !important;
+    position: static !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.right-controls-panel .master-toggle-btn.ui-active {
+    transform: rotate(90deg) !important;
+}
+
+.right-controls-panel button:hover {
     background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
     border-color: #ebd291 !important;
     color: #fff !important;
     box-shadow: 0 0 12px rgba(184, 148, 69, 0.6), 0 6px 18px rgba(0, 0, 0, 0.6) !important;
-}
-.right-controls-panel .quest-toggle-btn[style*="background"] {
-    box-shadow: 0 0 14px rgba(223, 188, 111, 0.4) !important;
 }
 
 #visualLayer.hide-quest-tooltips ~ .right-controls-panel #btnToggleTooltips {
     background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
     border-color: #823030 !important;
     color: #f7baba !important;
-}
-#visualLayer.hide-quest-tooltips ~ .right-controls-panel #btnToggleTooltips:hover {
-    filter: brightness(1.2) !important;
-    border-color: #ff7675 !important;
-    color: #fff !important;
-}
-
-
-#btnExport, #btnImport, .btn-frame-style,
-#btnToggleFog, #btnToggleMapMode, #btnMapGlobal, #btnMapCamp, #btnToggleTooltips {
-    width: 46px !important;
-    height: 44px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    font-size: 20px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 4px !important;
-    cursor: pointer !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
-}
-#btnExport, #btnImport {
-    position: static !important;
-}
-.btn-frame-style {
-    position: static !important;
-    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
-    border: 1px solid #543e0d !important;
-    color: #ebd291 !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
-}
-.btn-frame-style:hover {
-    background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
-    border-color: #ebd291 !important;
-    color: #fff !important;
-    box-shadow: 0 0 12px rgba(184, 148, 69, 0.6), 0 6px 18px rgba(0, 0, 0, 0.6) !important;
-}
-.btn-frame-style.active {
-    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
-    border-color: #dfbc6f !important;
-    color: #dfbc6f !important;
-}
-
-#btnToggleFog, #btnToggleMapMode, #btnMapGlobal, #btnMapCamp {
-    position: fixed !important;
-    right: 96px !important;
-    z-index: 10005 !important;
-}
-#btnMapGlobal {
-    bottom: 203px !important;
-}
-#btnToggleMapMode, #btnMapCamp {
-    bottom: 203px !important;
-    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
-    border: 1px solid #543e0d !important;
-    color: #ebd291 !important;
-}
-#btnToggleMapMode {
-    background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important;
-    border-color: #d4af37 !important;
-    color: #d1d8e0 !important;
-}
-#btnToggleFog {
-    bottom: 40px !important;
-    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
-    border: 1px solid #543e0d !important;
-    color: #ebd291 !important;
-}
-#btnToggleFog.ui-collapsed {
-    bottom: -60px !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-#btnMapGlobal.ui-collapsed {
-    bottom: -160px !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-#btnToggleMapMode.ui-collapsed,
-#btnMapCamp.ui-collapsed {
-    bottom: -110px !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-.btn-ui-toggle.master-toggle-btn {
-    position: fixed !important;
-    bottom: 40px !important;
-    right: 40px !important;
-    width: 46px !important;
-    height: 44px !important;
-    z-index: 10007 !important;
-    border-radius: 4px !important;
-    font-size: 20px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important;
-    border: 1px solid #778ca3 !important;
-    color: #ebd291 !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 14px rgba(209, 216, 224, 0.5) !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-}
-
-.btn-ui-toggle.master-toggle-btn.ui-active {
-    transform: rotate(90deg) !important;
-    background: linear-gradient(180deg, #2c3539 0%, #1a2022 100%) !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 22px rgba(255, 255, 255, 0.7) !important;
-}
-
-.pop-menu, .pop-menu textarea, .pop-menu select, .box select, #questLogList {
-    scrollbar-width: thin !important;
-    scrollbar-color: #ffd700 #050a06 !important;
-}
-.pop-menu::-webkit-scrollbar,
-.pop-menu textarea::-webkit-scrollbar,
-.pop-menu select::-webkit-scrollbar,
-.box select::-webkit-scrollbar,
-.box textarea#inpDesc::-webkit-scrollbar,
-#questLogList::-webkit-scrollbar {
-    width: 10px !important;
-    height: 10px !important;
-    display: block !important;
-}
-.pop-menu::-webkit-scrollbar-track,
-.pop-menu textarea::-webkit-scrollbar-track,
-.pop-menu select::-webkit-scrollbar-track,
-.box select::-webkit-scrollbar-track,
-.box textarea#inpDesc::-webkit-scrollbar-track,
-#questLogList::-webkit-scrollbar-track {
-    background: #050a06 !important;
-    border-left: 1px solid rgba(212, 175, 55, 0.3) !important;
-    border-radius: 4px !important;
-}
-.pop-menu::-webkit-scrollbar-thumb,
-.pop-menu textarea::-webkit-scrollbar-thumb,
-.pop-menu select::-webkit-scrollbar-thumb,
-.box select::-webkit-scrollbar-thumb,
-.box textarea#inpDesc::-webkit-scrollbar-thumb,
-#questLogList::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #b89445 0%, #ffd700 50%, #d4af37 100%) !important;
-    border-radius: 4px !important;
-    border: 1px solid #fff2a3 !important;
-    box-shadow: 0 0 6px rgba(255, 215, 0, 0.5), inset 0 0 3px rgba(255, 255, 255, 0.5) !important;
-}
-.pop-menu::-webkit-scrollbar-thumb:hover,
-.pop-menu textarea::-webkit-scrollbar-thumb:hover,
-.pop-menu select::-webkit-scrollbar-thumb:hover,
-.box select::-webkit-scrollbar-thumb:hover,
-.box textarea#inpDesc::-webkit-scrollbar-thumb:hover,
-#questLogList::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #ffd700 0%, #fff2a3 50%, #b89445 100%) !important;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8), inset 0 0 5px rgba(255, 255, 255, 0.6) !important;
-    border-color: #ffffff !important;
-}
-
-#questLogList {
-    scrollbar-color: #b89445 #050a06 !important;
-}
-#questLogList::-webkit-scrollbar {
-    width: 12px !important;
-}
-#questLogList::-webkit-scrollbar-track {
-    background: #040905 !important;
-    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
-    margin: 15px 5px 15px 0;
-}
-#questLogList::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
-    border: 1px solid #543e0d !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
-}
-#questLogList::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
-    border-color: #a68032 !important;
-}
-
-.box input[type="text"]:focus, .box textarea:focus, .box select:focus {
-    border-color: #ffd700 !important;
-    background-color: #050a06 !important;
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.45), inset 0 0 6px rgba(255, 215, 0, 0.2) !important;
-    color: #ffffff !important;
-}
-.box input[type="text"]:hover:not(:focus), .box textarea:hover:not(:focus), .box select:hover:not(:focus) {
-    border-color: #d4af37 !important;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.25) !important;
-}
-
-@keyframes floatAnim {
-    0%, 100% { transform: translate(0, 0) rotate(-5deg); }
-    50% { transform: translate(2px, -3px) rotate(5deg); }
-}
-@keyframes floatAnimHigher {
-    0%, 100% { transform: translate(-50%, -90%) translateY(0) rotate(-1deg); }
-    50%      { transform: translate(-50%, -90%) translateY(-4px) rotate(1deg); }
-}
-@keyframes flagSwing {
-    0%, 100% { transform: translate(-50%, -50%) rotate(-5deg); }
-    50% { transform: translate(-50%, -50%) rotate(5deg); }
-}
-@keyframes hexPureRedFlash {
-    0%, 100% { opacity: 0; }
-    50% { opacity: 1; }
-}
-@keyframes windowsSmoothFly {
-    0% { opacity: 0; transform: translate3d(var(--start-x), var(--start-y), 0) scale(2.5) rotate(-90deg); }
-    1% { opacity: 1; }
-    100% { opacity: 1; transform: translate3d(var(--target-x), var(--target-y), 0) scale(1) rotate(-90deg); }
-}
-@keyframes sparkExplode {
-    0% { transform: rotate(var(--angle, 0deg)) translateY(0) scaleY(0.3); opacity: 1; }
-    100% { transform: rotate(var(--angle, 0deg)) translateY(45px) scaleY(1.5) scaleX(0.1); opacity: 0; }
-}
-@keyframes runeBreathe {
-    0%, 100% { opacity: 0.01; }
-    50% { opacity: 0.99; }
-}
-
-@media (max-width: 1024px) {
-    .box-row-combined .box input[type="text"],
-    .box-row-combined .box select {
-        width: 100%;
-        transform: none;
-    }
-}
-
-.custom-select {
-    position: relative;
-    width: 100%;
-    user-select: none;
-}
-
-.custom-select-trigger {
-    width: 100%;
-    padding: 6px 30px 6px 8px;
-    background: #090f0b;
-    border: 1px solid #543e0d;
-    border-radius: 3px;
-    color: #ebd291;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1.2;
-    position: relative;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.custom-select-trigger::after {
-    content: '▼';
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 10px;
-    color: #a68032;
-    transition: transform 0.2s ease;
-}
-
-.custom-select.active .custom-select-trigger::after {
-    transform: translateY(-50%) rotate(180deg);
-}
-
-.custom-select:hover .custom-select-trigger,
-.custom-select.active .custom-select-trigger {
-    border-color: #b89445;
-    box-shadow: 0 0 5px rgba(184, 148, 69, 0.4);
-}
-
-.custom-options-container {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #050a06;
-    border: 1px solid #b89445;
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    max-height: 160px;
-    overflow-y: auto;
-    z-index: 10200;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.85);
-}
-
-.custom-select.active .custom-options-container {
-    display: block;
-}
-
-.custom-option {
-    padding: 6px 10px;
-    font-size: 16px;
-    color: #ebd291;
-    cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.custom-option:hover {
-    background-color: rgba(30, 60, 39, 0.4);
-    color: #ffffff;
-}
-
-.custom-option.selected {
-    background-color: #1e3c27;
-    color: #dfbc6f;
-    font-weight: bold;
-}
-
-.custom-options-container {
-    scrollbar-width: thin !important;
-    scrollbar-color: #b89445 #050a06 !important;
-}
-
-.custom-options-container::-webkit-scrollbar {
-    width: 10px !important;
-    display: block !important;
-}
-
-.custom-options-container::-webkit-scrollbar-track {
-    background: #050a06 !important;
-    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
-}
-
-.custom-options-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
-    border: 1px solid #543e0d !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
-}
-
-.custom-options-container::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
-    border-color: #a68032 !important;
-    box-shadow: 0 0 8px rgba(166, 128, 50, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
-}
-
-.buttons {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: stretch !important;
-    width: 100% !important;
-    gap: 10px !important;
-    margin: 15px 0 0 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-    font-size: 0 !important;
-}
-
-.buttons button,
-.buttons .btn,
-#btnDelete, #btnCancel, #btnSave {
-    flex: 1 1 0% !important;
-    font-size: 14px !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
-}
-
-.buttons > *:not(#btnDelete):not(#btnCancel):not(#btnSave):not(.btn) {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
 }

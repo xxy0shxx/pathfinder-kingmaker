@@ -78,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Создание и инициализация кнопки скрытия тултипов квестов на карте
     const btnToggleTooltips = document.createElement('button');
     btnToggleTooltips.type = 'button';
     btnToggleTooltips.id = 'btnToggleTooltips';
@@ -1360,12 +1359,10 @@ if (viewport && mapContainer) {
         let newX = e.pageX - startX;
         let newY = e.pageY - startY;
 
-        // Порог смещения для исключения ложных микродвижений при клике
         if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
             hasMoved = true;
         }
 
-        // Геометрические границы удержания карты в пределах видимости
         const maxLimitX = 3840 * 1.5;
         const minLimitX = -3840 * 1.5;
         const maxLimitY = 1280 * 1.1;
@@ -1602,14 +1599,9 @@ function initUnifiedUICollapse() {
     const player = document.querySelector('.music-controller');
     const rightPanel = document.querySelector('.right-controls-panel');
     const questLog = document.getElementById('questLogContainer');
-
-    // Получаем ссылки на все кнопки, которые теперь находятся в HTML
-    const btnExport = document.getElementById('btnExport');
-    const btnImport = document.getElementById('btnImport');
     const btnToggleQuests = document.getElementById('btnToggleQuests');
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
     const btnToggleTooltips = document.getElementById('btnToggleTooltips');
-    const btnToggleFog = document.getElementById('btnToggleFog');
     const masterBtn = document.getElementById('btnMasterToggle');
 
     const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
@@ -1655,13 +1647,12 @@ function initUnifiedUICollapse() {
     }
 
     if (masterBtn && rightPanel) {
-        masterBtn.addEventListener('click', () => {
+        masterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const isCollapsed = rightPanel.classList.toggle('ui-collapsed');
 
-            // Синхронно прячем/показываем музыкальный плеер
             if (player) player.classList.toggle('ui-collapsed', isCollapsed);
 
-            // Защита: если закрыли панель управления, принудительно сворачиваем и сам журнал заданий
             if (isCollapsed && questLog) {
                 questLog.classList.add('ui-collapsed');
                 if (btnToggleQuests) {
@@ -1676,84 +1667,6 @@ function initUnifiedUICollapse() {
 
     if (typeof initQuestLogTabs === 'function') {
         initQuestLogTabs();
-    }
-}
-
-
-// ============================================================================
-// СВЯЗЫВАНИЕ МАСТЕР-КНОПКИ (ШЕСТЕРЕНКИ) С ПАНЕЛЯМИ УПРАВЛЕНИЯ
-// ============================================================================
-
-function attachMasterToggleLogic(rightPanel, player, mapControls, btnToggleFog, btnToggleMapMode, toggleQuestBtn, questLog) {
-    if (!document.querySelector('.master-toggle-btn')) {
-        const toggleMasterBtn = document.createElement('button');
-        toggleMasterBtn.type = 'button';
-        toggleMasterBtn.className = 'btn-ui-toggle master-toggle-btn';
-        toggleMasterBtn.innerHTML = '⚙️';
-        toggleMasterBtn.title = 'Показать/скрыть интерфейс управления';
-        document.body.appendChild(toggleMasterBtn);
-
-        toggleMasterBtn.addEventListener('click', () => {
-            const isCollapsed = rightPanel.classList.toggle('ui-collapsed');
-
-            if (player) player.classList.toggle('ui-collapsed', isCollapsed);
-            if (mapControls) mapControls.classList.toggle('ui-collapsed', isCollapsed);
-            if (btnToggleFog) btnToggleFog.classList.toggle('ui-collapsed', isCollapsed);
-            if (btnToggleMapMode) btnToggleMapMode.classList.toggle('ui-collapsed', isCollapsed);
-
-            if (toggleQuestBtn) {
-                toggleQuestBtn.classList.toggle('ui-collapsed', isCollapsed);
-
-                if (isCollapsed) {
-                    toggleQuestBtn.style.setProperty('opacity', '0', 'important');
-                    toggleQuestBtn.style.setProperty('pointer-events', 'none', 'important');
-                    toggleQuestBtn.style.setProperty('transform', 'translateX(20px)', 'important');
-                    if (questLog) {
-                        questLog.classList.add('ui-collapsed');
-                    }
-                    toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
-                    toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
-                    toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
-                } else {
-                    toggleQuestBtn.style.setProperty('opacity', '1', 'important');
-                    toggleQuestBtn.style.setProperty('pointer-events', 'auto', 'important');
-                    toggleQuestBtn.style.setProperty('transform', 'translateX(0)', 'important');
-                    toggleQuestBtn.style.setProperty('bottom', '149px', 'important');
-                }
-            }
-
-            toggleMasterBtn.classList.toggle('ui-active', !isCollapsed);
-        });
-    }
-
-    if (typeof initQuestLogTabs === 'function') {
-        initQuestLogTabs();
-    }
-
-    if (questLog && !questLog.querySelector('.btn-close-quest-log')) {
-        const header = questLog.querySelector('.quest-log-header');
-        if (header) {
-            header.style.position = 'relative';
-
-            const closeBtn = document.createElement('button');
-            closeBtn.type = 'button';
-            closeBtn.className = 'btn-close-quest-log';
-            closeBtn.innerHTML = '✖';
-            closeBtn.title = 'Закрыть журнал заданий';
-
-            closeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                questLog.classList.add('ui-collapsed');
-
-                if (toggleQuestBtn) {
-                    toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
-                    toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
-                    toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
-                }
-            });
-
-            header.appendChild(closeBtn);
-        }
     }
 }
 
