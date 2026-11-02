@@ -1046,7 +1046,9 @@ body {
     transform: rotate(90deg) !important;
 }
 
-.right-controls-panel button:hover {
+.right-controls-panel button:hover,
+.right-controls-panel .btn-ui-toggle:hover,
+.right-controls-panel #btnFrameStyle:hover {
     background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
     border-color: #ebd291 !important;
     color: #fff !important;
