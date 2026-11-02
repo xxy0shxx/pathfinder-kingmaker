@@ -1390,7 +1390,6 @@ PLAYLIST
     display: flex !important;
     flex-direction: column !important;
     box-sizing: border-box !important;
-    transform: none !important;
     background: #112417 !important;
     border: 2px solid #543e0d !important;
     border-radius: 4px !important;
@@ -1398,7 +1397,17 @@ PLAYLIST
             inset 1px 1px 0px #8a6421,
             inset -1px -1px 0px #8a6421,
             0 15px 35px rgba(0, 0, 0, 0.9) !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+    transform: translateX(-400px) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.25s ease !important;
+}
+
+.music-player-monolith-wrapper.ui-expanded {
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 .music-player-monolith-wrapper.playlist-open,

@@ -1767,13 +1767,15 @@ function initUnifiedUICollapse() {
 
     if (masterBtn && rightPanel) {
         rightPanel.classList.remove('ui-expanded');
-        if (player) player.classList.remove('ui-expanded');
 
         masterBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const isExpanded = rightPanel.classList.toggle('ui-expanded');
+            const monolithWrapper = document.querySelector('.music-player-monolith-wrapper');
+            if (monolithWrapper) {
+                monolithWrapper.classList.toggle('ui-expanded', isExpanded);
+            }
 
-            if (player) player.classList.toggle('ui-expanded', isExpanded);
             if (!isExpanded && questLog) {
                 questLog.classList.add('ui-collapsed');
                 if (btnToggleQuests) {
