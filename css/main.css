@@ -466,11 +466,11 @@ body {
     overflow: hidden !important;
     z-index: 2 !important;
     border: none !important;
-    border-bottom: 1px solid #543e0d !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
+    padding-top: 1px !important;
 }
-
 .legend-header {
     background: rgba(0, 0, 0, 0.4) !important;
     color: #ebd291 !important;
@@ -486,6 +486,10 @@ body {
     justify-content: space-between !important;
     align-items: center !important;
     text-shadow: 0 0 4px rgba(235, 210, 145, 0.5) !important;
+    box-shadow:
+            inset 0 1px 0px #8a6421,
+            inset 1px 0px 0px #8a6421,
+            inset -1px 0px 0px #8a6421 !important;
 }
 .legend-header:hover {
     background: rgba(0, 0, 0, 0.5) !important;
@@ -1390,6 +1394,9 @@ PLAYLIST
     background: #112417 !important;
     border: 2px solid #543e0d !important;
     border-radius: 4px !important;
+
+    /* Обновленный box-shadow: блик идет по кругу (inset 1px и inset -1px), */
+    /* благодаря чему золотая линия теперь есть и слева, и снизу, и справа, и сверху */
     box-shadow:
             inset 1px 1px 0px #8a6421,
             inset -1px -1px 0px #8a6421,
