@@ -1,3 +1,5 @@
+@import url('https://googleapis.com');
+
 * {
     box-sizing: border-box;
 }
@@ -1235,8 +1237,31 @@ body {
     display: none !important;
 }
 
+.hex-title-label-framed:not(.hex-region-stats-framed) .hex-title-text {
+    font-family: "Tinos", serif !important;
+    font-style: italic !important;
+    font-weight: 700 !important;
+    font-size: 17px !important;
+    text-transform: none !important;
+    letter-spacing: 0.5px !important;
+    color: #ffd875 !important;
+    text-shadow: 0 0 5px #dfbc6f,
+    0 0 10px rgba(223, 188, 111, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.95) !important;
+}
+
+.hex-title-label-framed:not(.hex-region-stats-framed) {
+    max-width: 220px !important;
+}
+
 .hex-region-stats-framed .hex-title-text {
-    font-size: 11px;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    color: #ebd291 !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
 }
 
 .hex-region-stats-framed {
