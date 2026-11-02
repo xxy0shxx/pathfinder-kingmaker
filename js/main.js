@@ -1614,20 +1614,31 @@ function initUnifiedUICollapse() {
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
     const btnToggleTooltips = document.getElementById('btnToggleTooltips');
     const masterBtn = document.getElementById('btnMasterToggle');
-    const legendContainer = document.querySelector('.legend-container');
-    const legendHeader = document.querySelector('.legend-header');
-
-    if (legendContainer && legendHeader) {
-        legendHeader.addEventListener('click', (e) => {
-            const isOpen = legendContainer.classList.toggle('open');
-            const toggleBtn = legendHeader.querySelector('button');
-            if (toggleBtn) {
-                toggleBtn.textContent = isOpen ? '🔽' : '🔼';
-            }
-        });
-    }
 
     const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
+
+    if (questLog) {
+        const questHeader = questLog.querySelector('.quest-log-header');
+        if (questHeader && !questHeader.querySelector('.btn-close-quest-log')) {
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close-quest-log';
+            closeBtn.innerHTML = '×';
+            closeBtn.title = 'Закрыть журнал заданий';
+
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                questLog.classList.add('ui-collapsed');
+                if (btnToggleQuests) {
+                    btnToggleQuests.style.setProperty('background', '', 'important');
+                    btnToggleQuests.style.setProperty('border-color', '', 'important');
+                    btnToggleQuests.style.setProperty('color', '', 'important');
+                }
+            });
+
+            questHeader.appendChild(closeBtn);
+        }
+    }
 
     if (btnToggleTooltips) {
         btnToggleTooltips.addEventListener('click', () => {
