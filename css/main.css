@@ -674,13 +674,13 @@ body {
     font-family: "Tinos", serif !important;
     font-weight: 700 !important;
     font-size: 15px !important;
-    text-transform: uppercase !important;
+    text-transform: none !important;
     letter-spacing: 1px !important;
     color: #ffd875 !important;
     -webkit-text-stroke: 0.3px #ffd875 !important;
-    text-shadow: 0 0 3px #dfbc6f,
+    /*text-shadow: 0 0 3px #dfbc6f,
     0 0 6px rgba(223, 188, 111, 0.4),
-    0 1px 2px rgba(0, 0, 0, 0.9) !important;
+    0 1px 2px rgba(0, 0, 0, 0.9) !important;*/
 }
 .playlist-item:hover {
     background: rgba(21, 46, 29, 0.4);
@@ -771,14 +771,14 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    font: 13px sans-serif;
+    font: 18px sans-serif;
     color: #ebd291;
 }
 .legend-grid span {
     color: #ffd875 !important;
     font-family: "Tinos", serif !important;
     font-weight: 700 !important;
-    font-size: 14px !important;
+    font-size: 18px !important;
     text-transform: none !important;
     letter-spacing: 0.3px !important;
     padding: 2px;
