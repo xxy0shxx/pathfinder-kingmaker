@@ -561,6 +561,17 @@ body {
     border-color: #b89445 !important;
     box-shadow: 0 0 5px rgba(184, 148, 69, 0.4);
 }
+.box input[type="text"]:focus,
+.box textarea:focus,
+.custom-select.active .custom-select-trigger {
+    border-color: #ffd875 !important;
+    overflow: visible !important;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.95),
+    0 0 15px #ffd875,
+    0 0 30px rgba(223, 188, 111, 0.85),
+    inset 0 0 6px rgba(255, 216, 117, 0.2) !important;
+}
+
 .box textarea {
     overflow-y: auto !important;
     scrollbar-width: thin !important;
