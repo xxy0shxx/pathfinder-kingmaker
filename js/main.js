@@ -361,13 +361,13 @@ function updatePlayerButtonUI(isPlayingNow) {
     if (!musicButton) return;
 
     if (isPlayingNow) {
-        musicButton.innerHTML = `⏸️ Пауза`;
-        musicButton.style.backgroundColor = '#e74c3c';
-        musicButton.style.color = '#dfbc6f';
+        musicButton.innerHTML = `⏸ PAUSE`;
+        musicButton.style.color = '#FF5500'; /* Оранжевый цвет паузы, как в Winamp */
+        musicButton.style.textShadow = '0 0 5px rgba(255, 85, 0, 0.6)';
     } else {
-        musicButton.innerHTML = `🎵 Включить музыку`;
-        musicButton.style.backgroundColor = '';
-        musicButton.style.color = '';
+        musicButton.innerHTML = `▶ PLAY`;
+        musicButton.style.color = ''; /* Возвращает винамповский зеленый */
+        musicButton.style.textShadow = '';
     }
 }
 
