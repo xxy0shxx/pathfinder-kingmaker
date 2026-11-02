@@ -695,23 +695,32 @@ body {
 }
 .legend-header {
     background: rgba(21, 46, 29, 0.4);
-    color: #dfbc6f;
+    color: #ffd875 !important;
+    font-family: "Tinos", serif !important;
+    /*font-style: italic !important;*/
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    -webkit-text-stroke: 0.3px #ffd875 !important;
+    text-shadow: 0 0 4px #dfbc6f,
+    0 0 10px rgba(223, 188, 111, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.95) !important;
     padding: 8px 12px;
-    font: bold 14px sans-serif;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #543e0d;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 .legend-header button {
     background: none;
     border: none;
-    color: #dfbc6f;
+    color: #ffd875 !important;
     cursor: pointer;
     font-size: 18px;
     padding: 0 5px;
+    -webkit-text-stroke: none !important;
+    text-shadow: 0 0 4px #dfbc6f !important;
 }
 .legend-content {
     max-height: 0;
@@ -725,11 +734,17 @@ body {
     overflow: hidden !important;
 }
 .legend-group p {
+    color: #ffd875 !important;
+    font-family: "Tinos", serif !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    -webkit-text-stroke: 0.3px #ffd875 !important;
+    text-shadow: 0 0 4px #dfbc6f,
+    0 0 8px rgba(223, 188, 111, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.9) !important;
     margin: 0 0 10px 0;
-    font: bold 12px sans-serif;
-    color: #dfbc6f;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     border-bottom: 1px solid rgba(84, 62, 13, 0.5);
     padding-bottom: 6px;
 }
@@ -744,6 +759,15 @@ body {
     color: #ebd291;
 }
 .legend-grid span {
+    color: #ffd875 !important;
+    font-family: "Tinos", serif !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    text-transform: none !important;
+    letter-spacing: 0.3px !important;
+    text-shadow: 0 0 3px #dfbc6f,
+    0 0 6px rgba(223, 188, 111, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.9) !important;
     padding: 2px;
     border-bottom: 1px solid rgba(84, 62, 13, 0.15);
     display: flex;
