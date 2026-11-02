@@ -352,7 +352,20 @@ function toggleLoop() {
 }
 
 function togglePlaylistUI() {
-    if (playlistContainer) { playlistContainer.classList.toggle("open"); playlistButton.classList.toggle("active"); }
+    if (!playlistContainer) return;
+
+    const isOpen = playlistContainer.classList.toggle("open");
+    if (playlistButton) playlistButton.classList.toggle("active", isOpen);
+
+    const player = document.querySelector('.music-controller');
+    const legend = document.querySelector('.legend-container.legend-above-player');
+
+    if (player) {
+        player.classList.toggle('playlist-open', isOpen);
+    }
+    if (legend) {
+        legend.classList.toggle('playlist-open', isOpen);
+    }
 }
 
 function playNextRandomTrack() {
@@ -388,7 +401,8 @@ function formatMusicTime(seconds) {
 
 document.addEventListener('click', (e) => {
     if (playlistContainer && playlistContainer.classList.contains('open') && !playlistContainer.contains(e.target) && e.target !== playlistButton) {
-        playlistContainer.classList.remove('open'); playlistButton.classList.remove('active');
+        playlistContainer.classList.remove('open');
+        playlistButton.classList.remove('active');
     }
 });
 

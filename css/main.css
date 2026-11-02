@@ -553,8 +553,8 @@ body {
     visibility: visible !important;
     opacity: 1 !important;
     position: fixed !important;
-    left: 40px !important;
-    bottom: 172px !important;
+    left: 42px !important;
+    bottom: 200px !important;
     width: 320px !important;
     z-index: 1006 !important;
     background: linear-gradient(135deg, #112417 0%, #09140d 100%) !important;
@@ -563,6 +563,15 @@ body {
     box-shadow: inset 2px 2px 0px #8a6421, 0 10px 30px rgba(0, 0, 0, 0.85) !important;
     box-sizing: border-box !important;
     pointer-events: auto !important;
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    transform: translateY(0) !important;
+}
+
+.music-controller.playlist-open {
+    transform: translateY(-204px) !important;
+}
+.legend-container.legend-above-player.playlist-open {
+    transform: translateY(-204px) !important;
 }
 
 .legend-above-player .legend-header {
@@ -839,11 +848,11 @@ body {
    5. АУДИОПЛЕЕР (WINAMP LAYOUT + KINGMAKER SKIN)
    ============================================================================ */
 .music-controller {
-    position: fixed;
-    bottom: 40px;
-    left: 40px;
-    z-index: 1005;
-    width: 320px;
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    width: 320px !important;
+    z-index: 1005 !important;
     background: #112417;
     background-image: linear-gradient(rgba(223, 188, 111, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(223, 188, 111, 0.03) 1px, transparent 1px);
@@ -857,7 +866,8 @@ body {
     flex-direction: column;
     gap: 6px;
     box-sizing: border-box;
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    transform: translateY(0) !important;
 }
 
 .winamp-title-bar {
@@ -1373,4 +1383,86 @@ body {
     .buttons .btn {
         width: 100%;
     }
+}
+/* ============================================================================
+PLAYLIST
+   ============================================================================ */
+#playerPlaylist {
+    display: none;
+    width: 320px !important;
+    background: #112417 !important;
+    border: 2px solid #543e0d !important;
+    border-top: none !important;
+    box-shadow: inset 2px 2px 0px #8a6421;
+    padding: 4px !important;
+    box-sizing: border-box !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: -2px !important;
+    z-index: 1004 !important;
+    flex-direction: column;
+}
+
+#playerPlaylist.open {
+    display: flex !important;
+}
+
+.playlist-title-bar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    height: 14px !important;
+    background: #242434 !important;
+    padding: 0 6px !important;
+    font-family: monospace !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    color: #848494 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase;
+    border-bottom: 1px solid #12121c !important;
+}
+
+#playlistTracksContainer {
+    max-height: 180px !important;
+    overflow-y: auto !important;
+    background: #000000 !important;
+    border: 1px solid #242434 !important;
+    padding: 4px 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1px !important;
+}
+
+.playlist-item {
+    padding: 2px 8px !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 14px !important;
+    color: #00e100 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.playlist-item:hover {
+    background: #1c1c2c !important;
+    color: #ffffff !important;
+}
+
+.playlist-item.current {
+    color: #ffffff !important;
+    background: #0000a8 !important;
+    font-weight: bold;
+}
+
+#playlistTracksContainer::-webkit-scrollbar {
+    width: 10px !important;
+}
+#playlistTracksContainer::-webkit-scrollbar-track {
+    background: #12121c !important;
+}
+#playlistTracksContainer::-webkit-scrollbar-thumb {
+    background: #343444 !important;
+    border: 1px solid #12121c !important;
 }
