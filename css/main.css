@@ -1234,3 +1234,12 @@ body {
 .hex-region-stats-framed:has(.hex-title-text:empty) {
     display: none !important;
 }
+
+.hex-region-stats-framed .hex-title-text {
+    font-size: 11px;
+}
+
+.hex-region-stats-framed {
+    padding: 2px 4px;
+    max-width: 110px;
+}

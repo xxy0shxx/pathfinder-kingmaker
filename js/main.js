@@ -709,7 +709,7 @@ function createHexSubLayers(vHex, hexId, cx, cy) {
     statsLabel.appendChild(statsText);
 
     statsLabel.style.left = cx + 'px';
-    statsLabel.style.top = (cy + 42) + 'px';
+    statsLabel.style.top = (cy + 48) + 'px';
 
     visualLayer.appendChild(statsLabel);
 
