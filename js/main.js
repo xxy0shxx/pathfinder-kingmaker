@@ -44,12 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnDeleteEl = document.getElementById('btnDelete');
     const btnCancelEl = document.getElementById('btnCancel');
     const btnSaveEl = document.getElementById('btnSave');
-
     let buttonsContainer = document.querySelector('.buttons');
-    if (!buttonsContainer && btnCancelEl) {
-        buttonsContainer = btnCancelEl.closest('.buttons') || btnCancelEl.parentNode;
-    }
-
     if (buttonsContainer && btnDeleteEl && btnCancelEl && btnSaveEl) {
         buttonsContainer.appendChild(btnDeleteEl);
         buttonsContainer.appendChild(btnCancelEl);
@@ -128,29 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnToggleTooltips.style.color = '#f7baba';
         }
     });
-
-    // Обработчик сворачивания элементов интерфейса кнопкой шестеренки
-    const masterBtn = document.querySelector('.master-toggle-btn');
-    if (masterBtn) {
-        masterBtn.addEventListener('click', () => {
-            setTimeout(() => {
-                const player = document.querySelector('.music-controller');
-                const isCollapsed = player ? player.classList.contains('ui-collapsed') : true;
-                if (isCollapsed) {
-                    btnToggleTooltips.style.setProperty('bottom', '-160px', 'important');
-                    btnToggleTooltips.style.setProperty('opacity', '0', 'important');
-                    btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
-                } else {
-                    // Если журнал открыт, тултипы сдвигаются на высоту открытого журнала (в вашем коде было 203px)
-                    // Если журнал теперь на позиции 149px, то при его открытии тултипы могут сдвигаться выше,
-                    // либо оставаться на своей позиции 95px в зависимости от вашего дизайна.
-                    btnToggleTooltips.style.setProperty('bottom', '95px', 'important');
-                    btnToggleTooltips.style.setProperty('opacity', '1', 'important');
-                    btnToggleTooltips.style.setProperty('pointer-events', 'auto', 'important');
-                }
-            }, 50);
-        });
-    }
 
     // Первичный расчет положения рамки и проявление карты
     setTimeout(() => {
@@ -1553,10 +1525,8 @@ function updateFrameRunes(width, height) {
 // ============================================================================
 
 function initFrameStyleControls() {
-    if (document.querySelector('.frame-style-controls')) return;
-
-    const controlsContainer = document.createElement('div');
-    controlsContainer.className = 'frame-style-controls';
+    const btn = document.getElementById('btnFrameStyle');
+    if (!btn) return;
 
     const styles = [
         { id: 'norunes', icon: '🔲', title: 'Рамка: Без рун' },
@@ -1566,17 +1536,6 @@ function initFrameStyleControls() {
 
     const getCurrentIndex = () => styles.findIndex(s => s.id === currentFrameStyle);
 
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn-frame-style active';
-    btn.style.width = '100%';
-
-    function updateButtonUI() {
-        const currentStyle = styles[getCurrentIndex()] || styles[0];
-        btn.innerHTML = `${currentStyle.icon}`;
-        btn.title = currentStyle.title;
-    }
-
     btn.addEventListener('click', () => {
         let nextIdx = getCurrentIndex() + 1;
         if (nextIdx >= styles.length) nextIdx = 0;
@@ -1584,19 +1543,16 @@ function initFrameStyleControls() {
         currentFrameStyle = styles[nextIdx].id;
         localStorage.setItem('kingmakerFrameStyle', currentFrameStyle);
 
-        updateButtonUI();
+        const currentStyle = styles[nextIdx];
+        btn.innerHTML = currentStyle.icon;
+        btn.title = currentStyle.title;
+
         applyFrameStyle();
     });
 
-    updateButtonUI();
-
-    controlsContainer.appendChild(btn);
-    const rightPanel = document.querySelector('.right-controls-panel');
-    if (rightPanel) {
-        rightPanel.appendChild(controlsContainer);
-    } else {
-        document.body.appendChild(controlsContainer);
-    }
+    const startStyle = styles[getCurrentIndex()] || styles[0];
+    btn.innerHTML = startStyle.icon;
+    btn.title = startStyle.title;
     applyFrameStyle();
 }
 
@@ -1638,113 +1594,92 @@ updateFrameRunes = function(width, height) {
         originalUpdateFrameRunes(width, height);
     }
 };
-// ============================================================================
-// ИНИЦИАЛИЗАЦИЯ СВОРАЧИВАНИЯ И УНИФИКАЦИИ ВСПЛЫВАЮЩИХ ПАНЕЛЕЙ ИНТЕРФЕЙСА
-// ============================================================================
 
+// ============================================================================
+// ИНИЦИАЛИЗАЦИЯ И НАЗНАЧЕНИЕ СОБЫТИЙ ДЛЯ КНОПОК ИЗ HTML
+// ============================================================================
 function initUnifiedUICollapse() {
     const player = document.querySelector('.music-controller');
+    const rightPanel = document.querySelector('.right-controls-panel');
+    const questLog = document.getElementById('questLogContainer');
+
+    // Получаем ссылки на все кнопки, которые теперь находятся в HTML
     const btnExport = document.getElementById('btnExport');
     const btnImport = document.getElementById('btnImport');
-    const styleControls = document.querySelector('.frame-style-controls');
-    const mapControls = document.querySelector('.map-selector-controls');
-    const btnToggleFog = document.getElementById('btnToggleFog');
-    const questLog = document.getElementById('questLogContainer');
+    const btnToggleQuests = document.getElementById('btnToggleQuests');
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
-
-    let rightPanel = document.querySelector('.right-controls-panel');
-    if (!rightPanel) {
-        rightPanel = document.createElement('div');
-        rightPanel.className = 'right-controls-panel ui-collapsed';
-        document.body.appendChild(rightPanel);
-    }
-    if (btnExport) {
-        btnExport.innerHTML = '📥';
-        btnExport.title = 'Экспорт JSON';
-        rightPanel.appendChild(btnExport);
-    }
-    if (btnImport) {
-        btnImport.innerHTML = '📤';
-        btnImport.title = 'Импорт JSON';
-        rightPanel.appendChild(btnImport);
-    }
-    if (styleControls) rightPanel.appendChild(styleControls);
-    if (player) player.classList.add('ui-collapsed');
-    if (mapControls) mapControls.classList.add('ui-collapsed');
-    if (btnToggleFog) btnToggleFog.classList.add('ui-collapsed');
-    if (btnToggleMapMode) btnToggleMapMode.classList.add('ui-collapsed');
-
-    if (questLog) questLog.classList.add('ui-collapsed');
+    const btnToggleTooltips = document.getElementById('btnToggleTooltips');
+    const btnToggleFog = document.getElementById('btnToggleFog');
+    const masterBtn = document.getElementById('btnMasterToggle');
 
     const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
 
-    // ============================================================================
-    // ГЕНЕРАЦИЯ КНОПКИ ЖУРНАЛА (⚜️)
-    // ============================================================================
-    let toggleQuestBtn = document.querySelector('.quest-toggle-btn');
-    if (!toggleQuestBtn && questLog) {
-        toggleQuestBtn = document.createElement('button');
-        toggleQuestBtn.type = 'button';
-        toggleQuestBtn.className = 'btn-ui-toggle quest-toggle-btn ui-collapsed';
-        toggleQuestBtn.innerHTML = '⚜️';
-        toggleQuestBtn.title = 'Открыть журнал заданий';
-
-        toggleQuestBtn.style.setProperty('position', 'fixed', 'important');
-        toggleQuestBtn.style.setProperty('bottom', '149px', 'important');
-        toggleQuestBtn.style.setProperty('right', '96px', 'important');
-        toggleQuestBtn.style.setProperty('width', '46px', 'important');
-        toggleQuestBtn.style.setProperty('height', '44px', 'important');
-        toggleQuestBtn.style.setProperty('z-index', '10007', 'important');
-        toggleQuestBtn.style.setProperty('border-radius', '4px', 'important');
-        toggleQuestBtn.style.setProperty('font-size', '20px', 'important');
-        toggleQuestBtn.style.setProperty('display', 'flex', 'important');
-        toggleQuestBtn.style.setProperty('align-items', 'center', 'important');
-        toggleQuestBtn.style.setProperty('justify-content', 'center', 'important');
-        toggleQuestBtn.style.setProperty('cursor', 'pointer', 'important');
-        toggleQuestBtn.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.6)', 'important');
-        toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
-        toggleQuestBtn.style.setProperty('border', '1px solid #543e0d', 'important');
-        toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
-        toggleQuestBtn.style.setProperty('opacity', '0', 'important');
-        toggleQuestBtn.style.setProperty('pointer-events', 'none', 'important');
-        toggleQuestBtn.style.setProperty('transform', 'translateX(20px)', 'important');
-        toggleQuestBtn.style.setProperty('transition', 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', 'important');
-
-        toggleQuestBtn.addEventListener('mouseenter', () => {
-            if (questLog.classList.contains('ui-collapsed')) {
-                toggleQuestBtn.style.setProperty('border-color', '#b89445', 'important');
-                toggleQuestBtn.style.setProperty('filter', 'brightness(1.2)', 'important');
-            }
-        });
-        toggleQuestBtn.addEventListener('mouseleave', () => {
-            if (questLog.classList.contains('ui-collapsed')) {
-                toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
-                toggleQuestBtn.style.setProperty('filter', 'none', 'important');
-            }
-        });
-
-        document.body.appendChild(toggleQuestBtn);
-
-        toggleQuestBtn.addEventListener('click', () => {
-            const isLogCollapsed = questLog.classList.toggle('ui-collapsed');
-
-            if (!isLogCollapsed) {
-                if (typeof renderQuestLog === 'function') {
-                    renderQuestLog(filter);
-                }
-                toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
-                toggleQuestBtn.style.setProperty('border-color', '#dfbc6f', 'important');
-                toggleQuestBtn.style.setProperty('color', '#dfbc6f', 'important');
-            } else {
-                toggleQuestBtn.style.setProperty('background', 'linear-gradient(180deg, #42351f 0%, #292011 100%)', 'important');
-                toggleQuestBtn.style.setProperty('border-color', '#543e0d', 'important');
-                toggleQuestBtn.style.setProperty('color', '#ebd291', 'important');
+    if (btnToggleTooltips) {
+        btnToggleTooltips.addEventListener('click', () => {
+            const visualLayerEl = document.getElementById('visualLayer');
+            if (visualLayerEl) {
+                visualLayerEl.classList.toggle('hide-quest-tooltips');
             }
         });
     }
 
-    attachMasterToggleLogic(rightPanel, player, mapControls, btnToggleFog, btnToggleMapMode, toggleQuestBtn, questLog);
+    if (btnToggleMapMode) {
+        let currentMode = 'global';
+        btnToggleMapMode.addEventListener('click', () => {
+            if (currentMode === 'global') {
+                currentMode = 'camp';
+                btnToggleMapMode.innerHTML = '⛺';
+                btnToggleMapMode.title = 'Переключить на глобальную карту';
+            } else {
+                currentMode = 'global';
+                btnToggleMapMode.innerHTML = '🗺️';
+                btnToggleMapMode.title = 'Переключить на карту лагеря';
+            }
+        });
+    }
+
+    if (btnToggleQuests && questLog) {
+        btnToggleQuests.addEventListener('click', () => {
+            const isLogCollapsed = questLog.classList.toggle('ui-collapsed');
+            if (!isLogCollapsed) {
+                if (typeof renderQuestLog === 'function') renderQuestLog(filter);
+                btnToggleQuests.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+                btnToggleQuests.style.setProperty('border-color', '#dfbc6f', 'important');
+                btnToggleQuests.style.setProperty('color', '#dfbc6f', 'important');
+            } else {
+                btnToggleQuests.style.setProperty('background', '', 'important');
+                btnToggleQuests.style.setProperty('border-color', '', 'important');
+                btnToggleQuests.style.setProperty('color', '', 'important');
+            }
+        });
+    }
+
+    if (masterBtn && rightPanel) {
+        masterBtn.addEventListener('click', () => {
+            const isCollapsed = rightPanel.classList.toggle('ui-collapsed');
+
+            // Синхронно прячем/показываем музыкальный плеер
+            if (player) player.classList.toggle('ui-collapsed', isCollapsed);
+
+            // Защита: если закрыли панель управления, принудительно сворачиваем и сам журнал заданий
+            if (isCollapsed && questLog) {
+                questLog.classList.add('ui-collapsed');
+                if (btnToggleQuests) {
+                    btnToggleQuests.style.setProperty('background', '', 'important');
+                    btnToggleQuests.style.setProperty('border-color', '', 'important');
+                    btnToggleQuests.style.setProperty('color', '', 'important');
+                }
+            }
+            masterBtn.classList.toggle('ui-active', !isCollapsed);
+        });
+    }
+
+    if (typeof initQuestLogTabs === 'function') {
+        initQuestLogTabs();
+    }
 }
+
+
 // ============================================================================
 // СВЯЗЫВАНИЕ МАСТЕР-КНОПКИ (ШЕСТЕРЕНКИ) С ПАНЕЛЯМИ УПРАВЛЕНИЯ
 // ============================================================================

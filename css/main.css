@@ -915,16 +915,59 @@ body {
     z-index: 10005 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 8px !important;
     width: 46px !important;
     transform-origin: right bottom !important;
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease !important;
 }
 .right-controls-panel.ui-collapsed {
-    transform: translate(100px, 0) scale(0.8) !important;
+    transform: translate(0, 50px) scale(0.8) !important;
     opacity: 0 !important;
     pointer-events: none !important;
 }
+
+.right-controls-panel .btn-ui-toggle,
+.right-controls-panel .btn-frame-style {
+    width: 46px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
+    border: 1px solid #543e0d !important;
+    color: #ebd291 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.right-controls-panel .btn-ui-toggle:hover,
+.right-controls-panel .btn-frame-style:hover {
+    background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
+    border-color: #ebd291 !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px rgba(184, 148, 69, 0.6), 0 6px 18px rgba(0, 0, 0, 0.6) !important;
+}
+.right-controls-panel .quest-toggle-btn[style*="background"] {
+    box-shadow: 0 0 14px rgba(223, 188, 111, 0.4) !important;
+}
+
+#visualLayer.hide-quest-tooltips ~ .right-controls-panel #btnToggleTooltips {
+    background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
+    border-color: #823030 !important;
+    color: #f7baba !important;
+}
+#visualLayer.hide-quest-tooltips ~ .right-controls-panel #btnToggleTooltips:hover {
+    filter: brightness(1.2) !important;
+    border-color: #ff7675 !important;
+    color: #fff !important;
+}
+
 
 #btnExport, #btnImport, .btn-frame-style,
 #btnToggleFog, #btnToggleMapMode, #btnMapGlobal, #btnMapCamp, #btnToggleTooltips {
@@ -1024,6 +1067,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 14px rgba(209, 216, 224, 0.5) !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
+
 .btn-ui-toggle.master-toggle-btn.ui-active {
     transform: rotate(90deg) !important;
     background: linear-gradient(180deg, #2c3539 0%, #1a2022 100%) !important;
