@@ -61,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonsContainer.appendChild(boxWrapper);
     }
 
+    const questLogContainerEl = document.getElementById('questLogContainer');
+    if (questLogContainerEl) {
+        document.body.appendChild(questLogContainerEl);
+    }
+
     buildHexGrid();
     initFrameStyleControls();
     initUnifiedUICollapse();
