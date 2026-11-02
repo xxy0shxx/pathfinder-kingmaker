@@ -1614,6 +1614,18 @@ function initUnifiedUICollapse() {
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
     const btnToggleTooltips = document.getElementById('btnToggleTooltips');
     const masterBtn = document.getElementById('btnMasterToggle');
+    const legendContainer = document.querySelector('.legend-container');
+    const legendHeader = document.querySelector('.legend-header');
+
+    if (legendContainer && legendHeader) {
+        legendHeader.addEventListener('click', (e) => {
+            const isOpen = legendContainer.classList.toggle('open');
+            const toggleBtn = legendHeader.querySelector('button');
+            if (toggleBtn) {
+                toggleBtn.textContent = isOpen ? '🔽' : '🔼';
+            }
+        });
+    }
 
     const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
 

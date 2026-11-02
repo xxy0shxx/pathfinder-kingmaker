@@ -675,8 +675,9 @@ body {
     padding: 0 10px;
 }
 .legend-container.open .legend-content {
-    max-height: 500px;
-    padding: 10px;
+    max-height: 500px !important;
+    padding: 10px !important;
+    overflow-y: auto !important;
 }
 .legend-group p {
     margin: 0 0 10px 0;
