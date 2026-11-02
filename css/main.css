@@ -1313,7 +1313,6 @@ PLAYLIST
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    box-sizing: border-box !important;
     display: none;
     flex-direction: column !important;
 }
@@ -1322,24 +1321,25 @@ PLAYLIST
     display: flex !important;
 }
 
+
 .playlist-title-bar {
-    margin: 6px 6px 4px 6px !important;
-    width: calc(100% - 12px) !important;
+    margin: 4px 2px 4px 2px !important;
+    width: calc(100% - 4px) !important;
 }
 
 #playlistTracksContainer {
-    max-height: 160px !important;
+    max-height: 180px !important;
     overflow-y: auto !important;
     background: #040905 !important;
     border: 1px solid #543e0d !important;
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9) !important;
-    margin: 0 6px 6px 6px !important;
+    margin: 0 2px 2px 2px !important;
     padding: 4px 2px !important;
     box-sizing: border-box !important;
 }
 
 .playlist-item {
-    padding: 3px 6px !important;
+    padding: 4px 6px !important;
     font-family: 'Courier New', monospace !important;
     font-size: 12px !important;
     font-weight: bold !important;
@@ -1366,14 +1366,14 @@ PLAYLIST
 }
 
 #playlistTracksContainer::-webkit-scrollbar {
-    width: 1px !important;
+    width: 4px !important;
 }
 #playlistTracksContainer::-webkit-scrollbar-track {
-    background: #12121c !important;
+    background: #040905 !important;
 }
 #playlistTracksContainer::-webkit-scrollbar-thumb {
     background: #12281a !important;
-    border: 1px solid #12121c !important;
+    border: 1px solid #543e0d !important;
 }
 
 .music-player-monolith-wrapper {
@@ -1389,10 +1389,6 @@ PLAYLIST
     transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 
     background: #112417 !important;
-    background-image:
-            linear-gradient(rgba(223, 188, 111, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(223, 188, 111, 0.03) 1px, transparent 1px) !important;
-    background-size: 2px 2px !important;
     border: 1px solid #543e0d !important;
     border-radius: 4px !important;
     box-shadow:
