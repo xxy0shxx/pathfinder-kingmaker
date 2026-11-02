@@ -44,11 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnDeleteEl = document.getElementById('btnDelete');
     const btnCancelEl = document.getElementById('btnCancel');
     const btnSaveEl = document.getElementById('btnSave');
+
     let buttonsContainer = document.querySelector('.buttons');
     if (buttonsContainer && btnDeleteEl && btnCancelEl && btnSaveEl) {
-        buttonsContainer.appendChild(btnDeleteEl);
-        buttonsContainer.appendChild(btnCancelEl);
-        buttonsContainer.appendChild(btnSaveEl);
+        buttonsContainer.innerHTML = '';
+
+        const boxWrapper = document.createElement('div');
+        boxWrapper.className = 'box';
+        boxWrapper.style.width = '100%';
+        boxWrapper.style.display = 'flex';
+        boxWrapper.style.gap = '15px';
+        boxWrapper.appendChild(btnDeleteEl);
+        boxWrapper.appendChild(btnCancelEl);
+        boxWrapper.appendChild(btnSaveEl);
+
+        buttonsContainer.appendChild(boxWrapper);
     }
 
     buildHexGrid();

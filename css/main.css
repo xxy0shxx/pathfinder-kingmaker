@@ -449,24 +449,33 @@ body {
 }
 
 .buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 8px;
-    width: 100%;
+    display: flex !important;
+    gap: 15px !important;
+    margin: 20px 0 0 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+    clear: both !important;
 }
 .buttons .btn {
-    flex: 1;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font: bold 14px sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    text-align: center;
-    white-space: nowrap;
+    flex: 1 1 0% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 12px 16px !important;
+    border-radius: 3px !important;
+    font: bold 14px sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+}
+.pop-menu .buttons {
+    box-sizing: border-box !important;
 }
 .btn.del { background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%); color: #f7baba; border: 1px solid #823030; }
 .btn.del:hover { border-color: #ff7675; filter: brightness(1.2); }
@@ -1172,3 +1181,22 @@ body {
     background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
     border-color: #a68032 !important;
 }
+
+@media (max-width: 480px) {
+    .buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .buttons .btn {
+        width: 100%;
+    }
+}
+
+.btn.del { background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%); color: #f7baba; border: 1px solid #823030; }
+.btn.del:hover { border-color: #ff7675; filter: brightness(1.2); }
+
+.btn.cc  { background: linear-gradient(180deg, #42351f 0%, #292011 100%); color: #ebd291; border: 1px solid #543e0d; }
+.btn.cc:hover { border-color: #ebd291; filter: brightness(1.2); }
+
+.btn.ok  { background: linear-gradient(180deg, #1e3c27 0%, #112417 100%); color: #dfbc6f; border: 1px solid #3e6349; }
+.btn.ok:hover { border-color: #dfbc6f; filter: brightness(1.2); box-shadow: 0 0 8px rgba(223, 188, 111, 0.3); }
