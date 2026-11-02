@@ -1230,3 +1230,7 @@ body {
 
 .btn.ok  { background: linear-gradient(180deg, #1e3c27 0%, #112417 100%); color: #dfbc6f; border: 1px solid #3e6349; }
 .btn.ok:hover { border-color: #dfbc6f; filter: brightness(1.2); box-shadow: 0 0 8px rgba(223, 188, 111, 0.3); }
+
+.hex-region-stats-framed:has(.hex-title-text:empty) {
+    display: none !important;
+}

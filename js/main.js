@@ -612,10 +612,10 @@ function attachHexTooltipEvents(vHex, hexId, cx, cy) {
                 paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
             }
             if (data.difficulty) {
-                paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность regionа:</b> СЛ ${data.difficulty}</div>`;
+                paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> ${data.difficulty}</div>`;
             }
             if (data.regionLevel) {
-                paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень regionа:</b> Уровень ${data.regionLevel}</div>`;
+                paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> ${data.regionLevel}</div>`;
             }
 
             if (data.type) {
@@ -702,9 +702,16 @@ function createHexSubLayers(vHex, hexId, cx, cy) {
     questMiniTooltip.className = 'hex-quest-mini-tooltip';
     vHex.appendChild(questMiniTooltip);
 
-    const statsLabel = document.createElement('span');
-    statsLabel.className = 'hex-stats-label';
-    vHex.appendChild(statsLabel);
+    const statsLabel = document.createElement('div');
+    statsLabel.className = 'hex-title-label-framed hex-region-stats-framed';
+    const statsText = document.createElement('span');
+    statsText.className = 'hex-title-text';
+    statsLabel.appendChild(statsText);
+
+    statsLabel.style.left = cx + 'px';
+    statsLabel.style.top = (cy + 42) + 'px';
+
+    visualLayer.appendChild(statsLabel);
 
     const exploredElem = document.createElement('div');
     exploredElem.className = 'explored-icon-container';
@@ -738,10 +745,15 @@ function createHexSubLayers(vHex, hexId, cx, cy) {
         }
         const diff = mapData[hexId].difficulty;
         const lvl = mapData[hexId].regionLevel;
-        if (diff && lvl) statsLabel.textContent = `🎲${diff}💀${lvl}`;
-        else if (diff) statsLabel.textContent = `🎲${diff}`;
-        else if (lvl) statsLabel.textContent = `💀${lvl}`;
-        statsLabel.style.display = (diff || lvl) ? 'block' : 'none';
+        const sTextNode = statsLabel.querySelector('.hex-title-text');
+
+        if (sTextNode) {
+            if (diff && lvl) sTextNode.textContent = `🎲${diff}💀${lvl}`;
+            else if (diff) sTextNode.textContent = `🎲${diff}`;
+            else if (lvl) sTextNode.textContent = `💀${lvl}`;
+            else sTextNode.textContent = '';
+        }
+        statsLabel.style.display = (diff || lvl) ? 'flex' : 'none';
 
         if (mapData[hexId].terrain) {
             terrainElem.style.display = 'block';
@@ -1025,7 +1037,30 @@ function saveMenu() {
                 qTooltip.remove();
             }
         }
-        const sLabel = currentHexElement.querySelector('.hex-stats-label');
+
+        const sLabel = visualLayer.querySelector(`.hex-region-stats-framed[id^="title_label_"][style*="${parseFloat(currentHexElement.style.top) + 24 + hexRadius}px"]`) ||
+            document.getElementById('visual_' + currentHexId)?.parentNode?.querySelector(`.hex-region-stats-framed`);
+        const allFramed = visualLayer.querySelectorAll('.hex-region-stats-framed');
+        let currentHexStatsLabel = null;
+        const currentHexLeft = parseFloat(currentHexElement.style.left) + (parseFloat(currentHexElement.style.width) / 2);
+
+        allFramed.forEach(el => {
+            if (Math.abs(parseFloat(el.style.left) - currentHexLeft) < 5) {
+                currentHexStatsLabel = el;
+            }
+        });
+
+        if (currentHexStatsLabel) {
+            const sTextNode = currentHexStatsLabel.querySelector('.hex-title-text');
+            if (sTextNode) {
+                if (diffVal && regionLevelVal) sTextNode.textContent = `🎲${diffVal}💀${regionLevelVal}`;
+                else if (diffVal) sTextNode.textContent = `🎲${diffVal}`;
+                else if (regionLevelVal) sTextNode.textContent = `💀${regionLevelVal}`;
+                else sTextNode.textContent = '';
+            }
+            currentHexStatsLabel.style.display = (diffVal || regionLevelVal) ? 'flex' : 'none';
+        }
+
         if (sLabel) {
             if (diffVal && regionLevelVal) {
                 sLabel.textContent = `🎲${diffVal}💀${regionLevelVal}`;
