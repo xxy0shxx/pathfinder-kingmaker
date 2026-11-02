@@ -460,6 +460,7 @@ body {
     display: block !important;
     width: 100% !important;
     margin: 0 !important;
+    padding: 0 !important;
     background: #112417 !important;
     background-image:
             linear-gradient(rgba(223, 188, 111, 0.03) 1px, transparent 1px),
@@ -468,13 +469,11 @@ body {
     border: 2px solid #543e0d !important;
     border-bottom: none !important;
     border-radius: 4px 4px 0 0 !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
     box-shadow:
             inset 2px 2px 0px #8a6421,
-            inset -2px 0px 0px #09140d,
-            0 -5px 20px rgba(0, 0, 0, 0.6) !important;
-    z-index: 2 !important;
+            inset -2px 0px 0px #09140d !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 .legend-header {
@@ -512,7 +511,7 @@ body {
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9) !important;
     border: 1px solid rgba(84, 62, 13, 0.4) !important;
     margin: 6px !important;
-    padding: 0 8px !important;
+    padding: 10px !important;
     box-sizing: border-box !important;
 }
 
@@ -750,7 +749,6 @@ body {
 .btn.ok  { background: linear-gradient(180deg, #1e3c27 0%, #112417 100%); color: #dfbc6f; border: 1px solid #3e6349; }
 .btn.ok:hover { border-color: #dfbc6f; filter: brightness(1.2); box-shadow: 0 0 8px rgba(223, 188, 111, 0.3); }
 
-
 /* ============================================================================
 5. АУДИОПЛЕЕР
 ============================================================================ */
@@ -758,14 +756,14 @@ body {
     position: relative !important;
     width: 100% !important;
     margin: 0 !important;
+    padding: 0 !important;
     background: #112417 !important;
     background-image:
             linear-gradient(rgba(223, 188, 111, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(223, 188, 111, 0.03) 1px, transparent 1px) !important;
     background-size: 2px 2px !important;
-    padding: 8px !important;
     border: 2px solid #543e0d !important;
-    border-radius: 0 0 4px 4px !important;
+    border-radius: 0 !important;
     box-shadow:
             inset 2px 2px 0px #8a6421,
             inset -2px -2px 0px #09140d !important;
@@ -773,7 +771,6 @@ body {
     flex-direction: column !important;
     box-sizing: border-box !important;
     height: auto !important;
-    z-index: 1 !important;
 }
 
 .music-player-monolith-wrapper.playlist-open .music-controller {
@@ -802,6 +799,18 @@ body {
     letter-spacing: 0.5px;
     margin-top: 4px;
 }
+
+.winamp-title-bar,
+.winamp-display-section,
+.winamp-timeline-section,
+.winamp-action-section {
+    margin-left: 6px !important;
+    margin-right: 6px !important;
+    width: calc(100% - 12px) !important;
+}
+
+.winamp-title-bar { margin-top: 6px !important; }
+.winamp-action-section { margin-bottom: 6px !important; }
 
 .winamp-window-controls {
     cursor: pointer;
@@ -1308,12 +1317,9 @@ PLAYLIST
 ============================================================================ */
 #playerPlaylist {
     position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: none !important;
     width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #112417 !important;
     background-image:
             linear-gradient(rgba(223, 188, 111, 0.03) 1px, transparent 1px),
@@ -1322,13 +1328,11 @@ PLAYLIST
     border: 2px solid #543e0d !important;
     border-top: none !important;
     border-radius: 0 0 4px 4px !important;
-    padding: 6px !important;
-    box-sizing: border-box !important;
     box-shadow:
             inset 2px 0px 0px #8a6421,
             inset -2px -2px 0px #09140d,
             0 15px 35px rgba(0, 0, 0, 0.9) !important;
-    z-index: 1004 !important;
+    box-sizing: border-box !important;
     display: none;
     flex-direction: column !important;
 }
@@ -1337,20 +1341,8 @@ PLAYLIST
 }
 
 .playlist-title-bar {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    height: 18px !important;
-    background: rgba(0, 0, 0, 0.3) !important;
-    padding: 0 6px !important;
-    font-family: 'Courier New', monospace !important;
-    font-size: 11px !important;
-    font-weight: bold !important;
-    color: #ebd291 !important;
-    letter-spacing: 0.5px !important;
-    text-transform: uppercase !important;
-    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
-    margin-bottom: 4px !important;
+    margin: 6px 6px 0 6px !important;
+    width: calc(100% - 12px) !important;
 }
 
 #playlistTracksContainer {
@@ -1359,10 +1351,9 @@ PLAYLIST
     background: #040905 !important;
     border: 1px solid #543e0d !important;
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9) !important;
+    margin: 6px !important;
     padding: 4px 2px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1px !important;
+    box-sizing: border-box !important;
 }
 
 .playlist-item {
@@ -1427,4 +1418,16 @@ PLAYLIST
 .music-player-monolith-wrapper.playlist-open,
 .music-controller.playlist-open {
     transform: none !important;
+}
+
+.music-player-monolith-wrapper:not(.playlist-open) .music-controller {
+    border-radius: 0 0 4px 4px !important;
+}
+
+.music-player-monolith-wrapper.playlist-open .music-controller {
+    border-bottom: none !important;
+    border-radius: 0 !important;
+    box-shadow:
+            inset 2px 2px 0px #8a6421,
+            inset -2px 0px 0px #09140d !important;
 }
