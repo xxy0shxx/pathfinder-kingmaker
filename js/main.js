@@ -139,12 +139,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const legendContainer = document.querySelector('.legend-container');
+    const playerContainer = document.querySelector('.music-controller');
     const legendHeader = document.querySelector('.legend-header');
     const legendContent = document.querySelector('.legend-content');
 
-    if (legendContainer) {
-        document.body.appendChild(legendContainer);
-        legendContainer.classList.add('legend-above-player');
+    if (legendContainer && playerContainer) {
+        playerContainer.insertBefore(legendContainer, playerContainer.firstChild);
+
+        legendContainer.classList.remove('legend-above-player');
+        legendContainer.classList.add('legend-nested-inside-player');
     }
 
     if (legendContainer && legendHeader && legendContent) {
