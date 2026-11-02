@@ -1360,7 +1360,6 @@ function initColorPresets() {
 if (viewport && mapContainer) {
 
     viewport.addEventListener('touchstart', (e) => {
-        // Защита: отсекаем скролл карты, если жест начался на форме или кнопках управления
         if (e.target.closest('#hexMenu')) return;
         if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
 
@@ -1382,7 +1381,6 @@ if (viewport && mapContainer) {
         let newX = touch.pageX - startX;
         let newY = touch.pageY - startY;
 
-        // Порог срабатывания: фильтрация случайного дрожания пальца
         if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
             hasMoved = true;
         }
@@ -1562,7 +1560,7 @@ function updateFrameRunes(width, height) {
 
     frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
 
-    const step = 50; // Шаг размещения рун в пикселях
+    const step = 50;
     const padding = 20;
 
     const cTop = -11;
