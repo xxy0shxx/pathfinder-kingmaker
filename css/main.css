@@ -671,12 +671,11 @@ body {
 .legend-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
     padding: 0 10px;
+    box-sizing: border-box;
+    will-change: max-height, padding;
 }
 .legend-container.open .legend-content {
-    max-height: 500px !important;
-    padding: 10px !important;
     overflow-y: auto !important;
 }
 .legend-group p {

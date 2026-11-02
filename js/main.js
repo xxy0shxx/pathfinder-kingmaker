@@ -133,6 +133,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const legendContainer = document.querySelector('.legend-container');
+    const legendHeader = document.querySelector('.legend-header');
+    const legendContent = document.querySelector('.legend-content');
+
+    if (legendContainer && legendHeader && legendContent) {
+        legendContent.style.maxHeight = '0px';
+        legendContent.style.overflow = 'hidden';
+        legendContent.style.transition = 'max-height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), padding 0.3s ease';
+
+        legendHeader.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const isOpen = legendContainer.classList.toggle('open');
+            const toggleBtn = legendHeader.querySelector('button');
+
+            if (isOpen) {
+                legendContent.style.padding = '15px 10px';
+                legendContent.style.maxHeight = (legendContent.scrollHeight + 30) + 'px';
+                if (toggleBtn) toggleBtn.textContent = '🔽';
+            } else {
+                legendContent.style.maxHeight = '0px';
+                setTimeout(() => {
+                    if (!legendContainer.classList.contains('open')) {
+                        legendContent.style.padding = '0 10px';
+                    }
+                }, 200);
+                if (toggleBtn) toggleBtn.textContent = '🔼';
+            }
+        });
+
+        const legendBtn = legendHeader.querySelector('button');
+        if (legendBtn) {
+            legendBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                legendHeader.click();
+            });
+        }
+    }
+
     // Первичный расчет положения рамки и проявление карты
     setTimeout(() => {
         if (typeof updateMapTransform === 'function') {
@@ -142,10 +183,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (frame) frame.style.opacity = '1';
     }, 150);
 });
+
 // ============================================================================
 // АУДИОПЛЕЕР — ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И СЛУЖЕБНЫЕ ФУНКЦИИ
 // ============================================================================
-
 const audioPlayer = document.getElementById('bg-music');
 const musicButton = document.getElementById('btnMusic');
 const loopButton = document.getElementById('btnLoop');
@@ -175,7 +216,6 @@ function formatTrackName(filename) {
 // ============================================================================
 // АСИНХРОННАЯ ИНИЦИАЛИЗАЦИЯ И СИНХРОНИЗАЦИЯ С ЭЛЕМЕНТАМИ ИНТЕРФЕЙСА
 // ============================================================================
-
 async function initializeMusicPlayer() {
     if (!audioPlayer) return;
     audioPlayer.volume = 0.25;
@@ -239,10 +279,10 @@ async function initializeMusicPlayer() {
         console.error("Ошибка загрузки плейлиста:", error);
     }
 }
+
 // ============================================================================
 // РАНТАЙМ-СОБЫТИЯ ПЛЕЕРА (ТАЙМЛАЙН, ОБРЫВ ТРЕКА, ОБНОВЛЕНИЕ ВРЕМЕНИ)
 // ============================================================================
-
 function attachPlayerRuntimeEvents() {
     audioPlayer.addEventListener("timeupdate", () => {
         if (!audioPlayer.duration) return;
@@ -286,7 +326,6 @@ function attachPlayerRuntimeEvents() {
 // ============================================================================
 // КОНТРОЛЛЕРЫ ПЕРЕКЛЮЧЕНИЯ СОСТОЯНИЙ И ФУНКЦИИ УПРАВЛЕНИЯ ТРЕКАМИ
 // ============================================================================
-
 function loadTrack(idx, startPlaying = false) {
     if (idx < 0 || idx >= playlist.length) return;
     currentTrackIdx = idx;
@@ -354,10 +393,10 @@ document.addEventListener('click', (e) => {
         playlistContainer.classList.remove('open'); playlistButton.classList.remove('active');
     }
 });
+
 // ============================================================================
 // ГЕНЕРАЦИЯ ДАННЫХ ДЛЯ СЕЛЕКТОВ СЛОЖНОСТИ И УРОВНЕЙ
 // ============================================================================
-
 function populateDifficultySelect() {
     const diffContainer = document.getElementById('inpDifficultyContainer');
     const levelContainer = document.getElementById('inpRegionLevelContainer');
@@ -383,7 +422,6 @@ function populateDifficultySelect() {
 // ============================================================================
 // ЛОГИКА И УПРАВЛЕНИЕ КАСТОМНЫМИ ВЫПАДАЮЩИМИ СПИСКАМИ (SELECT UI)
 // ============================================================================
-
 function setCustomSelectValue(selectId, value) {
     const selectEl = document.getElementById(selectId);
     if (!selectEl) return;
@@ -454,7 +492,6 @@ function initCustomSelectLogic() {
 // ============================================================================
 // РАСЧЕТ ВЕРШИН РЕГУЛЯРНОГО ГЕКСАГОНА
 // ============================================================================
-
 function getHexCoordsArray(cx, cy, r) {
     let coords = [];
     for (let i = 0; i < 6; i++) {
@@ -470,7 +507,6 @@ function getHexCoordsArray(cx, cy, r) {
 // ============================================================================
 // РЕНДЕРИНГ СЕТКИ — БАЗОВАЯ РАЗМЕТКА И НАЗНАЧЕНИЕ СОБЫТИЙ КЛИКА
 // ============================================================================
-
 function buildHexGrid() {
     clickableMap.innerHTML = '';
     visualLayer.innerHTML = '';
@@ -528,10 +564,10 @@ function buildHexGrid() {
         }
     }
 }
+
 // ============================================================================
 // ПОДБЛОК ТУЛТИПОВ — ДИНАМИЧЕСКИЙ СБОР МЕТАДАННЫХ ПРИ НАВЕДЕНИИ
 // ============================================================================
-
 function attachHexTooltipEvents(vHex, hexId, cx, cy) {
     const tooltip = document.getElementById('hexTooltip');
 
@@ -633,10 +669,10 @@ function attachHexTooltipEvents(vHex, hexId, cx, cy) {
         }
     });
 }
+
 // ============================================================================
 // СБОРКА ВНУТРЕННИХ DOM-СЛОЕВ, ИНДИКАТОРОВ И МАРКЕРОВ ГЕКСА
 // ============================================================================
-
 function createHexSubLayers(vHex, hexId, cx, cy) {
     const shape = document.createElement('div');
     shape.className = 'hex-shape';
@@ -766,7 +802,6 @@ function createHexSubLayers(vHex, hexId, cx, cy) {
 // ============================================================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ПРИВЕДЕНИЯ ФОРМАТОВ ЦВЕТА
 // ============================================================================
-
 function convertHexToRgba(hex, alpha) {
     if (!hex || hex === 'transparent') return 'rgba(0,0,0,0)';
     let r = parseInt(hex.slice(1, 3), 16);
@@ -785,7 +820,6 @@ function convertHexToRgbStandard(hex) {
 // ============================================================================
 // ФУНКЦИЯ ОТКРЫТИЯ МЕНЮ И СИНХРОНИЗАЦИИ ДАННЫХ ФОРМЫ С ХРАНИЛИЩЕМ
 // ============================================================================
-
 function openMenu(hexId) {
     currentHexId = hexId;
 
@@ -829,7 +863,6 @@ function openMenu(hexId) {
 
         if (inpRumorDesc) inpRumorDesc.value = '';
 
-        // Сброс кастомных селектов для пустой ячейки
         setCustomSelectValue('customSelectType', '');
         setCustomSelectValue('customSelectTerrain', '');
         setCustomSelectValue('customSelectDifficulty', '');
@@ -841,7 +874,6 @@ function openMenu(hexId) {
     if (inpSquadHere) inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
     if (inpColor) inpColor.value = currentColor;
 
-    // Установка активного класса для кнопок-пресетов цвета
     document.querySelectorAll('.color-preset-btn').forEach(btn => {
         btn.classList.remove('active');
         if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
@@ -899,10 +931,10 @@ function openMenu(hexId) {
 
     if (modal) modal.classList.add('open');
 }
+
 // ============================================================================
 // ФУНКЦИИ ЗАКРЫТИЯ И ОЧИСТКИ ДАННЫХ ИЗ ФОРМЫ НА КАРТЕ
 // ============================================================================
-
 function closeMenu() {
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
@@ -921,7 +953,6 @@ function closeMenu() {
 // ============================================================================
 // ФУНКЦИЯ СОХРАНЕНИЯ ДАННЫХ ГЕКСА
 // ============================================================================
-
 function saveMenu() {
     if (!currentHexId) return;
 
@@ -1205,10 +1236,10 @@ function saveMenu() {
 
     closeMenu();
 }
+
 // ============================================================================
 // СЛУШАТЕЛИ КНОПОК ФОРМЫ И ЛОГИКА ПОЛНОГО УДАЛЕНИЯ ДАННЫХ ГЕКСА
 // ============================================================================
-
 const btnSave = document.getElementById('btnSave');
 if (btnSave) btnSave.addEventListener('click', saveMenu);
 
@@ -1255,7 +1286,6 @@ if (mapImg) {
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ПАЛИТРЫ ЦВЕТНЫХ КНОПОК-ПРЕСЕТОВ ГЕКСА
 // ============================================================================
-
 function initColorPresets() {
     const container = document.getElementById('colorPresetsContainer');
     if (!container || container.children.length > 0) return;
@@ -1288,10 +1318,10 @@ function initColorPresets() {
         container.appendChild(b);
     });
 }
+
 // ============================================================================
 // НАСТРОЙКА ЖЕСТОВ И ТАЧ-СОБЫТИЙ СМЕЩЕНИЯ (MOBILE PAN & DRAG)
 // ============================================================================
-
 if (viewport && mapContainer) {
 
     viewport.addEventListener('touchstart', (e) => {
@@ -1346,10 +1376,10 @@ if (viewport && mapContainer) {
 
     mapContainer.style.transformOrigin = '100% 0';
 }
+
 // ============================================================================
 // НАСТРОЙКА СОБЫТИЙ МЫШИ ДЛЯ ДЕСКТРИПНОГО СМЕЩЕНИЯ (MOUSE PAN & DRAG)
 // ============================================================================
-
 if (viewport && mapContainer) {
 
     viewport.addEventListener('mousedown', (e) => {
@@ -1414,10 +1444,10 @@ if (viewport && mapContainer) {
     }, { passive: false });
 
 }
+
 // ============================================================================
 // ФУНКЦИЯ ДИНАМИЧЕСКОГО РАСЧЕТА МАТРИЦЫ И ИНСЕТ-КАДРИРОВАНИЯ (CLIP-PATH)
 // ============================================================================
-
 function updateMapTransform() {
     mapContainer.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${currentZoom})`;
 
@@ -1482,10 +1512,10 @@ function updateMapTransform() {
         viewport.style.clipPath = 'none';
     }
 }
+
 // ============================================================================
 // ГЕНЕРАЦИЯ И СЛУЧАЙНОЕ РАСПРЕДЕЛЕНИЕ РУН ПО ПЕРИМЕТРУ РАМКИ
 // ============================================================================
-
 function updateFrameRunes(width, height) {
     if (width === lastFrameWidth && height === lastFrameHeight) return;
 
@@ -1531,7 +1561,6 @@ function updateFrameRunes(width, height) {
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ И ФУНКЦИИ ПЕРЕКЛЮЧЕНИЯ СТИЛЕЙ РАМОК КАРТЫ
 // ============================================================================
-
 function initFrameStyleControls() {
     const btn = document.getElementById('btnFrameStyle');
     if (!btn) return;
@@ -1707,7 +1736,6 @@ function initUnifiedUICollapse() {
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ВКЛАДОК ЖУРНАЛА ЗАДАНИЙ (АКТИВНЫЕ / ЗАВЕРШЕННЫЕ / СЛУХИ)
 // ============================================================================
-
 function initQuestLogTabs() {
     const tabActive = document.getElementById('tabActiveQuests');
     const tabCompleted = document.getElementById('tabCompletedQuests');
@@ -1734,10 +1762,10 @@ function setActiveTab(tabElement, filterName) {
         renderQuestLog(filterName);
     }
 }
+
 // ============================================================================
 // ГЕНЕРАЦИЯ СПИСКА ЗАДАНИЙ И СЛУХОВ В ДНЕВНИКЕ
 // ============================================================================
-
 function renderQuestLog(filterStatus = 'active') {
     const listContainer = document.getElementById('questLogList');
     if (!listContainer) return;
@@ -1811,7 +1839,6 @@ function renderQuestLog(filterStatus = 'active') {
 // ============================================================================
 // СИСТЕМА ФОКУСИРОВКИ И ФЛЭШ-ПОДСВЕТКИ ВЫБРАННОГО ГЕКСА
 // ============================================================================
-
 function focusOnHex(hexId) {
     const vHex = document.getElementById('visual_' + hexId);
     if (!vHex) return;
@@ -1828,7 +1855,6 @@ function focusOnHex(hexId) {
 // ============================================================================
 // ОПТИМИЗАЦИЯ И СТРУКТУРИРОВАНИЕ СТРОК СЕЛЕКТОРОВ МОДАЛЬНОГО ОКНА
 // ============================================================================
-
 function groupMenuFields() {
     const inpType = document.getElementById('inpType');
     const inpTerrain = document.getElementById('inpTerrain');
@@ -1862,7 +1888,6 @@ function groupMenuFields() {
 // ============================================================================
 // ЭКСПОРТ И ИМПОРТ СОХРАНЕНИЙ КАРТЫ КОРОЛЕВСТВА (ФАЙЛОВЫЙ МЕНЕДЖЕР)
 // ============================================================================
-
 const btnExport = document.getElementById('btnExport');
 if (btnExport) {
     btnExport.addEventListener('click', function() {
