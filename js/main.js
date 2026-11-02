@@ -1048,9 +1048,12 @@ function saveMenu() {
         const allFramed = visualLayer.querySelectorAll('.hex-region-stats-framed');
         let currentHexStatsLabel = null;
         const currentHexLeft = parseFloat(currentHexElement.style.left) + (parseFloat(currentHexElement.style.width) / 2);
+        const currentHexTop = parseFloat(currentHexElement.style.top) + hexRadius + 48;
 
         allFramed.forEach(el => {
-            if (Math.abs(parseFloat(el.style.left) - currentHexLeft) < 5) {
+            const elLeft = parseFloat(el.style.left) || 0;
+            const elTop = parseFloat(el.style.top) || 0;
+            if (Math.abs(elLeft - currentHexLeft) < 5 && Math.abs(elTop - currentHexTop) < 5) {
                 currentHexStatsLabel = el;
             }
         });
