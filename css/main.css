@@ -602,17 +602,19 @@ body {
 .dropdown-playlist {
     background: #090f0b !important;
     border: 2px solid #543e0d !important;
-    border-top: none !important;
-    border-radius: 0 0 6px 6px !important;
-    margin-top: -2px !important;
+    border-radius: 4px !important;
+    margin-top: 8px !important;
     max-height: 0;
     overflow-y: hidden !important;
     transition: max-height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     box-shadow: 0 10px 25px rgba(0,0,0,0.85) !important;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 10004;
 }
 .dropdown-playlist.open {
+    max-index: 10006 !important;
     max-height: 220px !important;
     overflow-y: auto !important;
     scrollbar-width: thin !important;
@@ -625,7 +627,7 @@ body {
 .dropdown-playlist::-webkit-scrollbar-track {
     background: #040905 !important;
     border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
-    border-radius: 0 0 4px 0 !important;
+    border-radius: 0 4px 4px 0 !important;
 }
 .dropdown-playlist::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
