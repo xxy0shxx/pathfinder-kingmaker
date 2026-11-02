@@ -670,13 +670,14 @@ body {
 }
 .legend-content {
     max-height: 0;
-    overflow: hidden;
+    overflow: hidden !important;
     padding: 0 10px;
     box-sizing: border-box;
     will-change: max-height, padding;
 }
+
 .legend-container.open .legend-content {
-    overflow-y: auto !important;
+    overflow: hidden !important;
 }
 .legend-group p {
     margin: 0 0 10px 0;
