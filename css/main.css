@@ -777,7 +777,11 @@ body {
 }
 
 .music-player-monolith-wrapper.playlist-open .music-controller {
+    border-bottom: none !important;
     border-radius: 0 !important;
+    box-shadow:
+            inset 2px 2px 0px #8a6421,
+            inset -2px 0px 0px #09140d !important;
 }
 
 .music-controller.playlist-open {
@@ -1303,10 +1307,13 @@ body {
 PLAYLIST
 ============================================================================ */
 #playerPlaylist {
-    position: absolute !important;
-    top: 100% !important;
-    left: -2px !important;
-    width: 336px !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    width: 100% !important;
     background: #112417 !important;
     background-image:
             linear-gradient(rgba(223, 188, 111, 0.03) 1px, transparent 1px),
@@ -1404,16 +1411,20 @@ PLAYLIST
     z-index: 1005 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 0 !important;
     box-sizing: border-box !important;
-    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    transform: translateY(0) !important;
+    transform: none !important;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 
 .music-player-monolith-wrapper.playlist-open {
     transform: translateY(-204px) !important;
 }
 
+.music-controller.playlist-open {
+    transform: none !important;
+}
+.music-player-monolith-wrapper:has(.playlist-open),
+.music-player-monolith-wrapper.playlist-open,
 .music-controller.playlist-open {
     transform: none !important;
 }
