@@ -415,8 +415,13 @@ body {
     pointer-events: none;
     z-index: 10000;
     border: 22px solid transparent;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
     will-change: top, left, width, height;
+    overflow: visible !important;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(255, 255, 255, 0.9),
+    0 0 45px #ffd875,
+    0 0 75px rgba(223, 188, 111, 0.85),
+    0 0 120px rgba(223, 188, 111, 0.45) !important;
 }
 .kingmaker-frame::before {
     content: '';
@@ -684,10 +689,15 @@ body {
     box-shadow: inset 1px 1px 0px #8a6421,
     inset -1px -1px 0px #8a6421,
     0 15px 35px rgba(0, 0, 0, 0.9),
-    0 0 20px rgba(223, 188, 111, 0.45) !important;
+    0 0 20px rgba(255, 255, 255, 0.9),
+    0 0 40px #ffd875,
+    0 0 70px rgba(223, 188, 111, 0.8),
+    0 0 100px rgba(223, 188, 111, 0.4) !important;
+
     transform: translateX(-550px) !important;
     opacity: 0 !important;
     pointer-events: none !important;
+    overflow: visible !important;
     transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.25s ease !important;
 }
 .music-player-monolith-wrapper.ui-expanded {
@@ -1267,11 +1277,18 @@ body {
     transition: background 0.25s ease, box-shadow 0.25s ease !important;
 }
 .right-controls-panel.ui-expanded {
-    background: radial-gradient(circle, rgba(255, 216, 117, 0.3) 0%, rgba(223, 188, 111, 0.15) 100%) !important;
+    background: radial-gradient(circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    #ffeaa7 40%,
+    rgba(241, 196, 15, 0.8) 80%,
+    rgba(223, 188, 111, 0.4) 100%
+    ) !important;
     border: none !important;
-    box-shadow: 0 0 35px rgba(223, 188, 111, 0.65),
-    0 0 15px rgba(255, 216, 117, 0.45),
-    inset 0 0 25px rgba(255, 216, 117, 0.35) !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.9),
+    0 0 40px #ffd875,
+    0 0 70px rgba(223, 188, 111, 0.8),
+    inset 0 0 15px rgba(255, 255, 255, 1),
+    inset 0 0 35px #f1c40f !important;
 }
 
 .right-controls-panel button {
