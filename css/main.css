@@ -1241,13 +1241,14 @@ body {
     font-family: "Tinos", serif !important;
     font-style: italic !important;
     font-weight: 700 !important;
-    font-size: 17px !important;
-    text-transform: none !important;
-    letter-spacing: 0.5px !important;
+    font-size: 16px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
     color: #ffd875 !important;
-    text-shadow: 0 0 5px #dfbc6f,
-    0 0 10px rgba(223, 188, 111, 0.6),
-    0 2px 4px rgba(0, 0, 0, 0.95) !important;
+    -webkit-text-stroke: 0.5px #ffd875 !important;
+    text-shadow: 0 0 4px #dfbc6f,
+    0 0 12px rgba(223, 188, 111, 0.7),
+    0 2px 5px rgba(0, 0, 0, 0.95) !important;
 }
 
 .hex-title-label-framed:not(.hex-region-stats-framed) {
