@@ -175,37 +175,72 @@
         <div id="questLogList" class="quest-log-list"></div>
     </div>
 
-
-    <div class="winamp-top-block">
-        <div class="player-timeline">
-            <div id="timeCurrent" class="time-lbl">0:00</div>
-            <div class="timeline-bg">
-                <div class="timeline-fill"></div>
-            </div>
-            <div id="timeTotal" class="time-lbl">0:00</div>
-        </div>
-        <div class="winamp-top-right-grid">
-            <div class="volume-box">
-                <span>VOL</span>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.25">
-            </div>
-            <div class="winamp-meta-buttons">
-                <button id="btnShuffle" title="Перемешать треки">SHF</button>
-                <button id="btnLoop" title="Зациклить трек">REP</button>
+    <div class="music-controller ui-collapsed">
+        <div class="winamp-title-bar">
+            <div class="winamp-logo">⚜️</div>
+            <div class="winamp-title-text">Pathfinder Kingmaker</div>
+            <div class="winamp-window-controls">
+                <span class="wa-minimize">🔲</span>
             </div>
         </div>
-    </div>
-    <div class="winamp-action-row">
-        <button id="btnPrev" title="Предыдущий трек">|◀</button>
-        <button id="btnMusic" class="winamp-main-play">▶ PLAY</button>
-        <button id="btnStop" title="Стоп">■</button>
-        <button id="btnNext" title="Следующий трек">▶|</button>
-        <button id="btnPlaylist" class="winamp-pl-toggle" title="Открыть плейлист">📜 PL</button>
-    </div>
-    <div id="playerPlaylist" class="dropdown-playlist">
-        <div id="playlistTracksContainer"></div>
-    </div>
 
+        <div class="winamp-display-section">
+            <div class="winamp-display-left">
+                <div class="winamp-time-display">
+                    <span class="wa-status-icon">▶</span>
+                    <span id="timeCurrent" class="time-lbl">0:00</span>
+                </div>
+                <div class="winamp-visualizer">
+                    <div class="wa-spec-bar" style="width: 25%"></div>
+                    <div class="wa-spec-bar" style="width: 45%"></div>
+                    <div class="wa-spec-bar" style="width: 15%"></div>
+                </div>
+            </div>
+            <div class="winamp-display-right">
+                <div class="winamp-track-info-marquee">
+                    <div class="marquee-text">Текущая баллада таверны...</div>
+                </div>
+
+                <div class="winamp-audio-kbps">
+                    <span class="wa-kbps">320</span> <span class="wa-unit">kbps</span>
+                    <span class="wa-khz">44</span> <span class="wa-unit">kHz</span>
+                    <div class="wa-channels"><span class="wa-mono">mono</span><span class="wa-stereo active">stereo</span></div>
+                </div>
+
+                <div class="winamp-sound-sliders">
+                    <div class="wa-slider-container volume-box">
+                        <span class="wa-slider-icon">🔊</span>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.25">
+                    </div>
+                    <div class="wa-slider-container balance-box">
+                        <span class="wa-slider-icon">⚖️</span>
+                        <input type="range" id="balanceSlider" min="-1" max="1" step="0.1" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="winamp-timeline-section timeline-bg">
+            <div class="timeline-fill"></div>
+            <div class="wa-timeline-thumb"></div>
+        </div>
+
+        <div class="winamp-action-section">
+            <div class="winamp-playback-buttons">
+                <button id="btnPrev" title="Предыдущий трек">|◀</button>
+                <button id="btnMusic" class="winamp-main-play" title="Воспроизведение">▶ PLAY</button>
+                <button id="btnPause" title="Пауза">⏸</button>
+                <button id="btnStop" title="Стоп">■</button>
+                <button id="btnNext" title="Следующий трек">▶|</button>
+                <button id="btnEject" title="Выбрать трек">⏏</button>
+            </div>
+            <div class="winamp-meta-toggles">
+                <button id="btnShuffle" title="Перемешать">SHF</button>
+                <button id="btnLoop" title="Зациклить">REP</button>
+                <button id="btnPlaylist" class="winamp-pl-toggle" title="Журнал треков">📜 PL</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 
