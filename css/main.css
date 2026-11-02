@@ -459,16 +459,18 @@ body {
     position: relative !important;
     display: block !important;
     width: 100% !important;
-    margin: 0 !important;
+    margin: 0 0 10px 0 !important;
     padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 1px solid #543e0d !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
+    background: #112417 !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
     z-index: 2 !important;
+    border: 2px solid #543e0d !important;
+    border-radius: 4px !important;
+    box-shadow:
+            inset 1px 1px 0px #8a6421,
+            inset -1px -1px 0px #8a6421,
+            0 10px 25px rgba(0, 0, 0, 0.7) !important;
 }
 
 .legend-header {
