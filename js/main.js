@@ -169,11 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const toggleBtn = legendHeader.querySelector('button');
 
             if (isOpen) {
-                legendContent.style.padding = '12px 10px';
-                legendContent.style.maxHeight = (legendContent.scrollHeight + 20) + 'px';
+                legendContent.style.padding = '14px 10px 12px 10px';
+                legendContent.style.maxHeight = (legendContent.scrollHeight + 30) + 'px';
                 if (toggleBtn) toggleBtn.textContent = '🔽';
             } else {
-                legendContent.style.padding = '0px';
+                legendContent.style.padding = '0px 10px';
                 legendContent.style.maxHeight = '0px';
                 if (toggleBtn) toggleBtn.textContent = '🔼';
             }
