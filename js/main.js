@@ -362,11 +362,15 @@ function updatePlayerButtonUI(isPlayingNow) {
 
     if (isPlayingNow) {
         musicButton.innerHTML = `⏸ PAUSE`;
-        musicButton.style.color = '#FF5500'; /* Оранжевый цвет паузы, как в Winamp */
-        musicButton.style.textShadow = '0 0 5px rgba(255, 85, 0, 0.6)';
+        musicButton.style.background = '#19140b';
+        musicButton.style.boxShadow = 'inset 1px 1px 3px rgba(0, 0, 0, 0.9)';
+        musicButton.style.color = '#ff7675';
+        musicButton.style.textShadow = '0 0 4px rgba(255, 118, 117, 0.6)';
     } else {
         musicButton.innerHTML = `▶ PLAY`;
-        musicButton.style.color = ''; /* Возвращает винамповский зеленый */
+        musicButton.style.background = '';
+        musicButton.style.boxShadow = '';
+        musicButton.style.color = '';
         musicButton.style.textShadow = '';
     }
 }
