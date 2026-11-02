@@ -173,12 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 legendContent.style.maxHeight = (legendContent.scrollHeight + 20) + 'px';
                 if (toggleBtn) toggleBtn.textContent = '🔽';
             } else {
+                legendContent.style.padding = '0px';
                 legendContent.style.maxHeight = '0px';
-                setTimeout(() => {
-                    if (!legendContainer.classList.contains('open')) {
-                        legendContent.style.padding = '0 10px';
-                    }
-                }, 200);
                 if (toggleBtn) toggleBtn.textContent = '🔼';
             }
         });

@@ -468,8 +468,8 @@ body {
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
     padding-top: 1px !important;
+    transition: border-bottom 0.15s ease !important;
 }
 .legend-header {
     background: rgba(0, 0, 0, 0.4) !important;
@@ -480,7 +480,6 @@ body {
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
     padding: 5px 8px !important;
-    border-bottom: 1px solid #543e0d !important;
     cursor: pointer !important;
     display: flex !important;
     justify-content: space-between !important;
@@ -490,7 +489,13 @@ body {
             inset 0 1px 0px #8a6421,
             inset 1px 0px 0px #8a6421,
             inset -1px 0px 0px #8a6421 !important;
+    border: none !important;
 }
+
+.legend-container.open .legend-header {
+    border-bottom: 1px solid #543e0d !important;
+}
+
 .legend-header:hover {
     background: rgba(0, 0, 0, 0.5) !important;
     color: #fff !important;
@@ -509,9 +514,14 @@ body {
     background: #040905 !important;
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9) !important;
     border: 1px solid rgba(84, 62, 13, 0.4) !important;
-    margin: 6px 6px 0 6px !important;
-    padding: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+.legend-container.open .legend-content {
+    margin: 6px 6px 0 6px !important;
 }
 
 .legend-group p {
@@ -1431,4 +1441,8 @@ PLAYLIST
 }
 .music-player-monolith-wrapper:not(.playlist-open) .music-controller .winamp-action-section {
     margin-bottom: 6px !important;
+}
+
+.legend-container.open {
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
 }
