@@ -872,11 +872,13 @@ body {
 }
 
 .winamp-display-section {
-    display: grid;
-    gap: 6px;
-    grid-template-columns: 172px 1fr;
+    display: grid !important;
+    grid-template-columns: 172px 1fr !important;
+    gap: 6px !important;
     height: 78px !important;
     margin-top: 9px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .winamp-display-left,
@@ -884,6 +886,31 @@ body {
     background: #040905;
     border: 1px solid #543e0d;
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.winamp-track-info-marquee {
+    height: 24px !important;
+    overflow: hidden !important;
+    padding: 3px 6px !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 16px !important;
+    color: #ebd291 !important;
+    white-space: nowrap !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.winamp-track-info-marquee .marquee-text {
+    display: inline-block !important;
+    padding-left: 100% !important;
+    animation: winampMarquee 15s linear infinite !important;
+}
+
+@keyframes winampMarquee {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
 }
 
 .winamp-display-left {
@@ -927,19 +954,12 @@ body {
 }
 
 .winamp-display-right {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.winamp-track-info-marquee {
-    overflow: hidden;
-    font-family: 'Courier New', monospace;
-    color: #ebd291;
-    white-space: nowrap;
-    height: 24px !important;
-    font-size: 16px !important;
-    padding: 3px 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    width: calc(100% - 6px) !important;
+    max-width: 100% !important;
 }
 
 .winamp-audio-kbps {

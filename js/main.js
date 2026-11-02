@@ -330,10 +330,18 @@ function loadTrack(idx, startPlaying = false) {
     if (idx < 0 || idx >= playlist.length) return;
     currentTrackIdx = idx;
     audioPlayer.src = playlist[currentTrackIdx];
+
     if (tracksListContainer) {
         const items = tracksListContainer.querySelectorAll(".playlist-item");
         items.forEach((item, index) => { item.classList.toggle("current", index === idx); });
     }
+
+    const marqueeContainer = document.querySelector('.winamp-track-info-marquee');
+    if (marqueeContainer) {
+        const cleanName = formatTrackName(playlist[currentTrackIdx]);
+        marqueeContainer.innerHTML = `<span class="marquee-text">⚜️ ${cleanName} ⚜️</span>`;
+    }
+
     if (startPlaying) {
         audioPlayer.play().then(() => { updatePlayerButtonUI(true); }).catch(e => console.log("Ожидание клика"));
     } else {
