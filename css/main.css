@@ -504,7 +504,7 @@ body {
     position: fixed;
     bottom: 40px;
     left: 40px;
-    z-index: 10005;
+    z-index: 1005;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -1342,5 +1342,36 @@ body {
 }
 
 .right-controls-panel .master-toggle-btn {
+    pointer-events: auto !important;
+}
+
+.right-controls-panel button:not(.master-toggle-btn) {
+    transform: scale(0.6) translateY(40px) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.music-controller.ui-collapsed {
+    transform: translate(-600px, 0) scale(0.8) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.right-controls-panel.ui-collapsed button:not(.master-toggle-btn) {
+    transform: scale(0.6) translateY(40px) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.music-controller.ui-expanded {
+    transform: translate(0, 0) scale(1) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.right-controls-panel.ui-expanded button:not(.master-toggle-btn) {
+    transform: scale(1) translateY(0) !important;
+    opacity: 1 !important;
     pointer-events: auto !important;
 }

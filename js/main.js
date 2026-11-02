@@ -1745,13 +1745,15 @@ function initUnifiedUICollapse() {
     }
 
     if (masterBtn && rightPanel) {
+        rightPanel.classList.remove('ui-expanded');
+        if (player) player.classList.remove('ui-expanded');
+
         masterBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isCollapsed = rightPanel.classList.toggle('ui-collapsed');
+            const isExpanded = rightPanel.classList.toggle('ui-expanded');
 
-            if (player) player.classList.toggle('ui-collapsed', isCollapsed);
-
-            if (isCollapsed && questLog) {
+            if (player) player.classList.toggle('ui-expanded', isExpanded);
+            if (!isExpanded && questLog) {
                 questLog.classList.add('ui-collapsed');
                 if (btnToggleQuests) {
                     btnToggleQuests.style.setProperty('background', '', 'important');
@@ -1759,7 +1761,7 @@ function initUnifiedUICollapse() {
                     btnToggleQuests.style.setProperty('color', '', 'important');
                 }
             }
-            masterBtn.classList.toggle('ui-active', !isCollapsed);
+            masterBtn.classList.toggle('ui-active', isExpanded);
         });
     }
 
