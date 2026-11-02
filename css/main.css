@@ -477,7 +477,7 @@ body {
     font-family: 'Courier New', monospace !important;
     font-weight: bold !important;
     text-transform: uppercase !important;
-    letter-spacing: 1px !important;
+    letter-spacing: 1.5px !important;
     cursor: pointer !important;
     display: flex !important;
     justify-content: space-between !important;
@@ -489,9 +489,9 @@ body {
             inset 0 -1px 0px #8a6421,
             inset 1px 0px 0px #8a6421,
             inset -1px 0px 0px #8a6421 !important;
+    padding: 6px 6px 6px 12px !important;
     height: 27px !important;
     font-size: 16px !important;
-    padding: 6px 12px !important;
 }
 
 .legend-container.open .legend-header {
@@ -504,12 +504,13 @@ body {
 }
 
 .legend-header button {
+    font-size: 16px !important;
     background: none !important;
     border: none !important;
     color: #dfbc6f !important;
-    font-size: 16px !important;
     cursor: pointer !important;
-    padding: 0 2px !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .legend-content {
@@ -533,6 +534,10 @@ body {
 .legend-group {
     margin-bottom: 24px !important;
     width: 100% !important;
+}
+
+.legend-group:not(:first-of-type) {
+    margin-top: 10px !important;
 }
 
 .legend-group:last-of-type {
