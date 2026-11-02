@@ -142,6 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const legendHeader = document.querySelector('.legend-header');
     const legendContent = document.querySelector('.legend-content');
 
+    if (legendContainer) {
+        document.body.appendChild(legendContainer);
+        legendContainer.classList.add('legend-above-player');
+    }
+
     if (legendContainer && legendHeader && legendContent) {
         legendContent.style.maxHeight = '0px';
         legendContent.style.overflow = 'hidden';
@@ -155,8 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const toggleBtn = legendHeader.querySelector('button');
 
             if (isOpen) {
-                legendContent.style.padding = '15px 10px';
-                legendContent.style.maxHeight = (legendContent.scrollHeight + 30) + 'px';
+                legendContent.style.padding = '12px 10px';
+                legendContent.style.maxHeight = (legendContent.scrollHeight + 20) + 'px';
                 if (toggleBtn) toggleBtn.textContent = '🔽';
             } else {
                 legendContent.style.maxHeight = '0px';

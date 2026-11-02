@@ -472,81 +472,157 @@ body {
 
 .legend-container {
     background: linear-gradient(135deg, #112618 0%, #09140d 100%);
-    border: 2px solid transparent;
-    border-image: linear-gradient(to bottom right, #a68032, #543e0d) 2 round;
-    margin-bottom: 5px;
-    border-radius: 4px;
+    border: 1px solid #543e0d !important;
+    margin: 0 0 6px 0 !important;
+    border-radius: 2px !important;
     overflow: hidden;
-    z-index: 10006;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.85), inset 0 0 15px rgba(0, 0, 0, 0.6);
+    width: 100% !important;
+    box-sizing: border-box !important;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6) !important;
+    pointer-events: auto !important;
 }
 .legend-header {
-    background: rgba(21, 46, 29, 0.4);
+    background: rgba(21, 46, 29, 0.6);
     color: #ffd875 !important;
     font-family: "Tinos", serif !important;
     font-weight: 700 !important;
-    font-size: 16px !important;
+    font-size: 13px !important;
     text-transform: uppercase !important;
-    letter-spacing: 1.5px !important;
-    -webkit-text-stroke: 0.3px #ffd875 !important;
-    text-shadow: 0 0 4px #dfbc6f, 0 0 10px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.95) !important;
-    padding: 8px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #543e0d;
+    letter-spacing: 1px !important;
+    padding: 6px 10px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-bottom: 1px solid #543e0d !important;
+    cursor: pointer !important;
 }
 .legend-header button {
-    background: none;
-    border: none;
+    background: none !important;
+    border: none !important;
     color: #ffd875 !important;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0 5px;
-    text-shadow: 0 0 4px #dfbc6f !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    padding: 0 2px !important;
 }
+
 .legend-content {
     max-height: 0;
     overflow: hidden !important;
-    padding: 0 10px;
-    box-sizing: border-box;
+    padding: 0 10px !important;
+    box-sizing: border-box !important;
     will-change: max-height, padding;
 }
 .legend-group p {
     color: #ffd875 !important;
     font-family: "Tinos", serif !important;
     font-weight: 700 !important;
-    font-size: 14px !important;
+    font-size: 11px !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
-    -webkit-text-stroke: 0.3px #ffd875 !important;
-    text-shadow: 0 0 4px #dfbc6f, 0 0 8px rgba(223, 188, 111, 0.5), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
-    margin: 0 0 10px 0;
-    border-bottom: 1px solid rgba(84, 62, 13, 0.5);
-    padding-bottom: 6px;
+    margin: 0 0 6px 0 !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.5) !important;
+    padding-bottom: 3px !important;
 }
+
 .legend-group:not(:first-child) {
-    margin-top: 22px;
+    margin-top: 12px !important;
 }
 .legend-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    font: 18px sans-serif;
-    color: #ebd291;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    color: #ebd291 !important;
 }
+
 .legend-grid span {
     color: #ffd875 !important;
     font-family: "Tinos", serif !important;
     font-weight: 700 !important;
-    font-size: 18px !important;
+    font-size: 12px !important;
     letter-spacing: 0.3px !important;
-    padding: 2px;
-    border-bottom: 1px solid rgba(84, 62, 13, 0.15);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    padding: 1px 0 !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
 }
+
+.legend-container.legend-above-player {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    left: 40px !important;
+    bottom: 172px !important;
+    width: 320px !important;
+    z-index: 1006 !important;
+    background: linear-gradient(135deg, #112417 0%, #09140d 100%) !important;
+    border: 2px solid #543e0d !important;
+    border-radius: 2px !important;
+    box-shadow: inset 2px 2px 0px #8a6421, 0 10px 30px rgba(0, 0, 0, 0.85) !important;
+    box-sizing: border-box !important;
+    pointer-events: auto !important;
+}
+
+.legend-above-player .legend-header {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: #ebd291 !important;
+    font-family: sans-serif !important;
+    font-weight: bold !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 4px 8px !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
+    cursor: pointer !important;
+}
+
+.legend-above-player .legend-header button {
+    background: none !important;
+    border: none !important;
+    color: #dfbc6f !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+}
+
+.legend-above-player .legend-content {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+}
+
+.legend-above-player .legend-group p {
+    color: #dfbc6f !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    margin: 0 0 4px 0 !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.3) !important;
+    padding-bottom: 2px !important;
+}
+
+.legend-above-player .legend-group:not(:first-child) {
+    margin-top: 10px !important;
+}
+
+.legend-above-player .legend-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.legend-above-player .legend-grid span {
+    color: #ebd291 !important;
+    font-size: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 1px 0 !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.1) !important;
+}
+
 /* ============================================================================
 4. МОДАЛЬНОЕ ОКНО И ФОРМЫ РЕДАКТИРОВАНИЯ
 ============================================================================ */
