@@ -1390,11 +1390,11 @@ PLAYLIST
     box-sizing: border-box !important;
     transform: none !important;
     background: #112417 !important;
-    border: 1px solid #543e0d !important;
+    border: 2px solid #543e0d !important;
     border-radius: 4px !important;
     box-shadow:
             inset 1px 1px 0px #8a6421,
-            inset -1px -1px 0px #09140d,
+            inset -1px -1px 0px #8a6421,
             0 15px 35px rgba(0, 0, 0, 0.9) !important;
     overflow: hidden !important;
 }
@@ -1410,8 +1410,9 @@ PLAYLIST
 }
 
 .music-player-monolith-wrapper.playlist-open .music-controller {
-    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
-    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 .music-player-monolith-wrapper:not(.playlist-open) .music-controller .winamp-action-section {
     margin-bottom: 6px !important;
