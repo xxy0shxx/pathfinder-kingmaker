@@ -228,21 +228,6 @@ async function initializeMusicPlayer() {
     try {
         const response = await fetch('audio/playlist.json');
         playlist = await response.json();
-
-        if (trackSelector) {
-            trackSelector.innerHTML = "";
-            playlist.forEach((track) => {
-                const opt = document.createElement("option");
-                opt.value = track;
-                opt.textContent = formatTrackName(track);
-                trackSelector.appendChild(opt);
-            });
-            trackSelector.addEventListener('change', () => {
-                const idx = playlist.indexOf(trackSelector.value);
-                if (idx !== -1) loadTrack(idx, true);
-            });
-        }
-
         if (tracksListContainer) {
             tracksListContainer.innerHTML = "";
             playlist.forEach((track, idx) => {
@@ -335,7 +320,6 @@ function loadTrack(idx, startPlaying = false) {
     if (idx < 0 || idx >= playlist.length) return;
     currentTrackIdx = idx;
     audioPlayer.src = playlist[currentTrackIdx];
-    if (trackSelector) trackSelector.value = playlist[currentTrackIdx];
     if (tracksListContainer) {
         const items = tracksListContainer.querySelectorAll(".playlist-item");
         items.forEach((item, index) => { item.classList.toggle("current", index === idx); });

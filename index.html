@@ -177,21 +177,17 @@
 
     <div class="main-controls" id="audioControls">
         <div class="music-controls-row">
-            <select id="trackSelectorStyle">
-            </select>
+            <button id="btnMusic">🎵 Включить музыку</button>
             <div class="volume-box">
                 <span class="volume-icon">🔊</span>
-                <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.25">
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01">
+            </div>
+            <div class="small-buttons-wrapper" style="grid-column: 2; grid-row: 2; display: flex; gap: 8px;">
+                <button id="btnShuffle" title="Перемешать">➔</button>
+                <button id="btnLoop" title="Зациклить">▶</button>
+                <button id="btnPlaylist" title="Плейлист">📜</button>
             </div>
         </div>
-
-        <div class="music-controls-row">
-            <button id="btnMusic" title="Воспроизведение/Пауза">🎵 Включить музыку</button>
-            <button type="button" id="btnShuffle" title="Перемешать треки">▶️</button>
-            <button id="btnLoop" title="Зациклить текущую композицию">🔁</button>
-            <button id="btnPlaylist" title="Открыть список всех треков">📜</button>
-        </div>
-
         <div class="player-timeline">
             <span class="time-lbl" id="timeCurrent">0:00</span>
             <div class="timeline-bg" id="progressBarBg">
