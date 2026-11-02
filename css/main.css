@@ -850,7 +850,7 @@ body {
     width: 1100px;
     height: 800px;
     top: -120%;
-    left: 170%;
+    left: 172%;
     transform: translate(-50%, -50%) scale(1);
     z-index: 10015;
     background: linear-gradient(135deg, rgba(17, 38, 24, 0.98) 0%, rgba(9, 20, 13, 0.99) 100%);
