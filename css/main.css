@@ -1256,3 +1256,33 @@ body {
     border-color: #a68032 !important;
     box-shadow: 0 0 8px rgba(166, 128, 50, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
 }
+
+.buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 10px !important;
+    margin: 15px 0 0 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    font-size: 0 !important;
+}
+
+.buttons button,
+.buttons .btn,
+#btnDelete, #btnCancel, #btnSave {
+    flex: 1 1 0% !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.buttons > *:not(#btnDelete):not(#btnCancel):not(#btnSave):not(.btn) {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}

@@ -41,6 +41,21 @@ document.addEventListener('DOMContentLoaded', () => {
     initColorPresets();
     populateDifficultySelect();
 
+    const btnDeleteEl = document.getElementById('btnDelete');
+    const btnCancelEl = document.getElementById('btnCancel');
+    const btnSaveEl = document.getElementById('btnSave');
+
+    let buttonsContainer = document.querySelector('.buttons');
+    if (!buttonsContainer && btnCancelEl) {
+        buttonsContainer = btnCancelEl.closest('.buttons') || btnCancelEl.parentNode;
+    }
+
+    if (buttonsContainer && btnDeleteEl && btnCancelEl && btnSaveEl) {
+        buttonsContainer.appendChild(btnDeleteEl);
+        buttonsContainer.appendChild(btnCancelEl);
+        buttonsContainer.appendChild(btnSaveEl);
+    }
+
     buildHexGrid();
     initFrameStyleControls();
     initUnifiedUICollapse();
