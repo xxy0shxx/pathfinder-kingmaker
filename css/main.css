@@ -459,18 +459,16 @@ body {
     position: relative !important;
     display: block !important;
     width: 100% !important;
-    margin: 0 0 10px 0 !important;
+    margin: 0 !important;
     padding: 0 !important;
-    background: #112417 !important;
+    background: transparent !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
     z-index: 2 !important;
-    border: 2px solid #543e0d !important;
-    border-radius: 4px !important;
-    box-shadow:
-            inset 1px 1px 0px #8a6421,
-            inset -1px -1px 0px #8a6421,
-            0 10px 25px rgba(0, 0, 0, 0.7) !important;
+    border: none !important;
+    border-bottom: 1px solid #543e0d !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
 }
 
 .legend-header {
@@ -753,24 +751,23 @@ body {
     position: relative !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 0 0 0 !important;
     background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     box-sizing: border-box !important;
     height: auto !important;
     z-index: 1 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    transform: none !important;
 }
 
 .music-player-monolith-wrapper.playlist-open .music-controller {
-    border-bottom: none !important;
-    border-radius: 0 !important;
-    box-shadow:
-            inset 2px 2px 0px #8a6421,
-            inset -2px 0px 0px #09140d !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
+    box-shadow: none !important;
 }
 
 .music-controller.playlist-open {
