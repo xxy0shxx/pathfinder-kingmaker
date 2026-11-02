@@ -144,10 +144,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const legendContent = document.querySelector('.legend-content');
 
     if (legendContainer && playerContainer) {
-        playerContainer.insertBefore(legendContainer, playerContainer.firstChild);
+        const playerWrapper = document.createElement('div');
+        playerWrapper.className = 'music-player-monolith-wrapper';
 
-        legendContainer.classList.remove('legend-above-player');
-        legendContainer.classList.add('legend-nested-inside-player');
+        playerContainer.parentNode.insertBefore(playerWrapper, playerContainer);
+
+        legendContainer.removeAttribute('style');
+        playerContainer.removeAttribute('style');
+
+        playerWrapper.appendChild(legendContainer);
+        playerWrapper.appendChild(playerContainer);
     }
 
     if (legendContainer && legendHeader && legendContent) {
