@@ -372,7 +372,7 @@ function updatePlayerButtonUI(isPlayingNow) {
     if (!musicButton) return;
 
     if (isPlayingNow) {
-        musicButton.innerHTML = `⏸ Пауза`;
+        musicButton.innerHTML = `⏸️ Пауза`;
         musicButton.style.backgroundColor = '#e74c3c';
         musicButton.style.color = '#fff';
     } else {
