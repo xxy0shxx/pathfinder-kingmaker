@@ -468,7 +468,7 @@ body {
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding-top: 1px !important;
+    padding-top: 0 !important;
     transition: border-bottom 0.15s ease !important;
 }
 .legend-header {
@@ -476,10 +476,8 @@ body {
     color: #ebd291 !important;
     font-family: 'Courier New', monospace !important;
     font-weight: bold !important;
-    font-size: 11px !important;
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
-    padding: 5px 8px !important;
     cursor: pointer !important;
     display: flex !important;
     justify-content: space-between !important;
@@ -491,6 +489,9 @@ body {
             inset 0 -1px 0px #8a6421,
             inset 1px 0px 0px #8a6421,
             inset -1px 0px 0px #8a6421 !important;
+    height: 27px !important;
+    font-size: 16px !important;
+    padding: 6px 12px !important;
 }
 
 .legend-container.open .legend-header {
@@ -506,7 +507,7 @@ body {
     background: none !important;
     border: none !important;
     color: #dfbc6f !important;
-    font-size: 11px !important;
+    font-size: 16px !important;
     cursor: pointer !important;
     padding: 0 2px !important;
 }
@@ -514,7 +515,7 @@ body {
 .legend-content {
     background: #040905 !important;
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9) !important;
-    border: 1px solid rgba(84, 62, 13, 0.4) !important;
+    border: 0px solid rgba(84, 62, 13, 0.4) !important;
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box !important;
@@ -528,7 +529,7 @@ body {
 .legend-group p {
     color: #dfbc6f !important;
     font-family: "Tinos", serif !important;
-    font-size: 11px !important;
+    font-size: 16px !important;
     font-weight: bold !important;
     text-transform: uppercase !important;
     margin: 0 0 6px 0 !important;
@@ -540,7 +541,7 @@ body {
 .legend-grid span {
     color: #ebd291 !important;
     font-family: sans-serif !important;
-    font-size: 12px !important;
+    font-size: 18px !important;
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
@@ -793,15 +794,16 @@ body {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    height: 18px !important;
     background: rgba(0, 0, 0, 0.3) !important;
     border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
     padding: 0 4px !important;
-    font-size: 11px !important;
     font-weight: bold !important;
     color: #ebd291 !important;
     letter-spacing: 0.5px !important;
-    margin-top: 4px !important;
+    margin: 0 6px !important;
+    width: calc(100% - 12px) !important;
+    height: 27px !important;
+    font-size: 16px !important;
     box-shadow:
             inset 0 1px 0px #8a6421,
             inset 0 -1px 0px #8a6421,
@@ -827,10 +829,10 @@ body {
 
 .winamp-display-section {
     display: grid;
-    grid-template-columns: 115px 1fr;
     gap: 6px;
-    height: 52px;
-    margin-top: 6px;
+    grid-template-columns: 172px 1fr;
+    height: 78px !important;
+    margin-top: 9px !important;
 }
 
 .winamp-display-left,
@@ -854,13 +856,13 @@ body {
 }
 
 .wa-status-icon {
-    font-size: 10px;
+    font-size: 15px;
     color: #dfbc6f;
 }
 
 .winamp-display-left .time-lbl {
     font-family: 'Courier New', monospace !important;
-    font-size: 18px !important;
+    font-size: 27px !important;
     font-weight: bold;
     color: #dfbc6f !important;
     text-shadow: 0 0 5px rgba(223, 188, 111, 0.6);
@@ -887,19 +889,19 @@ body {
 }
 
 .winamp-track-info-marquee {
-    height: 16px;
     overflow: hidden;
-    padding: 1px 4px;
     font-family: 'Courier New', monospace;
-    font-size: 11px;
     color: #ebd291;
     white-space: nowrap;
+    height: 24px !important;
+    font-size: 16px !important;
+    padding: 3px 6px !important;
 }
 
 .winamp-audio-kbps {
     display: flex;
     justify-content: space-between;
-    font-size: 10px;
+    font-size: 15px;
     color: #888;
     padding: 0 2px;
     font-family: monospace;
@@ -938,7 +940,7 @@ body {
     gap: 4px;
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(84, 62, 13, 0.4);
-    padding: 1px 3px;
+    padding: 3px 6px !important;
 }
 
 .wa-slider-icon {
@@ -949,7 +951,7 @@ body {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 6px;
+    height: 9px;
     background: linear-gradient(to right, #42351f 0%, #8a6421 50%, #dfbc6f 100%);
     border: 1px solid #09140d;
     outline: none;
@@ -967,12 +969,12 @@ body {
 
 .winamp-timeline-section {
     position: relative;
-    height: 12px;
     background: #040905;
     border: 1px solid #543e0d;
     box-shadow: inset 1px 1px 4px rgba(0,0,0,0.9);
     cursor: pointer;
-    margin-top: 6px;
+    height: 18px !important;
+    margin-top: 9px !important;
 }
 
 .timeline-fill {
@@ -996,15 +998,15 @@ body {
 
 .winamp-playback-buttons button {
     flex: 1;
-    height: 24px;
     background: linear-gradient(to bottom, #42351f 0%, #292011 100%) !important;
     border: 1px solid #543e0d !important;
     color: #ebd291 !important;
     font-family: 'Courier New', monospace;
     font-weight: bold;
-    font-size: 11px !important;
     cursor: pointer;
     box-shadow: inset 1px 1px 0px #8a6421;
+    height: 36px !important;
+    font-size: 16px !important;
 }
 
 .winamp-playback-buttons button.winamp-main-play {
@@ -1019,8 +1021,6 @@ body {
 }
 
 .winamp-meta-toggles button {
-    height: 20px;
-    font-size: 10px !important;
     font-family: monospace;
     font-weight: bold;
     background: linear-gradient(to bottom, #42351f 0%, #292011 100%) !important;
@@ -1029,6 +1029,8 @@ body {
     cursor: pointer;
     box-shadow: inset 1px 1px 0px #8a6421;
     text-transform: uppercase;
+    height: 30px !important;
+    font-size: 15px !important;
 }
 .winamp-meta-toggles button.active,
 .winamp-meta-toggles button.winamp-pl-toggle.active {
@@ -1347,8 +1349,6 @@ PLAYLIST
 }
 
 #playlistTracksContainer {
-    max-height: 260px !important;
-    height: 260px !important;
     overflow-y: auto !important;
     background: #040905 !important;
     border: 1px solid #543e0d !important;
@@ -1356,12 +1356,12 @@ PLAYLIST
     margin: 0 0 0 0 !important;
     padding: 4px !important;
     box-sizing: border-box !important;
+    max-height: 390px !important;
+    height: 390px !important;
 }
 
 .playlist-item {
-    padding: 3px 4px !important;
     font-family: 'Courier New', monospace !important;
-    font-size: 12px !important;
     font-weight: bold !important;
     color: #00e100 !important;
     text-shadow: 0 0 3px rgba(0, 225, 0, 0.4) !important;
@@ -1370,6 +1370,8 @@ PLAYLIST
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     transition: background 0.1s ease !important;
+    font-size: 18px !important;
+    padding: 5px 6px !important;
 }
 
 .playlist-item:hover {
@@ -1402,7 +1404,7 @@ PLAYLIST
     position: fixed !important;
     bottom: 20px !important;
     left: 20px !important;
-    width: 336px !important;
+    width: 504px !important;
     z-index: 1005 !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1410,15 +1412,12 @@ PLAYLIST
     background: #112417 !important;
     border: 2px solid #543e0d !important;
     border-radius: 4px !important;
-
-    /* Обновленный box-shadow: блик идет по кругу (inset 1px и inset -1px), */
-    /* благодаря чему золотая линия теперь есть и слева, и снизу, и справа, и сверху */
     box-shadow:
             inset 1px 1px 0px #8a6421,
             inset -1px -1px 0px #8a6421,
             0 15px 35px rgba(0, 0, 0, 0.9) !important;
     overflow: visible !important;
-    transform: translateX(-400px) !important;
+    transform: translateX(-550px) !important;
     opacity: 0 !important;
     pointer-events: none !important;
     transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.25s ease !important;
