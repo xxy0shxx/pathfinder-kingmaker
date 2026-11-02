@@ -681,7 +681,10 @@ body {
     background: #112417 !important;
     border: 2px solid #543e0d !important;
     border-radius: 4px !important;
-    box-shadow: inset 1px 1px 0px #8a6421, inset -1px -1px 0px #8a6421, 0 15px 35px rgba(0, 0, 0, 0.9) !important;
+    box-shadow: inset 1px 1px 0px #8a6421,
+    inset -1px -1px 0px #8a6421,
+    0 15px 35px rgba(0, 0, 0, 0.9),
+    0 0 20px rgba(223, 188, 111, 0.45) !important;
     transform: translateX(-550px) !important;
     opacity: 0 !important;
     pointer-events: none !important;
@@ -1255,7 +1258,22 @@ body {
     display: grid !important;
     grid-template-columns: repeat(2, 46px) !important;
     gap: 8px !important;
+    border-radius: 6px !important;
+    padding: 6px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    transition: background 0.25s ease, box-shadow 0.25s ease !important;
 }
+.right-controls-panel.ui-expanded {
+    background: radial-gradient(circle, rgba(255, 216, 117, 0.3) 0%, rgba(223, 188, 111, 0.15) 100%) !important;
+    border: none !important;
+    box-shadow: 0 0 35px rgba(223, 188, 111, 0.65),
+    0 0 15px rgba(255, 216, 117, 0.45),
+    inset 0 0 25px rgba(255, 216, 117, 0.35) !important;
+}
+
 .right-controls-panel button {
     pointer-events: auto !important;
     will-change: transform, opacity;
