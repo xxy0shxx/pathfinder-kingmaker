@@ -513,9 +513,10 @@ body {
 }
 
 .legend-content {
-    background: #040905 !important;
+    background: #112417 !important;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) !important;
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9) !important;
-    border: 0px solid rgba(84, 62, 13, 0.4) !important;
+    border: 1px solid rgba(84, 62, 13, 0.4) !important;
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box !important;
@@ -526,16 +527,34 @@ body {
     margin: 6px 6px 0 6px !important;
 }
 
+.legend-group {
+    margin-bottom: 24px !important;
+    width: 100% !important;
+}
+
+.legend-group:last-of-type {
+    margin-bottom: 0 !important;
+}
+
 .legend-group p {
     color: #dfbc6f !important;
     font-family: "Tinos", serif !important;
     font-size: 16px !important;
     font-weight: bold !important;
     text-transform: uppercase !important;
-    margin: 0 0 6px 0 !important;
+    margin: 0 0 8px 0 !important;
     border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
-    padding-bottom: 2px !important;
+    padding-bottom: 4px !important;
     letter-spacing: 0.5px !important;
+}
+
+.legend-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 3px 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding-bottom: 4px !important;
 }
 
 .legend-grid span {
@@ -545,7 +564,11 @@ body {
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
-    padding: 2px 0 !important;
+    padding: 3px 0 5px 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px dashed rgba(138, 100, 33, 0.25) !important;
 }
 
 /* ============================================================================
