@@ -384,7 +384,7 @@ body {
 .box input[type="text"], .box textarea, .box select {
     width: 100%;
     padding: 6px 8px;
-    background: #090f0b !important;
+    background: #090f0b;
     border: 1px solid #543e0d !important;
     border-radius: 3px;
     color: #ebd291 !important;
@@ -979,4 +979,114 @@ body {
     background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
     border-color: #823030 !important;
     color: #f7baba !important;
+}
+
+.custom-options-container {
+    display: none !important;
+    position: absolute !important;
+    width: 100% !important;
+    max-height: 200px !important;
+    z-index: 9999 !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #b89445 #040905 !important;
+}
+
+.custom-select.active .custom-options-container {
+    display: block !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.box textarea {
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #b89445 #040905 !important;
+}
+
+.custom-options-container::-webkit-scrollbar,
+.box textarea::-webkit-scrollbar,
+#questLogContainer ::-webkit-scrollbar {
+    width: 12px !important;
+    height: 12px !important;
+    display: block !important;
+}
+
+.custom-options-container::-webkit-scrollbar-track,
+.box textarea::-webkit-scrollbar-track,
+#questLogContainer ::-webkit-scrollbar-track {
+    background: #040905 !important;
+    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
+    border-radius: 4px !important;
+}
+
+.custom-options-container::-webkit-scrollbar-thumb,
+.box textarea::-webkit-scrollbar-thumb,
+#questLogContainer ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
+    border: 1px solid #543e0d !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+}
+
+.custom-options-container::-webkit-scrollbar-thumb:hover,
+.box textarea::-webkit-scrollbar-thumb:hover,
+#questLogContainer ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
+    border-color: #a68032 !important;
+}
+
+#questLogList::-webkit-scrollbar-track {
+    margin: 15px 5px 15px 0;
+}
+
+#questLogList {
+    scrollbar-color: #b89445 #050a06 !important;
+}
+#questLogList::-webkit-scrollbar {
+    width: 12px !important;
+}
+#questLogList::-webkit-scrollbar-track {
+    background: #040905 !important;
+    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
+    margin: 15px 5px 15px 0;
+}
+#questLogList::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
+    border: 1px solid #543e0d !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+}
+#questLogList::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
+    border-color: #a68032 !important;
+}
+
+@keyframes floatAnim {
+    0%, 100% { transform: translate(0, 0) rotate(-5deg); }
+    50% { transform: translate(2px, -3px) rotate(5deg); }
+}
+@keyframes floatAnimHigher {
+    0%, 100% { transform: translate(-50%, -90%) translateY(0) rotate(-1deg); }
+    50%      { transform: translate(-50%, -90%) translateY(-4px) rotate(1deg); }
+}
+@keyframes flagSwing {
+    0%, 100% { transform: translate(-50%, -50%) rotate(-5deg); }
+    50% { transform: translate(-50%, -50%) rotate(5deg); }
+}
+@keyframes hexPureRedFlash {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+@keyframes windowsSmoothFly {
+    0% { opacity: 0; transform: translate3d(var(--start-x), var(--start-y), 0) scale(2.5) rotate(-90deg); }
+    1% { opacity: 1; }
+    100% { opacity: 1; transform: translate3d(var(--target-x), var(--target-y), 0) scale(1) rotate(-90deg); }
+}
+@keyframes sparkExplode {
+    0% { transform: rotate(var(--angle, 0deg)) translateY(0) scaleY(0.3); opacity: 1; }
+    100% { transform: rotate(var(--angle, 0deg)) translateY(45px) scaleY(1.5) scaleX(0.1); opacity: 0; }
+}
+
+@keyframes runeBreathe {
+    0%, 100% { opacity: 0.01; }
+    50% { opacity: 0.99; }
 }
