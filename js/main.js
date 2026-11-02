@@ -366,17 +366,16 @@ function togglePlaylistUI() {
     const isOpen = playlistContainer.classList.toggle("open");
     if (playlistButton) playlistButton.classList.toggle("active", isOpen);
 
-    const player = document.querySelector('.music-controller');
-    const legend = document.querySelector('.legend-container.legend-above-player');
+    const playerWrapper = document.querySelector('.music-player-monolith-wrapper');
+    const legend = document.querySelector('.legend-container');
 
-    if (player) {
-        player.classList.toggle('playlist-open', isOpen);
+    if (playerWrapper) {
+        playerWrapper.classList.toggle('playlist-open', isOpen);
     }
     if (legend) {
         legend.classList.toggle('playlist-open', isOpen);
     }
 }
-
 function playNextRandomTrack() {
     if (playlist.length <= 1) return;
     let nextTrackIndex;

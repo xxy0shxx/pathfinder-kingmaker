@@ -1360,3 +1360,11 @@ PLAYLIST
     transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     transform: translateY(0) !important;
 }
+
+.music-player-monolith-wrapper.playlist-open {
+    transform: translateY(-204px) !important;
+}
+
+.music-controller.playlist-open {
+    transform: none !important;
+}
