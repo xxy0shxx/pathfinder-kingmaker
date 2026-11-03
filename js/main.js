@@ -1,4 +1,5 @@
 import SoundPlayer from '../js/sound_player.js';
+import FileManager from '../js/file_manager.js';
 
 const hexRadius = 77.96;
 const rows = 12;
@@ -42,6 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
     SoundPlayer.init();
     initColorPresets();
     populateDifficultySelect();
+
+    FileManager.init((importedData) => {
+        mapData = importedData;
+        buildHexGrid();
+    });
 
     const btnDeleteEl = document.getElementById('btnDelete');
     const btnCancelEl = document.getElementById('btnCancel');
@@ -1751,52 +1757,6 @@ function groupMenuFields() {
         rowStats.appendChild(boxDiff);
         rowStats.appendChild(boxLevel);
     }
-}
-
-// ============================================================================
-// ЭКСПОРТ И ИМПОРТ СОХРАНЕНИЙ КАРТЫ КОРОЛЕВСТВА (ФАЙЛОВЫЙ МЕНЕДЖЕР)
-// ============================================================================
-const btnExport = document.getElementById('btnExport');
-if (btnExport) {
-    btnExport.addEventListener('click', function() {
-        const jsonString = JSON.stringify(mapData, null, 4);
-        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
-        const dataStr = URL.createObjectURL(blob);
-
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "map_data.json");
-        document.body.appendChild(downloadAnchor);
-
-        downloadAnchor.click();
-        downloadAnchor.remove();
-        URL.revokeObjectURL(dataStr);
-    });
-}
-
-const fileInput = document.getElementById('fileInput');
-const btnImport = document.getElementById('btnImport');
-if (btnImport && fileInput) {
-    btnImport.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', function(e) {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                mapData = JSON.parse(evt.target.result);
-                localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-                buildHexGrid();
-                alert('Данные успешно импортированы!');
-            } catch (err) {
-                alert('Ошибка при чтении JSON файла.');
-            }
-            fileInput.value = '';
-        };
-        reader.readAsText(files[0]);
-    });
 }
 
 window.addEventListener('resize', () => {
