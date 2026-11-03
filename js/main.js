@@ -11,6 +11,7 @@ import LayoutManager from './layout_manager.js';
 import UiPanelManager from './ui_panel_manager.js';
 import HexUiSyncer from './hex_ui_syncer.js';
 import FogManager from './fog_manager.js';
+import PathManager from './path_manager.js';
 
 let hasMoved = false;
 let mapData = StorageManager.loadData();
@@ -28,12 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
     UiSelectManager.init();
     ViewportManager.init();
     HexUiSyncer.init();
+    PathManager.init();
 
     // 3. Инициализация и связывание менеджеров ядра (Данные -> Сетка -> Квесты)
     HexManager.init(mapData, (hexId) => {
         HexModal.open(hexId, mapData[hexId]);
     });
     HexManager.buildGrid(() => hasMoved);
+
+    setTimeout(() => { PathManager.render(); }, 300);
 
     // Передаем фокус-вспышку из обновленного AnimationManager
     QuestManager.init(mapData, (hexId) => AnimationManager.focusOnHex(hexId));
@@ -44,11 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
         QuestManager.updateMapData(mapData);
         HexManager.updateMapData(mapData);
         HexManager.buildGrid(() => hasMoved);
+        setTimeout(() => { PathManager.render(); }, 200);
     });
 
     // ============================================================================
     // КОЛЛБЭКИ ИНТЕРФЕЙСА МОДАЛЬНОГО ОКНА ГЕКСА
     // ============================================================================
+
+
     HexModal.init({
         onSave: (hexId, formData) => {
             let oldHexId = null;
@@ -56,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (formData.squadHere) {
                 // Перемещаем отряд в памяти и узнаем ID старого гекса для анимации
                 oldHexId = StorageManager.moveSquad(mapData, hexId);
+
+                PathManager.addPoint(hexId);
 
                 // Гасим стационарный флаг на старом гексе перед запуском полета
                 if (oldHexId && oldHexId !== hexId) {
@@ -98,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             HexModal.close();
         }
     });
+
 });
 
 // ============================================================================
