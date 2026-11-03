@@ -8,37 +8,47 @@ const StorageManager = {
     /**
      * Загрузка данных карты из localStorage с автоматической миграцией структуры
      */
+    /**
+     * Загрузка данных карты из localStorage с гарантированной совместимостью
+     */
     loadData() {
         try {
             const raw = localStorage.getItem(this.STORAGE_KEY);
-            if (!raw) return { hexes: {}, kingdom: null, paths: [] };
+
+            // Если база абсолютно пуста
+            if (!raw) {
+                return { hexes: {}, kingdom: null, paths: [] };
+            }
 
             const parsed = JSON.parse(raw);
 
-            // Если это старый сейв (где гексы лежали прямо в корне), мигрируем его
+            // Проверяем формат: если это старая плоская структура (гексы в корне)
             if (parsed && !parsed.hexes) {
+                console.log("Обнаружен старый формат базы гексов. Запуск миграции...");
+
                 const migrated = {
                     hexes: {},
                     kingdom: parsed.kingdomState || null,
                     paths: parsed.__pathHistory || []
                 };
 
+                // Переносим только гексы и системные слои во вложенную ветку
                 for (let key in parsed) {
                     if (key.startsWith('hex_') || key === 'visualLayer' || key === 'squadPath') {
                         migrated.hexes[key] = parsed[key];
                     }
                 }
 
+                // Перезаписываем LocalStorage новым красивым форматом
                 this.saveData(migrated);
                 return migrated;
             }
 
-            // Если это промежуточная структура, но paths еще нет — создаем массив
-            if (parsed && !parsed.paths) {
-                parsed.paths = [];
-            }
+            // На всякий случай страхуем массивы, если они отсутствуют
+            if (parsed && !parsed.paths) parsed.paths = [];
+            if (parsed && !parsed.hexes) parsed.hexes = {};
 
-            return parsed || { hexes: {}, kingdom: null, paths: [] };
+            return parsed;
         } catch (e) {
             console.error("Ошибка чтения данных карты из localStorage:", e);
             return { hexes: {}, kingdom: null, paths: [] };

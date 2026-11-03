@@ -22,6 +22,8 @@ const PathManager = {
         if (!this.mapDataRef.paths) {
             this.mapDataRef.paths = [];
         }
+
+        this.render();
     },
 
     /**

@@ -23,6 +23,7 @@ let hasMoved = false;
 document.addEventListener('DOMContentLoaded', () => {
 
     let mapData = StorageManager.loadData();
+
     // 1. Инициализация глобального лейаута и панелей управления
     LayoutManager.init();
     UiPanelManager.init();
@@ -50,19 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     KingdomManager.renderUi();
 
-/*
-    let savedKingdom = null;
-    try {
-        savedKingdom = JSON.parse(localStorage.getItem('kingmaker_kingdom_data'));
-    } catch(e) { console.error(e); }
-
-    KingdomManager.init(savedKingdom);
-    KingdomManager.renderUi();
-
- */
-
     // Настройка импорта файлов
     FileManager.init((importedData) => {
+        // Если пользователь загружает старый JSON-файл (где все гексы в корне)
         if (importedData && !importedData.hexes) {
             mapData = {
                 hexes: importedData,
@@ -70,16 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 paths: importedData.__pathHistory || []
             };
         } else {
-            mapData = importedData;
+            // Если импортируется уже новый изолированный формат
+            mapData = importedData || { hexes: {}, kingdom: null, paths: [] };
         }
 
-        QuestManager.updateMapData(mapData);
-        HexManager.updateMapData(mapData);
-        PathManager.updateMapData(mapData);
+        QuestManager.updateMapData(mapData.hexes);
+        HexManager.updateMapData(mapData.hexes);
+        if (typeof PathManager.updateMapData === 'function') {
+            PathManager.updateMapData(mapData);
+        }
         KingdomManager.updateMapData(mapData);
-        HexManager.buildGrid(() => hasMoved);
-        setTimeout(() => { PathManager.render(); }, 200);
 
+        // Принудительно заставляем HexManager перерисовать DOM-элементы сетки на экране
+        HexManager.buildGrid(() => hasMoved);
+
+        // Даем браузеру 50мс на отрисовку гексов и пускаем линии путей
+        setTimeout(() => {
+            PathManager.render();
+        }, 50);
     });
 
     // ============================================================================
