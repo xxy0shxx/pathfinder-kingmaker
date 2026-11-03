@@ -136,12 +136,11 @@ const AnimationManager = {
             document.body.appendChild(beamsContainer);
 
             // Удаляем контейнер конкретной вспышки сразу после окончания её анимации (600мс)
-            setTimeout(() => { beamsContainer.remove(); }, 500);
+            setTimeout(() => { beamsContainer.remove(); }, 1200);
         };
 
         setTimeout(() => { spawnBurst(); }, 100);
-//        setTimeout(() => { spawnBurst(); }, 700);
-//        setTimeout(() => { spawnBurst(); }, 1300);
+        setTimeout(() => { spawnBurst(); }, 160);
 
         // 3. Таймер очистки свечения самого гекса
         setTimeout(() => {
