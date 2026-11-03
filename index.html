@@ -127,6 +127,21 @@
 <audio id="bg-music"></audio>
 
 <div class="music-controller ui-collapsed">
+
+
+    <div id="questLogContainer" class="quest-log-container ui-collapsed">
+        <div class="quest-log-header">⚜️ Журнал заданий</div>
+        <div class="quest-log-tabs">
+            <button type="button" class="quest-tab-btn active" id="tabActiveQuests">⚠️ Активные</button>
+            <button type="button" class="quest-tab-btn" id="tabCompletedQuests">✅ Завершенные</button>
+            <button type="button" class="quest-tab-btn" id="tabRumors">👂Слухи</button>
+        </div>
+        <div id="questLogList" class="quest-log-list"></div>
+    </div>
+
+
+
+    <div class="music-player-monolith-wrapper">
     <div class="legend-container" id="legendContainer">
         <div class="legend-header">
             <span class="legend-title">📜 Легенда</span>
@@ -151,7 +166,7 @@
                 <p>Объекты:</p>
                 <div class="legend-grid">
                     <span>🏛️Достопримечательность</span> <span>💎Ресурс</span>
-                     <span>❓Тайна</span>
+                    <span>❓Тайна</span>
                 </div>
             </div>
             <div class="legend-group">
@@ -164,17 +179,6 @@
             </div>
         </div>
     </div>
-
-    <div id="questLogContainer" class="quest-log-container ui-collapsed">
-        <div class="quest-log-header">⚜️ Журнал заданий</div>
-        <div class="quest-log-tabs">
-            <button type="button" class="quest-tab-btn active" id="tabActiveQuests">⚠️ Активные</button>
-            <button type="button" class="quest-tab-btn" id="tabCompletedQuests">✅ Завершенные</button>
-            <button type="button" class="quest-tab-btn" id="tabRumors">👂Слухи</button>
-        </div>
-        <div id="questLogList" class="quest-log-list"></div>
-    </div>
-
     <div class="music-controller ui-collapsed">
         <div class="winamp-title-bar">
             <div class="winamp-logo">⚜️</div>
@@ -249,6 +253,9 @@
             </div>
         </div>
     </div>
+    </div>
+
+
 </div>
 
 

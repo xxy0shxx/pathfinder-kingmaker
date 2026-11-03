@@ -8,34 +8,9 @@ const LayoutManager = {
      * Инициализация менеджера макета страницы
      */
     init() {
-        this.assembleMonolithPlayer();
         this.initLegendAccordion();
         this.attachResizeEvent();
         this.revealMapFrame();
-    },
-
-    /**
-     * DOM-хак: Объединение контейнера легенды и музыкального контроллера в монолитный блок
-     */
-    assembleMonolithPlayer() {
-        const legendContainer = document.querySelector('.legend-container');
-        const playerContainer = document.querySelector('.music-controller');
-
-        if (legendContainer && playerContainer) {
-            const playerWrapper = document.createElement('div');
-            playerWrapper.className = 'music-player-monolith-wrapper';
-
-            // Вставляем обертку прямо перед плеером в DOM
-            playerContainer.parentNode.insertBefore(playerWrapper, playerContainer);
-
-            // Сбрасываем инлайн-стили, если они были заданы
-            legendContainer.removeAttribute('style');
-            playerContainer.removeAttribute('style');
-
-            // Перемещаем элементы внутрь нашей новой монолитной обертки
-            playerWrapper.appendChild(legendContainer);
-            playerWrapper.appendChild(playerContainer);
-        }
     },
 
     /**
