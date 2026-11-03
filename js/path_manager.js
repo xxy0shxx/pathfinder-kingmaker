@@ -1,65 +1,61 @@
 /**
  * Универсальный модуль для управления и отрисовки путей/маршрутов отряда (Pathfinding Log).
- * Инкапсулирует работу с SVG-слоем и адаптирован как под гексы, так и под квадратные клетки.
  */
 const PathManager = {
     svgLayer: null,
-    history: [], // Хранит упорядоченный массив ID посещенных ячеек
+    mapDataRef: null, // Ссылка на общий объект данных карты
 
-    init() {
+    init(mapData) {
         this.svgLayer = document.getElementById('mapPathsSvg');
-        this.loadPathHistory();
+        this.updateMapData(mapData);
+    },
 
-        // Если игра запущена впервые и история пуста, автоматически ищем, где стоит отряд
-        if (this.history.length === 0) {
-            // Импортируем или напрямую считываем данные из памяти, либо ищем по классу на холсте
-            const allHexes = document.querySelectorAll('.visual-hex');
-            for (let vHex of allHexes) {
-                // Если у гекса в DOM есть флаг или класс squad-dark (отряд тут)
-                if (vHex.classList.contains('squad-dark') || vHex.querySelector('.active-flag')) {
-                    const hexId = vHex.id.replace('visual_', ''); // извлекаем чистый id (например, 'hex_0_0')
-                    this.history.push(hexId);
-                    localStorage.setItem('squadPathHistory', JSON.stringify(this.history));
-                    break;
-                }
-            }
+    /**
+     * Обновление ссылки на данные карты (вызывается при старте и импорте файлов)
+     */
+    updateMapData(newMapData) {
+        // Если прилетел undefined или null, подставляем пустой объект
+        this.mapDataRef = newMapData || {};
+
+        // Безопасная инициализация системного поля путей
+        if (!this.mapDataRef.__pathHistory) {
+            this.mapDataRef.__pathHistory = [];
         }
     },
 
     /**
-     * Загрузка истории перемещений из localStorage, чтобы маршрут сохранялся при перезагрузке
+     * Геттер для удобного получения массива истории
      */
-    loadPathHistory() {
-        try {
-            this.history = JSON.parse(localStorage.getItem('squadPathHistory')) || [];
-        } catch (e) {
-            console.error("Ошибка чтения истории путей:", e);
-            this.history = [];
-        }
+    get history() {
+        return this.mapDataRef && this.mapDataRef.__pathHistory ? this.mapDataRef.__pathHistory : [];
     },
 
     /**
      * Добавление новой точки в маршрут похода
-     * @param {string} cellId - Идентификатор ячейки (гекса/клетки)
+     * @param {string} cellId - Идентификатор ячейки (гекса)
      */
     addPoint(cellId) {
-        if (!cellId) return;
+        if (!this.mapDataRef || !cellId) return;
 
-        // Если отряд переместился, записываем точку (избегаем дублирования подряд)
-        if (this.history[this.history.length - 1] !== cellId) {
-            this.history.push(cellId);
-            localStorage.setItem('squadPathHistory', JSON.stringify(this.history));
+        const currentHistory = this.history;
+
+        // Избегаем дублирования точек подряд
+        if (currentHistory[currentHistory.length - 1] !== cellId) {
+            currentHistory.push(cellId);
+
+            // Сами данные в LocalStorage сохранит StorageManager в main.js сразу после этого вызова
             this.render();
         }
     },
 
     /**
-     * Очистка всей истории маршрута (например, при сбросе карты)
+     * Очистка всей истории маршрута
      */
     clearHistory() {
-        this.history = [];
-        localStorage.removeItem('squadPathHistory');
-        this.render();
+        if (this.mapDataRef) {
+            this.mapDataRef.__pathHistory = [];
+            this.render();
+        }
     },
 
     /**
@@ -67,17 +63,18 @@ const PathManager = {
      */
     render() {
         if (!this.svgLayer) this.svgLayer = document.getElementById('mapPathsSvg');
-        if (!this.svgLayer) return;
+        if (!this.svgLayer || !this.mapDataRef) return;
 
         this.svgLayer.innerHTML = '';
 
-        if (this.history.length < 2) return;
+        const currentHistory = this.history;
+        if (currentHistory.length < 2) return;
 
         let svgContent = '';
 
-        for (let i = 0; i < this.history.length - 1; i++) {
-            const startId = this.history[i];
-            const endId = this.history[i + 1];
+        for (let i = 0; i < currentHistory.length - 1; i++) {
+            const startId = currentHistory[i];
+            const endId = currentHistory[i + 1];
 
             const startEl = document.getElementById('visual_' + startId);
             const endEl = document.getElementById('visual_' + endId);
@@ -88,6 +85,7 @@ const PathManager = {
 
                 const endX = endEl.offsetLeft + endEl.offsetWidth / 2;
                 const endY = endEl.offsetTop + endEl.offsetHeight / 2;
+
                 svgContent += `
                     <line 
                         x1="${startX}" 

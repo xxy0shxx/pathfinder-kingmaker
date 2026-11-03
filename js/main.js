@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     UiSelectManager.init();
     ViewportManager.init();
     HexUiSyncer.init();
-    PathManager.init();
+    PathManager.init(mapData);
 
     // 3. Инициализация и связывание менеджеров ядра (Данные -> Сетка -> Квесты)
     HexManager.init(mapData, (hexId) => {
@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mapData = importedData;
         QuestManager.updateMapData(mapData);
         HexManager.updateMapData(mapData);
+        PathManager.updateMapData(mapData);
         HexManager.buildGrid(() => hasMoved);
         setTimeout(() => { PathManager.render(); }, 200);
     });
