@@ -16,37 +16,22 @@ const KingdomManager = {
             loyalty: { value: 10, modifier: 0 },
             stability: { value: 10, modifier: 0 }
         },
-        leaders: {
-            ruler: "",
-            counselor: "",
-            general: "",
-            highPriest: "",
-            magister: "",
-            warden: ""
-        }
+        leaders: { ruler: "", counselor: "", general: "", highPriest: "", magister: "", warden: "" }
     },
 
-    roleNames: {
-        ruler: "Правитель",
-        counselor: "Канцлер",
-        general: "Генерал",
-        highPriest: "Иерарх",
-        magister: "Магистр",
-        warden: "Маршал"
-    },
+    roleNames: { ruler: "Правитель", counselor: "Канцлер", general: "Генерал", highPriest: "Иерарх", magister: "Магистр", warden: "Маршал" },
 
     init(mapData, onSave) {
         try {
-            this.mapDataRef = mapData || {};
+            this.mapDataRef = mapData || { hexes: {}, kingdom: null };
             this.onSaveCallback = onSave;
 
-            if (!this.mapDataRef.kingdomState) {
-                this.mapDataRef.kingdomState = JSON.parse(JSON.stringify(this.defaultState));
+            if (!this.mapDataRef.kingdom) {
+                this.mapDataRef.kingdom = JSON.parse(JSON.stringify(this.defaultState));
             }
 
-            this.state = this.mapDataRef.kingdomState;
+            this.state = this.mapDataRef.kingdom;
             this.recalculateModifiers();
-
             window.KingdomManager = this;
         } catch (e) {
             console.error("Ошибка при инициализации KingdomManager:", e);
@@ -55,11 +40,11 @@ const KingdomManager = {
 
     updateMapData(newMapData) {
         try {
-            this.mapDataRef = newMapData || {};
-            if (!this.mapDataRef.kingdomState) {
-                this.mapDataRef.kingdomState = JSON.parse(JSON.stringify(this.defaultState));
+            this.mapDataRef = newMapData || { hexes: {}, kingdom: null };
+            if (!this.mapDataRef.kingdom) {
+                this.mapDataRef.kingdom = JSON.parse(JSON.stringify(this.defaultState));
             }
-            this.state = this.mapDataRef.kingdomState;
+            this.state = this.mapDataRef.kingdom;
             this.recalculateModifiers();
             this.renderUi();
         } catch (e) {
@@ -97,41 +82,28 @@ const KingdomManager = {
         this.renderUi();
     },
 
-    /**
-     * Метод сохранения, вызываемый по кнопке
-     */
     saveFromUi() {
-        console.log("Кнопка Сохранить нажата. Запуск процесса...");
-
         try {
-            // 1. Сбор имен советников по data-атрибутам
             const leadersListEl = document.getElementById('kingdomLeadersList');
             if (leadersListEl) {
                 for (let role in this.state.leaders) {
                     const input = leadersListEl.querySelector(`[data-role="${role}"]`);
-                    if (input) {
-                        this.state.leaders[role] = input.value.trim();
-                    }
+                    if (input) this.state.leaders[role] = input.value.trim();
                 }
             }
 
-            // 2. Синхронизируем ссылки
             if (this.mapDataRef) {
-                this.mapDataRef.kingdomState = this.state;
+                this.mapDataRef.kingdom = this.state;
             }
 
-            // 3. Сохранение в LocalStorage (Двойная подстраховка)
             if (this.onSaveCallback) {
                 this.onSaveCallback();
             } else {
-                // Если коллбэк почему-то не долетел, пишем напрямую в твой ключ базы гексов
                 localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
             }
 
-            // 4. Отрисовка изменений
             this.renderUi();
 
-            // 5. Визуальный эффект моргания кнопки (100% сработает, так как мы ищем по классу)
             const saveBtn = document.querySelector('.k-btn-save-small');
             if (saveBtn) {
                 saveBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
@@ -141,9 +113,6 @@ const KingdomManager = {
                     saveBtn.textContent = '⚜ Сохранить';
                 }, 800);
             }
-
-            console.log("Данные королевства успешно записаны в hexMapSystemData!");
-
         } catch (error) {
             console.error("Критическая ошибка внутри метода saveFromUi:", error);
         }
@@ -171,9 +140,7 @@ const KingdomManager = {
                 if (leadersListEl.children.length === Object.keys(this.state.leaders).length) {
                     for (let role in this.state.leaders) {
                         const input = leadersListEl.querySelector(`[data-role="${role}"]`);
-                        if (input && input !== document.activeElement) {
-                            input.value = this.state.leaders[role];
-                        }
+                        if (input && input !== document.activeElement) input.value = this.state.leaders[role];
                     }
                 } else {
                     leadersListEl.innerHTML = '';
@@ -187,7 +154,7 @@ const KingdomManager = {
 
                         const input = document.createElement('input');
                         input.type = 'text';
-                        input.dataset.role = role; // Установка data-role="ruler" для поиска
+                        input.dataset.role = role;
                         input.value = this.state.leaders[role];
                         input.placeholder = "Имя персонажа...";
 

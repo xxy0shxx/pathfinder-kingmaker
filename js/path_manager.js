@@ -1,9 +1,10 @@
+// PathManager.js
 /**
  * Универсальный модуль для управления и отрисовки путей/маршрутов отряда (Pathfinding Log).
  */
 const PathManager = {
     svgLayer: null,
-    mapDataRef: null, // Ссылка на общий объект данных карты
+    mapDataRef: null, // Ссылка на глобальный корневой объект данных карты { hexes: {}, kingdom: {}, paths: [] }
 
     init(mapData) {
         this.svgLayer = document.getElementById('mapPathsSvg');
@@ -14,25 +15,24 @@ const PathManager = {
      * Обновление ссылки на данные карты (вызывается при старте и импорте файлов)
      */
     updateMapData(newMapData) {
-        // Если прилетел undefined или null, подставляем пустой объект
-        this.mapDataRef = newMapData || {};
+        // Подставляем чистую структуру, если прилетел пустой объект
+        this.mapDataRef = newMapData || { hexes: {}, kingdom: null, paths: [] };
 
-        // Безопасная инициализация системного поля путей
-        if (!this.mapDataRef.__pathHistory) {
-            this.mapDataRef.__pathHistory = [];
+        // Изолированное системное поле путей на уровне корня сейва
+        if (!this.mapDataRef.paths) {
+            this.mapDataRef.paths = [];
         }
     },
 
     /**
-     * Геттер для удобного получения массива истории
+     * Геттер для удобного получения массива истории из изолированной ветки
      */
     get history() {
-        return this.mapDataRef && this.mapDataRef.__pathHistory ? this.mapDataRef.__pathHistory : [];
+        return this.mapDataRef && this.mapDataRef.paths ? this.mapDataRef.paths : [];
     },
 
     /**
      * Добавление новой точки в маршрут похода
-     * @param {string} cellId - Идентификатор ячейки (гекса)
      */
     addPoint(cellId) {
         if (!this.mapDataRef || !cellId) return;
@@ -42,8 +42,6 @@ const PathManager = {
         // Избегаем дублирования точек подряд
         if (currentHistory[currentHistory.length - 1] !== cellId) {
             currentHistory.push(cellId);
-
-            // Сами данные в LocalStorage сохранит StorageManager в main.js сразу после этого вызова
             this.render();
         }
     },
@@ -53,7 +51,7 @@ const PathManager = {
      */
     clearHistory() {
         if (this.mapDataRef) {
-            this.mapDataRef.__pathHistory = [];
+            this.mapDataRef.paths = [];
             this.render();
         }
     },

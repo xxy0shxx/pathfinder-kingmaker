@@ -1,26 +1,51 @@
-/**
- * Модуль для управления данными карты и работы с LocalStorage (Data Layer)
- */
+// StorageManager.js
 const StorageManager = {
     STORAGE_KEY: 'hexMapSystemData',
 
     /**
-     * Загрузка данных карты из localStorage
-     * @returns {Object} Объект с данными всех гексов
+     * Загрузка данных карты из localStorage с автоматической миграцией структуры
+     */
+    /**
+     * Загрузка данных карты из localStorage с автоматической миграцией структуры
      */
     loadData() {
         try {
-            return JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || {};
+            const raw = localStorage.getItem(this.STORAGE_KEY);
+            if (!raw) return { hexes: {}, kingdom: null, paths: [] };
+
+            const parsed = JSON.parse(raw);
+
+            // Если это старый сейв (где гексы лежали прямо в корне), мигрируем его
+            if (parsed && !parsed.hexes) {
+                const migrated = {
+                    hexes: {},
+                    kingdom: parsed.kingdomState || null,
+                    paths: parsed.__pathHistory || []
+                };
+
+                for (let key in parsed) {
+                    if (key.startsWith('hex_') || key === 'visualLayer' || key === 'squadPath') {
+                        migrated.hexes[key] = parsed[key];
+                    }
+                }
+
+                this.saveData(migrated);
+                return migrated;
+            }
+
+            // Если это промежуточная структура, но paths еще нет — создаем массив
+            if (parsed && !parsed.paths) {
+                parsed.paths = [];
+            }
+
+            return parsed || { hexes: {}, kingdom: null, paths: [] };
         } catch (e) {
             console.error("Ошибка чтения данных карты из localStorage:", e);
-            return {};
+            return { hexes: {}, kingdom: null, paths: [] };
         }
     },
 
-    /**
-     * Полное сохранение (перезапись) всего объекта данных карты
-     * @param {Object} data - Полный объект данных карты
-     */
+
     saveData(data) {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
@@ -29,55 +54,40 @@ const StorageManager = {
         }
     },
 
-    /**
-     * Обновление метаданных конкретного гекса
-     * @param {Object} currentMapData - Текущий объект данных в памяти
-     * @param {string} hexId - Идентификатор целевого гекса
-     * @param {Object} formData - Чистые данные, собранные из формы
-     * @returns {Object} Обновленный гекс
-     */
-    updateHex(currentMapData, hexId, formData) {
-        currentMapData[hexId] = {
+    updateHex(globalMapData, hexId, formData) {
+        // Гарантируем наличие ветки hexes
+        if (!globalMapData.hexes) globalMapData.hexes = {};
+
+        globalMapData.hexes[hexId] = {
             ...formData,
-            // Если отряд в гексе ИЛИ мы там уже были — ставим true
-            hasVisited: formData.squadHere || (currentMapData[hexId] && currentMapData[hexId].hasVisited),
+            hasVisited: formData.squadHere || (globalMapData.hexes[hexId] && globalMapData.hexes[hexId].hasVisited),
             lastSaved: new Date().toLocaleString()
         };
 
-        this.saveData(currentMapData);
-        return currentMapData[hexId];
+        this.saveData(globalMapData);
+        return globalMapData.hexes[hexId];
     },
 
-    /**
-     * Поиск гекса, в котором сейчас находится отряд, и перемещение его в новый гекс
-     * @param {Object} currentMapData - Текущий объект данных в памяти
-     * @param {string} newHexId - Идентификатор нового гекса отряда
-     * @returns {string|null} Идентификатор СТАРОГО гекса отряда (нужен для анимации полета флага)
-     */
-    moveSquad(currentMapData, newHexId) {
+    moveSquad(globalMapData, newHexId) {
         let oldHexId = null;
+        if (!globalMapData.hexes) return null;
 
-        // Сбрасываем squadHere у всех гексов, где он был активен
-        for (let id in currentMapData) {
-            if (currentMapData[id].squadHere === true) {
+        for (let id in globalMapData.hexes) {
+            if (globalMapData.hexes[id].squadHere === true) {
                 if (id !== newHexId) {
-                    oldHexId = id; // запоминаем откуда летим
-                    currentMapData[id].squadHere = false;
+                    oldHexId = id;
+                    globalMapData.hexes[id].squadHere = false;
                 }
             }
         }
-
         return oldHexId;
     },
 
-    /**
-     * Полное удаление кастомных данных гекса
-     * @param {Object} currentMapData - Текущий объект данных в памяти
-     * @param {string} hexId - Идентификатор удаляемого гекса
-     */
-    deleteHex(currentMapData, hexId) {
-        delete currentMapData[hexId];
-        this.saveData(currentMapData);
+    deleteHex(globalMapData, hexId) {
+        if (globalMapData.hexes && globalMapData.hexes[hexId]) {
+            delete globalMapData.hexes[hexId];
+            this.saveData(globalMapData);
+        }
     }
 };
 

@@ -15,13 +15,14 @@ import PathManager from './path_manager.js';
 import KingdomManager from './kingdom_manager.js';
 
 let hasMoved = false;
-let mapData = StorageManager.loadData();
+//let mapData = StorageManager.loadData();
 
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 // ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
 
+    let mapData = StorageManager.loadData();
     // 1. Инициализация глобального лейаута и панелей управления
     LayoutManager.init();
     UiPanelManager.init();
@@ -33,24 +34,23 @@ document.addEventListener('DOMContentLoaded', () => {
     HexUiSyncer.init();
     PathManager.init(mapData);
 
-
-// Инициализируем королевство, передавая ссылку на mapData и метод сохранения из StorageManager
-    KingdomManager.init(mapData, () => {
-        StorageManager.saveData(mapData); // Передаем объект mapData обратно в LocalStorage
-    });
-    KingdomManager.renderUi();
-
     // 3. Инициализация и связывание менеджеров ядра (Данные -> Сетка -> Квесты)
-    HexManager.init(mapData, (hexId) => {
-        HexModal.open(hexId, mapData[hexId]);
+    HexManager.init(mapData.hexes, (hexId) => {
+        HexModal.open(hexId, mapData.hexes[hexId]);
     });
     HexManager.buildGrid(() => hasMoved);
 
     setTimeout(() => { PathManager.render(); }, 300);
 
     // Передаем фокус-вспышку из обновленного AnimationManager
-    QuestManager.init(mapData, (hexId) => AnimationManager.focusOnHex(hexId));
+    QuestManager.init(mapData.hexes, (hexId) => AnimationManager.focusOnHex(hexId));
 
+    KingdomManager.init(mapData, () => {
+        StorageManager.saveData(mapData);
+    });
+    KingdomManager.renderUi();
+
+/*
     let savedKingdom = null;
     try {
         savedKingdom = JSON.parse(localStorage.getItem('kingmaker_kingdom_data'));
@@ -59,19 +59,27 @@ document.addEventListener('DOMContentLoaded', () => {
     KingdomManager.init(savedKingdom);
     KingdomManager.renderUi();
 
+ */
+
     // Настройка импорта файлов
     FileManager.init((importedData) => {
-        mapData = importedData;
+        if (importedData && !importedData.hexes) {
+            mapData = {
+                hexes: importedData,
+                kingdom: importedData.kingdomState || null,
+                paths: importedData.__pathHistory || []
+            };
+        } else {
+            mapData = importedData;
+        }
+
         QuestManager.updateMapData(mapData);
         HexManager.updateMapData(mapData);
         PathManager.updateMapData(mapData);
         KingdomManager.updateMapData(mapData);
         HexManager.buildGrid(() => hasMoved);
         setTimeout(() => { PathManager.render(); }, 200);
-        if(importedData.kingdomState) {
-            KingdomManager.init(importedData.kingdomState);
-            KingdomManager.renderUi();
-        }
+
     });
 
     // ============================================================================
@@ -116,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Синхронно обновляем туман войны для всей сетки
-            FogManager.syncMapFog(mapData);
+            FogManager.syncMapFog(mapData.hexes);
 
             HexModal.close();
         },
