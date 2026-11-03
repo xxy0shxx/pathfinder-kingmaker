@@ -1506,74 +1506,79 @@ if (viewport && mapContainer) {
 // ============================================================================
 // ФУНКЦИЯ ДИНАМИЧЕСКОГО РАСЧЕТА МАТРИЦЫ И ИНСЕТ-КАДРИРОВАНИЯ (CLIP-PATH)
 // ============================================================================
+let isTransformPending = false;
+
 function updateMapTransform() {
-    mapContainer.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${currentZoom})`;
+    if (isTransformPending) return;
+    isTransformPending = true;
 
-    const frame = document.querySelector('.kingmaker-frame');
+    requestAnimationFrame(() => {
+        mapContainer.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${currentZoom})`;
 
-    if (frame && viewport && mapContainer) {
-        const mapRect = mapContainer.getBoundingClientRect();
-        const viewRect = viewport.getBoundingClientRect();
+        const frame = document.querySelector('.kingmaker-frame');
 
-        const cleanLeft = Math.max(viewRect.left, mapRect.left);
-        const cleanTop = Math.max(viewRect.top, mapRect.top);
-        const cleanRight = Math.min(viewRect.right, mapRect.right);
-        const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
+        if (frame && viewport && mapContainer) {
+            const mapRect = mapContainer.getBoundingClientRect();
+            const viewRect = viewport.getBoundingClientRect();
 
-        const baseWidth = Math.max(0, cleanRight - cleanLeft);
-        const baseHeight = Math.max(0, cleanBottom - cleanTop);
+            const cleanLeft = Math.max(viewRect.left, mapRect.left);
+            const cleanTop = Math.max(viewRect.top, mapRect.top);
+            const cleanRight = Math.min(viewRect.right, mapRect.right);
+            const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
 
-        if (baseWidth > 0 && baseHeight > 0) {
-            const borderWidth = 22;
-            frame.style.display = 'block';
+            const baseWidth = Math.max(0, cleanRight - cleanLeft);
+            const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
-            let frameLeft = cleanLeft - borderWidth;
-            let frameTop = cleanTop - borderWidth;
-            let frameWidth = baseWidth + (borderWidth * 2);
-            let frameHeight = baseHeight + (borderWidth * 2);
+            if (baseWidth > 0 && baseHeight > 0) {
+                const borderWidth = 22;
+                frame.style.display = 'block';
 
-            if (frameLeft < viewRect.left) {
-                frameWidth -= (viewRect.left - frameLeft);
-                frameLeft = viewRect.left;
+                let frameLeft = cleanLeft - borderWidth;
+                let frameTop = cleanTop - borderWidth;
+                let frameWidth = baseWidth + (borderWidth * 2);
+                let frameHeight = baseHeight + (borderWidth * 2);
+
+                if (frameLeft < viewRect.left) {
+                    frameWidth -= (viewRect.left - frameLeft);
+                    frameLeft = viewRect.left;
+                }
+                if (frameTop < viewRect.top) {
+                    frameHeight -= (viewRect.top - frameTop);
+                    frameTop = viewRect.top;
+                }
+                if (frameLeft + frameWidth > viewRect.right) {
+                    frameWidth = viewRect.right - frameLeft;
+                }
+                if (frameTop + frameHeight > viewRect.bottom) {
+                    frameHeight = viewRect.bottom - frameTop;
+                }
+
+                frame.style.left = `${Math.floor(frameLeft)}px`;
+                frame.style.top = `${Math.floor(frameTop)}px`;
+                frame.style.width = `${Math.ceil(frameWidth)}px`;
+                frame.style.height = `${Math.ceil(frameHeight)}px`;
+
+                if (typeof updateFrameRunes === 'function') {
+                    updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
+                }
+
+                const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
+                const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
+                const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
+                const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
+
+                mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
+            } else {
+                frame.style.display = 'none';
+                mapContainer.style.clipPath = 'none';
             }
-            if (frameTop < viewRect.top) {
-                frameHeight -= (viewRect.top - frameTop);
-                frameTop = viewRect.top;
-            }
-            if (frameLeft + frameWidth > viewRect.right) {
-                frameWidth = viewRect.right - frameLeft;
-            }
-            if (frameTop + frameHeight > viewRect.bottom) {
-                frameHeight = viewRect.bottom - frameTop;
-            }
 
-            frame.style.left = `${Math.floor(frameLeft)}px`;
-            frame.style.top = `${Math.floor(frameTop)}px`;
-            frame.style.width = `${Math.ceil(frameWidth)}px`;
-            frame.style.height = `${Math.ceil(frameHeight)}px`;
-
-            if (typeof updateFrameRunes === 'function') {
-                updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
-            }
-
-            const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
-            const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
-            const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
-            const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
-
-            mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
-        } else {
-            frame.style.display = 'none';
-            mapContainer.style.clipPath = 'none';
+            viewport.style.clipPath = 'none';
         }
-
-        viewport.style.clipPath = 'none';
-    }
+        isTransformPending = false;
+    });
 }
 
-// ============================================================================
-// ГЕНЕРАЦИЯ И СЛУЧАЙНОЕ РАСПРЕДЕЛЕНИЕ РУН ПО ПЕРИМЕТРУ РАМКИ
-// ============================================================================
 function updateFrameRunes(width, height) {
     if (width === lastFrameWidth && height === lastFrameHeight) return;
 
