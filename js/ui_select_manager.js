@@ -1,3 +1,5 @@
+import { MAP_CONFIG } from './config/app_config.js';
+
 /**
  * Модуль для управления кастомными выпадающими списками (Select UI)
  */
@@ -11,7 +13,7 @@ const UiSelectManager = {
     },
 
     /**
-     * Динамическая генерация числовых опций от 1 до 40 (СЛ и Уровни)
+     * Динамическая генерация числовых опций (СЛ и Уровни) на основе лимита из конфига
      */
     populateSelectOptions() {
         const diffContainer = document.getElementById('inpDifficultyContainer');
@@ -21,7 +23,10 @@ const UiSelectManager = {
         diffContainer.innerHTML = '';
         levelContainer.innerHTML = '';
 
-        for (let i = 1; i <= 40; i++) {
+        // Считываем максимальный предел числовых значений из конфигурации
+        const maxLevel = MAP_CONFIG.grid.maxDcLevel;
+
+        for (let i = 1; i <= maxLevel; i++) {
             const optDiff = document.createElement('div');
             optDiff.className = 'custom-option';
             optDiff.setAttribute('data-value', i);
@@ -35,7 +40,6 @@ const UiSelectManager = {
             levelContainer.appendChild(optLvl);
         }
     },
-
     /**
      * Инициализация логики открытия/закрытия списков и выбора элементов
      */
@@ -87,8 +91,6 @@ const UiSelectManager = {
 
     /**
      * Синхронизация и принудительная установка значения списка извне
-     * @param {string} selectId - ID контейнера селекта (.custom-select)
-     * @param {string|number} value - Устанавливаемое значение
      */
     setCustomSelectValue(selectId, value) {
         const selectEl = document.getElementById(selectId);

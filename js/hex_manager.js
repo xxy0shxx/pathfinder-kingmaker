@@ -1,13 +1,10 @@
+import { MAP_CONFIG } from './config/app_config.js';
+import { ColorConverter } from './utils/helpers.js';
+
 /**
  * Модуль для управления сеткой гексов, их отрисовкой, слоями и тултипами
  */
 const HexManager = {
-    hexRadius: 77.96,
-    rows: 12,
-    cols: 30,
-    offsetX: -106,
-    offsetY: 16,
-
     mapDataRef: null,
     clickableMap: null,
     visualLayer: null,
@@ -44,17 +41,6 @@ const HexManager = {
         }
         return coords.join(',');
     },
-
-    /**
-     * Вспомогательная функция перевода HEX-цвета в RGBA с прозрачностью
-     */
-    convertHexToRgba(hex, alpha) {
-        if (!hex || hex === 'transparent') return 'rgba(0,0,0,0)';
-        let r = parseInt(hex.slice(1, 3), 16);
-        let g = parseInt(hex.slice(3, 5), 16);
-        let b = parseInt(hex.slice(5, 7), 16);
-        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
-    },
     /**
      * Рендеринг всей сетки гексов и привязка событий клика
      */
@@ -64,22 +50,25 @@ const HexManager = {
         this.clickableMap.innerHTML = '';
         this.visualLayer.innerHTML = '';
 
-        const widthBetweenHexes = this.hexRadius * Math.sqrt(3);
-        const heightBetweenHexes = this.hexRadius * 1.5;
-        const hexWidth = this.hexRadius * Math.sqrt(3);
-        const hexHeight = this.hexRadius * 2;
+        // Динамически забираем параметры сетки из нашего конфига
+        const { radius, rows, cols, offsetX, offsetY } = MAP_CONFIG.grid;
 
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                let cx = this.offsetX + c * widthBetweenHexes;
-                let cy = this.offsetY + r * heightBetweenHexes;
+        const widthBetweenHexes = radius * Math.sqrt(3);
+        const heightBetweenHexes = radius * 1.5;
+        const hexWidth = radius * Math.sqrt(3);
+        const hexHeight = radius * 2;
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                let cx = offsetX + c * widthBetweenHexes;
+                let cy = offsetY + r * heightBetweenHexes;
                 if (r % 2 !== 0) { cx += widthBetweenHexes / 2; }
 
                 const hexId = 'hex_' + r + '_' + c;
 
                 const area = document.createElement('area');
                 area.setAttribute('shape', 'poly');
-                area.setAttribute('coords', this.getHexCoordsArray(cx, cy, this.hexRadius));
+                area.setAttribute('coords', this.getHexCoordsArray(cx, cy, radius));
                 area.setAttribute('href', '#');
                 area.setAttribute('id', 'area_' + hexId);
                 this.clickableMap.appendChild(area);
@@ -89,7 +78,7 @@ const HexManager = {
                 vHex.style.width = hexWidth + 'px';
                 vHex.style.height = hexHeight + 'px';
                 vHex.style.left = (cx - hexWidth / 2) + 'px';
-                vHex.style.top = (cy - this.hexRadius) + 'px';
+                vHex.style.top = (cy - radius) + 'px';
                 vHex.setAttribute('id', 'visual_' + hexId);
 
                 const hexData = this.mapDataRef[hexId];
@@ -112,14 +101,14 @@ const HexManager = {
                 });
 
                 this.attachTooltipEvents(vHex, hexId);
-                this.createSubLayers(vHex, hexId, cx, cy);
+                this.createSubLayers(vHex, hexId, cx, cy, radius);
 
                 this.visualLayer.appendChild(vHex);
             }
         }
     },
     /**
-     * Динамический сбор метаданных при наведении (Тултипы) - Начало
+     * Динамический сбор метаданных при наведении (Тултипы)
      */
     attachTooltipEvents(vHex, hexId) {
         const tooltip = document.getElementById('hexTooltip');
@@ -133,6 +122,7 @@ const HexManager = {
                 if (data.title) {
                     const star = data.explored ? '🔍 ' : '';
                     const mapIcon = data.mapMapped ? '📜 ' : '';
+
                     let statsLabel = '';
                     if (data.difficulty && data.regionLevel) {
                         statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
@@ -142,47 +132,28 @@ const HexManager = {
                         statsLabel = ` (lvl ${data.regionLevel})`;
                     }
 
-                    let typeIcon = '';
-                    if (data.type === 'landmark') typeIcon = '🏛️ ';
-                    else if (data.type === 'resource') typeIcon = '💎 ';
-                    else if (data.type === 'quest') typeIcon = '⚜️ ';
-                    else if (data.type === 'mystery') typeIcon = '❓ ';
-
-                    let terrainIcon = '';
-                    if (data.terrain === 'swamp') terrainIcon = '🐸 ';
-                    else if (data.terrain === 'forest') terrainIcon = '🌲 ';
-                    else if (data.terrain === 'water') terrainIcon = '🌊 ';
-                    else if (data.terrain === 'arctic') terrainIcon = '❄️ ';
-                    else if (data.terrain === 'mountain') terrainIcon = '⛰️ ';
-                    else if (data.terrain === 'plains') terrainIcon = '🌾 ';
+                    // Извлекаем иконки напрямую из конфигурационных словарей
+                    const typeIcon = MAP_CONFIG.types[data.type]?.icon || '';
+                    const terrainIcon = MAP_CONFIG.terrains[data.terrain]?.icon || '';
 
                     content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
                 }
+
                 let paramsBlock = '';
                 paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
                 paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '❌ <b>Карта отсутствует</b>'}</div>`;
                 if (data.squadHere) { paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`; }
-                if (data.difficulty) { paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:<b/> <span class="tooltip-value">${data.difficulty}</span></div>`; }
+                if (data.difficulty) { paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`; }
                 if (data.regionLevel) { paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`; }
 
-                if (data.type) {
-                    let typeText = ''; let tIcon = '';
-                    if (data.type === 'landmark') { tIcon = '🏛️'; typeText = 'Достопримечательность'; }
-                    if (data.type === 'resource') { tIcon = '💎'; typeText = 'Ресурс'; }
-                    if (data.type === 'quest') { tIcon = '⚜️'; typeText = 'Стандартное задание'; }
-                    if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
-                    paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> <span class="tooltip-value">${typeText}</span></div>`;
+                if (data.type && MAP_CONFIG.types[data.type]) {
+                    const tData = MAP_CONFIG.types[data.type];
+                    paramsBlock += `<div style="margin-bottom: 4px;">${tData.icon} <b>Объект:</b> <span class="tooltip-value">${tData.label}</span></div>`;
                 }
 
-                if (data.terrain) {
-                    let terrainText = ''; let terrIcon = '';
-                    if (data.terrain === 'swamp') { terrIcon = '🐸'; terrainText = 'Болото 🎲СЛ 14'; }
-                    if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес 🎲СЛ 14'; }
-                    if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода 🎲СЛ 17'; }
-                    if (data.terrain === 'arctic') { terrIcon = '❄️'; terrainText = 'Приполярье 🎲СЛ 17'; }
-                    if (data.terrain === 'mountain') { terrIcon = '⛰️'; terrainText = 'Горы 🎲СЛ 16'; }
-                    if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины 🎲СЛ 12'; }
-                    paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> <span class="tooltip-value">${terrainText}</span></div>`;
+                if (data.terrain && MAP_CONFIG.terrains[data.terrain]) {
+                    const terrData = MAP_CONFIG.terrains[data.terrain];
+                    paramsBlock += `<div style="margin-bottom: 4px;">${terrData.icon} <b>Местность:</b> <span class="tooltip-value">${terrData.label} 🎲СЛ ${terrData.dc}</span></div>`;
                 }
 
                 content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
@@ -190,7 +161,8 @@ const HexManager = {
                 if (data.text) { content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`; }
                 if (data.lastSaved) { content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`; }
 
-                tooltip.innerHTML = content; tooltip.style.display = 'block';
+                tooltip.innerHTML = content;
+                tooltip.style.display = 'block';
             }
         });
 
@@ -206,13 +178,15 @@ const HexManager = {
     /**
      * Создание внутренних DOM-слоев, индикаторов и маркеров гекса
      */
-    createSubLayers(vHex, hexId, cx, cy) {
+    createSubLayers(vHex, hexId, cx, cy, radius) {
         const data = this.mapDataRef[hexId];
 
         const shape = document.createElement('div');
         shape.className = 'hex-shape';
         shape.setAttribute('id', 'shape_' + hexId);
-        if (data && data.color) { shape.style.backgroundColor = this.convertHexToRgba(data.color, 0.37); }
+        if (data && data.color) {
+            shape.style.backgroundColor = ColorConverter.hexToRgba(data.color, 0.37);
+        }
         if (data && data.squadHere) { vHex.classList.add('squad-dark'); }
         vHex.appendChild(shape);
 
@@ -223,7 +197,7 @@ const HexManager = {
         titleText.className = 'hex-title-text';
         titleLabel.appendChild(titleText);
         titleLabel.style.left = cx + 'px';
-        titleLabel.style.top = (cy - this.hexRadius + 30) + 'px';
+        titleLabel.style.top = (cy - radius + 30) + 'px';
         this.visualLayer.appendChild(titleLabel);
 
         const statsLabel = document.createElement('div');
@@ -258,26 +232,14 @@ const HexManager = {
             }
             statsLabel.style.display = (diff || lvl) ? 'flex' : 'none';
 
-            if (data.terrain) {
+            if (data.terrain && MAP_CONFIG.terrains[data.terrain]) {
                 terrainElem.style.display = 'block';
-                let icon = '';
-                if (data.terrain === 'swamp') icon = '🐸';
-                else if (data.terrain === 'forest') icon = '🌲';
-                else if (data.terrain === 'water') icon = '🌊';
-                else if (data.terrain === 'arctic') icon = '❄️';
-                else if (data.terrain === 'mountain') icon = '⛰️';
-                else if (data.terrain === 'plains') icon = '🌾';
-                terrainElem.textContent = icon;
+                terrainElem.textContent = MAP_CONFIG.terrains[data.terrain].icon;
             }
 
-            if (data.type) {
+            if (data.type && MAP_CONFIG.types[data.type]) {
                 typeElem.style.display = 'block';
-                let icon = '';
-                if (data.type === 'landmark') icon = '🏛️';
-                else if (data.type === 'resource') icon = '💎';
-                else if (data.type === 'quest') icon = '⚜️';
-                else if (data.type === 'mystery') icon = '❓';
-                typeElem.textContent = icon;
+                typeElem.textContent = MAP_CONFIG.types[data.type].icon;
             }
 
             if (data.squadHere) { flagContainer.style.display = 'block'; flagContainer.classList.add('active-flag'); }
@@ -289,7 +251,7 @@ const HexManager = {
                 qTooltip.className = 'hex-quest-mini-tooltip';
                 qTooltip.textContent = '⚜️ ' + data.questData.title.trim();
                 qTooltip.style.left = cx + 'px';
-                qTooltip.style.top = (cy - this.hexRadius + 12) + 'px';
+                qTooltip.style.top = (cy - radius + 12) + 'px';
                 this.visualLayer.appendChild(qTooltip);
             }
         }

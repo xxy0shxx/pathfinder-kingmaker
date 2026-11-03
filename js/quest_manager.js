@@ -1,3 +1,5 @@
+import { MAP_CONFIG } from './config/app_config.js';
+
 /**
  * Модуль для управления Журналом заданий, вкладками и слухами Королевства
  */
@@ -8,8 +10,6 @@ const QuestManager = {
 
     /**
      * Инициализация менеджера квестов
-     * @param {Object} mapData - Ссылка на объект данных карты
-     * @param {Function} onHexFocus - Коллбэк для фокусировки на гексе при клике из журнала
      */
     init(mapData, onHexFocus) {
         this.mapDataRef = mapData;
@@ -21,7 +21,7 @@ const QuestManager = {
     },
 
     /**
-     * Перемещение контейнера журнала в корень body (перенесено из основного скрипта)
+     * Перемещение контейнера журнала в корень body
      */
     initDOMPlacement() {
         const questLogContainerEl = document.getElementById('questLogContainer');
@@ -42,9 +42,7 @@ const QuestManager = {
                     questLogContainerEl.classList.add('ui-collapsed');
                     const btnToggleQuests = document.getElementById('btnToggleQuests');
                     if (btnToggleQuests) {
-                        btnToggleQuests.style.setProperty('background', '', 'important');
-                        btnToggleQuests.style.setProperty('border-color', '', 'important');
-                        btnToggleQuests.style.setProperty('color', '', 'important');
+                        btnToggleQuests.style.removeAttribute('style');
                     }
                 });
                 questHeader.appendChild(closeBtn);
@@ -93,9 +91,7 @@ const QuestManager = {
                     btnToggleQuests.style.setProperty('border-color', '#dfbc6f', 'important');
                     btnToggleQuests.style.setProperty('color', '#dfbc6f', 'important');
                 } else {
-                    btnToggleQuests.style.setProperty('background', '', 'important');
-                    btnToggleQuests.style.setProperty('border-color', '', 'important');
-                    btnToggleQuests.style.setProperty('color', '', 'important');
+                    btnToggleQuests.style.removeAttribute('style');
                 }
             });
         }
@@ -107,7 +103,6 @@ const QuestManager = {
     updateMapData(newMapData) {
         this.mapDataRef = newMapData;
     },
-
     /**
      * Генерация списка заданий и слухов в дневнике
      */
@@ -150,10 +145,7 @@ const QuestManager = {
                     const questItem = document.createElement('div');
                     questItem.className = `quest-log-item status-${filterStatus}`;
 
-                    let objIcon = '⚜️';
-                    if (hex.type === 'landmark') objIcon = '🏛️';
-                    if (hex.type === 'resource') objIcon = '💎';
-                    if (hex.type === 'mystery') objIcon = '❓';
+                    const objIcon = MAP_CONFIG.types[hex.type]?.icon || '⚜️';
 
                     questItem.innerHTML = `
                         <div class="quest-item-title">${objIcon} ${hex.questData.title}</div>
@@ -173,12 +165,8 @@ const QuestManager = {
         }
 
         if (count === 0) {
-            const messages = {
-                'active': 'В вашем дневнике приключений пусто. Кажется, вы просто бездельничаете в таверне и прожигаете стартовое золото.',
-                'completed': 'Ни одного подвига за душой. Бардам буквально не о чем петь, а местные стражники все еще смотрят на вас с подозрением.',
-                'rumors': 'Тишина... Слишком подозрительная тишина. Никто не крадет коров, бандиты не грабят крестьян, а древние артефакты не светятся по ночам.'
-            };
-            listContainer.innerHTML = `<div class="quest-log-empty">${messages[filterStatus] || 'Пусто'}</div>`;
+            const emptyMessage = MAP_CONFIG.messages.questEmpty[filterStatus] || 'Пусто';
+            listContainer.innerHTML = `<div class="quest-log-empty">${emptyMessage}</div>`;
         }
     }
 };

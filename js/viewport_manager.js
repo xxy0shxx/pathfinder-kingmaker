@@ -1,3 +1,5 @@
+import { MAP_CONFIG } from './config/app_config.js';
+
 /**
  * Модуль управления вьюпортом: скролл, зум, перемещение и адаптация рамки
  */
@@ -5,9 +7,11 @@ const ViewportManager = {
     RUNE_POOL: ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'],
     lastFrameWidth: 0,
     lastFrameHeight: 0,
-    minZoom: 0.5,
-    maxZoom: 3.0,
-    currentZoom: 1.0,
+
+    minZoom: MAP_CONFIG.viewport.minZoom,
+    maxZoom: MAP_CONFIG.viewport.maxZoom,
+    currentZoom: MAP_CONFIG.viewport.defaultZoom,
+
     isDragging: false,
     hasMoved: false,
     startX: 0,
@@ -39,23 +43,17 @@ const ViewportManager = {
         window.addEventListener('resize', () => this.updateMapTransform());
 
         this.initFrameStyleControls();
-        // Первичный расчет положения
         setTimeout(() => this.updateMapTransform(), 150);
     },
 
-    /**
-     * Возвращает статус перемещения карты (чтобы HexManager знал, был ли это драг или клик)
-     */
     getHasMoved() {
         return this.hasMoved;
     },
 
-    /**
-     * Принудительный сброс флага движения
-     */
     resetHasMoved() {
         this.hasMoved = false;
     },
+
     /**
      * Привязка событий мыши (Desktop)
      */
@@ -97,7 +95,6 @@ const ViewportManager = {
             }
         }, { passive: false });
     },
-
     /**
      * Привязка тач-событий (Mobile)
      */
@@ -133,7 +130,7 @@ const ViewportManager = {
     },
 
     /**
-     * Общая математика смещения координат холста
+     * Общая математика смещения координат холста с учетом лимитов из конфигурации
      */
     processMove(pageX, pageY) {
         let newX = pageX - this.startX;
@@ -143,11 +140,10 @@ const ViewportManager = {
             this.hasMoved = true;
         }
 
-        const maxLimitX = 3840 * 1.5; const minLimitX = -3840 * 1.5;
-        const maxLimitY = 1280 * 1.1; const minLimitY = -1280 * 1.1;
+        const { minX, maxX, minY, maxY } = MAP_CONFIG.viewport.limits;
 
-        this.x = Math.max(minLimitX, Math.min(maxLimitX, newX));
-        this.y = Math.max(minLimitY, Math.min(maxLimitY, newY));
+        this.x = Math.max(minX, Math.min(maxX, newX));
+        this.y = Math.max(minY, Math.min(maxY, newY));
 
         this.updateMapTransform();
     },
@@ -200,8 +196,7 @@ const ViewportManager = {
                     frame.style.width = `${Math.ceil(frameWidth)}px`;
                     frame.style.height = `${Math.ceil(frameHeight)}px`;
 
-                        this.updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
-
+                    this.updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
 
                     const clipLeft = Math.max(0, viewRect.left - mapRect.left) / this.currentZoom;
                     const clipTop = Math.max(0, viewRect.top - mapRect.top) / this.currentZoom;
@@ -284,22 +279,18 @@ const ViewportManager = {
      */
     updateFrameRunes(width, height) {
         const currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
-
-        if (currentFrameStyle !== 'runes') {
-            const frame = document.querySelector('.kingmaker-frame');
-            if (frame) {
-                frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
-            }
-            return;
-        }
-
         const frame = document.querySelector('.kingmaker-frame');
         if (!frame) return;
 
+        if (currentFrameStyle !== 'runes') {
+            frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
+            return;
+        }
+
         frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
 
-        const step = 50;
-        const padding = 20;
+        const step = MAP_CONFIG.viewport.step;
+        const padding = MAP_CONFIG.viewport.padding;
 
         const cTop = -11;
         const cLeft = -11;
@@ -324,9 +315,7 @@ const ViewportManager = {
         for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cBottom); }
         for (let t = padding; t < innerHeight - padding; t += step) { createRune(cLeft, t); }
         for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
-    },
-
-
+    }
 };
 
 export default ViewportManager;

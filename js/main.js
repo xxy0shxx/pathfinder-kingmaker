@@ -1,26 +1,22 @@
-import SoundPlayer from '../js/sound_player.js';
-import FileManager from '../js/file_manager.js';
-import QuestManager from '../js/quest_manager.js';
-import HexManager from '../js/hex_manager.js';
-import ViewportManager from '../js/viewport_manager.js';
-import UiSelectManager from '../js/ui_select_manager.js';
+import SoundPlayer from './sound_player.js';
+import FileManager from './file_manager.js';
+import QuestManager from './quest_manager.js';
+import HexManager from './hex_manager.js';
+import ViewportManager from './viewport_manager.js';
+import UiSelectManager from './ui_select_manager.js';
+import { MAP_CONFIG } from './config/app_config.js';
+import { ColorConverter } from './utils/helpers.js';
 
-const hexRadius = 77.96;
-
-let isDragging = false;
 let hasMoved = false;
-
 const visualLayer = document.getElementById('visualLayer');
 const modal = document.getElementById('hexMenu');
 const difficultySelect = document.getElementById('inpDifficulty');
-
 let currentHexId = null;
 let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 
 // ============================================================================
-// ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА
+// ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 // ============================================================================
-
 document.addEventListener('DOMContentLoaded', () => {
     groupMenuFields();
     SoundPlayer.init();
@@ -34,13 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     FileManager.init((importedData) => {
         mapData = importedData;
-
         QuestManager.updateMapData(mapData);
-
         HexManager.updateMapData(mapData);
         HexManager.buildGrid(() => hasMoved);
     });
-
     const btnDeleteEl = document.getElementById('btnDelete');
     const btnCancelEl = document.getElementById('btnCancel');
     const btnSaveEl = document.getElementById('btnSave');
@@ -62,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initUnifiedUICollapse();
-
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
     if (btnToggleMapMode) {
         let currentMode = 'global';
@@ -105,9 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleTooltips.style.setProperty('border-radius', '4px', 'important');
     btnToggleTooltips.style.setProperty('cursor', 'pointer', 'important');
     btnToggleTooltips.style.setProperty('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.5)', 'important');
-    btnToggleTooltips.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
-    btnToggleTooltips.style.setProperty('border', '1px solid #3e6349', 'important');
-    btnToggleTooltips.style.setProperty('color', '#dfbc6f', 'important');
+    btnToggleTooltips.style.background = 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)';
+    btnToggleTooltips.style.borderColor = '#3e6349';
+    btnToggleTooltips.style.color = '#dfbc6f';
     btnToggleTooltips.style.setProperty('opacity', '0', 'important');
     btnToggleTooltips.style.setProperty('pointer-events', 'none', 'important');
     btnToggleTooltips.style.setProperty('transition', 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', 'important');
@@ -135,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnToggleTooltips.style.color = '#f7baba';
         }
     });
-
     const legendContainer = document.querySelector('.legend-container');
     const playerContainer = document.querySelector('.music-controller');
     const legendHeader = document.querySelector('.legend-header');
@@ -193,22 +184,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ПРИВЕДЕНИЯ ФОРМАТОВ ЦВЕТА
+// ИНИЦИАЛИЗАЦИЯ ПАЛИТРЫ ЦВЕТНЫХ КНОПОК-ПРЕСЕТОВ ГЕКСА ИЗ КОНФИГУРАЦИИ
 // ============================================================================
-function convertHexToRgba(hex, alpha) {
-    if (!hex || hex === 'transparent') return 'rgba(0,0,0,0)';
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-    return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
-}
+function initColorPresets() {
+    const container = document.getElementById('colorPresetsContainer');
+    if (!container || container.children.length > 0) return;
 
-function convertHexToRgbStandard(hex) {
-    if (hex === 'transparent' || !hex) return '';
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-    return `rgb(${r}, ${g}, ${b})`;
+    MAP_CONFIG.colorPresets.forEach(p => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'color-preset-btn';
+        if (p.color === 'transparent') {
+            b.classList.add('transparent-preset');
+            b.textContent = p.label;
+        } else {
+            b.style.backgroundColor = p.color;
+        }
+        b.addEventListener('click', () => {
+            document.getElementById('inpColor').value = p.color;
+            container.querySelectorAll('.color-preset-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+        });
+        container.appendChild(b);
+    });
 }
 // ============================================================================
 // ФУНКЦИЯ ОТКРЫТИЯ МЕНЮ И СИНХРОНИЗАЦИИ ДАННЫХ ФОРМЫ С ХРАНИЛИЩЕМ
@@ -260,7 +258,6 @@ function openMenu(hexId) {
         UiSelectManager.setCustomSelectValue('customSelectDifficulty', '');
         UiSelectManager.setCustomSelectValue('customSelectRegionLevel', '');
     }
-
     if (inpSquadHere) inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
     if (inpColor) inpColor.value = currentColor;
 
@@ -268,7 +265,7 @@ function openMenu(hexId) {
         btn.classList.remove('active');
         if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
             btn.classList.add('active');
-        } else if (btn.style.backgroundColor === convertHexToRgbStandard(currentColor)) {
+        } else if (btn.style.backgroundColor === ColorConverter.hexToRgbStandard(currentColor)) {
             btn.classList.add('active');
         }
     });
@@ -332,15 +329,10 @@ function closeMenu() {
 
     modal.classList.remove('open');
     currentHexId = null;
-
-    setTimeout(() => {
-    }, 300);
 }
-
 // ============================================================================
 // ФУНКЦИЯ СОХРАНЕНИЯ ДАННЫХ ГЕКСА
 // ============================================================================
-
 function saveMenu() {
     if (!currentHexId) return;
 
@@ -376,7 +368,6 @@ function saveMenu() {
             }
         }
     }
-
     if (currentHexElement) {
         if (squadHereVal) {
             currentHexElement.classList.add('squad-dark');
@@ -416,7 +407,7 @@ function saveMenu() {
         const allFramed = visualLayer.querySelectorAll('.hex-region-stats-framed');
         let currentHexStatsLabel = null;
         const currentHexLeft = parseFloat(currentHexElement.style.left) + (parseFloat(currentHexElement.style.width) / 2);
-        const currentHexTop = parseFloat(currentHexElement.style.top) + hexRadius + 48;
+        const currentHexTop = parseFloat(currentHexElement.style.top) + MAP_CONFIG.grid.radius + 48;
 
         allFramed.forEach(el => {
             const elLeft = parseFloat(el.style.left) || 0;
@@ -436,19 +427,13 @@ function saveMenu() {
             }
             currentHexStatsLabel.style.display = (diffVal || regionLevelVal) ? 'flex' : 'none';
         }
-
         const typeElem = currentHexElement.querySelector('.type-icon-container');
         if (typeElem) {
             if (typeVal === "") {
                 typeElem.style.display = 'none';
             } else {
                 typeElem.style.display = 'block';
-                let icon = '';
-                if (typeVal === 'landmark') icon = '🏛️';
-                else if (typeVal === 'resource') icon = '💎';
-                else if (typeVal === 'quest') icon = '⚜️';
-                else if (typeVal === 'mystery') icon = '❓';
-                typeElem.textContent = icon;
+                typeElem.textContent = MAP_CONFIG.types[typeVal]?.icon || '';
             }
         }
 
@@ -458,14 +443,7 @@ function saveMenu() {
                 terrainElem.style.display = 'none';
             } else {
                 terrainElem.style.display = 'block';
-                let icon = '';
-                if (terrainVal === 'swamp') icon = '🐸';
-                else if (terrainVal === 'forest') icon = '🌲';
-                else if (terrainVal === 'water') icon = '🌊';
-                else if (terrainVal === 'arctic') icon = '❄️';
-                else if (terrainVal === 'mountain') icon = '⛰️';
-                else if (terrainVal === 'plains') icon = '🌾';
-                terrainElem.textContent = icon;
+                terrainElem.textContent = MAP_CONFIG.terrains[terrainVal]?.icon || '';
             }
         }
 
@@ -480,7 +458,6 @@ function saveMenu() {
             mappedElem.style.display = mapMappedVal ? 'block' : 'none';
             mappedElem.textContent = mapMappedVal ? '📜' : '';
         }
-
         const flagElem = currentHexElement.querySelector('.squad-flag-container');
         if (flagElem) {
             if (squadHereVal) {
@@ -574,10 +551,9 @@ function saveMenu() {
             }
         }
     }
-
     if (currentShape) {
         if (colorVal !== 'transparent') {
-            currentShape.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
+            currentShape.style.backgroundColor = ColorConverter.hexToRgba(colorVal, 0.37);
         } else {
             currentShape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
         }
@@ -625,7 +601,6 @@ function saveMenu() {
 
     closeMenu();
 }
-
 // ============================================================================
 // СЛУШАТЕЛИ КНОПОК ФОРМЫ И ЛОГИКА ПОЛНОГО УДАЛЕНИЯ ДАННЫХ ГЕКСА
 // ============================================================================
@@ -658,7 +633,6 @@ if (btnDelete) {
         closeMenu();
     });
 }
-
 if (modal) {
     modal.addEventListener('click', function(e) {
         if (e.target === modal) { closeMenu(); }
@@ -671,121 +645,6 @@ if (mapImg) {
         if (!hasMoved) closeMenu();
     });
 }
-
-// ============================================================================
-// ИНИЦИАЛИЗАЦИЯ ПАЛИТРЫ ЦВЕТНЫХ КНОПОК-ПРЕСЕТОВ ГЕКСА
-// ============================================================================
-function initColorPresets() {
-    const container = document.getElementById('colorPresetsContainer');
-    if (!container || container.children.length > 0) return;
-
-    const presets = [
-        { color: 'transparent', label: '✖' },
-        { color: '#2ecc71', label: '' },
-        { color: '#3498db', label: '' },
-        { color: '#e74c3c', label: '' },
-        { color: '#f1c40f', label: '' },
-        { color: '#9b59b6', label: '' },
-        { color: '#e67e22', label: '' }
-    ];
-
-    presets.forEach(p => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'color-preset-btn';
-        if(p.color === 'transparent') {
-            b.classList.add('transparent-preset');
-            b.textContent = p.label;
-        } else {
-            b.style.backgroundColor = p.color;
-        }
-        b.addEventListener('click', () => {
-            document.getElementById('inpColor').value = p.color;
-            container.querySelectorAll('.color-preset-btn').forEach(x => x.classList.remove('active'));
-            b.classList.add('active');
-        });
-        container.appendChild(b);
-    });
-}
-
-// ============================================================================
-// ИНИЦИАЛИЗАЦИЯ И НАЗНАЧЕНИЕ СОБЫТИЙ ДЛЯ КНОПОК ИЗ HTML
-// ============================================================================
-
-function initUnifiedUICollapse() {
-    const rightPanel = document.querySelector('.right-controls-panel');
-    const questLog = document.getElementById('questLogContainer');
-    const btnToggleQuests = document.getElementById('btnToggleQuests');
-    const masterBtn = document.getElementById('btnMasterToggle');
-
-    if (btnToggleQuests && questLog) {
-        btnToggleQuests.replaceWith(btnToggleQuests.cloneNode(true));
-
-        const activeBtnToggleQuests = document.getElementById('btnToggleQuests');
-        activeBtnToggleQuests.addEventListener('click', (e) => {
-            e.stopPropagation();
-
-            const isLogCollapsed = questLog.classList.toggle('ui-collapsed');
-            if (!isLogCollapsed) {
-                QuestManager.render();
-                activeBtnToggleQuests.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
-                activeBtnToggleQuests.style.setProperty('border-color', '#dfbc6f', 'important');
-                activeBtnToggleQuests.style.setProperty('color', '#dfbc6f', 'important');
-            } else {
-                activeBtnToggleQuests.style.setProperty('background', '', 'important');
-                activeBtnToggleQuests.style.setProperty('border-color', '', 'important');
-                activeBtnToggleQuests.style.setProperty('color', '', 'important');
-            }
-        });
-    }
-
-    if (masterBtn && rightPanel) {
-        rightPanel.classList.remove('ui-expanded');
-
-        masterBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isExpanded = rightPanel.classList.toggle('ui-expanded');
-
-            const monolithWrapper = document.querySelector('.music-player-monolith-wrapper');
-            if (monolithWrapper) {
-                monolithWrapper.classList.toggle('ui-expanded', isExpanded);
-            }
-
-            if (!isExpanded && questLog) {
-                questLog.classList.add('ui-collapsed');
-                const activeBtnToggleQuests = document.getElementById('btnToggleQuests');
-                if (activeBtnToggleQuests) {
-                    activeBtnToggleQuests.style.setProperty('background', '', 'important');
-                    activeBtnToggleQuests.style.setProperty('border-color', '', 'important');
-                    activeBtnToggleQuests.style.setProperty('color', '', 'important');
-                }
-            }
-            masterBtn.classList.toggle('ui-active', isExpanded);
-        });
-    }
-
-    const minimizeBtnEl = document.querySelector('.wa-minimize');
-    if (minimizeBtnEl) {
-        minimizeBtnEl.style.cursor = 'pointer';
-        minimizeBtnEl.title = 'Скрыть панель легенды и плеера';
-
-        minimizeBtnEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-
-            const monolithWrapperEl = document.querySelector('.music-player-monolith-wrapper');
-            if (monolithWrapperEl) {
-                monolithWrapperEl.classList.remove('ui-expanded');
-            }
-
-            if (masterBtn) {
-                masterBtn.classList.remove('ui-active');
-            }
-
-        });
-    }
-}
-
 // ============================================================================
 // СИСТЕМА ФОКУСИРОВКИ И ФЛЭШ-ПОДСВЕТКИ ВЫБРАННОГО ГЕКСА
 // ============================================================================
@@ -794,8 +653,6 @@ function focusOnHex(hexId) {
     if (!vHex) return;
 
     ViewportManager.resetHasMoved();
-
-    isDragging = false;
     hasMoved = false;
 
     vHex.classList.add('hex-focused-flash');
@@ -833,7 +690,35 @@ function groupMenuFields() {
         rowStats.className = 'box-row-combined';
         boxDiff.parentNode.insertBefore(rowStats, boxDiff);
         rowStats.appendChild(boxDiff);
-        rowStats.appendChild(boxLevel);
+        rowStats.appendChild(boxLevel); // Исправлено: rowStats вместо rowObjects
+    }
+}
+
+// ============================================================================
+// УПРАВЛЕНИЕ СВОРАЧИВАНИЕМ ИНТЕРФЕЙСА
+// ============================================================================
+function initUnifiedUICollapse() {
+    const rightPanel = document.querySelector('.right-controls-panel');
+    const questLog = document.getElementById('questLogContainer');
+    const masterBtn = document.getElementById('btnMasterToggle');
+
+    if (masterBtn && rightPanel) {
+        rightPanel.classList.remove('ui-expanded');
+
+        masterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isExpanded = rightPanel.classList.toggle('ui-expanded');
+
+            const monolithWrapper = document.querySelector('.music-player-monolith-wrapper');
+            if (monolithWrapper) {
+                monolithWrapper.classList.toggle('ui-expanded', isExpanded);
+            }
+
+            if (!isExpanded && questLog) {
+                questLog.classList.add('ui-collapsed');
+            }
+            masterBtn.classList.toggle('ui-active', isExpanded);
+        });
     }
 }
 
@@ -841,11 +726,4 @@ window.addEventListener('resize', () => {
     ViewportManager.updateMapTransform();
 });
 
-if (modal) {
-    ['mousedown', 'mousemove', 'mouseup', 'click', 'touchstart', 'touchmove', 'touchend'].forEach(eventType => {
-        modal.addEventListener(eventType, (e) => {
-            if (e.target === modal) return;
-            e.stopPropagation();
-        }, { passive: true });
-    });
-}
+window.closeMenu = closeMenu;
