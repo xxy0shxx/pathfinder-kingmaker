@@ -1299,19 +1299,36 @@ body {
     overflow: visible !important;
     transition: background 0.25s ease, box-shadow 0.25s ease !important;
 }
+
 .right-controls-panel.ui-expanded {
-    background: radial-gradient(circle,
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    position: fixed !important;
+}
+
+.right-controls-panel.ui-expanded::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: -12px !important;
+    z-index: -1 !important;
+    border-radius: 12px !important;
+    background: linear-gradient(180deg,
     rgba(255, 255, 255, 0.95) 0%,
     #ffeaa7 40%,
     rgba(241, 196, 15, 0.8) 80%,
     rgba(223, 188, 111, 0.4) 100%
     ) !important;
-    border: none !important;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.9),
-    0 0 40px #ffd875,
-    0 0 70px rgba(223, 188, 111, 0.8),
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.9),
+    0 0 25px #ffd875,
     inset 0 0 15px rgba(255, 255, 255, 1),
-    inset 0 0 35px #f1c40f !important;
+    inset 0 0 25px #f1c40f !important;
+    filter: blur(8px) !important;
+    pointer-events: none !important;
+}
+
+.right-controls-panel.ui-expanded::after {
+    content: none !important;
 }
 
 .right-controls-panel button {
