@@ -1790,6 +1790,23 @@ function initUnifiedUICollapse() {
         });
     }
 
+    const titleBarEl = document.querySelector('.winamp-title-bar');
+
+    if (titleBarEl) {
+        titleBarEl.style.cursor = 'pointer';
+        titleBarEl.title = 'Скрыть панель легенды и плеера';
+
+        titleBarEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            const monolithWrapperEl = document.querySelector('.music-player-monolith-wrapper');
+            if (monolithWrapperEl) {
+                monolithWrapperEl.classList.remove('ui-expanded');
+            }
+
+        });
+    }
+
     if (typeof initQuestLogTabs === 'function') {
         initQuestLogTabs();
     }
