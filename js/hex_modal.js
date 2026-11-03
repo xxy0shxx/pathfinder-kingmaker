@@ -1,4 +1,4 @@
-//import { MAP_CONFIG } from './config/app_config.js';
+import { MAP_CONFIG } from './config/app_config.js';
 import UiSelectManager from './ui_select_manager.js';
 
 /**
@@ -12,9 +12,6 @@ const HexModal = {
 
     /**
      * Инициализация менеджера модального окна
-     * @param {Object} callbacks - Объект с функциями обратного вызова
-     * @param {Function} callbacks.onSave - Вызывается при нажатии "Сохранить"
-     * @param {Function} callbacks.onDelete - Вызывается при нажатии "Удалить"
      */
     init({ onSave, onDelete }) {
         this.modal = document.getElementById('hexMenu');
@@ -23,10 +20,64 @@ const HexModal = {
 
         if (!this.modal) return;
 
-        // Эти методы мы пошагово добавим в следующих частях
         this.groupMenuFields();
+        this.assembleActionButtons();
+        this.initColorPresets();
         this.attachEvents();
     },
+    initColorPresets() {
+        const container = document.getElementById('colorPresetsContainer');
+        // Если контейнера нет или кнопки уже сгенерированы — выходим
+        if (!container || container.children.length > 0) return;
+
+        MAP_CONFIG.colorPresets.forEach(p => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'color-preset-btn';
+
+            if (p.color === 'transparent') {
+                b.classList.add('transparent-preset');
+                b.textContent = p.label;
+            } else {
+                b.style.backgroundColor = p.color;
+            }
+
+            b.addEventListener('click', () => {
+                document.getElementById('inpColor').value = p.color;
+                container.querySelectorAll('.color-preset-btn').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+            });
+
+            container.appendChild(b);
+        });
+    },
+    /**
+     * DOM-хак: Красивая перегруппировка кнопок модального окна в ровный Flex-контейнер
+     * (Инкапсулировано внутри модуля, полностью очищает main.js)
+     */
+    assembleActionButtons() {
+        const btnDeleteEl = document.getElementById('btnDelete');
+        const btnCancelEl = document.getElementById('btnCancel');
+        const btnSaveEl = document.getElementById('btnSave');
+        const buttonsContainer = document.querySelector('.buttons');
+
+        if (buttonsContainer && btnDeleteEl && btnCancelEl && btnSaveEl) {
+            buttonsContainer.innerHTML = '';
+
+            const boxWrapper = document.createElement('div');
+            boxWrapper.className = 'box';
+            boxWrapper.style.width = '100%';
+            boxWrapper.style.display = 'flex';
+            boxWrapper.style.gap = '15px';
+
+            boxWrapper.appendChild(btnDeleteEl);
+            boxWrapper.appendChild(btnCancelEl);
+            boxWrapper.appendChild(btnSaveEl);
+
+            buttonsContainer.appendChild(boxWrapper);
+        }
+    },
+
     /**
      * Группировка строк селекторов в комбинированные строки (2 колонки)
      */
@@ -117,7 +168,7 @@ const HexModal = {
 
         if (inpSquadHere) inpSquadHere.checked = hexData ? !!hexData.squadHere : false;
         if (inpColor) inpColor.value = currentColor;
-        // Синхронизация пресетов цвета и настройка тач-полей (методы добавим в следующих частях)
+
         this.syncColorPresets(currentColor);
         this.setupTouchInterface(inpTitle, inpDesc, inpRumorDesc);
 
@@ -137,6 +188,7 @@ const HexModal = {
 
         if (this.modal) this.modal.classList.add('open');
     },
+
     /**
      * Закрытие меню с дефокус-очисткой текстовых полей
      */
@@ -147,6 +199,7 @@ const HexModal = {
         if (this.modal) this.modal.classList.remove('open');
         this.currentHexId = null;
     },
+
     /**
      * Сбор введенных в форму данных и передача их наружу через callback
      */
@@ -155,7 +208,6 @@ const HexModal = {
 
         const questTitleVal = document.getElementById('inpQuestTitle').value.trim();
 
-        // Формируем чистый объект состояния на основе полей формы
         const formData = {
             title: document.getElementById('inpTitle').value,
             text: document.getElementById('inpDesc').value,
@@ -179,6 +231,7 @@ const HexModal = {
             this.onSaveCallback(this.currentHexId, formData);
         }
     },
+
     /**
      * Удаление данных гекса через callback
      */
@@ -188,6 +241,7 @@ const HexModal = {
             this.onDeleteCallback(this.currentHexId);
         }
     },
+
     /**
      * Синхронизация активной круглой кнопки палитры цветов
      */
@@ -214,6 +268,7 @@ const HexModal = {
         const b = parseInt(hex.substring(4, 6), 16);
         return `rgb(${r}, ${g}, ${b})`;
     },
+
     /**
      * Перегрузка полей ввода под prompt() на мобильных тач-устройствах
      */
@@ -242,6 +297,7 @@ const HexModal = {
             };
         }
     },
+
     /**
      * Навешивание стандартных слушателей событий на кнопки внутри модального окна
      */
