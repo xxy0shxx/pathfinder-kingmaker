@@ -1,4 +1,4 @@
-import { MAP_CONFIG } from './config/app_config.js';
+//import { MAP_CONFIG } from './config/app_config.js';
 import UiSelectManager from './ui_select_manager.js';
 
 /**
