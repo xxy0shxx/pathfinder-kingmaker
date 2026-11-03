@@ -29,6 +29,13 @@ const ViewportManager = {
         this.attachMouseEvents();
         this.attachTouchEvents();
 
+        this.viewport.addEventListener('click', (e) => {
+            if (this.getHasMoved()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+
         window.addEventListener('resize', () => this.updateMapTransform());
 
         this.initFrameStyleControls();
@@ -72,7 +79,7 @@ const ViewportManager = {
 
         window.addEventListener('mouseup', () => {
             this.isDragging = false;
-            setTimeout(() => { this.hasMoved = false; }, 50);
+            setTimeout(() => { this.hasMoved = false; }, 20);
         });
 
         this.viewport.addEventListener('mouseleave', () => {
@@ -117,7 +124,7 @@ const ViewportManager = {
 
         this.viewport.addEventListener('touchend', () => {
             this.isDragging = false;
-            setTimeout(() => { this.hasMoved = false; }, 50);
+            setTimeout(() => { this.hasMoved = false; }, 20);
         });
 
         this.viewport.addEventListener('touchcancel', () => {

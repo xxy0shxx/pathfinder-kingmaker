@@ -98,7 +98,9 @@ const HexManager = {
                 }
 
                 vHex.addEventListener('click', (e) => {
-                    e.preventDefault(); e.stopPropagation();
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     if (hasMovedCheck()) return;
 
                     const modal = document.getElementById('hexMenu');
