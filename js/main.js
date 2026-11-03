@@ -1,5 +1,6 @@
 import SoundPlayer from '../js/sound_player.js';
 import FileManager from '../js/file_manager.js';
+import QuestManager from '../js/quest_manager.js';
 
 const hexRadius = 77.96;
 const rows = 12;
@@ -32,23 +33,34 @@ const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ'
 let lastFrameWidth = 0;
 let lastFrameHeight = 0;
 let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
-let currentQuestFilter = 'active';
 
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА
 // ============================================================================
 
+
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Базовая группировка полей и инициализация внутренних систем
     groupMenuFields();
     SoundPlayer.init();
     initColorPresets();
     populateDifficultySelect();
 
+    // 2. Инициализация менеджера квестов
+    // Передаем текущие данные карты и функцию фокуса для обратного вызова при клике на квест
+    QuestManager.init(mapData, focusOnHex);
+
+    // 3. Настройка менеджера файлов (импорт/экспорт)
     FileManager.init((importedData) => {
         mapData = importedData;
+
+        // Обязательно синхронизируем новые данные с модулем квестов при импорте файла
+        QuestManager.updateMapData(mapData);
+
         buildHexGrid();
     });
 
+    // 4. Пересборка контейнера кнопок управления модального окна (Удалить, Отмена, Сохранить)
     const btnDeleteEl = document.getElementById('btnDelete');
     const btnCancelEl = document.getElementById('btnCancel');
     const btnSaveEl = document.getElementById('btnSave');
@@ -69,15 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonsContainer.appendChild(boxWrapper);
     }
 
-    const questLogContainerEl = document.getElementById('questLogContainer');
-    if (questLogContainerEl) {
-        document.body.appendChild(questLogContainerEl);
-    }
-
+    // 5. Отрисовка сетки, рамок и интерфейса панелей
     buildHexGrid();
     initFrameStyleControls();
     initUnifiedUICollapse();
 
+    // 6. Логика переключения режима карты (Глобальная / Лагерь)
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
     if (btnToggleMapMode) {
         let currentMode = 'global';
@@ -101,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 7. Создание и настройка кнопки переключения тултипов квестов
     const btnToggleTooltips = document.createElement('button');
     btnToggleTooltips.type = 'button';
     btnToggleTooltips.id = 'btnToggleTooltips';
@@ -146,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 8. Сборка монолита аудиоплеера и легенды
     const legendContainer = document.querySelector('.legend-container');
     const playerContainer = document.querySelector('.music-controller');
     const legendHeader = document.querySelector('.legend-header');
@@ -204,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (frame) frame.style.opacity = '1';
     }, 150);
 });
+
 
 
 // ============================================================================
@@ -777,6 +789,7 @@ function closeMenu() {
 // ============================================================================
 // ФУНКЦИЯ СОХРАНЕНИЯ ДАННЫХ ГЕКСА
 // ============================================================================
+
 function saveMenu() {
     if (!currentHexId) return;
 
@@ -793,7 +806,6 @@ function saveMenu() {
     const questTitleVal = document.getElementById('inpQuestTitle').value.trim();
     const questDescVal = document.getElementById('inpQuestDesc').value.trim();
     const questStatusVal = document.getElementById('inpQuestStatus').checked ? 'completed' : 'active';
-
     const rumorTextVal = document.getElementById('inpRumorDesc').value.trim();
 
     const currentHexElement = document.getElementById('visual_' + currentHexId);
@@ -850,8 +862,6 @@ function saveMenu() {
             }
         }
 
-        const sLabel = visualLayer.querySelector(`.hex-region-stats-framed[id^="title_label_"][style*="${parseFloat(currentHexElement.style.top) + 24 + hexRadius}px"]`) ||
-            document.getElementById('visual_' + currentHexId)?.parentNode?.querySelector(`.hex-region-stats-framed`);
         const allFramed = visualLayer.querySelectorAll('.hex-region-stats-framed');
         let currentHexStatsLabel = null;
         const currentHexLeft = parseFloat(currentHexElement.style.left) + (parseFloat(currentHexElement.style.width) / 2);
@@ -874,19 +884,6 @@ function saveMenu() {
                 else sTextNode.textContent = '';
             }
             currentHexStatsLabel.style.display = (diffVal || regionLevelVal) ? 'flex' : 'none';
-        }
-
-        if (sLabel) {
-            if (diffVal && regionLevelVal) {
-                sLabel.textContent = `🎲${diffVal}💀${regionLevelVal}`;
-            } else if (diffVal) {
-                sLabel.textContent = `🎲${diffVal}`;
-            } else if (regionLevelVal) {
-                sLabel.textContent = `💀${regionLevelVal}`;
-            } else {
-                sLabel.textContent = '';
-            }
-            sLabel.style.display = (diffVal || regionLevelVal) ? 'block' : 'none';
         }
 
         const typeElem = currentHexElement.querySelector('.type-icon-container');
@@ -996,16 +993,13 @@ function saveMenu() {
 
                     setTimeout(() => {
                         flyingFlag.style.animation = 'none';
-
                         flyingFlag.style.transition = 'transform 0.05s ease-out';
                         flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
-
                         createBurst(targetX, targetY);
                     }, 1300);
 
                     setTimeout(() => {
                         flyingFlag.remove();
-
                         flagElem.style.display = 'block';
                         flagElem.style.animation = 'flagAppear 0.05s forwards';
 
@@ -1015,13 +1009,8 @@ function saveMenu() {
                         }, 50);
                     }, 1300);
 
-                    setTimeout(() => {
-                        createBurst(targetX - 45, targetY + 40);
-                    }, 1430);
-
-                    setTimeout(() => {
-                        createBurst(targetX + 45, targetY - 40);
-                    }, 1610);
+                    setTimeout(() => { createBurst(targetX - 45, targetY + 40); }, 1430);
+                    setTimeout(() => { createBurst(targetX + 45, targetY - 40); }, 1610);
 
                 } else {
                     flagElem.style.display = 'block';
@@ -1068,8 +1057,7 @@ function saveMenu() {
 
     const questLog = document.getElementById('questLogContainer');
     if (questLog && !questLog.classList.contains('ui-collapsed')) {
-        const activeTab = document.querySelector('.quest-tab-btn.active');
-        renderQuestLog(activeTab && activeTab.id === 'tabCompletedQuests' ? 'completed' : 'active');
+        QuestManager.render();
     }
 
     for (let id in mapData) {
@@ -1488,76 +1476,30 @@ updateFrameRunes = function(width, height) {
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ И НАЗНАЧЕНИЕ СОБЫТИЙ ДЛЯ КНОПОК ИЗ HTML
 // ============================================================================
+
 function initUnifiedUICollapse() {
-    const player = document.querySelector('.music-controller');
     const rightPanel = document.querySelector('.right-controls-panel');
     const questLog = document.getElementById('questLogContainer');
     const btnToggleQuests = document.getElementById('btnToggleQuests');
-    const btnToggleMapMode = document.getElementById('btnToggleMapMode');
-    const btnToggleTooltips = document.getElementById('btnToggleTooltips');
     const masterBtn = document.getElementById('btnMasterToggle');
 
-    const filter = (typeof currentQuestFilter !== 'undefined') ? currentQuestFilter : 'active';
-
-    if (questLog) {
-        const questHeader = questLog.querySelector('.quest-log-header');
-        if (questHeader && !questHeader.querySelector('.btn-close-quest-log')) {
-            const closeBtn = document.createElement('button');
-            closeBtn.type = 'button';
-            closeBtn.className = 'btn-close-quest-log';
-            closeBtn.innerHTML = '×';
-            closeBtn.title = 'Закрыть журнал заданий';
-
-            closeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                questLog.classList.add('ui-collapsed');
-                if (btnToggleQuests) {
-                    btnToggleQuests.style.setProperty('background', '', 'important');
-                    btnToggleQuests.style.setProperty('border-color', '', 'important');
-                    btnToggleQuests.style.setProperty('color', '', 'important');
-                }
-            });
-
-            questHeader.appendChild(closeBtn);
-        }
-    }
-
-    if (btnToggleTooltips) {
-        btnToggleTooltips.addEventListener('click', () => {
-            const visualLayerEl = document.getElementById('visualLayer');
-            if (visualLayerEl) {
-                visualLayerEl.classList.toggle('hide-quest-tooltips');
-            }
-        });
-    }
-
-    if (btnToggleMapMode) {
-        let currentMode = 'global';
-        btnToggleMapMode.addEventListener('click', () => {
-            if (currentMode === 'global') {
-                currentMode = 'camp';
-                btnToggleMapMode.innerHTML = '⛺';
-                btnToggleMapMode.title = 'Переключить на глобальную карту';
-            } else {
-                currentMode = 'global';
-                btnToggleMapMode.innerHTML = '🗺️';
-                btnToggleMapMode.title = 'Переключить на карту лагеря';
-            }
-        });
-    }
-
     if (btnToggleQuests && questLog) {
-        btnToggleQuests.addEventListener('click', () => {
+        btnToggleQuests.replaceWith(btnToggleQuests.cloneNode(true));
+
+        const activeBtnToggleQuests = document.getElementById('btnToggleQuests');
+        activeBtnToggleQuests.addEventListener('click', (e) => {
+            e.stopPropagation();
+
             const isLogCollapsed = questLog.classList.toggle('ui-collapsed');
             if (!isLogCollapsed) {
-                if (typeof renderQuestLog === 'function') renderQuestLog(filter);
-                btnToggleQuests.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
-                btnToggleQuests.style.setProperty('border-color', '#dfbc6f', 'important');
-                btnToggleQuests.style.setProperty('color', '#dfbc6f', 'important');
+                QuestManager.render();
+                activeBtnToggleQuests.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+                activeBtnToggleQuests.style.setProperty('border-color', '#dfbc6f', 'important');
+                activeBtnToggleQuests.style.setProperty('color', '#dfbc6f', 'important');
             } else {
-                btnToggleQuests.style.setProperty('background', '', 'important');
-                btnToggleQuests.style.setProperty('border-color', '', 'important');
-                btnToggleQuests.style.setProperty('color', '', 'important');
+                activeBtnToggleQuests.style.setProperty('background', '', 'important');
+                activeBtnToggleQuests.style.setProperty('border-color', '', 'important');
+                activeBtnToggleQuests.style.setProperty('color', '', 'important');
             }
         });
     }
@@ -1568,6 +1510,7 @@ function initUnifiedUICollapse() {
         masterBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const isExpanded = rightPanel.classList.toggle('ui-expanded');
+
             const monolithWrapper = document.querySelector('.music-player-monolith-wrapper');
             if (monolithWrapper) {
                 monolithWrapper.classList.toggle('ui-expanded', isExpanded);
@@ -1575,18 +1518,12 @@ function initUnifiedUICollapse() {
 
             if (!isExpanded && questLog) {
                 questLog.classList.add('ui-collapsed');
-                if (btnToggleQuests) {
-                    btnToggleQuests.style.setProperty('background', '', 'important');
-                    btnToggleQuests.style.setProperty('border-color', '', 'important');
-                    btnToggleQuests.style.setProperty('color', '', 'important');
-                }
             }
             masterBtn.classList.toggle('ui-active', isExpanded);
         });
     }
 
     const minimizeBtnEl = document.querySelector('.wa-minimize');
-
     if (minimizeBtnEl) {
         minimizeBtnEl.style.cursor = 'pointer';
         minimizeBtnEl.title = 'Скрыть панель легенды и плеера';
@@ -1599,114 +1536,16 @@ function initUnifiedUICollapse() {
             if (monolithWrapperEl) {
                 monolithWrapperEl.classList.remove('ui-expanded');
             }
-        });
-    }
-
-    if (typeof initQuestLogTabs === 'function') {
-        initQuestLogTabs();
-    }
-}
-
-// ============================================================================
-// ИНИЦИАЛИЗАЦИЯ ВКЛАДОК ЖУРНАЛА ЗАДАНИЙ (АКТИВНЫЕ / ЗАВЕРШЕННЫЕ / СЛУХИ)
-// ============================================================================
-function initQuestLogTabs() {
-    const tabActive = document.getElementById('tabActiveQuests');
-    const tabCompleted = document.getElementById('tabCompletedQuests');
-    const tabRumors = document.getElementById('tabRumors');
-
-    if (tabActive && tabCompleted && tabRumors) {
-        tabActive.addEventListener('click', () => {
-            setActiveTab(tabActive, 'active');
-        });
-        tabCompleted.addEventListener('click', () => {
-            setActiveTab(tabCompleted, 'completed');
-        });
-        tabRumors.addEventListener('click', () => {
-            setActiveTab(tabRumors, 'rumors');
-        });
-    }
-}
-
-function setActiveTab(tabElement, filterName) {
-    document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
-    tabElement.classList.add('active');
-    currentQuestFilter = filterName;
-    if (typeof renderQuestLog === 'function') {
-        renderQuestLog(filterName);
-    }
-}
-
-// ============================================================================
-// ГЕНЕРАЦИЯ СПИСКА ЗАДАНИЙ И СЛУХОВ В ДНЕВНИКЕ
-// ============================================================================
-function renderQuestLog(filterStatus = 'active') {
-    const listContainer = document.getElementById('questLogList');
-    if (!listContainer) return;
-
-    listContainer.innerHTML = '';
-    let count = 0;
-
-    for (let hexId in mapData) {
-        const hex = mapData[hexId];
-        if (!hex) continue;
-
-        if (filterStatus === 'rumors') {
-            if (hex.rumorText && hex.rumorText.trim() !== '') {
-                count++;
-                const rumorItem = document.createElement('div');
-                rumorItem.className = 'quest-log-item status-rumor';
-
-                rumorItem.innerHTML = `
-                    <div class="quest-item-title">👂 Наводка / Слух</div>
-                    <div class="quest-item-location">📍 Место действия: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
-                    <div class="quest-item-desc">${hex.rumorText.replace(/\n/g, '<br>')}</div>
-                `;
-
-                rumorItem.addEventListener('click', () => {
-                    focusOnHex(hexId);
-                    const questLog = document.getElementById('questLogContainer');
-                    if (questLog) questLog.classList.add('ui-collapsed');
-                });
-
-                listContainer.appendChild(rumorItem);
+            if (rightPanel) {
+                rightPanel.classList.remove('ui-expanded');
             }
-        }
-        else {
-            if (hex.questData && hex.questData.status === filterStatus) {
-                count++;
-                const questItem = document.createElement('div');
-                questItem.className = `quest-log-item status-${filterStatus}`;
-
-                let objIcon = '⚜️';
-                if (hex.type === 'landmark') objIcon = '🏛️';
-                if (hex.type === 'resource') objIcon = '💎';
-                if (hex.type === 'mystery') objIcon = '❓';
-
-                questItem.innerHTML = `
-                    <div class="quest-item-title">${objIcon} ${hex.questData.title}</div>
-                    <div class="quest-item-location">📍 Регион: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
-                    ${hex.questData.desc ? `<div class="quest-item-desc">${hex.questData.desc.replace(/\n/g, '<br>')}</div>` : ''}
-                `;
-
-                questItem.addEventListener('click', () => {
-                    focusOnHex(hexId);
-                    const questLog = document.getElementById('questLogContainer');
-                    if (questLog) questLog.classList.add('ui-collapsed');
-                });
-
-                listContainer.appendChild(questItem);
+            if (masterBtn) {
+                masterBtn.classList.remove('ui-active');
             }
-        }
-    }
-
-    if (count === 0) {
-        const messages = {
-            'active': 'В вашем дневнике приключений пусто. Кажется, вы просто бездельничаете в таверне и прожигаете стартовое золото.',
-            'completed': 'Ни одного подвига за душой. Бардам буквально не о чем петь, а местные стражники все еще смотрят на вас с подозрением.',
-            'rumors': 'Тишина... Слишком подозрительная тишина. Никто не крадет коров, бандиты не грабят крестьян, а древние артефакты не светятся по ночам.'
-        };
-        listContainer.innerHTML = `<div class="quest-log-empty">${messages[filterStatus] || 'Пусто'}</div>`;
+            if (questLog) {
+                questLog.classList.add('ui-collapsed');
+            }
+        });
     }
 }
 
