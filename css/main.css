@@ -1388,6 +1388,21 @@ body {
     border-color: #823030 !important;
     color: #f7baba !important;
 }
+
+.right-controls-panel:not(.ui-expanded) .master-toggle-btn {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6),
+    0 0 15px rgba(255, 255, 255, 0.8),
+    0 0 25px #ffd875,
+    0 0 45px rgba(223, 188, 111, 0.6) !important;
+}
+
+.right-controls-panel:not(.ui-expanded) .master-toggle-btn:hover {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1),
+    0 0 35px #ffd875,
+    0 0 55px #dfbc6f,
+    0 6px 18px rgba(0, 0, 0, 0.7) !important;
+}
+
 /* ============================================================================
 10. СИСТЕМНЫЕ АНИМАЦИИ
 ============================================================================ */
