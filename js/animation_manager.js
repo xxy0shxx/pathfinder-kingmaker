@@ -102,51 +102,53 @@ const AnimationManager = {
      */
 
     /**
-     * Эффект циклической пульсирующей вспышки гекса с испусканием лучей из его вершин
+     * Быстрый каскад из 3 пульсирующих вспышек, исходящих из центра гекса подряд
+     * (Вызывается при клике на квест/слух в Журнале заданий)
      */
     focusOnHex(hexId) {
         const vHex = document.getElementById('visual_' + hexId);
         if (!vHex) return;
 
-        // 1. Включаем свечение самого гекса
+        // 1. Включаем фирменное свечение самого гекса
         vHex.classList.add('hex-focused-flash');
 
-        // 2. Расчет геометрии для генерации лучей из всех 6 вершин
+        // Расчет геометрии центра гекса для генерации эффектов
         const rect = vHex.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2; // Центр гекса X
-        const cy = rect.top + rect.height / 2;  // Центр гекса Y
-        const radius = rect.height / 2;         // Расстояние до вершин
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
 
-        // Создаем контейнер для эффекта лучей
-        const beamsContainer = document.createElement('div');
-        beamsContainer.className = 'hex-beams-burst';
-        beamsContainer.style.left = `${cx}px`;
-        beamsContainer.style.top = `${cy}px`;
+        // Внутренний хелпер для генерации одной быстрой вспышки лучей
+        const spawnBurst = () => {
+            const beamsContainer = document.createElement('div');
+            beamsContainer.className = 'hex-beams-burst';
+            beamsContainer.style.left = `${cx}px`;
+            beamsContainer.style.top = `${cy}px`;
 
-        // Гексагон имеет 6 вершин, идущих по кругу с шагом в 60 градусов
-        for (let i = 0; i < 6; i++) {
-            const beam = document.createElement('div');
-            beam.className = 'focus-beam';
+            for (let i = 0; i < 6; i++) {
+                const beam = document.createElement('div');
+                beam.className = 'focus-beam';
+                const currentAngle = 60 * i - 30;
+                beam.style.setProperty('--angle', `${currentAngle}deg`);
+                beam.style.setProperty('--radius', `0px`);
+                beamsContainer.appendChild(beam);
+            }
 
-            // Задаем угол поворота для каждого луча, чтобы они расходились радиально
-            const currentAngle = 60 * i - 30; // Выравнивание по вершинам регулярного гекса
-            beam.style.setProperty('--angle', `${currentAngle}deg`);
-            beam.style.setProperty('--radius', `${radius}px`);
+            document.body.appendChild(beamsContainer);
 
-            beamsContainer.appendChild(beam);
-        }
+            // Удаляем контейнер конкретной вспышки сразу после окончания её анимации (600мс)
+            setTimeout(() => { beamsContainer.remove(); }, 500);
+        };
 
-        document.body.appendChild(beamsContainer);
+        setTimeout(() => { spawnBurst(); }, 100);
+//        setTimeout(() => { spawnBurst(); }, 700);
+//        setTimeout(() => { spawnBurst(); }, 1300);
 
-        // 3. Таймеры очистки анимаций
-        // Удаляем лучи сразу после завершения их анимации (600мс)
-        setTimeout(() => { beamsContainer.remove(); }, 2800);
-
-        // Удаляем подсветку гекса после завершения циклов свечения (3600мс)
+        // 3. Таймер очистки свечения самого гекса
         setTimeout(() => {
             vHex.classList.remove('hex-focused-flash');
         }, 3600);
     },
+
 
     /**
      * Переключение видимости мини-тултипов квестов на карте
