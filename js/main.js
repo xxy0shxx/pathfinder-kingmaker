@@ -1,4 +1,4 @@
-import SoundPlayer from '/js/sound_player.js';
+import SoundPlayer from '../js/sound_player.js';
 
 const hexRadius = 77.96;
 const rows = 12;
