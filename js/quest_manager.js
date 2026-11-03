@@ -1,4 +1,6 @@
+// QuestManager.js
 import { MAP_CONFIG } from './config/app_config.js';
+import KingdomManager from './kingdom_manager.js'; // Подключаем менеджер королевства
 
 /**
  * Модуль для управления Журналом заданий, вкладками и слухами Королевства
@@ -51,17 +53,23 @@ const QuestManager = {
     },
 
     /**
-     * Инициализация вкладок (Активные / Завершенные / Слухи)
+     * Инициализация вкладок (Активные / Завершенные / Слухи / Королевство)
      */
     initTabs() {
         const tabActive = document.getElementById('tabActiveQuests');
         const tabCompleted = document.getElementById('tabCompletedQuests');
         const tabRumors = document.getElementById('tabRumors');
+        const tabKingdom = document.getElementById('tabKingdom'); // Новая кнопка вкладки
 
         if (tabActive && tabCompleted && tabRumors) {
             tabActive.addEventListener('click', () => this.setActiveTab(tabActive, 'active'));
             tabCompleted.addEventListener('click', () => this.setActiveTab(tabCompleted, 'completed'));
             tabRumors.addEventListener('click', () => this.setActiveTab(tabRumors, 'rumors'));
+        }
+
+        // Подключаем слушатель для вкладки королевства, если она добавлена в HTML
+        if (tabKingdom) {
+            tabKingdom.addEventListener('click', () => this.setActiveTab(tabKingdom, 'kingdom'));
         }
     },
 
@@ -103,13 +111,29 @@ const QuestManager = {
     updateMapData(newMapData) {
         this.mapDataRef = newMapData;
     },
+
     /**
-     * Генерация списка заданий и слухов в дневнике
+     * Генерация списка заданий и слухов в дневнике / Отрисовка планшета
      */
     render() {
         const listContainer = document.getElementById('questLogList');
-        if (!listContainer || !this.mapDataRef) return;
+        const kingdomTabletEl = document.getElementById('kingdomTabletContainer');
+        if (!this.mapDataRef) return;
 
+        // Переключение видимости контента в зависимости от выбранного режима
+        if (this.currentFilter === 'kingdom') {
+            if (listContainer) listContainer.style.display = 'none';
+            if (kingdomTabletEl) {
+                kingdomTabletEl.style.display = 'flex';
+                KingdomManager.renderUi(); // Обновляем и выводим интерфейс планшета
+            }
+            return; // Прерываем выполнение стандартного рендера квестов
+        } else {
+            if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
+            if (listContainer) listContainer.style.display = 'flex';
+        }
+
+        if (!listContainer) return;
         listContainer.innerHTML = '';
         let count = 0;
         const filterStatus = this.currentFilter;

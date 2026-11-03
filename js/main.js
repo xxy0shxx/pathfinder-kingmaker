@@ -12,6 +12,7 @@ import UiPanelManager from './ui_panel_manager.js';
 import HexUiSyncer from './hex_ui_syncer.js';
 import FogManager from './fog_manager.js';
 import PathManager from './path_manager.js';
+import KingdomManager from './kingdom_manager.js';
 
 let hasMoved = false;
 let mapData = StorageManager.loadData();
@@ -20,6 +21,7 @@ let mapData = StorageManager.loadData();
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 // ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
+
     // 1. Инициализация глобального лейаута и панелей управления
     LayoutManager.init();
     UiPanelManager.init();
@@ -30,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
     ViewportManager.init();
     HexUiSyncer.init();
     PathManager.init(mapData);
+
+
+// Инициализируем королевство, передавая ссылку на mapData и метод сохранения из StorageManager
+    KingdomManager.init(mapData, () => {
+        StorageManager.saveData(mapData); // Передаем объект mapData обратно в LocalStorage
+    });
+    KingdomManager.renderUi();
 
     // 3. Инициализация и связывание менеджеров ядра (Данные -> Сетка -> Квесты)
     HexManager.init(mapData, (hexId) => {
@@ -42,14 +51,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Передаем фокус-вспышку из обновленного AnimationManager
     QuestManager.init(mapData, (hexId) => AnimationManager.focusOnHex(hexId));
 
+    let savedKingdom = null;
+    try {
+        savedKingdom = JSON.parse(localStorage.getItem('kingmaker_kingdom_data'));
+    } catch(e) { console.error(e); }
+
+    KingdomManager.init(savedKingdom);
+    KingdomManager.renderUi();
+
     // Настройка импорта файлов
     FileManager.init((importedData) => {
         mapData = importedData;
         QuestManager.updateMapData(mapData);
         HexManager.updateMapData(mapData);
         PathManager.updateMapData(mapData);
+        KingdomManager.updateMapData(mapData);
         HexManager.buildGrid(() => hasMoved);
         setTimeout(() => { PathManager.render(); }, 200);
+        if(importedData.kingdomState) {
+            KingdomManager.init(importedData.kingdomState);
+            KingdomManager.renderUi();
+        }
     });
 
     // ============================================================================

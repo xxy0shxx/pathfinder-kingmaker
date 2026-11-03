@@ -1597,3 +1597,176 @@ body {
         stroke-dashoffset: 0;
     }
 }
+
+/* Планшет королевства внутри Журнала */
+.kingdom-tablet-content {
+    display: flex;
+    gap: 30px;
+    padding: 30px;
+    flex-grow: 1;
+    overflow-y: auto;
+    font-family: "Tinos", serif !important;
+}
+
+.kingdom-left-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.kingdom-right-col {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    border-left: 2px dashed rgba(138, 100, 33, 0.3);
+    padding-left: 30px;
+}
+
+.kingdom-section-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffd875;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+    padding-bottom: 5px;
+    text-shadow: 0 0 6px rgba(255, 216, 117, 0.4);
+}
+
+/* Сетки атрибутов */
+.kingdom-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.k-stat-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #543e0d;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.k-stat-name {
+    font-size: 18px;
+    color: #dfbc6f;
+}
+
+.k-stat-controls, .k-res-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.k-stat-controls button, .k-res-controls button {
+    background: linear-gradient(180deg, #42351f 0%, #292011 100%);
+    border: 1px solid #543e0d;
+    color: #ebd291;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 3px;
+}
+
+.k-stat-controls button:hover, .k-res-controls button:hover {
+    border-color: #ebd291;
+    color: #fff;
+}
+
+.k-stat-val, .k-res-number {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffd875;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Панель ресурсов */
+.kingdom-resources-panel {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(84, 62, 13, 0.5);
+    padding: 15px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.k-resource-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    color: #ebd291;
+}
+
+/* Список советников */
+.kingdom-leaders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.k-leader-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border: 1px solid rgba(84, 62, 13, 0.3);
+    border-radius: 4px;
+}
+
+.k-leader-role {
+    color: #dfbc6f;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.k-leader-row input[type="text"] {
+    background: #090f0b;
+    border: 1px solid #543e0d;
+    border-radius: 3px;
+    color: #ebd291;
+    padding: 6px 10px;
+    font-family: "Tinos", serif;
+    font-size: 16px;
+    outline: none;
+}
+
+.k-leader-row input[type="text"]:focus {
+    border-color: #ffd875;
+    box-shadow: 0 0 5px rgba(255, 216, 117, 0.4);
+}
+
+.kingdom-tablet-content {
+    flex-wrap: wrap !important;
+}
+
+.kingdom-save-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: auto; /* Прижимает кнопку к низу, если колонка высокая */
+    padding-top: 25px; /* Зазор между инпутами и кнопкой */
+    padding-bottom: 10px; /* Приподнимает кнопку чуть выше самого нижнего края */
+}
+
+/* Кастомный модификатор для уменьшения кнопки */
+.btn.ok.k-btn-save-small {
+    flex: none !important; /* Отменяет flex: 1 1 0% из базовых стилей .btn */
+    width: auto !important; /* Убирает растягивание */
+    min-width: 140px !important; /* Ограничивает минимальную ширину */
+    padding: 8px 20px !important; /* Делает её компактнее по высоте */
+    font-size: 13px !important; /* Чуть уменьшает шрифт */
+}
+
+/* Убираем flex-wrap, так как кнопка теперь живет внутри колонки */
+.kingdom-tablet-content {
+    flex-wrap: nowrap !important;
+}

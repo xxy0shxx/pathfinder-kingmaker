@@ -129,19 +129,98 @@
 <audio id="bg-music"></audio>
 
 <div class="music-controller ui-collapsed">
-
-
     <div id="questLogContainer" class="quest-log-container ui-collapsed">
         <div class="quest-log-header">⚜️ Журнал заданий</div>
         <div class="quest-log-tabs">
             <button type="button" class="quest-tab-btn active" id="tabActiveQuests">⚠️ Активные</button>
             <button type="button" class="quest-tab-btn" id="tabCompletedQuests">✅ Завершенные</button>
             <button type="button" class="quest-tab-btn" id="tabRumors">👂Слухи</button>
+            <button id="tabKingdom" class="quest-tab-btn">🏰 Королевство</button>
         </div>
         <div id="questLogList" class="quest-log-list"></div>
+        <div id="kingdomTabletContainer" class="kingdom-tablet-content" style="display: none;">
+            <div class="kingdom-left-col">
+                <div class="kingdom-section-title">Государственные атрибуты</div>
+                <div class="kingdom-stats-grid">
+                    <div class="k-stat-card">
+                        <span class="k-stat-icon">🎨</span>
+                        <span class="k-stat-name">Культура</span>
+                        <div class="k-stat-controls">
+                            <button onclick="KingdomManager.changeStat('culture', -1)">-</button>
+                            <span id="k_stat_culture" class="k-stat-val">10 (+0)</span>
+                            <button onclick="KingdomManager.changeStat('culture', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="k-stat-card">
+                        <span class="k-stat-icon">💰</span>
+                        <span class="k-stat-name">Экономика</span>
+                        <div class="k-stat-controls">
+                            <button onclick="KingdomManager.changeStat('economy', -1)">-</button>
+                            <span id="k_stat_economy" class="k-val-box">10 (+0)</span>
+                            <button onclick="KingdomManager.changeStat('economy', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="k-stat-card">
+                        <span class="k-stat-icon">🛡</span>
+                        <span class="k-stat-name">Лояльность</span>
+                        <div class="k-stat-controls">
+                            <button onclick="KingdomManager.changeStat('loyalty', -1)">-</button>
+                            <span id="k_stat_loyalty" class="k-val-box">10 (+0)</span>
+                            <button onclick="KingdomManager.changeStat('loyalty', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="k-stat-card">
+                        <span class="k-stat-icon">🧱</span>
+                        <span class="k-stat-name">Стабильность</span>
+                        <div class="k-stat-controls">
+                            <button onclick="KingdomManager.changeStat('stability', -1)">-</button>
+                            <span id="k_stat_stability" class="k-val-box">10 (+0)</span>
+                            <button onclick="KingdomManager.changeStat('stability', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kingdom-section-title" style="margin-top: 25px;">Казна и Состояние</div>
+                <div class="kingdom-resources-panel">
+                    <div class="k-resource-item">
+                        <span class="k-res-label">Очки Командования (RP):</span>
+                        <div class="k-res-controls">
+                            <button onclick="KingdomManager.addRP(-1)">-</button>
+                            <span id="kingdomRpVal" class="k-res-number">10</span>
+                            <button onclick="KingdomManager.addRP(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="k-resource-item">
+                        <span class="k-res-label">Уровень Беспокойства (Unrest):</span>
+                        <div class="k-res-controls">
+                            <button onclick="KingdomManager.setUnrest(KingdomManager.state.unrest - 1)">-</button>
+                            <span id="kingdomUnrestVal" class="k-res-number text-danger">0</span>
+                            <button onclick="KingdomManager.setUnrest(KingdomManager.state.unrest + 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="k-resource-item">
+                        <span class="k-res-label">Разруха / Износ (Ruins):</span>
+                        <div class="k-res-controls">
+                            <button onclick="KingdomManager.changeRuins(-1)">-</button>
+                            <span id="kingdomRuinsVal" class="k-res-number">0</span>
+                            <button onclick="KingdomManager.changeRuins(1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="kingdom-right-col">
+                <div class="kingdom-section-title">Малый Совет королевства</div>
+                <div id="kingdomLeadersList" class="kingdom-leaders-list">
+                </div>
+                <div class="kingdom-save-wrapper">
+                    <button type="button" class="btn ok k-btn-save-small" onclick="KingdomManager.saveFromUi()">
+                        ⚜ Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
-
-
 
     <div class="music-player-monolith-wrapper">
     <div class="legend-container" id="legendContainer">
