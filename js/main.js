@@ -9,7 +9,8 @@ import AnimationManager from './animation_manager.js';
 import StorageManager from './storage_manager.js';
 import LayoutManager from './layout_manager.js';
 import UiPanelManager from './ui_panel_manager.js';
-import HexUiSyncer from './hex_ui_syncer.js'; // Наш новый модуль синхронизации UI гексов
+import HexUiSyncer from './hex_ui_syncer.js';
+import FogManager from './fog_manager.js';
 
 let hasMoved = false;
 let mapData = StorageManager.loadData();
@@ -83,12 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Синхронно обновляем туман войны для всей сетки
-            for (let id in mapData) {
-                const vHex = document.getElementById('visual_' + id);
-                if (vHex) {
-                    vHex.classList.toggle('fog-active', !mapData[id].explored && !mapData[id].hasVisited);
-                }
-            }
+            FogManager.syncMapFog(mapData);
+
             HexModal.close();
         },
         onDelete: (hexId) => {

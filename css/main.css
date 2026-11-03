@@ -172,6 +172,7 @@ body {
     z-index: 999999 !important;
 }
 
+/*
 .visual-hex.hex-focused-flash::after {
     content: "" !important;
     position: absolute !important;
@@ -181,6 +182,19 @@ body {
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%) !important;
     animation: hexPureRedFlash 1.2s ease-in-out 3 !important;
     pointer-events: none !important;
+}
+ */
+
+.visual-hex.hex-focused-flash::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: radial-gradient(circle, rgba(255, 216, 117, 0.8) 0%, rgba(231, 76, 60, 0.2) 70%) !important;
+    z-index: 999999 !important;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%) !important;
+    animation: hexPureRedFlash 1.2s ease-in-out 3 !important;
+    pointer-events: none !important;
+    filter: drop-shadow(0 0 15px #ffd875);
 }
 
 /* ============================================================================
@@ -1520,4 +1534,53 @@ body {
     text-shadow: 0 0 8px #ffd875,
     0 0 15px #dfbc6f,
     0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+.hex-beams-burst {
+    position: fixed;
+    z-index: 999998;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.focus-beam {
+    position: absolute;
+    background: linear-gradient(to top, #ffffff 0%, #ffd875 50%, rgba(223, 188, 111, 0) 100%) !important;
+    width: 20px;
+    height: 50px;
+    border-radius: 50%;
+    filter: blur(5px);
+    box-shadow: 0 0 15px #ffffff,
+    0 0 25px #ffffff,
+    0 0 40px #ffd875,
+    0 0 70px #ffd875,
+    0 0 100px #dfbc6f,
+    0 0 150px rgba(223, 188, 111, 0.9);
+    transform-origin: center bottom;
+    will-change: transform, opacity;
+    animation: beamShootOut 2.8s cubic-bezier(0.1, 0.85, 0.25, 1) forwards;
+}
+
+@keyframes beamShootOut {
+    0% {
+        transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 40px))) scaleY(0.1) scaleX(0.4);
+        opacity: 0;
+    }
+    8% {
+        opacity: 1;
+        transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 40px))) scaleY(1) scaleX(1);
+    }
+    35% {
+        opacity: 0.9;
+        transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 40px) - 20px)) scaleY(1.1) scaleX(0.9);
+    }
+    100% {
+        transform: rotate(var(--angle, 0deg)) translateY(calc(-1 * var(--radius, 40px) - 55px)) scaleY(1.3) scaleX(0.1);
+        opacity: 0;
+    }
 }

@@ -88,12 +88,61 @@ const AnimationManager = {
      * Эффект циклической пульсирующей вспышки для фокусировки внимания на конкретном гексе
      * (Добавленный метод!)
      */
+    /*
     focusOnHex(hexId) {
         const vHex = document.getElementById('visual_' + hexId);
         if (!vHex) return;
 
         vHex.classList.add('hex-focused-flash');
 
+        setTimeout(() => {
+            vHex.classList.remove('hex-focused-flash');
+        }, 3600);
+    },
+     */
+
+    /**
+     * Эффект циклической пульсирующей вспышки гекса с испусканием лучей из его вершин
+     */
+    focusOnHex(hexId) {
+        const vHex = document.getElementById('visual_' + hexId);
+        if (!vHex) return;
+
+        // 1. Включаем свечение самого гекса
+        vHex.classList.add('hex-focused-flash');
+
+        // 2. Расчет геометрии для генерации лучей из всех 6 вершин
+        const rect = vHex.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2; // Центр гекса X
+        const cy = rect.top + rect.height / 2;  // Центр гекса Y
+        const radius = rect.height / 2;         // Расстояние до вершин
+
+        // Создаем контейнер для эффекта лучей
+        const beamsContainer = document.createElement('div');
+        beamsContainer.className = 'hex-beams-burst';
+        beamsContainer.style.left = `${cx}px`;
+        beamsContainer.style.top = `${cy}px`;
+
+        // Гексагон имеет 6 вершин, идущих по кругу с шагом в 60 градусов
+        for (let i = 0; i < 6; i++) {
+            const beam = document.createElement('div');
+            beam.className = 'focus-beam';
+
+            // Задаем угол поворота для каждого луча, чтобы они расходились радиально
+            const currentAngle = 60 * i - 30; // Выравнивание по вершинам регулярного гекса
+            beam.style.setProperty('--angle', `${currentAngle}deg`);
+            beam.style.setProperty('--radius', `${radius}px`);
+
+            beamsContainer.appendChild(beam);
+        }
+
+        document.body.appendChild(beamsContainer);
+
+        // 3. Таймеры очистки анимаций
+        // Удаляем лучи сразу после завершения их анимации (600мс)
+        setTimeout(() => { beamsContainer.remove(); }, 2800);
+
+        // Удаляем подсветку гекса после завершения циклов свечения (3600мс)
         setTimeout(() => {
             vHex.classList.remove('hex-focused-flash');
         }, 3600);

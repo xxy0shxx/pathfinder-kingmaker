@@ -1,5 +1,6 @@
 import { MAP_CONFIG } from './config/app_config.js';
 import UiSelectManager from './ui_select_manager.js';
+import TouchInterfaceAdapter from './touch_interface_adapter.js';
 
 /**
  * Модуль управления модальным окном редактирования гекса
@@ -172,9 +173,11 @@ const HexModal = {
         this.syncColorPresets(currentColor);
         this.setupTouchInterface(inpTitle, inpDesc, inpRumorDesc);
 
+
         const inpQuestTitle = document.getElementById('inpQuestTitle');
         const inpQuestDesc = document.getElementById('inpQuestDesc');
         const inpQuestStatus = document.getElementById('inpQuestStatus');
+
 
         if (hexData && hexData.questData) {
             if (inpQuestTitle) inpQuestTitle.value = hexData.questData.title || '';
@@ -187,6 +190,15 @@ const HexModal = {
         }
 
         if (this.modal) this.modal.classList.add('open');
+    },
+
+    /**
+     * Делегирование настройки мобильных полей ввода специализированному адаптеру
+     */
+    setupTouchInterface(inpTitle, inpDesc, inpRumorDesc) {
+        TouchInterfaceAdapter.adaptiveInputField(inpTitle, "Введите название гекса:");
+        TouchInterfaceAdapter.adaptiveInputField(inpDesc, "Введите описание гекса:");
+        TouchInterfaceAdapter.adaptiveInputField(inpRumorDesc, "Введите слухи:");
     },
 
     /**
@@ -272,6 +284,7 @@ const HexModal = {
     /**
      * Перегрузка полей ввода под prompt() на мобильных тач-устройствах
      */
+    /*
     setupTouchInterface(inpTitle, inpDesc, inpRumorDesc) {
         if (!('ontouchstart' in window)) return;
 
@@ -297,6 +310,8 @@ const HexModal = {
             };
         }
     },
+
+     */
 
     /**
      * Навешивание стандартных слушателей событий на кнопки внутри модального окна

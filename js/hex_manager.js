@@ -1,5 +1,7 @@
 import { MAP_CONFIG } from './config/app_config.js';
 import { ColorConverter } from './utils/helpers.js';
+import FogManager from './fog_manager.js';
+import HexUiSyncer from './hex_ui_syncer.js';
 
 /**
  * Модуль для управления сеткой гексов, их отрисовкой, слоями и тултипами
@@ -50,9 +52,7 @@ const HexManager = {
         this.clickableMap.innerHTML = '';
         this.visualLayer.innerHTML = '';
 
-        // Динамически забираем параметры сетки из нашего конфига
         const { radius, rows, cols, offsetX, offsetY } = MAP_CONFIG.grid;
-
         const widthBetweenHexes = radius * Math.sqrt(3);
         const heightBetweenHexes = radius * 1.5;
         const hexWidth = radius * Math.sqrt(3);
@@ -82,14 +82,13 @@ const HexManager = {
                 vHex.setAttribute('id', 'visual_' + hexId);
 
                 const hexData = this.mapDataRef[hexId];
-                if (!hexData || (!hexData.explored && !hexData.hasVisited)) {
-                    vHex.classList.add('fog-active');
-                }
+
+                const isRevealed = !!(hexData && (hexData.explored || hexData.hasVisited));
+                FogManager.toggleCellFog(vHex, isRevealed);
 
                 vHex.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-
                     if (hasMovedCheck()) return;
 
                     const modal = document.getElementById('hexMenu');
@@ -101,12 +100,15 @@ const HexManager = {
                 });
 
                 this.attachTooltipEvents(vHex, hexId);
-                this.createSubLayers(vHex, hexId, cx, cy, radius);
+
+                // Передаем hexData внутрь синклера
+                HexUiSyncer.createSubLayers(vHex, hexId, cx, cy, radius, hexData);
 
                 this.visualLayer.appendChild(vHex);
             }
         }
     },
+
     /**
      * Динамический сбор метаданных при наведении (Тултипы)
      */
