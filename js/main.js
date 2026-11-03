@@ -634,10 +634,10 @@ function attachHexTooltipEvents(vHex, hexId, cx, cy) {
                 paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
             }
             if (data.difficulty) {
-                paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> ${data.difficulty}</div>`;
+                paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
             }
             if (data.regionLevel) {
-                paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> ${data.regionLevel}</div>`;
+                paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`;
             }
 
             if (data.type) {
@@ -647,19 +647,19 @@ function attachHexTooltipEvents(vHex, hexId, cx, cy) {
                 if (data.type === 'resource') { tIcon = '💎'; typeText = 'Ресурс'; }
                 if (data.type === 'quest') { tIcon = '⚜️'; typeText = 'Стандартное задание'; }
                 if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
-                paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> ${typeText}</div>`;
+                paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> <span class="tooltip-value">${typeText}</span></div>`;
             }
 
             if (data.terrain) {
                 let terrainText = '';
                 let terrIcon = '';
-                if (data.terrain === 'swamp') { terrIcon = '🐸'; terrainText = 'Болото (СЛ 14)'; }
-                if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес (СЛ 14)'; }
-                if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода (СЛ 17)'; }
-                if (data.terrain === 'arctic') { terrIcon = '❄️'; terrainText = 'Приполярье (СЛ 17)'; }
-                if (data.terrain === 'mountain') { terrIcon = '⛰️'; terrainText = 'Горы (СЛ 16)'; }
-                if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины (СЛ 12)'; }
-                paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> ${terrainText}</div>`;
+                if (data.terrain === 'swamp') { terrIcon = '🐸'; terrainText = 'Болото 🎲СЛ 14'; }
+                if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес 🎲СЛ 14'; }
+                if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода 🎲СЛ 17'; }
+                if (data.terrain === 'arctic') { terrIcon = '❄️'; terrainText = 'Приполярье 🎲СЛ 17'; }
+                if (data.terrain === 'mountain') { terrIcon = '⛰️'; terrainText = 'Горы 🎲СЛ 16'; }
+                if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины 🎲СЛ 12'; }
+                paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> <span class="tooltip-value">${terrainText}</span></div>`;
             }
 
             content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
