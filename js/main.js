@@ -2,46 +2,33 @@ import SoundPlayer from '../js/sound_player.js';
 import FileManager from '../js/file_manager.js';
 import QuestManager from '../js/quest_manager.js';
 import HexManager from '../js/hex_manager.js';
+import ViewportManager from '../js/viewport_manager.js';
 
 const hexRadius = 77.96;
 
-const minZoom = 0.5;
-const maxZoom = 3.0;
-let currentZoom = 1.0;
-
 let isDragging = false;
 let hasMoved = false;
-let startX = 0;
-let startY = 0;
-let x = 0;
-let y = 0;
 
 const visualLayer = document.getElementById('visualLayer');
-const viewport = document.getElementById('viewport');
-const mapContainer = document.getElementById('mapContainer');
 const modal = document.getElementById('hexMenu');
 const difficultySelect = document.getElementById('inpDifficulty');
 
 let currentHexId = null;
 let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 
-const RUNE_POOL = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'];
-let lastFrameWidth = 0;
-let lastFrameHeight = 0;
-let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
-
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Базовая группировка полей и инициализация внутренних систем
     groupMenuFields();
     SoundPlayer.init();
     initColorPresets();
     populateDifficultySelect();
 
+    ViewportManager.init();
     HexManager.init(mapData, openMenu);
+    HexManager.buildGrid(() => hasMoved);
     QuestManager.init(mapData, focusOnHex);
 
     FileManager.init((importedData) => {
@@ -73,9 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonsContainer.appendChild(boxWrapper);
     }
 
-    //buildHexGrid();
-    HexManager.buildGrid(() => hasMoved);
-    initFrameStyleControls();
     initUnifiedUICollapse();
 
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
@@ -101,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 7. Создание и настройка кнопки переключения тултипов квестов
     const btnToggleTooltips = document.createElement('button');
     btnToggleTooltips.type = 'button';
     btnToggleTooltips.id = 'btnToggleTooltips';
@@ -203,9 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Первичный расчет положения рамки и проявление карты
     setTimeout(() => {
-        if (typeof updateMapTransform === 'function') {
-            updateMapTransform();
-        }
         const frame = document.querySelector('.kingmaker-frame');
         if (frame) frame.style.opacity = '1';
     }, 150);
@@ -452,9 +432,6 @@ function closeMenu() {
     currentHexId = null;
 
     setTimeout(() => {
-        if (typeof updateMapTransform === 'function') {
-            updateMapTransform();
-        }
     }, 300);
 }
 
@@ -830,322 +807,6 @@ function initColorPresets() {
 }
 
 // ============================================================================
-// НАСТРОЙКА ЖЕСТОВ И ТАЧ-СОБЫТИЙ СМЕЩЕНИЯ (MOBILE PAN & DRAG)
-// ============================================================================
-if (viewport && mapContainer) {
-
-    viewport.addEventListener('touchstart', (e) => {
-        if (e.target.closest('#hexMenu')) return;
-        if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
-
-        isDragging = true;
-        hasMoved = false;
-
-        const touch = e.touches[0];
-        startX = touch.pageX - x;
-        startY = touch.pageY - y;
-    }, { passive: true });
-
-    viewport.addEventListener('touchmove', (e) => {
-        if (e.target.closest('#hexMenu')) return;
-        if (!isDragging) return;
-
-        if (e.cancelable) e.preventDefault();
-
-        const touch = e.touches[0];
-        let newX = touch.pageX - startX;
-        let newY = touch.pageY - startY;
-
-        if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
-            hasMoved = true;
-        }
-
-        const maxLimitX = 3840 * 1.5;
-        const minLimitX = -3840 * 1.5;
-        const maxLimitY = 1280 * 1.1;
-        const minLimitY = -1280 * 1.1;
-
-        x = Math.max(minLimitX, Math.min(maxLimitX, newX));
-        y = Math.max(minLimitY, Math.min(maxLimitY, newY));
-
-        if (typeof updateMapTransform === 'function') {
-            updateMapTransform();
-        }
-    }, { passive: false });
-
-    viewport.addEventListener('touchend', () => {
-        isDragging = false;
-        setTimeout(() => { hasMoved = false; }, 50);
-    });
-
-    viewport.addEventListener('touchcancel', () => {
-        isDragging = false;
-    });
-
-    mapContainer.style.transformOrigin = '100% 0';
-}
-
-// ============================================================================
-// НАСТРОЙКА СОБЫТИЙ МЫШИ ДЛЯ ДЕСКТРИПНОГО СМЕЩЕНИЯ (MOUSE PAN & DRAG)
-// ============================================================================
-if (viewport && mapContainer) {
-
-    viewport.addEventListener('mousedown', (e) => {
-        if (e.target.closest('#hexMenu')) return;
-        if (e.target.closest('.pop-menu') || e.target.closest('button') || e.target.closest('.player-container') || e.target.closest('select') || e.target.closest('input')) return;
-
-        isDragging = true;
-        hasMoved = false;
-
-        startX = e.pageX - x;
-        startY = e.pageY - y;
-    });
-
-    viewport.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-
-        let newX = e.pageX - startX;
-        let newY = e.pageY - startY;
-
-        if (Math.abs(newX - x) > 3 || Math.abs(newY - y) > 3) {
-            hasMoved = true;
-        }
-
-        const maxLimitX = 3840 * 1.5;
-        const minLimitX = -3840 * 1.5;
-        const maxLimitY = 1280 * 1.1;
-        const minLimitY = -1280 * 1.1;
-
-        x = Math.max(minLimitX, Math.min(maxLimitX, newX));
-        y = Math.max(minLimitY, Math.min(maxLimitY, newY));
-
-        if (typeof updateMapTransform === 'function') {
-            updateMapTransform();
-        }
-    });
-
-    viewport.addEventListener('mouseleave', () => {
-        isDragging = false;
-    });
-
-    viewport.addEventListener('mouseup', () => {
-        isDragging = false;
-        setTimeout(() => { hasMoved = false; }, 50);
-    });
-
-    // ============================================================================
-    // ОБРАБОТКА КОЛЕСА МЫШИ ДЛЯ ИЗМЕНЕНИЯ МАСШТАБА (ZOOM CONTROLLER)
-    // ============================================================================
-    viewport.addEventListener('wheel', (e) => {
-        e.preventDefault();
-
-        const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        const newZoom = currentZoom * delta;
-
-        if (newZoom >= minZoom && newZoom <= maxZoom) {
-            currentZoom = newZoom;
-            if (typeof updateMapTransform === 'function') {
-                updateMapTransform();
-            }
-        }
-    }, { passive: false });
-
-}
-
-// ============================================================================
-// ФУНКЦИЯ ДИНАМИЧЕСКОГО РАСЧЕТА МАТРИЦЫ И ИНСЕТ-КАДРИРОВАНИЯ (CLIP-PATH)
-// ============================================================================
-let isTransformPending = false;
-
-function updateMapTransform() {
-    if (isTransformPending) return;
-    isTransformPending = true;
-
-    requestAnimationFrame(() => {
-        mapContainer.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${currentZoom})`;
-
-        const frame = document.querySelector('.kingmaker-frame');
-
-        if (frame && viewport && mapContainer) {
-            const mapRect = mapContainer.getBoundingClientRect();
-            const viewRect = viewport.getBoundingClientRect();
-
-            const cleanLeft = Math.max(viewRect.left, mapRect.left);
-            const cleanTop = Math.max(viewRect.top, mapRect.top);
-            const cleanRight = Math.min(viewRect.right, mapRect.right);
-            const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
-
-            const baseWidth = Math.max(0, cleanRight - cleanLeft);
-            const baseHeight = Math.max(0, cleanBottom - cleanTop);
-
-            if (baseWidth > 0 && baseHeight > 0) {
-                const borderWidth = 22;
-                frame.style.display = 'block';
-
-                let frameLeft = cleanLeft - borderWidth;
-                let frameTop = cleanTop - borderWidth;
-                let frameWidth = baseWidth + (borderWidth * 2);
-                let frameHeight = baseHeight + (borderWidth * 2);
-
-                if (frameLeft < viewRect.left) {
-                    frameWidth -= (viewRect.left - frameLeft);
-                    frameLeft = viewRect.left;
-                }
-                if (frameTop < viewRect.top) {
-                    frameHeight -= (viewRect.top - frameTop);
-                    frameTop = viewRect.top;
-                }
-                if (frameLeft + frameWidth > viewRect.right) {
-                    frameWidth = viewRect.right - frameLeft;
-                }
-                if (frameTop + frameHeight > viewRect.bottom) {
-                    frameHeight = viewRect.bottom - frameTop;
-                }
-
-                frame.style.left = `${Math.floor(frameLeft)}px`;
-                frame.style.top = `${Math.floor(frameTop)}px`;
-                frame.style.width = `${Math.ceil(frameWidth)}px`;
-                frame.style.height = `${Math.ceil(frameHeight)}px`;
-
-                if (typeof updateFrameRunes === 'function') {
-                    updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
-                }
-
-                const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
-                const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
-                const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
-                const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
-
-                mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
-            } else {
-                frame.style.display = 'none';
-                mapContainer.style.clipPath = 'none';
-            }
-
-            viewport.style.clipPath = 'none';
-        }
-        isTransformPending = false;
-    });
-}
-
-function updateFrameRunes(width, height) {
-    if (width === lastFrameWidth && height === lastFrameHeight) return;
-
-    lastFrameWidth = width;
-    lastFrameHeight = height;
-
-    const frame = document.querySelector('.kingmaker-frame');
-    if (!frame) return;
-
-    frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
-
-    const step = 50;
-    const padding = 20;
-
-    const cTop = -11;
-    const cLeft = -11;
-    const cBottom = height - 33;
-    const cRight = width - 33;
-
-    function createRune(left, top) {
-        const runeElement = document.createElement('div');
-        runeElement.className = 'hex-rune';
-
-        runeElement.style.left = `${left}px`;
-        runeElement.style.top = `${top}px`;
-        runeElement.style.transform = 'translate(-50%, -50%)';
-
-        runeElement.style.animationDelay = `${Math.random() * -5}s`;
-
-        runeElement.textContent = RUNE_POOL[Math.floor(Math.random() * RUNE_POOL.length)];
-        frame.appendChild(runeElement);
-    }
-
-    const innerWidth = width - 44;
-    const innerHeight = height - 44;
-
-    for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cTop); }
-    for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cBottom); }
-    for (let t = padding; t < innerHeight - padding; t += step) { createRune(cLeft, t); }
-    for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
-}
-
-// ============================================================================
-// ИНИЦИАЛИЗАЦИЯ И ФУНКЦИИ ПЕРЕКЛЮЧЕНИЯ СТИЛЕЙ РАМОК КАРТЫ
-// ============================================================================
-function initFrameStyleControls() {
-    const btn = document.getElementById('btnFrameStyle');
-    if (!btn) return;
-
-    const styles = [
-        { id: 'norunes', icon: '🔲', title: 'Рамка: Без рун' },
-        { id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами' },
-        { id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент' }
-    ];
-
-    const getCurrentIndex = () => styles.findIndex(s => s.id === currentFrameStyle);
-
-    btn.addEventListener('click', () => {
-        let nextIdx = getCurrentIndex() + 1;
-        if (nextIdx >= styles.length) nextIdx = 0;
-
-        currentFrameStyle = styles[nextIdx].id;
-        localStorage.setItem('kingmakerFrameStyle', currentFrameStyle);
-
-        const currentStyle = styles[nextIdx];
-        btn.innerHTML = currentStyle.icon;
-        btn.title = currentStyle.title;
-
-        applyFrameStyle();
-    });
-
-    const startStyle = styles[getCurrentIndex()] || styles[0];
-    btn.innerHTML = startStyle.icon;
-    btn.title = startStyle.title;
-    applyFrameStyle();
-}
-
-function applyFrameStyle() {
-    const frame = document.querySelector('.kingmaker-frame');
-    if (!frame) return;
-
-    frame.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament');
-    frame.classList.add(`frame-style-${currentFrameStyle}`);
-
-    const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
-    corners.forEach(cClass => {
-        if (!frame.querySelector(`.${cClass}`)) {
-            const corner = document.createElement('div');
-            corner.className = `frame-corner ${cClass}`;
-            frame.appendChild(corner);
-        }
-    });
-
-    if (currentFrameStyle === 'runes') {
-        if (typeof lastFrameWidth !== 'undefined' && typeof lastFrameHeight !== 'undefined') {
-            lastFrameWidth = 0;
-            lastFrameHeight = 0;
-            updateFrameRunes(frame.offsetWidth, frame.offsetHeight);
-        }
-    } else {
-        frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
-    }
-}
-
-const originalUpdateFrameRunes = updateFrameRunes;
-updateFrameRunes = function(width, height) {
-    if (currentFrameStyle !== 'runes') {
-        const frame = document.querySelector('.kingmaker-frame');
-        if (frame) frame.querySelectorAll('.hex-rune').forEach(el => el.remove());
-        return;
-    }
-    if (typeof originalUpdateFrameRunes === 'function') {
-        originalUpdateFrameRunes(width, height);
-    }
-};
-
-// ============================================================================
 // ИНИЦИАЛИЗАЦИЯ И НАЗНАЧЕНИЕ СОБЫТИЙ ДЛЯ КНОПОК ИЗ HTML
 // ============================================================================
 
@@ -1230,6 +891,8 @@ function focusOnHex(hexId) {
     const vHex = document.getElementById('visual_' + hexId);
     if (!vHex) return;
 
+    ViewportManager.resetHasMoved();
+
     isDragging = false;
     hasMoved = false;
 
@@ -1273,9 +936,7 @@ function groupMenuFields() {
 }
 
 window.addEventListener('resize', () => {
-    if (typeof updateMapTransform === 'function') {
-        updateMapTransform();
-    }
+    ViewportManager.updateMapTransform();
 });
 
 if (modal) {
