@@ -1302,8 +1302,12 @@ body {
     font-family: "Tinos", serif !important;
     font-size: 26px !important;
     font-weight: bold !important;
-    color: #dfbc6f;
     margin-bottom: 8px;
+    color: #ffd875 !important;
+    text-shadow: 0 0 4px #ffd875,
+    0 0 10px #dfbc6f,
+    0 0 20px rgba(223, 188, 111, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.9) !important;
 }
 
 .quest-item-location {
@@ -1315,13 +1319,14 @@ body {
 
 .quest-item-desc {
     font-family: "Tinos", serif !important;
-    font-size: 22px !important;
-    color: #f1f2f6;
+    font-size: 35px !important;
     line-height: 1.5;
     font-style: italic;
     border-top: 2px dashed rgba(84, 62, 13, 0.4);
     padding-top: 16px;
     margin-top: 12px;
+    color: #dfbc6f !important;
+    text-shadow: none !important;
 }
 
 .quest-log-empty {
