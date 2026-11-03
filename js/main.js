@@ -1790,20 +1790,20 @@ function initUnifiedUICollapse() {
         });
     }
 
-    const titleBarEl = document.querySelector('.winamp-title-bar');
+    const minimizeBtnEl = document.querySelector('.wa-minimize');
 
-    if (titleBarEl) {
-        titleBarEl.style.cursor = 'pointer';
-        titleBarEl.title = 'Скрыть панель легенды и плеера';
+    if (minimizeBtnEl) {
+        minimizeBtnEl.style.cursor = 'pointer';
+        minimizeBtnEl.title = 'Скрыть панель легенды и плеера';
 
-        titleBarEl.addEventListener('click', (e) => {
+        minimizeBtnEl.addEventListener('click', (e) => {
             e.stopPropagation();
+            e.preventDefault();
 
             const monolithWrapperEl = document.querySelector('.music-player-monolith-wrapper');
             if (monolithWrapperEl) {
                 monolithWrapperEl.classList.remove('ui-expanded');
             }
-
         });
     }
 

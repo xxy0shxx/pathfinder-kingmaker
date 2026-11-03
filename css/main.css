@@ -1454,3 +1454,16 @@ body {
         gap: 10px;
     }
 }
+
+.wa-minimize {
+    display: inline-block !important;
+    cursor: pointer !important;
+    transition: color 0.2s ease, text-shadow 0.2s ease !important;
+}
+
+.wa-minimize:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 8px #ffd875,
+    0 0 15px #dfbc6f,
+    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
