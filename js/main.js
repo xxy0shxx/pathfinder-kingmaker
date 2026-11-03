@@ -8,11 +8,12 @@ import HexModal from './hex_modal.js';
 import AnimationManager from './animation_manager.js';
 import { MAP_CONFIG } from './config/app_config.js';
 import { ColorConverter } from './utils/helpers.js';
+import StorageManager from './storage_manager.js';
 
 let hasMoved = false;
 const visualLayer = document.getElementById('visualLayer');
 let currentHexId = null;
-let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
+let mapData = StorageManager.loadData();
 
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         buttonsContainer.appendChild(boxWrapper);
     }
+
     // ============================================================================
     // ИНИЦИАЛИЗАЦИЯ И СВЯЗЫВАНИЕ МОДАЛЬНОГО ОКНА ГЕКСА
     // ============================================================================
@@ -63,17 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentHexElement = document.getElementById('visual_' + hexId);
             const currentShape = document.getElementById('shape_' + hexId);
 
+            // 1. Управляем данными отряда и находим старую позицию через StorageManager
+            let oldHexId = null;
             if (formData.squadHere) {
-                for (let id in mapData) {
-                    if (id !== hexId && mapData[id].squadHere === true) {
-                        mapData[id].squadHere = false;
+                oldHexId = StorageManager.moveSquad(mapData, hexId);
 
-                        const oldHexElement = document.getElementById('visual_' + id);
-                        if (oldHexElement) {
-                            oldHexElement.classList.remove('squad-dark');
-                            const oldFlag = oldHexElement.querySelector('.squad-flag-container');
-                            if (oldFlag) oldFlag.style.display = 'none';
-                        }
+                // Визуально скрываем старый флаг, если отряд сменил позицию
+                if (oldHexId && oldHexId !== hexId) {
+                    const oldHexElement = document.getElementById('visual_' + oldHexId);
+                    if (oldHexElement) {
+                        oldHexElement.classList.remove('squad-dark');
+                        const oldFlag = oldHexElement.querySelector('.squad-flag-container');
+                        if (oldFlag) oldFlag.style.display = 'none';
                     }
                 }
             }
@@ -139,14 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentHexStatsLabel.style.display = (formData.difficulty || formData.regionLevel) ? 'flex' : 'none';
                 }
 
-                // Иконка типа объекта (достопримечательность, ресурсы и т.д.)
+                // Иконка типа объекта
                 const typeElem = currentHexElement.querySelector('.type-icon-container');
                 if (typeElem) {
                     typeElem.style.display = formData.type === "" ? 'none' : 'block';
                     typeElem.textContent = MAP_CONFIG.types[formData.type]?.icon || '';
                 }
 
-                // Иконка типа местности (болото, лес и т.д.)
+                // Иконка типа местности
                 const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
                 if (terrainElem) {
                     terrainElem.style.display = formData.terrain === "" ? 'none' : 'block';
@@ -166,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     mappedElem.textContent = formData.mapMapped ? '📜' : '';
                 }
 
-                // Триггер вынесенной анимации полета флага
+                // Триггер анимации полета флага
                 const flagElem = currentHexElement.querySelector('.squad-flag-container');
                 if (flagElem) {
                     if (formData.squadHere) {
@@ -176,8 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             flagElem.style.display = 'none';
                             flagElem.classList.remove('active-flag');
 
-                            // Находим старый элемент гекса отряда для траектории старта анимации
-                            const oldHexId = Object.keys(mapData).find(id => mapData[id].squadHere === true && id !== hexId);
                             const oldHexElement = document.getElementById('visual_' + oldHexId);
 
                             AnimationManager.playFlagFlight(oldHexElement, currentHexElement, () => {
@@ -208,14 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     : 'rgba(255, 255, 255, 0)';
             }
 
-            // 3. Запись объединенных метаданных в mapData и локальное хранилище
-            mapData[hexId] = {
-                ...formData,
-                hasVisited: formData.squadHere || (mapData[hexId] && mapData[hexId].hasVisited),
-                lastSaved: new Date().toLocaleString()
-            };
-
-            localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+            // 3. Сохраняем обновленные данные гекса через StorageManager
+            StorageManager.updateHex(mapData, hexId, formData);
 
             // Обновляем Дневник Квестов, если он открыт
             const questLog = document.getElementById('questLogContainer');
@@ -223,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 QuestManager.render();
             }
 
-            // Обновление тумана войны для всей сетки на основе изменений
+            // Обновление тумана войны для всей сетки
             for (let id in mapData) {
                 const vHex = document.getElementById('visual_' + id);
                 if (vHex) {
@@ -238,10 +233,25 @@ document.addEventListener('DOMContentLoaded', () => {
             HexModal.close();
         },
         onDelete: (hexId) => {
-            // Реализуем callback полного удаления гекса в Части 3
-            deleteMapHexData(hexId);
+            // Удаляем данные гекса через StorageManager
+            StorageManager.deleteHex(mapData, hexId);
+
+            const shape = document.getElementById('shape_' + hexId);
+            const label = document.getElementById('label_' + hexId);
+
+            if (shape) shape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+            if (label) label.textContent = '';
+
+            const globalLabel = document.getElementById('title_label_' + hexId);
+            if (globalLabel) {
+                const textNode = globalLabel.querySelector('.hex-title-text');
+                if (textNode) textNode.textContent = '';
+            }
+
+            HexModal.close();
         }
     });
+
     // ============================================================================
     // ИНИЦИАЛИЗАЦИЯ ВСЕХ ОСТАЛЬНЫХ UI-КОМПОНЕНТОВ СТРАНИЦЫ
     // ============================================================================
@@ -399,25 +409,6 @@ function initColorPresets() {
         });
         container.appendChild(b);
     });
-}
-
-function deleteMapHexData(hexId) {
-    delete mapData[hexId];
-    localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-
-    const shape = document.getElementById('shape_' + hexId);
-    const label = document.getElementById('label_' + hexId);
-
-    if (shape) shape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
-    if (label) label.textContent = '';
-
-    const globalLabel = document.getElementById('title_label_' + hexId);
-    if (globalLabel) {
-        const textNode = globalLabel.querySelector('.hex-title-text');
-        if (textNode) textNode.textContent = '';
-    }
-
-    HexModal.close();
 }
 
 const mapImg = document.getElementById('mapImg');
