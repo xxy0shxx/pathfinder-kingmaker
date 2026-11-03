@@ -143,7 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const visualLayerEl = document.getElementById('visualLayer');
         if (!visualLayerEl) return;
 
+        // Переключаем класс на слое
         const isHidden = visualLayerEl.classList.toggle('hide-quest-tooltips');
+
+        // Гарантированно управляем видимостью элементов через стили напрямую для надежности
+        const miniTooltips = visualLayerEl.querySelectorAll('.hex-quest-mini-tooltip');
+        miniTooltips.forEach(tooltip => {
+            tooltip.style.setProperty('display', isHidden ? 'none' : 'block', 'important');
+        });
 
         if (!isHidden) {
             btnToggleTooltips.style.background = 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)';
@@ -1518,6 +1525,12 @@ function initUnifiedUICollapse() {
 
             if (!isExpanded && questLog) {
                 questLog.classList.add('ui-collapsed');
+                const activeBtnToggleQuests = document.getElementById('btnToggleQuests');
+                if (activeBtnToggleQuests) {
+                    activeBtnToggleQuests.style.setProperty('background', '', 'important');
+                    activeBtnToggleQuests.style.setProperty('border-color', '', 'important');
+                    activeBtnToggleQuests.style.setProperty('color', '', 'important');
+                }
             }
             masterBtn.classList.toggle('ui-active', isExpanded);
         });
@@ -1536,15 +1549,11 @@ function initUnifiedUICollapse() {
             if (monolithWrapperEl) {
                 monolithWrapperEl.classList.remove('ui-expanded');
             }
-            if (rightPanel) {
-                rightPanel.classList.remove('ui-expanded');
-            }
+
             if (masterBtn) {
                 masterBtn.classList.remove('ui-active');
             }
-            if (questLog) {
-                questLog.classList.add('ui-collapsed');
-            }
+
         });
     }
 }
