@@ -1,3 +1,5 @@
+import AnimationManager from './animation_manager.js';
+
 /**
  * Модуль для управления глобальными UI-панелями, кнопками переключения режимов и тултипов
  */
@@ -52,6 +54,14 @@ const UiPanelManager = {
                         this.playerWrapper.classList.remove('ui-expanded');
                     }
                 }
+            });
+        }
+        const btnToggleTooltips = document.getElementById('btnToggleTooltips');
+        if (btnToggleTooltips) {
+            btnToggleTooltips.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                AnimationManager.toggleQuestTooltips(btnToggleTooltips);
             });
         }
     }

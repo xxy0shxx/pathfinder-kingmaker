@@ -3,9 +3,7 @@
  */
 const AnimationManager = {
     /**
-     * Создает радиальный взрыв искр в указанных координатах (фиксированных относительно экрана)
-     * @param {number} bx - Координата X (clientX / px)
-     * @param {number} by - Координата Y (clientY / px)
+     * Создает радиальный взрыв искр в указанных координатах
      */
     createBurst(bx, by) {
         const burstContainer = document.createElement('div');
@@ -28,14 +26,10 @@ const AnimationManager = {
 
     /**
      * Запускает баллистический полет флага отряда между гексами с последующим эффектом удара
-     * @param {HTMLElement|null} startHexElement - Элемент, от которого летит флаг (если null, берется дефолтный hex_0_0)
-     * @param {HTMLElement} targetHexElement - Целевой элемент гекса, куда перемещается отряд
-     * @param {Function} onImpactCallback - Функция, вызываемая в момент приземления флага (для включения статического флага)
      */
     playFlagFlight(startHexElement, targetHexElement, onImpactCallback) {
         if (!targetHexElement) return;
 
-        // Расчет стартовой позиции флага
         let startX = 0;
         let startY = 0;
         const baseStartHex = startHexElement || document.getElementById('visual_hex_0_0');
@@ -46,12 +40,10 @@ const AnimationManager = {
             startY = startRect.top + startRect.height / 2;
         }
 
-        // Расчет целевой позиции флага
         const targetRect = targetHexElement.getBoundingClientRect();
         const targetX = targetRect.left + targetRect.width / 2;
         const targetY = targetRect.top + targetRect.height / 2;
 
-        // Создание летящей ноды флага
         const flyingFlag = document.createElement('div');
         flyingFlag.className = 'global-flying-flag';
         flyingFlag.innerHTML = `
@@ -60,7 +52,6 @@ const AnimationManager = {
             </div>
         `;
 
-        // Смещение относительно центра флага (совпадает со стилями оригинального скрипта)
         const sX = startX - 9;
         const sY = startY - 50;
         const tX = targetX - 9;
@@ -73,29 +64,54 @@ const AnimationManager = {
 
         document.body.appendChild(flyingFlag);
 
-        // Таймер 1: Приземление основного флага (1300мс — длительность анимации windowsSmoothFly в CSS)
         setTimeout(() => {
             flyingFlag.style.animation = 'none';
             flyingFlag.style.transition = 'transform 0.05s ease-out';
             flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
 
-            // Первичный взрыв в точке падения
             this.createBurst(targetX, targetY);
 
-            // Передаем управление обратно для отрисовки стационарного флага на карте
             if (typeof onImpactCallback === 'function') {
                 onImpactCallback();
             }
         }, 1300);
 
-        // Таймер 2: Удаление временного летящего DOM-элемента
         setTimeout(() => {
             flyingFlag.remove();
         }, 1300);
 
-        // Таймеры 3 и 4: Дополнительные отголоски взрывов (сохраняем оригинальный сочный сок спецэффектов)
         setTimeout(() => { this.createBurst(targetX - 45, targetY + 40); }, 1430);
         setTimeout(() => { this.createBurst(targetX + 45, targetY - 40); }, 1610);
+    },
+
+    /**
+     * Эффект циклической пульсирующей вспышки для фокусировки внимания на конкретном гексе
+     * (Добавленный метод!)
+     */
+    focusOnHex(hexId) {
+        const vHex = document.getElementById('visual_' + hexId);
+        if (!vHex) return;
+
+        vHex.classList.add('hex-focused-flash');
+
+        setTimeout(() => {
+            vHex.classList.remove('hex-focused-flash');
+        }, 3600);
+    },
+
+    /**
+     * Переключение видимости мини-тултипов квестов на карте
+     * (Добавленный метод!)
+     */
+    toggleQuestTooltips(btnElement) {
+        const visualLayer = document.getElementById('visualLayer');
+        if (!visualLayer) return;
+
+        const areHidden = visualLayer.classList.toggle('hide-quest-tooltips');
+
+        if (btnElement) {
+            btnElement.title = areHidden ? "Показать маркеры заданий" : "Скрыть маркеры заданий";
+        }
     }
 };
 

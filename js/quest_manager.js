@@ -42,7 +42,7 @@ const QuestManager = {
                     questLogContainerEl.classList.add('ui-collapsed');
                     const btnToggleQuests = document.getElementById('btnToggleQuests');
                     if (btnToggleQuests) {
-                        btnToggleQuests.style.removeAttribute('style');
+                        btnToggleQuests.removeAttribute('style');
                     }
                 });
                 questHeader.appendChild(closeBtn);
@@ -91,7 +91,7 @@ const QuestManager = {
                     btnToggleQuests.style.setProperty('border-color', '#dfbc6f', 'important');
                     btnToggleQuests.style.setProperty('color', '#dfbc6f', 'important');
                 } else {
-                    btnToggleQuests.style.removeAttribute('style');
+                    btnToggleQuests.removeAttribute('style');
                 }
             });
         }
