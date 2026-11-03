@@ -1,12 +1,9 @@
 import SoundPlayer from '../js/sound_player.js';
 import FileManager from '../js/file_manager.js';
 import QuestManager from '../js/quest_manager.js';
+import HexManager from '../js/hex_manager.js';
 
 const hexRadius = 77.96;
-const rows = 12;
-const cols = 30;
-const offsetX = -106;
-const offsetY = 16;
 
 const minZoom = 0.5;
 const maxZoom = 3.0;
@@ -19,7 +16,6 @@ let startY = 0;
 let x = 0;
 let y = 0;
 
-const clickableMap = document.getElementById('clickableMap');
 const visualLayer = document.getElementById('visualLayer');
 const viewport = document.getElementById('viewport');
 const mapContainer = document.getElementById('mapContainer');
@@ -38,7 +34,6 @@ let currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes'
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА
 // ============================================================================
 
-
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Базовая группировка полей и инициализация внутренних систем
     groupMenuFields();
@@ -46,21 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
     initColorPresets();
     populateDifficultySelect();
 
-    // 2. Инициализация менеджера квестов
-    // Передаем текущие данные карты и функцию фокуса для обратного вызова при клике на квест
+    HexManager.init(mapData, openMenu);
     QuestManager.init(mapData, focusOnHex);
 
-    // 3. Настройка менеджера файлов (импорт/экспорт)
     FileManager.init((importedData) => {
         mapData = importedData;
 
-        // Обязательно синхронизируем новые данные с модулем квестов при импорте файла
         QuestManager.updateMapData(mapData);
 
-        buildHexGrid();
+        HexManager.updateMapData(mapData);
+        HexManager.buildGrid(() => hasMoved);
     });
 
-    // 4. Пересборка контейнера кнопок управления модального окна (Удалить, Отмена, Сохранить)
     const btnDeleteEl = document.getElementById('btnDelete');
     const btnCancelEl = document.getElementById('btnCancel');
     const btnSaveEl = document.getElementById('btnSave');
@@ -81,12 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
         buttonsContainer.appendChild(boxWrapper);
     }
 
-    // 5. Отрисовка сетки, рамок и интерфейса панелей
-    buildHexGrid();
+    //buildHexGrid();
+    HexManager.buildGrid(() => hasMoved);
     initFrameStyleControls();
     initUnifiedUICollapse();
 
-    // 6. Логика переключения режима карты (Глобальная / Лагерь)
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
     if (btnToggleMapMode) {
         let currentMode = 'global';
@@ -143,10 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const visualLayerEl = document.getElementById('visualLayer');
         if (!visualLayerEl) return;
 
-        // Переключаем класс на слое
         const isHidden = visualLayerEl.classList.toggle('hide-quest-tooltips');
 
-        // Гарантированно управляем видимостью элементов через стили напрямую для надежности
         const miniTooltips = visualLayerEl.querySelectorAll('.hex-quest-mini-tooltip');
         miniTooltips.forEach(tooltip => {
             tooltip.style.setProperty('display', isHidden ? 'none' : 'block', 'important');
@@ -163,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 8. Сборка монолита аудиоплеера и легенды
     const legendContainer = document.querySelector('.legend-container');
     const playerContainer = document.querySelector('.music-controller');
     const legendHeader = document.querySelector('.legend-header');
@@ -222,8 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (frame) frame.style.opacity = '1';
     }, 150);
 });
-
-
 
 // ============================================================================
 // ГЕНЕРАЦИЯ ДАННЫХ ДЛЯ СЕЛЕКТОВ СЛОЖНОСТИ И УРОВНЕЙ
@@ -320,327 +306,6 @@ function initCustomSelectLogic() {
     });
 }
 
-// ============================================================================
-// РАСЧЕТ ВЕРШИН РЕГУЛЯРНОГО ГЕКСАГОНА
-// ============================================================================
-function getHexCoordsArray(cx, cy, r) {
-    let coords = [];
-    for (let i = 0; i < 6; i++) {
-        let angle_deg = 60 * i - 30;
-        let angle_rad = Math.PI / 180 * angle_deg;
-        let x = Math.round(cx + r * Math.cos(angle_rad));
-        let y = Math.round(cy + r * Math.sin(angle_rad));
-        coords.push(x, y);
-    }
-    return coords.join(',');
-}
-
-// ============================================================================
-// РЕНДЕРИНГ СЕТКИ — БАЗОВАЯ РАЗМЕТКА И НАЗНАЧЕНИЕ СОБЫТИЙ КЛИКА
-// ============================================================================
-function buildHexGrid() {
-    clickableMap.innerHTML = '';
-    visualLayer.innerHTML = '';
-
-    const widthBetweenHexes = hexRadius * Math.sqrt(3);
-    const heightBetweenHexes = hexRadius * 1.5;
-    const hexWidth = hexRadius * Math.sqrt(3);
-    const hexHeight = hexRadius * 2;
-
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            let cx = offsetX + c * widthBetweenHexes;
-            let cy = offsetY + r * heightBetweenHexes;
-            if (r % 2 !== 0) {
-                cx += widthBetweenHexes / 2;
-            }
-
-            const hexId = 'hex_' + r + '_' + c;
-
-            const area = document.createElement('area');
-            area.setAttribute('shape', 'poly');
-            area.setAttribute('coords', getHexCoordsArray(cx, cy, hexRadius));
-            area.setAttribute('href', '#');
-            area.setAttribute('id', 'area_' + hexId);
-            clickableMap.appendChild(area);
-
-            const vHex = document.createElement('div');
-            vHex.className = 'visual-hex';
-            vHex.style.width = hexWidth + 'px';
-            vHex.style.height = hexHeight + 'px';
-            vHex.style.left = (cx - hexWidth / 2) + 'px';
-            vHex.style.top = (cy - hexRadius) + 'px';
-            vHex.setAttribute('id', 'visual_' + hexId);
-
-            if (!mapData[hexId] || (!mapData[hexId].explored && !mapData[hexId].hasVisited)) {
-                vHex.classList.add('fog-active');
-            }
-
-            vHex.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (hasMoved) return;
-                if (modal.classList.contains('open')) {
-                    closeMenu();
-                } else {
-                    openMenu(hexId);
-                }
-            });
-
-            attachHexTooltipEvents(vHex, hexId, cx, cy);
-
-            createHexSubLayers(vHex, hexId, cx, cy);
-
-            visualLayer.appendChild(vHex);
-        }
-    }
-}
-
-// ============================================================================
-// ПОДБЛОК ТУЛТИПОВ — ДИНАМИЧЕСКИЙ СБОР МЕТАДАННЫХ ПРИ НАВЕДЕНИИ
-// ============================================================================
-function attachHexTooltipEvents(vHex, hexId, cx, cy) {
-    const tooltip = document.getElementById('hexTooltip');
-
-    vHex.addEventListener('mouseenter', function (e) {
-        if (mapData[hexId] && (mapData[hexId].title || mapData[hexId].text)) {
-            const data = mapData[hexId];
-            let content = '';
-
-            if (data.title) {
-                const star = data.explored ? '🔍 ' : '';
-                const mapIcon = data.mapMapped ? '📜 ' : '';
-                let statsLabel = '';
-                if (data.difficulty && data.regionLevel) {
-                    statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
-                } else if (data.difficulty) {
-                    statsLabel = ` (СЛ ${data.difficulty})`;
-                } else if (data.regionLevel) {
-                    statsLabel = ` (lvl ${data.regionLevel})`;
-                }
-
-                let typeIcon = '';
-                if (data.type === 'landmark') typeIcon = '🏛️ ';
-                else if (data.type === 'resource') typeIcon = '💎 ';
-                else if (data.type === 'quest') typeIcon = '⚜️ ';
-                else if (data.type === 'mystery') typeIcon = '❓ ';
-
-                let terrainIcon = '';
-                if (data.terrain === 'swamp') terrainIcon = '🐸 ';
-                else if (data.terrain === 'forest') terrainIcon = '🌲 ';
-                else if (data.terrain === 'water') terrainIcon = '🌊 ';
-                else if (data.terrain === 'arctic') terrainIcon = '❄️ ';
-                else if (data.terrain === 'mountain') terrainIcon = '⛰️ ';
-                else if (data.terrain === 'plains') terrainIcon = '🌾 ';
-
-                content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
-            }
-
-            let paramsBlock = '';
-            paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
-            paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '❌ <b>Карта отсутствует</b>'}</div>`;
-            if (data.squadHere) {
-                paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
-            }
-            if (data.difficulty) {
-                paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность региона:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
-            }
-            if (data.regionLevel) {
-                paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень региона:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`;
-            }
-
-            if (data.type) {
-                let typeText = '';
-                let tIcon = '';
-                if (data.type === 'landmark') { tIcon = '🏛️'; typeText = 'Достопримечательность'; }
-                if (data.type === 'resource') { tIcon = '💎'; typeText = 'Ресурс'; }
-                if (data.type === 'quest') { tIcon = '⚜️'; typeText = 'Стандартное задание'; }
-                if (data.type === 'mystery') { tIcon = '❓'; typeText = 'Тайна'; }
-                paramsBlock += `<div style="margin-bottom: 4px;">${tIcon} <b>Объект:</b> <span class="tooltip-value">${typeText}</span></div>`;
-            }
-
-            if (data.terrain) {
-                let terrainText = '';
-                let terrIcon = '';
-                if (data.terrain === 'swamp') { terrIcon = '🐸'; terrainText = 'Болото 🎲СЛ 14'; }
-                if (data.terrain === 'forest') { terrIcon = '🌲'; terrainText = 'Лес 🎲СЛ 14'; }
-                if (data.terrain === 'water') { terrIcon = '🌊'; terrainText = 'Вода 🎲СЛ 17'; }
-                if (data.terrain === 'arctic') { terrIcon = '❄️'; terrainText = 'Приполярье 🎲СЛ 17'; }
-                if (data.terrain === 'mountain') { terrIcon = '⛰️'; terrainText = 'Горы 🎲СЛ 16'; }
-                if (data.terrain === 'plains') { terrIcon = '🌾'; terrainText = 'Равнины 🎲СЛ 12'; }
-                paramsBlock += `<div style="margin-bottom: 4px;">${terrIcon} <b>Местность:</b> <span class="tooltip-value">${terrainText}</span></div>`;
-            }
-
-            content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
-
-            if (data.text) {
-                content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
-            }
-
-            if (data.lastSaved) {
-                content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`;
-            }
-
-            tooltip.innerHTML = content;
-            tooltip.style.display = 'block';
-        }
-    });
-
-    vHex.addEventListener('mousemove', (e) => {
-        if (tooltip) {
-            tooltip.style.left = (e.clientX + 25) + 'px';
-            tooltip.style.top = (e.clientY + 25) + 'px';
-        }
-    });
-
-    vHex.addEventListener('mouseleave', () => {
-        if (tooltip) {
-            tooltip.style.display = 'none';
-            tooltip.innerHTML = '';
-        }
-    });
-}
-
-// ============================================================================
-// СБОРКА ВНУТРЕННИХ DOM-СЛОЕВ, ИНДИКАТОРОВ И МАРКЕРОВ ГЕКСА
-// ============================================================================
-function createHexSubLayers(vHex, hexId, cx, cy) {
-    const shape = document.createElement('div');
-    shape.className = 'hex-shape';
-    shape.setAttribute('id', 'shape_' + hexId);
-    if (mapData[hexId] && mapData[hexId].color) {
-        shape.style.backgroundColor = convertHexToRgba(mapData[hexId].color, 0.37);
-    }
-    if (mapData[hexId] && mapData[hexId].squadHere) {
-        vHex.classList.add('squad-dark');
-    }
-    vHex.appendChild(shape);
-
-    const titleLabel = document.createElement('div');
-    titleLabel.className = 'hex-title-label-framed';
-    titleLabel.setAttribute('id', 'title_label_' + hexId);
-
-    const titleText = document.createElement('span');
-    titleText.className = 'hex-title-text';
-    titleLabel.appendChild(titleText);
-
-    titleLabel.style.left = cx + 'px';
-    titleLabel.style.top = (cy - hexRadius + 30) + 'px';
-
-    visualLayer.appendChild(titleLabel);
-
-    const questMiniTooltip = document.createElement('div');
-    questMiniTooltip.className = 'hex-quest-mini-tooltip';
-    vHex.appendChild(questMiniTooltip);
-
-    const statsLabel = document.createElement('div');
-    statsLabel.className = 'hex-title-label-framed hex-region-stats-framed';
-    const statsText = document.createElement('span');
-    statsText.className = 'hex-title-text';
-    statsLabel.appendChild(statsText);
-
-    statsLabel.style.left = cx + 'px';
-    statsLabel.style.top = (cy + 48) + 'px';
-
-    visualLayer.appendChild(statsLabel);
-
-    const exploredElem = document.createElement('div');
-    exploredElem.className = 'explored-icon-container';
-    vHex.appendChild(exploredElem);
-
-    const mappedElem = document.createElement('div');
-    mappedElem.className = 'mapped-icon-container';
-    vHex.appendChild(mappedElem);
-
-    const typeElem = document.createElement('div');
-    typeElem.className = 'type-icon-container';
-    vHex.appendChild(typeElem);
-
-    const terrainElem = document.createElement('div');
-    terrainElem.className = 'terrain-icon-container';
-    vHex.appendChild(terrainElem);
-
-    const flagContainer = document.createElement('div');
-    flagContainer.className = 'squad-flag-container';
-    const pole = document.createElement('div');
-    pole.className = 'squad-pole';
-    const flag = document.createElement('div');
-    flag.className = 'squad-flag';
-    pole.appendChild(flag);
-    flagContainer.appendChild(pole);
-    vHex.appendChild(flagContainer);
-
-    if (mapData[hexId]) {
-        if (mapData[hexId].title) {
-            titleLabel.querySelector('.hex-title-text').textContent = mapData[hexId].title;
-        }
-        const diff = mapData[hexId].difficulty;
-        const lvl = mapData[hexId].regionLevel;
-        const sTextNode = statsLabel.querySelector('.hex-title-text');
-
-        if (sTextNode) {
-            if (diff && lvl) sTextNode.textContent = `🎲${diff}💀${lvl}`;
-            else if (diff) sTextNode.textContent = `🎲${diff}`;
-            else if (lvl) sTextNode.textContent = `💀${lvl}`;
-            else sTextNode.textContent = '';
-        }
-        statsLabel.style.display = (diff || lvl) ? 'flex' : 'none';
-
-        if (mapData[hexId].terrain) {
-            terrainElem.style.display = 'block';
-            let icon = '';
-            if (mapData[hexId].terrain === 'swamp') icon = '🐸';
-            else if (mapData[hexId].terrain === 'forest') icon = '🌲';
-            else if (mapData[hexId].terrain === 'water') icon = '🌊';
-            else if (mapData[hexId].terrain === 'arctic') icon = '❄️';
-            else if (mapData[hexId].terrain === 'mountain') icon = '⛰️';
-            else if (mapData[hexId].terrain === 'plains') icon = '🌾';
-            terrainElem.textContent = icon;
-        }
-
-        if (mapData[hexId].type) {
-            typeElem.style.display = 'block';
-            let icon = '';
-            if (mapData[hexId].type === 'landmark') icon = '🏛️';
-            else if (mapData[hexId].type === 'resource') icon = '💎';
-            else if (mapData[hexId].type === 'quest') icon = '⚜️';
-            else if (mapData[hexId].type === 'mystery') icon = '❓';
-            typeElem.textContent = icon;
-        }
-
-        if (mapData[hexId].squadHere) {
-            flagContainer.style.display = 'block';
-            flagContainer.classList.add('active-flag');
-        }
-
-        if (mapData[hexId].explored) {
-            exploredElem.style.display = 'block';
-            exploredElem.textContent = '🔍';
-        } else {
-            exploredElem.style.display = 'none';
-        }
-
-        if (mapData[hexId].mapMapped) {
-            mappedElem.style.display = 'block';
-            mappedElem.textContent = '📜';
-        } else {
-            mappedElem.style.display = 'none';
-        }
-
-        if (mapData[hexId].questData &&
-            mapData[hexId].questData.title &&
-            mapData[hexId].questData.title.trim() !== '' &&
-            mapData[hexId].questData.status !== 'completed') {
-
-            const qTooltip = document.createElement('div');
-            qTooltip.className = 'hex-quest-mini-tooltip';
-            qTooltip.textContent = '⚜️ ' + mapData[hexId].questData.title.trim();
-            qTooltip.style.left = cx + 'px';
-            qTooltip.style.top = (cy - hexRadius + 12) + 'px';
-            visualLayer.appendChild(qTooltip);
-        }
-    }
-}
 
 // ============================================================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ПРИВЕДЕНИЯ ФОРМАТОВ ЦВЕТА
