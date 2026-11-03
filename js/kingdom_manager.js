@@ -104,6 +104,16 @@ const KingdomManager = {
 
             this.renderUi();
 
+            const questLogContainerEl = document.getElementById('questLogContainer');
+            if (questLogContainerEl) {
+                questLogContainerEl.classList.add('ui-collapsed');
+
+                const btnToggleQuests = document.getElementById('btnToggleQuests');
+                if (btnToggleQuests) {
+                    btnToggleQuests.removeAttribute('style');
+                }
+            }
+
             const saveBtn = document.querySelector('.k-btn-save-small');
             if (saveBtn) {
                 saveBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
