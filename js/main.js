@@ -6,6 +6,7 @@ import ViewportManager from './viewport_manager.js';
 import UiSelectManager from './ui_select_manager.js';
 import { MAP_CONFIG } from './config/app_config.js';
 import { ColorConverter } from './utils/helpers.js';
+import AnimationManager from './animation_manager.js';
 
 let hasMoved = false;
 const visualLayer = document.getElementById('visualLayer');
@@ -458,76 +459,28 @@ function saveMenu() {
             mappedElem.style.display = mapMappedVal ? 'block' : 'none';
             mappedElem.textContent = mapMappedVal ? '📜' : '';
         }
+
         const flagElem = currentHexElement.querySelector('.squad-flag-container');
         if (flagElem) {
             if (squadHereVal) {
                 const isAlreadyHere = mapData[currentHexId] && mapData[currentHexId].squadHere;
 
                 if (!isAlreadyHere) {
+                    // Прячем статичный флаг на время полета анимации
                     flagElem.style.display = 'none';
                     flagElem.classList.remove('active-flag');
 
-                    const startHex = document.getElementById('visual_hex_0_0');
-                    let startX = 0;
-                    let startY = 0;
-                    if (startHex) {
-                        const startRect = startHex.getBoundingClientRect();
-                        startX = startRect.left + startRect.width / 2;
-                        startY = startRect.top + startRect.height / 2;
-                    }
-
-                    const targetRect = currentHexElement.getBoundingClientRect();
-                    const targetX = targetRect.left + targetRect.width / 2;
-                    const targetY = targetRect.top + targetRect.height / 2;
-
-                    const flyingFlag = document.createElement('div');
-                    flyingFlag.className = 'global-flying-flag';
-                    flyingFlag.innerHTML = `
-                        <div class="squad-pole" style="height: 50px; width: 6px; background: #333; margin-left: 6px; border-radius: 2px; border: 1px solid #000;">
-                            <div class="squad-flag" style="width: 30px; height: 20px; background: #c0392b; clip-path: polygon(0 0, 100% 50%, 0 100%); border: 2px solid #ffffff; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
-                        </div>
-                    `;
-
-                    const sX = startX - 9;
-                    const sY = startY - 50;
-                    const tX = targetX - 9;
-                    const tY = targetY - 50;
-
-                    flyingFlag.style.setProperty('--start-x', `${sX}px`);
-                    flyingFlag.style.setProperty('--start-y', `${sY}px`);
-                    flyingFlag.style.setProperty('--target-x', `${tX}px`);
-                    flyingFlag.style.setProperty('--target-y', `${tY}px`);
-
-                    document.body.appendChild(flyingFlag);
-
-                    function createBurst(bx, by) {
-                        const burstContainer = document.createElement('div');
-                        burstContainer.className = 'flag-impact-burst';
-                        burstContainer.style.left = `${bx}px`;
-                        burstContainer.style.top = `${by}px`;
-
-                        const sparksCount = 8;
-                        for (let i = 0; i < sparksCount; i++) {
-                            const spark = document.createElement('div');
-                            spark.className = 'impact-spark';
-                            const currentAngle = (360 / sparksCount) * i;
-                            spark.style.setProperty('--angle', `${currentAngle}deg`);
-                            burstContainer.appendChild(spark);
+                    // Ищем старый гекс отряда для расчета траектории старта
+                    let oldHexElement = null;
+                    for (let id in mapData) {
+                        if (id !== currentHexId && mapData[id].squadHere === true) {
+                            oldHexElement = document.getElementById('visual_' + id);
+                            break;
                         }
-
-                        document.body.appendChild(burstContainer);
-                        setTimeout(() => { burstContainer.remove(); }, 250);
                     }
 
-                    setTimeout(() => {
-                        flyingFlag.style.animation = 'none';
-                        flyingFlag.style.transition = 'transform 0.05s ease-out';
-                        flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
-                        createBurst(targetX, targetY);
-                    }, 1300);
-
-                    setTimeout(() => {
-                        flyingFlag.remove();
+                    AnimationManager.playFlagFlight(oldHexElement, currentHexElement, () => {
+                        // callback момент удара
                         flagElem.style.display = 'block';
                         flagElem.style.animation = 'flagAppear 0.05s forwards';
 
@@ -535,10 +488,7 @@ function saveMenu() {
                             flagElem.style.animation = '';
                             flagElem.classList.add('active-flag');
                         }, 50);
-                    }, 1300);
-
-                    setTimeout(() => { createBurst(targetX - 45, targetY + 40); }, 1430);
-                    setTimeout(() => { createBurst(targetX + 45, targetY - 40); }, 1610);
+                    });
 
                 } else {
                     flagElem.style.display = 'block';
