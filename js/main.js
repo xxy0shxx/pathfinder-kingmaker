@@ -4,14 +4,13 @@ import QuestManager from './quest_manager.js';
 import HexManager from './hex_manager.js';
 import ViewportManager from './viewport_manager.js';
 import UiSelectManager from './ui_select_manager.js';
+import HexModal from './hex_modal.js';
+import AnimationManager from './animation_manager.js';
 import { MAP_CONFIG } from './config/app_config.js';
 import { ColorConverter } from './utils/helpers.js';
-import AnimationManager from './animation_manager.js';
 
 let hasMoved = false;
 const visualLayer = document.getElementById('visualLayer');
-const modal = document.getElementById('hexMenu');
-const difficultySelect = document.getElementById('inpDifficulty');
 let currentHexId = null;
 let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 
@@ -19,13 +18,14 @@ let mapData = JSON.parse(localStorage.getItem('hexMapSystemData')) || {};
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 // ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    groupMenuFields();
     SoundPlayer.init();
     initColorPresets();
     UiSelectManager.init();
-
     ViewportManager.init();
-    HexManager.init(mapData, openMenu);
+    HexManager.init(mapData, (hexId) => {
+        currentHexId = hexId;
+        HexModal.open(hexId, mapData[hexId]);
+    });
     HexManager.buildGrid(() => hasMoved);
     QuestManager.init(mapData, focusOnHex);
 
@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         HexManager.updateMapData(mapData);
         HexManager.buildGrid(() => hasMoved);
     });
+
     const btnDeleteEl = document.getElementById('btnDelete');
     const btnCancelEl = document.getElementById('btnCancel');
     const btnSaveEl = document.getElementById('btnSave');
@@ -54,8 +55,198 @@ document.addEventListener('DOMContentLoaded', () => {
 
         buttonsContainer.appendChild(boxWrapper);
     }
+    // ============================================================================
+    // ИНИЦИАЛИЗАЦИЯ И СВЯЗЫВАНИЕ МОДАЛЬНОГО ОКНА ГЕКСА
+    // ============================================================================
+    HexModal.init({
+        onSave: (hexId, formData) => {
+            const currentHexElement = document.getElementById('visual_' + hexId);
+            const currentShape = document.getElementById('shape_' + hexId);
 
+            if (formData.squadHere) {
+                for (let id in mapData) {
+                    if (id !== hexId && mapData[id].squadHere === true) {
+                        mapData[id].squadHere = false;
+
+                        const oldHexElement = document.getElementById('visual_' + id);
+                        if (oldHexElement) {
+                            oldHexElement.classList.remove('squad-dark');
+                            const oldFlag = oldHexElement.querySelector('.squad-flag-container');
+                            if (oldFlag) oldFlag.style.display = 'none';
+                        }
+                    }
+                }
+            }
+
+            // 2. Обновление визуального слоя гекса на холсте
+            if (currentHexElement) {
+                if (formData.squadHere) {
+                    currentHexElement.classList.add('squad-dark');
+                } else {
+                    currentHexElement.classList.remove('squad-dark');
+                }
+
+                // Текстовая плашка названия гекса
+                const tLabel = document.getElementById('title_label_' + hexId);
+                if (tLabel) {
+                    const textNode = tLabel.querySelector('.hex-title-text');
+                    if (textNode) textNode.textContent = formData.title;
+                }
+
+                // Логика квестовых мини-тултипов на карте
+                let qTooltip = visualLayer.querySelector(`.hex-quest-mini-tooltip[data-hex-id="${hexId}"]`);
+                if (formData.questData && formData.questData.status !== 'completed') {
+                    if (!qTooltip) {
+                        qTooltip = document.createElement('div');
+                        qTooltip.className = 'hex-quest-mini-tooltip';
+                        qTooltip.setAttribute('data-hex-id', hexId);
+                        visualLayer.appendChild(qTooltip);
+                    }
+                    qTooltip.textContent = '⚜️ ' + formData.questData.title;
+
+                    const hexLeft = parseFloat(currentHexElement.style.left) || 0;
+                    const hexTop = parseFloat(currentHexElement.style.top) || 0;
+                    const hexWidth = parseFloat(currentHexElement.style.width) || 0;
+
+                    qTooltip.style.left = (hexLeft + hexWidth / 2) + 'px';
+                    qTooltip.style.top = (hexTop + 12) + 'px';
+                } else if (qTooltip) {
+                    qTooltip.remove();
+                }
+
+                // Расчет плашки уровня и СЛ региона на карте
+                const allFramed = visualLayer.querySelectorAll('.hex-region-stats-framed');
+                let currentHexStatsLabel = null;
+                const currentHexLeft = parseFloat(currentHexElement.style.left) + (parseFloat(currentHexElement.style.width) / 2);
+                const currentHexTop = parseFloat(currentHexElement.style.top) + MAP_CONFIG.grid.radius + 48;
+
+                allFramed.forEach(el => {
+                    const elLeft = parseFloat(el.style.left) || 0;
+                    const elTop = parseFloat(el.style.top) || 0;
+                    if (Math.abs(elLeft - currentHexLeft) < 5 && Math.abs(elTop - currentHexTop) < 5) {
+                        currentHexStatsLabel = el;
+                    }
+                });
+
+                if (currentHexStatsLabel) {
+                    const sTextNode = currentHexStatsLabel.querySelector('.hex-title-text');
+                    if (sTextNode) {
+                        if (formData.difficulty && formData.regionLevel) sTextNode.textContent = `🎲${formData.difficulty}💀${formData.regionLevel}`;
+                        else if (formData.difficulty) sTextNode.textContent = `🎲${formData.difficulty}`;
+                        else if (formData.regionLevel) sTextNode.textContent = `💀${formData.regionLevel}`;
+                        else sTextNode.textContent = '';
+                    }
+                    currentHexStatsLabel.style.display = (formData.difficulty || formData.regionLevel) ? 'flex' : 'none';
+                }
+
+                // Иконка типа объекта (достопримечательность, ресурсы и т.д.)
+                const typeElem = currentHexElement.querySelector('.type-icon-container');
+                if (typeElem) {
+                    typeElem.style.display = formData.type === "" ? 'none' : 'block';
+                    typeElem.textContent = MAP_CONFIG.types[formData.type]?.icon || '';
+                }
+
+                // Иконка типа местности (болото, лес и т.д.)
+                const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
+                if (terrainElem) {
+                    terrainElem.style.display = formData.terrain === "" ? 'none' : 'block';
+                    terrainElem.textContent = MAP_CONFIG.terrains[formData.terrain]?.icon || '';
+                }
+
+                // Иконки статуса разведки и составления карты
+                const exploredElem = currentHexElement.querySelector('.explored-icon-container');
+                if (exploredElem) {
+                    exploredElem.style.display = formData.explored ? 'block' : 'none';
+                    exploredElem.textContent = formData.explored ? '🔍' : '';
+                }
+
+                const mappedElem = currentHexElement.querySelector('.mapped-icon-container');
+                if (mappedElem) {
+                    mappedElem.style.display = formData.mapMapped ? 'block' : 'none';
+                    mappedElem.textContent = formData.mapMapped ? '📜' : '';
+                }
+
+                // Триггер вынесенной анимации полета флага
+                const flagElem = currentHexElement.querySelector('.squad-flag-container');
+                if (flagElem) {
+                    if (formData.squadHere) {
+                        const isAlreadyHere = mapData[hexId] && mapData[hexId].squadHere;
+
+                        if (!isAlreadyHere) {
+                            flagElem.style.display = 'none';
+                            flagElem.classList.remove('active-flag');
+
+                            // Находим старый элемент гекса отряда для траектории старта анимации
+                            const oldHexId = Object.keys(mapData).find(id => mapData[id].squadHere === true && id !== hexId);
+                            const oldHexElement = document.getElementById('visual_' + oldHexId);
+
+                            AnimationManager.playFlagFlight(oldHexElement, currentHexElement, () => {
+                                flagElem.style.display = 'block';
+                                flagElem.style.animation = 'flagAppear 0.05s forwards';
+
+                                setTimeout(() => {
+                                    flagElem.style.animation = '';
+                                    flagElem.classList.add('active-flag');
+                                }, 50);
+                            });
+                        } else {
+                            flagElem.style.display = 'block';
+                            flagElem.classList.add('active-flag');
+                        }
+                    } else {
+                        flagElem.style.display = 'none';
+                        flagElem.classList.remove('active-flag');
+                        flagElem.style.animation = '';
+                    }
+                }
+            }
+
+            // Цветная заливка подложки гекса
+            if (currentShape) {
+                currentShape.style.backgroundColor = formData.color !== 'transparent'
+                    ? ColorConverter.hexToRgba(formData.color, 0.37)
+                    : 'rgba(255, 255, 255, 0)';
+            }
+
+            // 3. Запись объединенных метаданных в mapData и локальное хранилище
+            mapData[hexId] = {
+                ...formData,
+                hasVisited: formData.squadHere || (mapData[hexId] && mapData[hexId].hasVisited),
+                lastSaved: new Date().toLocaleString()
+            };
+
+            localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
+
+            // Обновляем Дневник Квестов, если он открыт
+            const questLog = document.getElementById('questLogContainer');
+            if (questLog && !questLog.classList.contains('ui-collapsed')) {
+                QuestManager.render();
+            }
+
+            // Обновление тумана войны для всей сетки на основе изменений
+            for (let id in mapData) {
+                const vHex = document.getElementById('visual_' + id);
+                if (vHex) {
+                    if (mapData[id].explored || mapData[id].hasVisited) {
+                        vHex.classList.remove('fog-active');
+                    } else {
+                        vHex.classList.add('fog-active');
+                    }
+                }
+            }
+
+            HexModal.close();
+        },
+        onDelete: (hexId) => {
+            // Реализуем callback полного удаления гекса в Части 3
+            deleteMapHexData(hexId);
+        }
+    });
+    // ============================================================================
+    // ИНИЦИАЛИЗАЦИЯ ВСЕХ ОСТАЛЬНЫХ UI-КОМПОНЕНТОВ СТРАНИЦЫ
+    // ============================================================================
     initUnifiedUICollapse();
+
     const btnToggleMapMode = document.getElementById('btnToggleMapMode');
     if (btnToggleMapMode) {
         let currentMode = 'global';
@@ -128,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnToggleTooltips.style.color = '#f7baba';
         }
     });
+
     const legendContainer = document.querySelector('.legend-container');
     const playerContainer = document.querySelector('.music-controller');
     const legendHeader = document.querySelector('.legend-header');
@@ -177,7 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Первичный расчет положения рамки и проявление карты
     setTimeout(() => {
         const frame = document.querySelector('.kingmaker-frame');
         if (frame) frame.style.opacity = '1';
@@ -185,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================================
-// ИНИЦИАЛИЗАЦИЯ ПАЛИТРЫ ЦВЕТНЫХ КНОПОК-ПРЕСЕТОВ ГЕКСА ИЗ КОНФИГУРАЦИИ
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И СЛУШАТЕЛИ ВСПЛЫВАЮЩИХ ОКОН
 // ============================================================================
 function initColorPresets() {
     const container = document.getElementById('colorPresetsContainer');
@@ -209,395 +400,33 @@ function initColorPresets() {
         container.appendChild(b);
     });
 }
-// ============================================================================
-// ФУНКЦИЯ ОТКРЫТИЯ МЕНЮ И СИНХРОНИЗАЦИИ ДАННЫХ ФОРМЫ С ХРАНИЛИЩЕМ
-// ============================================================================
-function openMenu(hexId) {
-    currentHexId = hexId;
 
-    const inpExplored = document.getElementById('inpExplored');
-    const inpMapMapped = document.getElementById('inpMapMapped');
-    const inpSquadHere = document.getElementById('inpSquadHere');
-    const inpType = document.getElementById('inpType');
-    const inpTerrain = document.getElementById('inpTerrain');
-    const inpRegionLevel = document.getElementById('inpRegionLevel');
-    const inpColor = document.getElementById('inpColor');
-    const inpRumorDesc = document.getElementById('inpRumorDesc');
-
-    let currentColor = 'transparent';
-
-    if (mapData[hexId]) {
-        if (document.getElementById('inpTitle')) document.getElementById('inpTitle').value = mapData[hexId].title || '';
-        if (document.getElementById('inpDesc')) document.getElementById('inpDesc').value = mapData[hexId].text || '';
-        if (difficultySelect) difficultySelect.value = mapData[hexId].difficulty || '';
-        if (inpExplored) inpExplored.checked = !!mapData[hexId].explored;
-        if (inpMapMapped) inpMapMapped.checked = !!mapData[hexId].mapMapped;
-        if (inpType) inpType.value = mapData[hexId].type || '';
-        if (inpTerrain) inpTerrain.value = mapData[hexId].terrain || '';
-        if (inpRegionLevel) inpRegionLevel.value = mapData[hexId].regionLevel || '';
-        if (inpRumorDesc) inpRumorDesc.value = mapData[hexId].rumorText || '';
-        currentColor = mapData[hexId].color || 'transparent';
-
-        UiSelectManager.setCustomSelectValue('customSelectType', mapData[hexId].type || '');
-        UiSelectManager.setCustomSelectValue('customSelectTerrain', mapData[hexId].terrain || '');
-        UiSelectManager.setCustomSelectValue('customSelectDifficulty', mapData[hexId].difficulty || '');
-        UiSelectManager.setCustomSelectValue('customSelectRegionLevel', mapData[hexId].regionLevel || '');
-    } else {
-        if (document.getElementById('inpTitle')) document.getElementById('inpTitle').value = '';
-        if (document.getElementById('inpDesc')) document.getElementById('inpDesc').value = '';
-        if (difficultySelect) difficultySelect.value = '';
-        if (inpExplored) inpExplored.checked = false;
-        if (inpMapMapped) inpMapMapped.checked = false;
-        if (inpType) inpType.value = '';
-        if (inpTerrain) inpTerrain.value = '';
-        if (inpRegionLevel) inpRegionLevel.value = '';
-        if (inpRumorDesc) inpRumorDesc.value = '';
-        currentColor = 'transparent';
-
-        UiSelectManager.setCustomSelectValue('customSelectType', '');
-        UiSelectManager.setCustomSelectValue('customSelectTerrain', '');
-        UiSelectManager.setCustomSelectValue('customSelectDifficulty', '');
-        UiSelectManager.setCustomSelectValue('customSelectRegionLevel', '');
-    }
-    if (inpSquadHere) inpSquadHere.checked = mapData[hexId] ? !!mapData[hexId].squadHere : false;
-    if (inpColor) inpColor.value = currentColor;
-
-    document.querySelectorAll('.color-preset-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
-            btn.classList.add('active');
-        } else if (btn.style.backgroundColor === ColorConverter.hexToRgbStandard(currentColor)) {
-            btn.classList.add('active');
-        }
-    });
-
-    // ============================================================================
-    // АДАПТАЦИЯ ТЕКСТОВЫХ ПОЛЕЙ ПОД ТАЧ-ИНТЕРФЕЙСЫ (MOBILE PROMPT)
-    // ============================================================================
-    if ('ontouchstart' in window) {
-        const inpTitle = document.getElementById('inpTitle');
-        const inpDesc = document.getElementById('inpDesc');
-
-        if (inpTitle) {
-            inpTitle.setAttribute('readonly', 'true');
-            inpTitle.onclick = function() {
-                let newTitle = prompt("Введите название гекса:", inpTitle.value);
-                if (newTitle !== null) inpTitle.value = newTitle;
-            };
-        }
-
-        if (inpDesc) {
-            inpDesc.setAttribute('readonly', 'true');
-            inpDesc.onclick = function() {
-                let newDesc = prompt("Введите описание гекса:", inpDesc.value);
-                if (newDesc !== null) inpDesc.value = newDesc;
-            };
-        }
-
-        if (inpRumorDesc) {
-            inpRumorDesc.setAttribute('readonly', 'true');
-            inpRumorDesc.onclick = function() {
-                let newRumor = prompt("Введите слухи:", inpRumorDesc.value);
-                if (newRumor !== null) inpRumorDesc.value = newRumor;
-            };
-        }
-    }
-
-    const inpQuestTitle = document.getElementById('inpQuestTitle');
-    const inpQuestDesc = document.getElementById('inpQuestDesc');
-    const inpQuestStatus = document.getElementById('inpQuestStatus');
-
-    if (mapData[hexId] && mapData[hexId].questData) {
-        if (inpQuestTitle) inpQuestTitle.value = mapData[hexId].questData.title || '';
-        if (inpQuestDesc) inpQuestDesc.value = mapData[hexId].questData.desc || '';
-        if (inpQuestStatus) inpQuestStatus.checked = mapData[hexId].questData.status === 'completed';
-    } else {
-        if (inpQuestTitle) inpQuestTitle.value = '';
-        if (inpQuestDesc) inpQuestDesc.value = '';
-        if (inpQuestStatus) inpQuestStatus.checked = false;
-    }
-
-    if (modal) modal.classList.add('open');
-}
-
-// ============================================================================
-// ФУНКЦИИ ЗАКРЫТИЯ И ОЧИСТКИ ДАННЫХ ИЗ ФОРМЫ НА КАРТЕ
-// ============================================================================
-function closeMenu() {
-    if (document.activeElement && typeof document.activeElement.blur === 'function') {
-        document.activeElement.blur();
-    }
-
-    modal.classList.remove('open');
-    currentHexId = null;
-}
-// ============================================================================
-// ФУНКЦИЯ СОХРАНЕНИЯ ДАННЫХ ГЕКСА
-// ============================================================================
-function saveMenu() {
-    if (!currentHexId) return;
-
-    const titleVal = document.getElementById('inpTitle').value;
-    const descVal = document.getElementById('inpDesc').value;
-    const colorVal = document.getElementById('inpColor').value || 'transparent';
-    const diffVal = difficultySelect.value;
-    const exploredVal = document.getElementById('inpExplored').checked;
-    const mapMappedVal = document.getElementById('inpMapMapped').checked;
-    const squadHereVal = document.getElementById('inpSquadHere').checked;
-    const typeVal = document.getElementById('inpType').value;
-    const terrainVal = document.getElementById('inpTerrain').value;
-    const regionLevelVal = document.getElementById('inpRegionLevel').value;
-    const questTitleVal = document.getElementById('inpQuestTitle').value.trim();
-    const questDescVal = document.getElementById('inpQuestDesc').value.trim();
-    const questStatusVal = document.getElementById('inpQuestStatus').checked ? 'completed' : 'active';
-    const rumorTextVal = document.getElementById('inpRumorDesc').value.trim();
-
-    const currentHexElement = document.getElementById('visual_' + currentHexId);
-    const currentShape = document.getElementById('shape_' + currentHexId);
-
-    if (squadHereVal) {
-        for (let id in mapData) {
-            if (id !== currentHexId && mapData[id].squadHere === true) {
-                mapData[id].squadHere = false;
-
-                const oldHexElement = document.getElementById('visual_' + id);
-                if (oldHexElement) {
-                    oldHexElement.classList.remove('squad-dark');
-                    const oldFlag = oldHexElement.querySelector('.squad-flag-container');
-                    if (oldFlag) oldFlag.style.display = 'none';
-                }
-            }
-        }
-    }
-    if (currentHexElement) {
-        if (squadHereVal) {
-            currentHexElement.classList.add('squad-dark');
-        } else {
-            currentHexElement.classList.remove('squad-dark');
-        }
-
-        const tLabel = document.getElementById('title_label_' + currentHexId);
-        if (tLabel) {
-            const textNode = tLabel.querySelector('.hex-title-text');
-            if (textNode) textNode.textContent = titleVal;
-        }
-
-        let qTooltip = visualLayer.querySelector(`.hex-quest-mini-tooltip[data-hex-id="${currentHexId}"]`);
-
-        if (questTitleVal && questStatusVal !== 'completed') {
-            if (!qTooltip) {
-                qTooltip = document.createElement('div');
-                qTooltip.className = 'hex-quest-mini-tooltip';
-                qTooltip.setAttribute('data-hex-id', currentHexId);
-                visualLayer.appendChild(qTooltip);
-            }
-            qTooltip.textContent = '⚜️ ' + questTitleVal;
-
-            const hexLeft = parseFloat(currentHexElement.style.left) || 0;
-            const hexTop = parseFloat(currentHexElement.style.top) || 0;
-            const hexWidth = parseFloat(currentHexElement.style.width) || 0;
-
-            qTooltip.style.left = (hexLeft + hexWidth / 2) + 'px';
-            qTooltip.style.top = (hexTop + 12) + 'px';
-        } else {
-            if (qTooltip) {
-                qTooltip.remove();
-            }
-        }
-
-        const allFramed = visualLayer.querySelectorAll('.hex-region-stats-framed');
-        let currentHexStatsLabel = null;
-        const currentHexLeft = parseFloat(currentHexElement.style.left) + (parseFloat(currentHexElement.style.width) / 2);
-        const currentHexTop = parseFloat(currentHexElement.style.top) + MAP_CONFIG.grid.radius + 48;
-
-        allFramed.forEach(el => {
-            const elLeft = parseFloat(el.style.left) || 0;
-            const elTop = parseFloat(el.style.top) || 0;
-            if (Math.abs(elLeft - currentHexLeft) < 5 && Math.abs(elTop - currentHexTop) < 5) {
-                currentHexStatsLabel = el;
-            }
-        });
-
-        if (currentHexStatsLabel) {
-            const sTextNode = currentHexStatsLabel.querySelector('.hex-title-text');
-            if (sTextNode) {
-                if (diffVal && regionLevelVal) sTextNode.textContent = `🎲${diffVal}💀${regionLevelVal}`;
-                else if (diffVal) sTextNode.textContent = `🎲${diffVal}`;
-                else if (regionLevelVal) sTextNode.textContent = `💀${regionLevelVal}`;
-                else sTextNode.textContent = '';
-            }
-            currentHexStatsLabel.style.display = (diffVal || regionLevelVal) ? 'flex' : 'none';
-        }
-        const typeElem = currentHexElement.querySelector('.type-icon-container');
-        if (typeElem) {
-            if (typeVal === "") {
-                typeElem.style.display = 'none';
-            } else {
-                typeElem.style.display = 'block';
-                typeElem.textContent = MAP_CONFIG.types[typeVal]?.icon || '';
-            }
-        }
-
-        const terrainElem = currentHexElement.querySelector('.terrain-icon-container');
-        if (terrainElem) {
-            if (terrainVal === "") {
-                terrainElem.style.display = 'none';
-            } else {
-                terrainElem.style.display = 'block';
-                terrainElem.textContent = MAP_CONFIG.terrains[terrainVal]?.icon || '';
-            }
-        }
-
-        const exploredElem = currentHexElement.querySelector('.explored-icon-container');
-        if (exploredElem) {
-            exploredElem.style.display = exploredVal ? 'block' : 'none';
-            exploredElem.textContent = exploredVal ? '🔍' : '';
-        }
-
-        const mappedElem = currentHexElement.querySelector('.mapped-icon-container');
-        if (mappedElem) {
-            mappedElem.style.display = mapMappedVal ? 'block' : 'none';
-            mappedElem.textContent = mapMappedVal ? '📜' : '';
-        }
-
-        const flagElem = currentHexElement.querySelector('.squad-flag-container');
-        if (flagElem) {
-            if (squadHereVal) {
-                const isAlreadyHere = mapData[currentHexId] && mapData[currentHexId].squadHere;
-
-                if (!isAlreadyHere) {
-                    // Прячем статичный флаг на время полета анимации
-                    flagElem.style.display = 'none';
-                    flagElem.classList.remove('active-flag');
-
-                    // Ищем старый гекс отряда для расчета траектории старта
-                    let oldHexElement = null;
-                    for (let id in mapData) {
-                        if (id !== currentHexId && mapData[id].squadHere === true) {
-                            oldHexElement = document.getElementById('visual_' + id);
-                            break;
-                        }
-                    }
-
-                    AnimationManager.playFlagFlight(oldHexElement, currentHexElement, () => {
-                        // callback момент удара
-                        flagElem.style.display = 'block';
-                        flagElem.style.animation = 'flagAppear 0.05s forwards';
-
-                        setTimeout(() => {
-                            flagElem.style.animation = '';
-                            flagElem.classList.add('active-flag');
-                        }, 50);
-                    });
-
-                } else {
-                    flagElem.style.display = 'block';
-                    flagElem.classList.add('active-flag');
-                }
-            } else {
-                flagElem.style.display = 'none';
-                flagElem.classList.remove('active-flag');
-                flagElem.style.animation = '';
-            }
-        }
-    }
-    if (currentShape) {
-        if (colorVal !== 'transparent') {
-            currentShape.style.backgroundColor = ColorConverter.hexToRgba(colorVal, 0.37);
-        } else {
-            currentShape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
-        }
-    }
-
-    mapData[currentHexId] = {
-        title: titleVal,
-        text: descVal,
-        rumorText: rumorTextVal,
-        color: colorVal,
-        difficulty: diffVal,
-        explored: exploredVal,
-        mapMapped: mapMappedVal,
-        squadHere: squadHereVal,
-        type: typeVal,
-        terrain: terrainVal,
-        regionLevel: regionLevelVal,
-        hasVisited: squadHereVal || (mapData[currentHexId] && mapData[currentHexId].hasVisited),
-        lastSaved: new Date().toLocaleString(),
-        questData: questTitleVal ? {
-            title: questTitleVal,
-            desc: questDescVal,
-            status: questStatusVal
-        } : null
-    };
-
+function deleteMapHexData(hexId) {
+    delete mapData[hexId];
     localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
 
-    const questLog = document.getElementById('questLogContainer');
-    if (questLog && !questLog.classList.contains('ui-collapsed')) {
-        QuestManager.render();
+    const shape = document.getElementById('shape_' + hexId);
+    const label = document.getElementById('label_' + hexId);
+
+    if (shape) shape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
+    if (label) label.textContent = '';
+
+    const globalLabel = document.getElementById('title_label_' + hexId);
+    if (globalLabel) {
+        const textNode = globalLabel.querySelector('.hex-title-text');
+        if (textNode) textNode.textContent = '';
     }
 
-    for (let id in mapData) {
-        const vHex = document.getElementById('visual_' + id);
-        if (vHex) {
-            const data = mapData[id];
-            if (data && (data.explored || data.hasVisited)) {
-                vHex.classList.remove('fog-active');
-            } else {
-                vHex.classList.add('fog-active');
-            }
-        }
-    }
-
-    closeMenu();
-}
-// ============================================================================
-// СЛУШАТЕЛИ КНОПОК ФОРМЫ И ЛОГИКА ПОЛНОГО УДАЛЕНИЯ ДАННЫХ ГЕКСА
-// ============================================================================
-const btnSave = document.getElementById('btnSave');
-if (btnSave) btnSave.addEventListener('click', saveMenu);
-
-const btnCancel = document.getElementById('btnCancel');
-if (btnCancel) btnCancel.addEventListener('click', closeMenu);
-
-const btnDelete = document.getElementById('btnDelete');
-if (btnDelete) {
-    btnDelete.addEventListener('click', function() {
-        if (!currentHexId) return;
-
-        delete mapData[currentHexId];
-        localStorage.setItem('hexMapSystemData', JSON.stringify(mapData));
-
-        const shape = document.getElementById('shape_' + currentHexId);
-        const label = document.getElementById('label_' + currentHexId);
-
-        if (shape) shape.style.backgroundColor = 'rgba(255, 255, 255, 0)';
-        if (label) label.textContent = '';
-
-        const globalLabel = document.getElementById('title_label_' + currentHexId);
-        if (globalLabel) {
-            const textNode = globalLabel.querySelector('.hex-title-text');
-            if (textNode) textNode.textContent = '';
-        }
-
-        closeMenu();
-    });
-}
-if (modal) {
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) { closeMenu(); }
-    });
+    HexModal.close();
 }
 
 const mapImg = document.getElementById('mapImg');
 if (mapImg) {
     mapImg.addEventListener('click', function() {
-        if (!hasMoved) closeMenu();
+        if (!hasMoved) HexModal.close();
     });
 }
-// ============================================================================
-// СИСТЕМА ФОКУСИРОВКИ И ФЛЭШ-ПОДСВЕТКИ ВЫБРАННОГО ГЕКСА
-// ============================================================================
+
 function focusOnHex(hexId) {
     const vHex = document.getElementById('visual_' + hexId);
     if (!vHex) return;
@@ -611,42 +440,6 @@ function focusOnHex(hexId) {
     }, 3600);
 }
 
-// ============================================================================
-// ОПТИМИЗАЦИЯ И СТРУКТУРИРОВАНИЕ СТРОК СЕЛЕКТОРОВ МОДАЛЬНОГО ОКНА
-// ============================================================================
-function groupMenuFields() {
-    const inpType = document.getElementById('inpType');
-    const inpTerrain = document.getElementById('inpTerrain');
-    const diffSelect = document.getElementById('inpDifficulty');
-    const inpRegionLevel = document.getElementById('inpRegionLevel');
-
-    if (!inpType || !inpTerrain || !diffSelect || !inpRegionLevel) return;
-
-    const boxType = inpType.closest('.box');
-    const boxTerrain = inpTerrain.closest('.box');
-    const boxDiff = diffSelect.closest('.box');
-    const boxLevel = inpRegionLevel.closest('.box');
-
-    if (boxType && boxTerrain) {
-        const rowObjects = document.createElement('div');
-        rowObjects.className = 'box-row-combined';
-        boxType.parentNode.insertBefore(rowObjects, boxType);
-        rowObjects.appendChild(boxType);
-        rowObjects.appendChild(boxTerrain);
-    }
-
-    if (boxDiff && boxLevel) {
-        const rowStats = document.createElement('div');
-        rowStats.className = 'box-row-combined';
-        boxDiff.parentNode.insertBefore(rowStats, boxDiff);
-        rowStats.appendChild(boxDiff);
-        rowStats.appendChild(boxLevel); // Исправлено: rowStats вместо rowObjects
-    }
-}
-
-// ============================================================================
-// УПРАВЛЕНИЕ СВОРАЧИВАНИЕМ ИНТЕРФЕЙСА
-// ============================================================================
 function initUnifiedUICollapse() {
     const rightPanel = document.querySelector('.right-controls-panel');
     const questLog = document.getElementById('questLogContainer');
@@ -676,4 +469,4 @@ window.addEventListener('resize', () => {
     ViewportManager.updateMapTransform();
 });
 
-window.closeMenu = closeMenu;
+window.closeMenu = () => HexModal.close();
