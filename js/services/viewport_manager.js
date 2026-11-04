@@ -97,13 +97,13 @@ const ViewportManager = {
 
             if (newZoom >= this.minZoom && newZoom <= this.maxZoom) {
                 this.currentZoom = newZoom;
-                this.updateMapTransform(); // Фокусировка на отряде сработает внутри этого метода
+                this.updateMapTransform();
             }
         }, { passive: false });
     },
 
     /**
-     * Привязка тач-событий (Mobile)
+     * Привязка тач-событий (Mobile) - ИСПРАВЛЕНО ЧТЕНИЕ ТАЧЕЙ
      */
     attachTouchEvents() {
         this.viewport.addEventListener('touchstart', (e) => {
@@ -113,7 +113,9 @@ const ViewportManager = {
 
             this.isDragging = true;
             this.hasMoved = false;
-            const touch = e.touches;
+
+            // Берём первый палец из списка касаний
+            const touch = e.touches[0];
             this.startX = touch.pageX - this.x;
             this.startY = touch.pageY - this.y;
         }, { passive: true });
@@ -122,7 +124,8 @@ const ViewportManager = {
             if (!this.isDragging) return;
             if (e.cancelable) e.preventDefault();
 
-            const touch = e.touches;
+            // Берём координаты первого пальца при сдвиге
+            const touch = e.touches[0];
             this.processMove(touch.pageX, touch.pageY);
         }, { passive: false });
 
@@ -159,16 +162,13 @@ const ViewportManager = {
      * Расчет CSS-трансформаций и динамическое inset-кадрирование холста
      */
     updateMapTransform() {
-        // [ВЕРНУЛИ ОРИГИНАЛ] Принудительно удерживаем фокус на отряде при зуме и изменении размеров окна
         this.focusOnSquad();
 
         requestAnimationFrame(() => {
             this.mapContainer.style.transform = `translate(${Math.round(this.x)}px, ${Math.round(this.y)}px) scale(${this.currentZoom})`;
 
-            // Обновляем декоративную рамку видимой зоны
             FrameManager.updateBounds(this.viewport, this.mapContainer, this.currentZoom);
 
-            // Запрашиваем перерисовку одного кадка Canvas для плавности
             if (HexCanvasRender && typeof HexCanvasRender.requestFrame === 'function') {
                 HexCanvasRender.requestFrame();
             }
@@ -177,10 +177,8 @@ const ViewportManager = {
 
     /**
      * Автоматический пересчет координат сдвига для центрирования на отряде
-     * @param {boolean} force - игнорировать любые блокировки (ручной скролл/квесты)
      */
     focusOnSquad(force = false) {
-        // Если пользователь тащит карту прямо сейчас или активен фокус на квесте — не перебиваем камеру
         if (!force && (this.isDragging || Date.now() < this.lockFocusUntil)) return;
 
         if (!HexCanvasRender || !HexCanvasRender.hexCoords || !HexCanvasRender.hexesData) return;
