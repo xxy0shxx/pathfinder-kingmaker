@@ -158,9 +158,8 @@ const AnimationManager = {
 
 
     /**
-     * Быстрый каскад из вспышек лучей света с предварительным центрированием карты
+     * Быстрый каскад из вспышек лучей света с предварительным удержанием фокуса на квесте
      */
-
     focusOnHex(hexId) {
         const coords = HexCanvasRender.hexCoords[hexId];
         if (!coords) return;
@@ -168,9 +167,17 @@ const AnimationManager = {
         const zoom = ViewportManager.currentZoom || 1.0;
         const viewportElement = document.getElementById('viewport');
 
+        // ==========================================
+        // ФАЗА 1: БЛОКИРОВКА ФОКУСА И СДВИГ К КВЕСТУ
+        // ==========================================
         if (viewportElement) {
+            // Включаем временную блокировку фокуса во ViewportManager (на 1.8 секунды)
+            // В течение этого времени никакой зум не посмеет вернуть камеру к отряду!
+            ViewportManager.lockFocusUntil = Date.now() + 1800;
+
             const viewWidth = viewportElement.clientWidth;
             const viewHeight = viewportElement.clientHeight;
+
             const virtualXFromRight = 3840 - coords.cx;
             const virtualYFromTop = coords.cy;
 
@@ -187,6 +194,9 @@ const AnimationManager = {
             ViewportManager.updateMapTransform();
         }
 
+        // ==========================================
+        // ФАЗА 2: ВСПЫШКА ЛУЧЕЙ НА МЕСТЕ КВЕСТА
+        // ==========================================
         setTimeout(() => {
             const currentPanX = ViewportManager.x || 0;
             const currentPanY = ViewportManager.y || 0;
@@ -203,8 +213,16 @@ const AnimationManager = {
             setTimeout(() => { this.spawnBeamsBurst(cx, cy); }, 100);
 
         }, 100);
-    },
 
+        // ==========================================
+        // ФАЗА 3: ПЛАВНЫЙ ВОЗВРАТ К ОТРЯДУ ПОСЛЕ ПАУЗЫ
+        // ==========================================
+        // Ровно через 1.8 секунды принудительно просим ViewportManager перерисовать кадр,
+        // блокировка уже спадет, и камера сама мягко прыгнет/отцентрируется обратно на флаг!
+        setTimeout(() => {
+            ViewportManager.updateMapTransform();
+        }, 1800);
+    },
 
     /**
      * Переключение видимости мини-тултипов квестов на карте

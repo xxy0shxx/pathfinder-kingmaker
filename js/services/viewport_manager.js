@@ -21,6 +21,7 @@ const ViewportManager = {
 
     viewport: null,
     mapContainer: null,
+    lockFocusUntil: 0,
 
     /**
      * Инициализация менеджера вьюпорта
@@ -168,9 +169,11 @@ const ViewportManager = {
      * Автоматический пересчет координат сдвига для центрирования на отряде
      */
     focusOnSquad() {
-        // ЖЕЛЕЗНОЕ ПРАВИЛО: Если пользователь прямо сейчас перетаскивает карту руками,
-        // мы отключаем автоцентрирование, давая ему полную свободу перемещения!
+        // УСЛОВИЕ 1: Если пользователь тащит карту руками — не центрируем
         if (this.isDragging) return;
+
+        // УСЛОВИЕ 2: Если активна блокировка фокуса на квесте — не центрируем на отряде
+        if (Date.now() < this.lockFocusUntil) return;
 
         const HexCanvasRender = window.HexCanvasRender || null;
         if (!HexCanvasRender || !HexCanvasRender.hexCoords || !HexCanvasRender.hexesData) return;
@@ -203,6 +206,7 @@ const ViewportManager = {
         this.x = Math.max(minX, Math.min(maxX, targetPanX));
         this.y = Math.max(minY, Math.min(maxY, targetPanY));
     },
+
 
 };
 
