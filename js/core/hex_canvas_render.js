@@ -72,8 +72,6 @@ const HexCanvasRender = {
         for (let row = 0; row < MAP_CONFIG.grid.rows; row++) {
             for (let col = 0; col < MAP_CONFIG.grid.cols; col++) {
 
-
-
                 const hexKey = `hex_${row}_${col}`;
                 const coords = this.hexCoords[hexKey];
 
@@ -99,17 +97,6 @@ const HexCanvasRender = {
                         data.squadHere = false; // Но сам спрайт стационарного флага скрыт, пока летит DOM-анимация
                     }
                 }
-
-//                const isSquadMovingHere = (this.hiddenSquadHexId === hexKey);
-//                const originalSquadHere = data ? !!data.squadHere : false;
-
-                // Скрываем флаг, если идет анимация полета в эту клетку
-                /*
-                if (data && this.hiddenSquadHexId === hexKey) {
-                    data.squadHere = false;
-                }
-
-                 */
 
                 if (hexKey === this.focusedHexKey) {
                     this.focusTime += 0.05;
@@ -140,8 +127,6 @@ const HexCanvasRender = {
 
         this.hoveredHexKey = currentHoverKey;
     },
-
-
 
 
     drawSingleHex(cx, cy, r, data) {
@@ -196,26 +181,6 @@ const HexCanvasRender = {
             if (data.difficulty) statsText += `🎲${data.difficulty}`;
             if (data.regionLevel) statsText += `💀${data.regionLevel}`;
             this.drawTextPlate(ctx, statsText, cx, cy + 48, true);
-        }
-
-        if (HexCanvasRender.focusedHexKey && HexCanvasRender.focusedHexKey === `hex_${data?.row ?? ''}_${data?.col ?? ''}`) {
-            ctx.save();
-            this.drawHexPath(cx, cy, r);
-
-            // Создаем яркое золотисто-красное радиальное свечение (.hex-focused-flash)
-            const focusGrad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r * 1.2);
-            focusGrad.addColorStop(0, `rgba(255, 216, 117, ${HexCanvasRender.focusAlpha})`);
-            focusGrad.addColorStop(0.5, `rgba(231, 76, 60, ${HexCanvasRender.focusAlpha * 0.4})`);
-            focusGrad.addColorStop(1, 'rgba(231, 76, 60, 0)');
-
-            ctx.fillStyle = focusGrad;
-            ctx.fill();
-
-            // Добавляем яркую внешнюю золотую обводку
-            ctx.strokeStyle = `rgba(255, 216, 117, ${HexCanvasRender.focusAlpha})`;
-            ctx.lineWidth = 3;
-            ctx.stroke();
-            ctx.restore();
         }
 
     },
