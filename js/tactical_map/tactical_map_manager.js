@@ -694,8 +694,15 @@ const TacticalMapManager = {
             if (e2 < dc) { err += dc; currR += sr; }
         }
     },
+
+
     /**
-     * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом цены ландшафта и зон прыжков
+     * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом 8 направлений, цены ландшафта,
+     * запрета «срезания углов» стен и зон прыжков.
+     * @param {string} startId - ID стартовой ячейки существа.
+     * @param {string} targetId - ID целевой ячейки назначения.
+     * @param {number} speedLimit - Базовая скорость существа в футах (например, 30).
+     * @returns {Object|null} Маршрут или null
      */
     calculatePathAndCost(startId, targetId, speedLimit) {
         const parseCoords = (id) => {
@@ -707,10 +714,12 @@ const TacticalMapManager = {
         const queue = [], distances = {}, parents = {}, jumpFlags = {};
 
         const startKey = `${start.r}_${start.c}`;
+        // currentActionSpentFeet — сколько футов потрачено в рамках ТЕКУЩЕГО действия движения
         distances[startKey] = { feet: 0, actions: 0, currentActionSpentFeet: 0, cameByJump: false, jumpsCount: 0 };
         queue.push({ r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
 
         while (queue.length > 0) {
+            // Сортировка очереди: сначала меньше действий, затем больше прыжков, затем меньше футов
             queue.sort((a, b) => a.actions !== b.actions ? a.actions - b.actions : (a.jumpsCount !== b.jumpsCount ? b.jumpsCount - a.jumpsCount : a.feet - b.feet));
             const curr = queue.shift();
             const currKey = `${curr.r}_${curr.c}`;
@@ -719,45 +728,117 @@ const TacticalMapManager = {
             if (curr.r === target.r && curr.c === target.c) break;
             if (curr.actions > currState.actions || (curr.actions === currState.actions && curr.feet > currState.feet)) continue;
 
-            const neighbors = [{ r: curr.r - 1, c: curr.c }, { r: curr.r + 1, c: curr.c }, { r: curr.r, c: curr.c - 1 }, { r: curr.r, c: curr.c + 1 }];
-            for (let n of neighbors) {
-                if (n.r < 0 || n.r >= this.campParams.rows || n.c < 0 || n.c >= this.campParams.cols) continue;
-                const nKey = `${n.r}_${n.c}`, nData = this.state.campMapData[`square_${n.r}_${n.c}`];
-                if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'destructible' || nData.obstacle === 'stones')) continue;
+            // 1. ДВИЖЕНИЕ ПО СЕТКЕ (8 НАПРАВЛЕНИЙ)
+            // dr, dc и флаг диагонали isDiag
+            const directions = [
+                { dr: -1, dc: 0, isDiag: false }, { r: curr.r + 1, c: curr.c, dr: 1, dc: 0, isDiag: false }, // Вверх, Вниз
+                { dr: 0, dc: -1, isDiag: false }, { r: curr.r, c: curr.c + 1, dr: 0, dc: 1, isDiag: false }, // Влево, Вправо
+                { dr: -1, dc: -1, isDiag: true }, { r: curr.r - 1, c: curr.c + 1, dr: -1, dc: 1, isDiag: true }, // СЗ, СВ
+                { dr: 1, dc: -1, isDiag: true }, { r: curr.r + 1, c: curr.c + 1, dr: 1, dc: 1, isDiag: true }   // ЮЗ, ЮВ
+            ];
 
-                let stepCost = (nData && ['bushes', 'forest'].includes(nData.obstacle)) ? 10 : 5;
-                let nextActions = currState.actions, nextSpentFeet = currState.currentActionSpentFeet + stepCost;
+            for (let d of directions) {
+                const nr = curr.r + d.dr;
+                const nc = curr.c + d.dc;
 
+                // Проверка границ карты
+                if (nr < 0 || nr >= this.campParams.rows || nc < 0 || nc >= this.campParams.cols) continue;
+
+                const nKey = `${nr}_${nc}`;
+                const nData = this.state.campMapData[`square_${nr}_${nc}`];
+
+                // Сама целевая клетка непроходима?
+                if (nData && ['wall', 'destructible', 'stones'].includes(nData.obstacle)) continue;
+
+                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Проверка «срезания углов» стен при движении по диагонали
+                if (d.isDiag) {
+                    // Соседние клетки, формирующие угол
+                    const sideData1 = this.state.campMapData[`square_${curr.r + d.dr}_${curr.c}`];
+                    const sideData2 = this.state.campMapData[`square_${curr.r}_${curr.c + d.dr}`];
+
+                    const isBlocked1 = sideData1 && ['wall', 'destructible'].includes(sideData1.obstacle);
+                    const isBlocked2 = sideData2 && ['wall', 'destructible'].includes(sideData2.obstacle);
+
+                    // Если хотя бы одна из угловых клеток — стена, протиснуться по диагонали нельзя
+                    if (isBlocked1 || isBlocked2) continue;
+                }
+
+                // Базовая стоимость шага: по правилам d20 диагональ обычно стоит столько же (или 1.5х, заменим на 5 для простоты тактической карты)
+                let stepCost = 5;
+                if (nData && ['bushes', 'forest'].includes(nData.obstacle)) {
+                    stepCost = 10; // Трудный ландшафт удваивает стоимость
+                }
+
+                let nextActions = currState.actions;
+                let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
+
+                // Если уперлись в лимит скорости текущего действия (Move Action)
                 if (currState.currentActionSpentFeet === 0 || nextSpentFeet > speedLimit) {
                     nextActions += 1;
                     nextSpentFeet = stepCost;
-                    if (stepCost > speedLimit) continue;
+                    if (stepCost > speedLimit) continue; // Скорости не хватает даже на одну клетку
                 }
-                let nextTotalFeet = currState.feet + stepCost;
-                const nextState = { feet: nextTotalFeet, actions: nextActions, currentActionSpentFeet: nextSpentFeet, cameByJump: false, jumpsCount: currState.jumpsCount };
 
-                if (distances[nKey] === undefined || nextState.actions < distances[nKey].actions || (nextState.actions === distances[nKey].actions && nextState.jumpsCount > distances[nKey].jumpsCount) || (nextState.actions === distances[nKey].actions && nextState.jumpsCount === distances[nKey].jumpsCount && nextState.feet < distances[nKey].feet)) {
+                let nextTotalFeet = currState.feet + stepCost;
+                const nextState = {
+                    feet: nextTotalFeet,
+                    actions: nextActions,
+                    currentActionSpentFeet: nextSpentFeet,
+                    cameByJump: false,
+                    jumpsCount: currState.jumpsCount
+                };
+
+                // Релаксация ребра графа
+                if (distances[nKey] === undefined ||
+                    nextState.actions < distances[nKey].actions ||
+                    (nextState.actions === distances[nKey].actions && nextState.jumpsCount > distances[nKey].jumpsCount) ||
+                    (nextState.actions === distances[nKey].actions && nextState.jumpsCount === distances[nKey].jumpsCount && nextState.feet < distances[nKey].feet)) {
+
                     distances[nKey] = nextState;
                     parents[nKey] = { parentKey: currKey, isJump: false };
-                    queue.push({ r: n.r, c: n.c, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: currState.jumpsCount });
+                    queue.push({ r: nr, c: nc, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: currState.jumpsCount });
                 }
             }
 
+
+
+            // 2. МЕХАНИКА ПРЫЖКОВ (Запрещено прыгать сквозь высокие стены 'wall')
             if (curr.cameByJump) continue;
             const jumpCellsCount = (speedLimit >= 30) ? 3 : 2;
-            const jumpTargets = [{ r: curr.r - jumpCellsCount, c: curr.c, dr: -1, dc: 0 }, { r: curr.r + jumpCellsCount, c: curr.c, dr: 1, dc: 0 }, { r: curr.r, c: curr.c - jumpCellsCount, dr: 0, dc: -1 }, { r: curr.r, c: curr.c + jumpCellsCount, dr: 0, dc: 1 }];
+            const jumpTargets = [
+                { r: curr.r - jumpCellsCount, c: curr.c, dr: -1, dc: 0 },
+                { r: curr.r + jumpCellsCount, c: curr.c, dr: 1, dc: 0 },
+                { r: curr.r, c: curr.c - jumpCellsCount, dr: 0, dc: -1 },
+                { r: curr.r, c: curr.c + jumpCellsCount, dr: 0, dc: 1 }
+            ];
 
             for (let jt of jumpTargets) {
                 if (jt.r < 0 || jt.r >= this.campParams.rows || jt.c < 0 || jt.c >= this.campParams.cols) continue;
-                const targetCellKey = `${jt.r}_${jt.c}`, targetData = this.state.campMapData[`square_${jt.r}_${jt.c}`];
+                const targetCellKey = `${jt.r}_${jt.c}`;
+                const targetData = this.state.campMapData[`square_${jt.r}_${jt.c}`];
+
+                // Целевая клетка приземления не должна быть стеной или ящиком
                 if (targetData && (targetData.obstacle === 'wall' || targetData.obstacle === 'destructible')) continue;
 
                 let obstacleInPath = false;
+                let wallInPath = false;
+
+                // Сканируем траекторию прыжка
                 for (let i = 1; i < jumpCellsCount; i++) {
                     const checkData = this.state.campMapData[`square_${curr.r + (jt.dr * i)}_${curr.c + (jt.dc * i)}`];
-                    if (checkData && checkData.obstacle) { obstacleInPath = true; break; }
+                    if (checkData && checkData.obstacle) {
+                        // Если на траектории оказалась капитальная стена — прыжок невозможен
+                        if (checkData.obstacle === 'wall') {
+                            wallInPath = true;
+                            break;
+                        }
+                        obstacleInPath = true; // Нашли низкое препятствие (камни, ящик, кусты), которое МОЖНО перепрыгнуть
+                    }
                 }
-                if (!obstacleInPath) continue;
+
+                // Критическое исправление: если на пути стена — сбрасываем этот прыжок
+                if (wallInPath) continue;
+                if (!obstacleInPath) continue; // Если препятствий вообще нет, прыгать не нужно (идем обычным шагом)
 
                 const nextState = { feet: currState.feet + (jumpCellsCount * 5), actions: currState.actions + 1, currentActionSpentFeet: 0, cameByJump: true, jumpsCount: currState.jumpsCount + 1 };
                 if (distances[targetCellKey] === undefined || nextState.actions < distances[targetCellKey].actions || (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount > distances[targetCellKey].jumpsCount) || (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount === distances[targetCellKey].jumpsCount && nextState.feet < distances[targetCellKey].feet)) {
@@ -766,6 +847,9 @@ const TacticalMapManager = {
                     queue.push({ r: jt.r, c: jt.c, actions: nextState.actions, feet: nextState.feet, cameByJump: true, jumpsCount: nextState.jumpsCount });
                 }
             }
+
+
+
         }
 
         const targetKey = `${target.r}_${target.c}`;
@@ -783,6 +867,8 @@ const TacticalMapManager = {
         }
         return { cells: pathCells.reverse(), jumpFlags, totalFeet: distances[targetKey].feet, actions: distances[targetKey].actions };
     },
+
+
 
     clearVisualPath() {
         document.querySelectorAll('.tactical-square').forEach(cell => {
