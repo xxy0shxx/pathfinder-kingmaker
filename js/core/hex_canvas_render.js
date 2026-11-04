@@ -18,6 +18,7 @@ const HexCanvasRender = {
     focusedHexKey: null,
     focusAlpha: 0,
     focusTime: 0,
+    showQuestTooltips: true,  // Глобальный флаг видимости мини-тултипов квестов на карте
 
     init(canvasElement, initialHexesData, coordinatesMap) {
         this.canvas = canvasElement;
@@ -249,6 +250,45 @@ const HexCanvasRender = {
             if (data.regionLevel) statsText += `💀${data.regionLevel}`;
             this.drawTextPlate(ctx, statsText, cx, cy + 48, true);
         }
+        if (this.showQuestTooltips && data && data.questData && data.questData.title && data.questData.status !== 'completed') {
+            const questTitle = data.questData.title.trim();
+            if (questTitle !== '') {
+                // Вычисляем точную позицию по Y (чуть выше верхнего угла pointy-topped гекса)
+                // В оригинальном коде смещение было (cy - radius + 12)
+                const questY = cy - r + 12;
+
+                // Рисуем рамку с текстом квеста, используя геральдический знак ⚜️
+                this.drawQuestPlate(ctx, `⚜️ ${questTitle}`, cx, questY);
+            }
+        }
+    },
+    /**
+     * Отрисовка стилизованной плашки мини-тултипа квеста (с белым текстом и фиолетово-золотым отливом ⚜️)
+     */
+    drawQuestPlate(ctx, text, x, y) {
+        ctx.save();
+        ctx.font = 'bold 12px Montserrat, sans-serif';
+        const metrics = ctx.measureText(text);
+        const paddingH = 8;
+        const w = metrics.width + paddingH * 2;
+        const h = 20;
+
+        // Красивая темная подложка с легким фиолетовым оттенком для квестов
+        ctx.fillStyle = 'rgba(25, 15, 35, 0.95)';
+        ctx.strokeStyle = '#ebd291'; // Золотая рамка
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.roundRect(x - w / 2, y - h / 2, w, h, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Белый контрастный текст для заданий
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x, y);
+        ctx.restore();
     },
 
     drawHoverEffect(cx, cy, r) {

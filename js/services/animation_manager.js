@@ -225,15 +225,18 @@ const AnimationManager = {
     },
 
     /**
-     * Переключение видимости мини-тултипов квестов на карте
-     * (Добавленный метод!)
+     * Переключение видимости мини-тултипов квестов на Canvas-карте
      */
     toggleQuestTooltips(btnElement) {
-        const visualLayer = document.getElementById('visualLayer');
-        if (!visualLayer) return;
-        const areHidden = visualLayer.classList.toggle('hide-quest-tooltips');
+        if (!HexCanvasRender) return;
+
+        HexCanvasRender.showQuestTooltips = !HexCanvasRender.showQuestTooltips;
+
         if (btnElement) {
-            btnElement.title = areHidden ? "Показать маркеры заданий" : "Скрыть маркеры заданий";
+            btnElement.title = HexCanvasRender.showQuestTooltips ? "Скрыть маркеры заданий" : "Показать маркеры заданий";
+
+            // Опционально: можно добавлять кнопке активный класс, чтобы она визуально светилась
+            btnElement.classList.toggle('ui-active', !HexCanvasRender.showQuestTooltips);
         }
     }
 };
