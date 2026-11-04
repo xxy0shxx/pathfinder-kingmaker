@@ -451,7 +451,7 @@ const HexCanvasRender = {
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
 
         if (!data || (!data.title && !data.text)) {
-            tooltip.innerHTML = `<div class="tooltip-title" style="color: #95a5a6;">📍 Сектор [Строка: ${row}, Колонка: ${col}]</div>
+            tooltip.innerHTML = `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [${row};${col}]</div>
                                  <div style="font-size: 16px; color: #ccc; margin: 8px 0 4px 0;">❌ <span style="color: #7f8c8d;">Не разведан</span></div>`;
             tooltip.style.display = 'block';
             return;
