@@ -1493,6 +1493,7 @@ body {
     will-change: transform, opacity;
     animation: beamShootOut 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
+
 .squad-path-line {
     stroke: #ffd875;
     stroke-width: 6px;
@@ -1500,8 +1501,10 @@ body {
     stroke-linejoin: round;
     stroke-dasharray: 8, 8;
     filter: drop-shadow(0 0 5px rgba(223, 188, 111, 0.7));
-    animation: pathLineFlow 30s linear infinite;
+    /*animation: pathLineFlow 30s linear infinite;*/ /* пусть пока будет! */
+
 }
+
 @media (max-width: 480px) {
     .buttons {
         flex-direction: column;
