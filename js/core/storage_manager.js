@@ -82,6 +82,7 @@ const StorageManager = {
         let oldHexId = null;
         if (!globalMapData.hexes) return null;
 
+        // Находим старую позицию отряда
         for (let id in globalMapData.hexes) {
             if (globalMapData.hexes[id].squadHere === true) {
                 if (id !== newHexId) {
@@ -90,6 +91,13 @@ const StorageManager = {
                 }
             }
         }
+
+        // Гарантируем, что новый гекс, куда переместился отряд, сразу помечается как посещенный
+        if (globalMapData.hexes[newHexId]) {
+            globalMapData.hexes[newHexId].squadHere = true;
+            globalMapData.hexes[newHexId].hasVisited = true;
+        }
+
         return oldHexId;
     },
 

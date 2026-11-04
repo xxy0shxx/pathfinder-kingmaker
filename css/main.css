@@ -257,14 +257,16 @@ body {
 }
 
 .global-flying-flag {
-    position: fixed;
+    position: fixed; /* Должно быть fixed, чтобы лететь поверх окон относительно экрана */
     z-index: 999999;
     pointer-events: none;
     transform-origin: bottom center;
     left: 0;
     top: 0;
+    width: 44px;  /* Явно задаем размеры контейнера анимации */
+    height: 55px;
     will-change: transform, opacity;
-    animation: windowsSmoothFly 1.3s linear forwards;
+    animation: windowsSmoothFly 1.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .flag-impact-burst {
@@ -1648,4 +1650,14 @@ body {
     min-width: 140px;
     padding: 8px 20px;
     font-size: 13px;
+}
+
+#mapCanvas {
+    position: absolute;
+    top: 0;
+    left: 0; /* Возвращаем привязку к левому верхнему углу картинки */
+    width: 3840px;
+    height: 1280px;
+    z-index: 3;
+    pointer-events: auto;
 }

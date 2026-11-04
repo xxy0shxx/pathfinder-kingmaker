@@ -9,20 +9,23 @@ import AnimationManager from './services/animation_manager.js';
 import StorageManager from './core/storage_manager.js';
 import LayoutManager from './ui/layout_manager.js';
 import UiPanelManager from './ui/ui_panel_manager.js';
-import HexUiSyncer from './sync/hex_ui_syncer.js';
 import FogManager from './controller/fog_manager.js';
 import PathManager from './core/path_manager.js';
 import KingdomManager from './core/kingdom_manager.js';
+import HexCanvasRender from './core/hex_canvas_render.js';
+import { MAP_CONFIG } from './config/app_config.js';
 
 let hasMoved = false;
-//let mapData = StorageManager.loadData();
+// Делаем переменную mapData доступной глобально для всех слушателей в этом файле
+let mapData = { hexes: {}, kingdom: null, paths: [] };
 
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
 // ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
 
-    let mapData = StorageManager.loadData();
+    // Загружаем актуальные данные из LocalStorage в глобальную переменную
+    mapData = StorageManager.loadData();
 
     // 1. Инициализация глобального лейаута и панелей управления
     LayoutManager.init();
@@ -32,14 +35,65 @@ document.addEventListener('DOMContentLoaded', () => {
     SoundPlayer.init();
     UiSelectManager.init();
     ViewportManager.init();
-    HexUiSyncer.init();
     PathManager.init(mapData);
+    const hexCoordinatesMap = {};
 
-    // 3. Инициализация и связывание менеджеров ядра (Данные -> Сетка -> Квесты)
+    const originalCreateHexElement = HexManager.createHexElement;
+    HexManager.createHexElement = function(hexId, row, col, cx, cy, radius, data) {
+        // Ловим оригинальные cx и cy, которые Kingmaker вычисляет пиксель-в-пиксель!
+        hexCoordinatesMap[hexId] = { cx, cy };
+        // DOM-ноды не создаем, возвращаем null, чтобы не захламлять память
+        return null;
+    };
+
+    // Запускаем оригинальный билд сетки Kingmaker для расчета координат
     HexManager.init(mapData.hexes, (hexId) => {
         HexModal.open(hexId, mapData.hexes[hexId]);
     });
+
+
+
+    // Карта сбора оригинальных пиксельных координат
+//    let hexCoordinatesMap = {};
+
+    // Перехватываем создание гекса для извлечения cx и cy
+    HexManager.buildGrid = function(hasMovedCheck) {
+        const { radius, rows, cols, offsetX, offsetY } = MAP_CONFIG.grid;
+        const widthBetweenHexes = radius * Math.sqrt(3);
+        const heightBetweenHexes = radius * 1.5;
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                let cx = offsetX + c * widthBetweenHexes;
+                let cy = offsetY + r * heightBetweenHexes;
+                if (r % 2 !== 0) { cx += widthBetweenHexes / 2; } // Оригинальный pointy-сдвиг
+
+                const hexId = 'hex_' + r + '_' + c;
+                // Сохраняем в карту
+                hexCoordinatesMap[hexId] = { cx, cy };
+            }
+        }
+    };
+
+    // Генерируем массив оригинальных координат
     HexManager.buildGrid(() => hasMoved);
+
+    // Инициализируем интерактивный Canvas-рендер
+    const canvasElement = document.getElementById('mapCanvas');
+    if (canvasElement) {
+        HexCanvasRender.init(canvasElement, mapData.hexes, hexCoordinatesMap);
+
+        canvasElement.addEventListener('click', () => {
+            if (!hasMoved && HexCanvasRender.hoveredHexKey) {
+                const hexId = HexCanvasRender.hoveredHexKey;
+                const hexData = mapData.hexes[hexId] || null;
+                HexModal.open(hexId, hexData);
+            }
+        });
+    }
+
+
+
 
     setTimeout(() => { PathManager.render(); }, 300);
 
@@ -53,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Настройка импорта файлов
     FileManager.init((importedData) => {
-        // Если пользователь загружает старый JSON-файл (где все гексы в корне)
         if (importedData && !importedData.hexes) {
             mapData = {
                 hexes: importedData,
@@ -61,21 +114,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 paths: importedData.__pathHistory || []
             };
         } else {
-            // Если импортируется уже новый изолированный формат
             mapData = importedData || { hexes: {}, kingdom: null, paths: [] };
         }
 
         QuestManager.updateMapData(mapData.hexes);
-        HexManager.updateMapData(mapData.hexes);
+
         if (typeof PathManager.updateMapData === 'function') {
             PathManager.updateMapData(mapData);
         }
         KingdomManager.updateMapData(mapData);
 
-        // Принудительно заставляем HexManager перерисовать DOM-элементы сетки на экране
-        HexManager.buildGrid(() => hasMoved);
+        // Передаем новые импортированные данные в Canvas и заставляем его обновиться
+        HexCanvasRender.updateData(mapData.hexes);
 
-        // Даем браузеру 50мс на отрисовку гексов и пускаем линии путей
         setTimeout(() => {
             PathManager.render();
         }, 50);
@@ -85,57 +136,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // КОЛЛБЭКИ ИНТЕРФЕЙСА МОДАЛЬНОГО ОКНА ГЕКСА
     // ============================================================================
 
-
     HexModal.init({
         onSave: (hexId, formData) => {
             let oldHexId = null;
 
+            // ЖЕЛЕЗНОЕ ПРАВИЛО: Если на гексе стоит отряд, он АВТОМАТИЧЕСКИ считается посещенным
             if (formData.squadHere) {
-                // Перемещаем отряд в памяти и узнаем ID старого гекса для анимации
+                // Если стоит отряд — гекс гарантированно посещен
+                formData.hasVisited = true;
+                // Перемещаем отряд в памяти менеджера и узнаем старый ID гекса
                 oldHexId = StorageManager.moveSquad(mapData, hexId);
-
                 PathManager.addPoint(hexId);
-
-                // Гасим стационарный флаг на старом гексе перед запуском полета
-                if (oldHexId && oldHexId !== hexId) {
-                    const oldHexElement = document.getElementById('visual_' + oldHexId);
-                    if (oldHexElement) {
-                        oldHexElement.classList.remove('squad-dark');
-                        const oldFlag = oldHexElement.querySelector('.squad-flag-container');
-                        if (oldFlag) {
-                            oldFlag.style.display = 'none';
-                            oldFlag.classList.remove('active-flag');
-                        }
-                    }
-                }
+            } else {
+                // Если отряда нет — сохраняем старый статус посещения из базы данных
+                formData.hasVisited = !!(mapData.hexes[hexId] && mapData.hexes[hexId].hasVisited);
             }
 
-            // Вся тяжелая работа с DOM гекса (иконки, тексты, анимация флага) теперь тут:
-            HexUiSyncer.sync(hexId, formData, oldHexId);
-
-            // Сохраняем состояние в репозиторий данных (LocalStorage)
             StorageManager.updateHex(mapData, hexId, formData);
 
-            // Если журнал квестов открыт — обновляем списки
+            // Проверяем перемещение для запуска анимации
+            if (formData.squadHere && oldHexId && oldHexId !== hexId) {
+
+                // Включаем изоляцию флага на Canvas (туман снимется, но флаг скроется на время полета)
+                HexCanvasRender.hiddenSquadHexId = hexId;
+                HexCanvasRender.updateData(mapData.hexes); // Мгновенно перерисовываем кадр
+
+                // Запускаем баллистическую траекторию летящего флага
+                AnimationManager.playFlagFlight(oldHexId, hexId, () => {
+                    // Флаг приземлился! Снимаем блокировку, стационарный флаг появляется на Canvas
+                    HexCanvasRender.hiddenSquadHexId = null;
+                    HexCanvasRender.updateData(mapData.hexes);
+                });
+
+            } else {
+                // Обычное сохранение характеристик гекса без перемещения отряда
+                HexCanvasRender.updateData(mapData.hexes);
+            }
+
+
+
+            // Обновляем журнал квестов, если он открыт
             const questLog = document.getElementById('questLogContainer');
             if (questLog && !questLog.classList.contains('ui-collapsed')) {
                 QuestManager.render();
             }
 
-            // Синхронно обновляем туман войны для всей сетки
+            // Синхронно обновляем туман войны
             FogManager.syncMapFog(mapData.hexes);
 
             HexModal.close();
         },
-        onDelete: (hexId) => {
-            // Удаляем данные из LocalStorage
-            StorageManager.deleteHex(mapData, hexId);
 
-            // Сбрасываем и очищаем визуальные элементы гекса на карте
-            HexUiSyncer.clear(hexId);
-
-            HexModal.close();
-        }
     });
 
 });
@@ -150,5 +201,5 @@ if (mapImg) {
     });
 }
 
-// Проброс глобального метода закрытия для вызова из старых inline-обработчиков (если остались)
+// Проброс глобального метода закрытия для вызова из старых inline-обработчиков
 window.closeMenu = () => HexModal.close();
