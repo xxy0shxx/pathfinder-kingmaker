@@ -466,7 +466,7 @@ const HexCanvasRender = {
             const terrainIcon = MAP_CONFIG.terrains[data.terrain]?.icon || '';
             content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
         } else {
-            content += `<div class="tooltip-title" style="color: #95a5a6;">📍 Сектор [Строка: ${row}, Колонка: ${col}]</div>`;
+            content += `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [${row};${col}]</div>`;
         }
 
         let paramsBlock = '';
