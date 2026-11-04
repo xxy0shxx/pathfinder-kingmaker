@@ -350,28 +350,32 @@ const HexCanvasRender = {
     },
 
     /**
-     * Динамическое наполнение оригинального HTML-тултипа Kingmaker метаданными из Canvas
+     * Динамическое наполнение оригинального HTML-тултипа для ВСЕХ гексов
      */
     updateTooltipState(tooltip) {
         if (!tooltip) return;
 
-        // Если мышь ушла с гексов или гекс скрыт туманом войны (не разведан и отряд там не был)
         const hexKey = this.hoveredHexKey;
-        const data = hexKey ? this.hexesData[hexKey] : null;
 
-        // Условие видимости: туман войны должен быть снят (explored || hasVisited || squadHere)
-        const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
-
-        if (!hexKey || !data || !isRevealed || (!data.title && !data.text)) {
+        // Если мышь не наведена ни на один гекс — скрываем тултип
+        if (!hexKey) {
             tooltip.style.display = 'none';
             tooltip.innerHTML = '';
             return;
         }
 
-        // Генерируем HTML-контент один-в-один как в вашем оригинальном HexManager.js
+        // Извлекаем строку 'hex_row_col' и парсим чистые координаты сетки для вывода
+        const [_, row, col] = hexKey.split('_');
+        const data = this.hexesData[hexKey] || null;
+
+        // Флаг: рассеян ли туман войны над гексом
+        const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
+
         let content = '';
 
-        if (data.title) {
+        // 1. ЗАГОЛОВОК ТУЛТИПА
+        if (isRevealed && data && data.title) {
+            // Если гекс открыт и у него есть имя — пишем кастомное имя объекта
             const star = data.explored ? '🔍 ' : '';
             const mapIcon = data.mapMapped ? '📜 ' : '';
 
@@ -388,37 +392,58 @@ const HexCanvasRender = {
             const terrainIcon = MAP_CONFIG.terrains[data.terrain]?.icon || '';
 
             content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
+        } else {
+            // Если гекс скрыт туманом или пустой — выводим его системные координаты Kingmaker
+            content += `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [Строка: ${row}, Колонка: ${col}]</div>`;
         }
 
+        // 2. БЛОК СТАТУСНЫХ ПАРАМЕТРОВ ГЕКСА
         let paramsBlock = '';
-        paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
-        paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '❌ <b>Карта отсутствует</b>'}</div>`;
-        if (data.squadHere) { paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`; }
-        if (data.difficulty) { paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`; }
-        if (data.regionLevel) { paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`; }
 
-        if (data.type && MAP_CONFIG.types[data.type]) {
-            const tData = MAP_CONFIG.types[data.type];
-            paramsBlock += `<div style="margin-bottom: 4px;">${tData.icon} <b>Объект:</b> <span class="tooltip-value">${tData.label}</span></div>`;
+        const isExplored = !!(data && data.explored);
+        const isMapped = !!(data && data.mapMapped);
+        const isSquad = !!(data && data.squadHere);
+
+        paramsBlock += `<div style="margin-bottom: 4px;">${isExplored ? '🔍 <b>Разведан</b>' : '❌ <span style="color: #7f8c8d;">Не разведан</span>'}</div>`;
+        paramsBlock += `<div style="margin-bottom: 4px;">${isMapped ? '📜 <b>Карта составлена</b>' : '❌ <span style="color: #7f8c8d;">Карта отсутствует</span>'}</div>`;
+
+        if (isSquad) {
+            paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
         }
 
-        if (data.terrain && MAP_CONFIG.terrains[data.terrain]) {
-            const terrData = MAP_CONFIG.terrains[data.terrain];
-            paramsBlock += `<div style="margin-bottom: 4px;">${terrData.icon} <b>Местность:</b> <span class="tooltip-value">${terrData.label} 🎲СЛ ${terrData.dc}</span></div>`;
+        // Выводим сложность и уровень, только если они заполнены и гекс открыт
+        if (isRevealed && data) {
+            if (data.difficulty) {
+                paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
+            }
+            if (data.regionLevel) {
+                paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`;
+            }
+            if (data.type && MAP_CONFIG.types[data.type]) {
+                const tData = MAP_CONFIG.types[data.type];
+                paramsBlock += `<div style="margin-bottom: 4px;">${tData.icon} <b>Объект:</b> <span class="tooltip-value">${tData.label}</span></div>`;
+            }
+            if (data.terrain && MAP_CONFIG.terrains[data.terrain]) {
+                const terrData = MAP_CONFIG.terrains[data.terrain];
+                paramsBlock += `<div style="margin-bottom: 4px;">${terrData.icon} <b>Местность:</b> <span class="tooltip-value">${terrData.label} 🎲СЛ ${terrData.dc}</span></div>`;
+            }
         }
 
         content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
 
-        if (data.text) {
+        // 3. БЛОК ОПИСАНИЯ (Показываем только для открытых территорий)
+        if (isRevealed && data && data.text) {
             content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
         }
-        if (data.lastSaved) {
+
+        if (isRevealed && data && data.lastSaved) {
             content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`;
         }
 
         tooltip.innerHTML = content;
         tooltip.style.display = 'block';
     },
+
     triggerFocus(hexId) {
         this.focusedHexKey = hexId;
         this.focusTime = 0;
