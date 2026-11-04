@@ -54,7 +54,6 @@ const HexModal = {
     },
     /**
      * DOM-хак: Красивая перегруппировка кнопок модального окна в ровный Flex-контейнер
-     * (Инкапсулировано внутри модуля, полностью очищает main.js)
      */
     assembleActionButtons() {
         const btnDeleteEl = document.getElementById('btnDelete');

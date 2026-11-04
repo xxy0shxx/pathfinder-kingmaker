@@ -97,7 +97,7 @@ const HexUiSyncer = {
     },
     /**
      * Сквозное обновление всех DOM-элементов гекса на карте после изменения данных
-     * (Вызывается из коллбэка onSave в main.js)
+     * (Вызывается из коллбэка onSave в app.js)
      */
     sync(hexId, formData, oldHexId) {
         if (!this.visualLayer) this.init();
@@ -223,7 +223,7 @@ const HexUiSyncer = {
 
     /**
      * Сброс стилей и очистка кастомных данных гекса при удалении
-     * (Вызывается из коллбэка onDelete в main.js)
+     * (Вызывается из коллбэка onDelete в app.js)
      */
     clear(hexId) {
         const shape = document.getElementById('shape_' + hexId);
