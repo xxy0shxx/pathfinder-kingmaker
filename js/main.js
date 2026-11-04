@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasElement = document.getElementById('mapCanvas');
     if (canvasElement) {
         HexCanvasRender.init(canvasElement, mapData.hexes, hexCoordinatesMap);
+        window.HexCanvasRender = HexCanvasRender;
 
         canvasElement.addEventListener('click', () => {
             if (!hasMoved && HexCanvasRender.hoveredHexKey) {

@@ -152,13 +152,58 @@ const ViewportManager = {
      * Расчет CSS-трансформаций и динамическое inset-кадрирование холста
      */
     updateMapTransform() {
+        // ПРИНУДИТЕЛЬНО КОРРЕКТИРУЕМ КООРДИНАТЫ: Центрируем камеру на отряде при любом изменении масштаба
+        this.focusOnSquad();
+
         requestAnimationFrame(() => {
+            // Элемент .mapContainer сдвигается по скорректированным this.x и this.y
             this.mapContainer.style.transform = `translate(${Math.round(this.x)}px, ${Math.round(this.y)}px) scale(${this.currentZoom})`;
 
-            // Отдаем всю работу с рамкой и clipPath новому менеджеру
+            // Отдаем всю работу с рамкой и clipPath менеджеру рамок
             FrameManager.updateBounds(this.viewport, this.mapContainer, this.currentZoom);
         });
-    }
+    },
+
+    /**
+     * Автоматический пересчет координат сдвига для центрирования на отряде
+     */
+    focusOnSquad() {
+        // ЖЕЛЕЗНОЕ ПРАВИЛО: Если пользователь прямо сейчас перетаскивает карту руками,
+        // мы отключаем автоцентрирование, давая ему полную свободу перемещения!
+        if (this.isDragging) return;
+
+        const HexCanvasRender = window.HexCanvasRender || null;
+        if (!HexCanvasRender || !HexCanvasRender.hexCoords || !HexCanvasRender.hexesData) return;
+
+        let squadHexId = null;
+        for (let key in HexCanvasRender.hexesData) {
+            if (HexCanvasRender.hexesData[key] && HexCanvasRender.hexesData[key].squadHere) {
+                squadHexId = key;
+                break;
+            }
+        }
+
+        if (!squadHexId) return;
+
+        const coords = HexCanvasRender.hexCoords[squadHexId];
+        if (!coords) return;
+
+        const viewWidth = this.viewport.clientWidth;
+        const viewHeight = this.viewport.clientHeight;
+        const zoom = this.currentZoom;
+
+        const virtualXFromRight = 3840 - coords.cx;
+        const virtualYFromTop = coords.cy;
+
+        let targetPanX = (virtualXFromRight * zoom) - viewWidth / 2;
+        let targetPanY = (viewHeight / 2) - (virtualYFromTop * zoom);
+
+        const { minX, maxX, minY, maxY } = MAP_CONFIG.viewport.limits;
+
+        this.x = Math.max(minX, Math.min(maxX, targetPanX));
+        this.y = Math.max(minY, Math.min(maxY, targetPanY));
+    },
+
 };
 
 export default ViewportManager;
