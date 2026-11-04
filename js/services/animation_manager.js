@@ -63,6 +63,11 @@ const AnimationManager = {
      * Запускает баллистический полет флага отряда с уменьшенными вспышками золотых лучей
      */
     playFlagFlight(oldHexId, currentHexId, onImpactCallback) {
+        if (oldHexId === currentHexId) {
+            if (typeof onImpactCallback === 'function') onImpactCallback();
+            return;
+        }
+
         const startCoords = HexCanvasRender.hexCoords[oldHexId] || HexCanvasRender.hexCoords['hex_0_0'];
         const targetCoords = HexCanvasRender.hexCoords[currentHexId];
 

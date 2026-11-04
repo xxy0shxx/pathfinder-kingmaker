@@ -18,6 +18,9 @@ import { MAP_CONFIG } from './config/app_config.js';
 let hasMoved = false;
 // Делаем переменную mapData доступной глобально для всех слушателей в этом файле
 let mapData = { hexes: {}, kingdom: null, paths: [] };
+// true  — флаг ВСЕГДА прилетает из нулевого гекса (hex_0_0)
+// false — флаг летит из своей реальной предыдущей позиции
+let FLIGHT_FROM_CAPITAL_MODE = true;
 
 // ============================================================================
 // ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
@@ -137,60 +140,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================================
 
     HexModal.init({
+
+
         onSave: (hexId, formData) => {
             let oldHexId = null;
 
-            // ЖЕЛЕЗНОЕ ПРАВИЛО: Если на гексе стоит отряд, он АВТОМАТИЧЕСКИ считается посещенным
             if (formData.squadHere) {
-                // Если стоит отряд — гекс гарантированно посещен
                 formData.hasVisited = true;
-                // Перемещаем отряд в памяти менеджера и узнаем старый ID гекса
                 oldHexId = StorageManager.moveSquad(mapData, hexId);
                 PathManager.addPoint(hexId);
             } else {
-                // Если отряда нет — сохраняем старый статус посещения из базы данных
                 formData.hasVisited = !!(mapData.hexes[hexId] && mapData.hexes[hexId].hasVisited);
             }
 
-            StorageManager.updateHex(mapData, hexId, formData);
-
-            // Проверяем перемещение для запуска анимации
             if (formData.squadHere && oldHexId && oldHexId !== hexId) {
 
-                // Включаем изоляцию флага на Canvas
                 HexCanvasRender.hiddenSquadHexId = hexId;
 
-                // Передаем данные И текущий ID гекса для запуска анимации появления иконок!
-                HexCanvasRender.updateData(mapData.hexes, hexId);
+                // Определяем точку старта в зависимости от нашей переменной-режима
+                // Если режим активен — принудительно подменяем старый гекс на 'hex_0_0'
+                const finalStartHexId = FLIGHT_FROM_CAPITAL_MODE ? 'hex_0_0' : oldHexId;
 
-                // Запускаем баллистическую траекторию летящего флага
-                AnimationManager.playFlagFlight(oldHexId, hexId, () => {
+                StorageManager.updateHex(mapData, hexId, formData);
+                HexCanvasRender.updateData(mapData.hexes);
+
+                // Передаем вычисленный ID старта в анимационный менеджер
+                AnimationManager.playFlagFlight(finalStartHexId, hexId, () => {
                     HexCanvasRender.hiddenSquadHexId = null;
-
-                    // Дополнительно поджигаем красивое пульсирующее Canvas-свечение под флагом в точке удара!
-                    HexCanvasRender.triggerFocus(hexId);
-
+                    HexCanvasRender.updateData(hexId);
                     HexCanvasRender.updateData(mapData.hexes);
                 });
 
             } else {
-                // Обычное сохранение характеристик гекса (передаем hexId для запуска анимации иконок)
-                HexCanvasRender.updateData(mapData.hexes, hexId);
+                StorageManager.updateHex(mapData, hexId, formData);
+                HexCanvasRender.updateData(mapData.hexes);
             }
 
-
-
-            // Обновляем журнал квестов, если он открыт
             const questLog = document.getElementById('questLogContainer');
             if (questLog && !questLog.classList.contains('ui-collapsed')) {
                 QuestManager.render();
             }
 
-            // Синхронно обновляем туман войны
             FogManager.syncMapFog(mapData.hexes);
-
             HexModal.close();
         },
+
+
+
         onDelete: (hexId) => {
             // 1. Удаляем данные гекса из LocalStorage (внутриglobalMapData)
             StorageManager.deleteHex(mapData, hexId);
