@@ -216,11 +216,12 @@ const TacticalMapManager = {
         this.recalculateCampFogOfWar();
     },
     // ============================================================================
-    // ЧАСТЬ 5 ИЗ 15: АРХИТЕКТУРНОЕ ДЕЛЕГИРОВАНИЕ СОБЫТИЙ СЕТКИ
+    // ОБНОВЛЕННАЯ ЧАСТЬ 5 ИЗ 15: АРХИТЕКТУРНОЕ ДЕЛЕГИРОВАНИЕ С СИНХРОНИЗАЦИЕЙ ТУЛТИПА
     // ============================================================================
 
     /**
-     * [ОПТИМИЗАЦИЯ] Архитектурное делегирование событий: 4 слушателя на корень вместо 1000+ на ячейках
+     * Архитектурное делегирование событий: вешаем слушатели на корень сетки.
+     * Добавлен mousemove для жесткой и плавной привязки тултипа к курсору мыши.
      */
     initGridEventDelegation() {
         const gridLayer = document.getElementById('tacticalGridLayer');
@@ -258,7 +259,17 @@ const TacticalMapManager = {
             this.showTacticalTooltip(cell.dataset.squareId);
         }, { capture: true });
 
-        // 4. Очистка тултипов и путей при выходе мыши из ячейки
+        // 4. КРИТИЧЕСКОЕ ОБНОВЛЕНИЕ: Плавное следование тултипа за курсором мыши
+        gridLayer.addEventListener('mousemove', (e) => {
+            const tooltip = document.getElementById('hexTooltip');
+            if (!tooltip || tooltip.style.display === 'none') return;
+
+            // Смещение подсказки на 15 пикселей вправо и вниз от курсора, чтобы она не перекрывала ячейку
+            tooltip.style.left = (e.clientX + 15) + 'px';
+            tooltip.style.top = (e.clientY + 15) + 'px';
+        }, { capture: true });
+
+        // 5. Очистка тултипов и путей при выходе мыши из ячейки
         gridLayer.addEventListener('mouseleave', (e) => {
             const cell = e.target.closest('.tactical-square');
             if (!cell) return;
@@ -271,6 +282,9 @@ const TacticalMapManager = {
             if (this.state.focusedEntityId) this.clearVisualPath();
         }, { capture: true });
     },
+
+
+
     // ============================================================================
     // ЧАСТЬ 6 ИЗ 15: ОБРАБОТЧИКИ ФОРМЫ МОДАЛЬНОГО ОКНА (FORM EVENT LISTENERS)
     // ============================================================================
@@ -317,6 +331,9 @@ const TacticalMapManager = {
 
         this.initCampColorPresets();
     },
+
+
+
     // ============================================================================
     // ЧАСТЬ 7 ИЗ 15: ЦВЕТОВЫЕ ПРЕСЕТЫ И ТУМАН ВОЙНЫ (COLOR PRESETS & FOG TOGGLE)
     // ============================================================================
