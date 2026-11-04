@@ -29,10 +29,7 @@ const AnimationManager = {
     },
 
     /**
-     * Генерирует сочную вспышку шести золотых лучей с возможностью изменения масштаба
-     * @param {number} cx - координата X центра
-     * @param {number} cy - координата Y центра
-     * @param {number} scale - коэффициент масштаба (1.0 = обычный, 0.5 = в два раза меньше)
+     * Генерирует вспышку шести золотых лучей с возможностью изменения масштаба
      */
     spawnBeamsBurst(cx, cy, scale = 1.0) {
         const beamsContainer = document.createElement('div');
@@ -40,7 +37,6 @@ const AnimationManager = {
         beamsContainer.style.left = `${cx}px`;
         beamsContainer.style.top = `${cy}px`;
 
-        // Управляем размером всей вспышки лучей через CSS-трансформ
         if (scale !== 1.0) {
             beamsContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
@@ -57,7 +53,6 @@ const AnimationManager = {
         document.body.appendChild(beamsContainer);
         setTimeout(() => { beamsContainer.remove(); }, 1200);
     },
-
 
     /**
      * Запускает баллистический полет флага отряда с уменьшенными вспышками золотых лучей
@@ -117,13 +112,12 @@ const AnimationManager = {
 
         document.body.appendChild(flyingFlag);
 
-        // --- УДАР ФЛАГА (Уменьшаем масштаб лучей до 0.1) ---
+        // --- УДАР ФЛАГА ---
         setTimeout(() => {
             flyingFlag.style.animation = 'none';
             flyingFlag.style.transition = 'transform 0.05s ease-out';
             flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
 
-            // Вызываем метод с третьим параметром 0.1 для аккуратных лучей
             this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
 
             if (typeof onImpactCallback === 'function') {
@@ -133,32 +127,12 @@ const AnimationManager = {
 
         setTimeout(() => { flyingFlag.remove(); }, 1300);
 
-        // Боковые каскадные вспышки тоже (scale 0.1)
         setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 1430);
         setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 1610);
     },
 
     /**
-     * Эффект циклической пульсирующей вспышки для фокусировки внимания на конкретном гексе
-     * (Добавленный метод!)
-     */
-    /*
-    focusOnHex(hexId) {
-        const vHex = document.getElementById('visual_' + hexId);
-        if (!vHex) return;
-
-        vHex.classList.add('hex-focused-flash');
-
-        setTimeout(() => {
-            vHex.classList.remove('hex-focused-flash');
-        }, 3600);
-    },
-     */
-
-
-
-    /**
-     * Быстрый каскад из вспышек лучей света с предварительным удержанием фокуса на квесте
+     * Быстрый каскад из вспышек лучей света с удержанием фокуса на квесте
      */
     focusOnHex(hexId) {
         const coords = HexCanvasRender.hexCoords[hexId];
@@ -167,12 +141,8 @@ const AnimationManager = {
         const zoom = ViewportManager.currentZoom || 1.0;
         const viewportElement = document.getElementById('viewport');
 
-        // ==========================================
-        // ФАЗА 1: БЛОКИРОВКА ФОКУСА И СДВИГ К КВЕСТУ
-        // ==========================================
         if (viewportElement) {
             // Включаем временную блокировку фокуса во ViewportManager (на 1.8 секунды)
-            // В течение этого времени никакой зум не посмеет вернуть камеру к отряду!
             ViewportManager.lockFocusUntil = Date.now() + 1800;
 
             const viewWidth = viewportElement.clientWidth;
@@ -186,23 +156,19 @@ const AnimationManager = {
 
             const { minX, maxX, minY, maxY } = MAP_CONFIG.viewport.limits;
 
-            targetPanX = Math.max(minX, Math.min(maxX, targetPanX));
-            targetPanY = Math.max(minY, Math.min(maxY, targetPanY));
-
-            ViewportManager.x = targetPanX;
-            ViewportManager.y = targetPanY;
+            ViewportManager.x = Math.max(minX, Math.min(maxX, targetPanX));
+            ViewportManager.y = Math.max(minY, Math.min(maxY, targetPanY));
             ViewportManager.updateMapTransform();
         }
 
-        // ==========================================
-        // ФАЗА 2: ВСПЫШКА ЛУЧЕЙ НА МЕСТЕ КВЕСТА
-        // ==========================================
+        // ВСПЫШКА ЛУЧЕЙ НА МЕСТЕ КВЕСТА
         setTimeout(() => {
             const currentPanX = ViewportManager.x || 0;
             const currentPanY = ViewportManager.y || 0;
             const viewRect = viewportElement ? viewportElement.getBoundingClientRect() : { left: 0, top: 0 };
             const viewWidth = viewportElement ? viewportElement.clientWidth : 0;
 
+            // [ОПТИМИЗАЦИЯ] Триггерим фокус на гексе, что автоматически заводит анимационный loop в Canvas-рендерере
             HexCanvasRender.triggerFocus(hexId);
 
             const virtualXFromRight = 3840 - coords.cx;
@@ -214,11 +180,7 @@ const AnimationManager = {
 
         }, 100);
 
-        // ==========================================
-        // ФАЗА 3: ПЛАВНЫЙ ВОЗВРАТ К ОТРЯДУ ПОСЛЕ ПАУЗЫ
-        // ==========================================
-        // Ровно через 1.8 секунды принудительно просим ViewportManager перерисовать кадр,
-        // блокировка уже спадет, и камера сама мягко прыгнет/отцентрируется обратно на флаг!
+        // Через 1.8 секунды блокировка спадает, камера сама мягко центрируется обратно на флаг отряда
         setTimeout(() => {
             ViewportManager.updateMapTransform();
         }, 1800);
@@ -234,9 +196,12 @@ const AnimationManager = {
 
         if (btnElement) {
             btnElement.title = HexCanvasRender.showQuestTooltips ? "Скрыть маркеры заданий" : "Показать маркеры заданий";
-
-            // Опционально: можно добавлять кнопке активный класс, чтобы она визуально светилась
             btnElement.classList.toggle('ui-active', !HexCanvasRender.showQuestTooltips);
+        }
+
+        // [ОПТИМИЗАЦИЯ] Принудительно обновляем один кадр, чтобы скрыть/показать тултипы заданий
+        if (HexCanvasRender && typeof HexCanvasRender.requestFrame === 'function') {
+            HexCanvasRender.requestFrame();
         }
     }
 };
