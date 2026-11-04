@@ -1,4 +1,7 @@
 // PathManager.js
+
+import HexCanvasRender from './hex_canvas_render.js';
+
 /**
  * Универсальный модуль для управления и отрисовки путей/маршрутов отряда (Pathfinding Log).
  */
@@ -59,15 +62,17 @@ const PathManager = {
     },
 
     /**
-     * Генерация SVG-линий между всеми посещенными точками на карте
+     * Генерация SVG-линий между всеми посещенными точками на карте на основе эталонных координат
      */
     render() {
         if (!this.svgLayer) this.svgLayer = document.getElementById('mapPathsSvg');
         if (!this.svgLayer || !this.mapDataRef) return;
 
+        // Полностью очищаем старые линии на SVG-слое
         this.svgLayer.innerHTML = '';
 
         const currentHistory = this.history;
+        // Если точек в истории меньше двух — рисовать линию не между чем
         if (currentHistory.length < 2) return;
 
         let svgContent = '';
@@ -76,22 +81,18 @@ const PathManager = {
             const startId = currentHistory[i];
             const endId = currentHistory[i + 1];
 
-            const startEl = document.getElementById('visual_' + startId);
-            const endEl = document.getElementById('visual_' + endId);
+            // Вместо поиска DOM-элементов берем чистые, эталонные cx и cy центра гексов
+            const startCoords = HexCanvasRender.hexCoords[startId];
+            const endCoords = HexCanvasRender.hexCoords[endId];
 
-            if (startEl && endEl) {
-                const startX = startEl.offsetLeft + startEl.offsetWidth / 2;
-                const startY = startEl.offsetTop + startEl.offsetHeight / 2;
-
-                const endX = endEl.offsetLeft + endEl.offsetWidth / 2;
-                const endY = endEl.offsetTop + endEl.offsetHeight / 2;
-
+            // Если для обеих точек у нас есть вычисленные координаты — генерируем SVG-линию
+            if (startCoords && endCoords) {
                 svgContent += `
                     <line 
-                        x1="${startX}" 
-                        y1="${startY}" 
-                        x2="${endX}" 
-                        y2="${endY}" 
+                        x1="${startCoords.cx}" 
+                        y1="${startCoords.cy}" 
+                        x2="${endCoords.cx}" 
+                        y2="${endCoords.cy}" 
                         stroke="#ffd875" 
                         stroke-width="5" 
                         class="squad-path-line"
@@ -100,8 +101,10 @@ const PathManager = {
             }
         }
 
+        // Записываем сгенерированные линии в SVG-слой
         this.svgLayer.innerHTML = svgContent;
     }
+
 };
 
 export default PathManager;
