@@ -29,13 +29,21 @@ const AnimationManager = {
     },
 
     /**
-     * [НОВЫЙ МЕТОД] Генерирует сочную вспышку шести золотых лучей в стиле квестов
+     * Генерирует сочную вспышку шести золотых лучей с возможностью изменения масштаба
+     * @param {number} cx - координата X центра
+     * @param {number} cy - координата Y центра
+     * @param {number} scale - коэффициент масштаба (1.0 = обычный, 0.5 = в два раза меньше)
      */
-    spawnBeamsBurst(cx, cy) {
+    spawnBeamsBurst(cx, cy, scale = 1.0) {
         const beamsContainer = document.createElement('div');
         beamsContainer.className = 'hex-beams-burst';
         beamsContainer.style.left = `${cx}px`;
         beamsContainer.style.top = `${cy}px`;
+
+        // Управляем размером всей вспышки лучей через CSS-трансформ
+        if (scale !== 1.0) {
+            beamsContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
 
         for (let i = 0; i < 6; i++) {
             const beam = document.createElement('div');
@@ -52,7 +60,7 @@ const AnimationManager = {
 
 
     /**
-     * Запускает баллистический полет флага отряда между гексами
+     * Запускает баллистический полет флага отряда с уменьшенными вспышками золотых лучей
      */
     playFlagFlight(oldHexId, currentHexId, onImpactCallback) {
         const startCoords = HexCanvasRender.hexCoords[oldHexId] || HexCanvasRender.hexCoords['hex_0_0'];
@@ -104,14 +112,14 @@ const AnimationManager = {
 
         document.body.appendChild(flyingFlag);
 
-        // --- ТАЙМИНГИ И СТИЛИ ПРИЗЕМЛЕНИЯ ФЛАГА ---
+        // --- УДАР ФЛАГА (Уменьшаем масштаб лучей до 0.1) ---
         setTimeout(() => {
             flyingFlag.style.animation = 'none';
             flyingFlag.style.transition = 'transform 0.05s ease-out';
             flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
 
-            // Вспышка стиля квеста №1 (Главный удар ровно в центр гекса)
-            this.spawnBeamsBurst(targetScreen.x, targetScreen.y);
+            // Вызываем метод с третьим параметром 0.1 для аккуратных лучей
+            this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
 
             if (typeof onImpactCallback === 'function') {
                 onImpactCallback();
@@ -120,11 +128,10 @@ const AnimationManager = {
 
         setTimeout(() => { flyingFlag.remove(); }, 1300);
 
-        // Каскадные вспышки стиля квеста №2 и №3 (расходятся по оригинальным таймингам по бокам клетки)
-        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40); }, 1430);
-        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40); }, 1610);
+        // Боковые каскадные вспышки тоже (scale 0.1)
+        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 1430);
+        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 1610);
     },
-
 
     /**
      * Эффект циклической пульсирующей вспышки для фокусировки внимания на конкретном гексе
