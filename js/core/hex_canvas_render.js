@@ -310,20 +310,114 @@ const HexCanvasRender = {
         ctx.restore();
     },
     attachMouseEvents() {
+        // Кэшируем ссылку на элемент тултипа, чтобы не искать его каждый кадр
+        const tooltipElem = document.getElementById('hexTooltip');
+
         const calculateVirtualCoords = (e) => {
             const zoom = ViewportManager.currentZoom || 1.0;
             const rect = this.canvas.getBoundingClientRect();
+
+            // Расчет смещения мыши относительно правого верхнего угла (transform-origin: 100% 0)
             const distanceFromRight = rect.right - e.clientX;
             const distanceFromTop = e.clientY - rect.top;
+
             this.mouseX = 3840 - (distanceFromRight / zoom);
             this.mouseY = distanceFromTop / zoom;
+
+            // СИНХРОНИЗАЦИЯ ТУЛТИПА: Двигаем тултип вслед за курсором мыши на экране (как в старом коде)
+            if (tooltipElem && tooltipElem.style.display === 'block') {
+                tooltipElem.style.left = (e.clientX + 25) + 'px';
+                tooltipElem.style.top = (e.clientY + 25) + 'px';
+            }
         };
+
         this.canvas.addEventListener('mousemove', calculateVirtualCoords);
+
+        // Каждую миллисекунду проверяем, изменился ли гекс под курсором
+        this.canvas.addEventListener('mousemove', () => {
+            this.updateTooltipState(tooltipElem);
+        });
+
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseX = -1000;
             this.mouseY = -1000;
             this.hoveredHexKey = null;
+            if (tooltipElem) {
+                tooltipElem.style.display = 'none';
+                tooltipElem.innerHTML = '';
+            }
         });
+    },
+
+    /**
+     * Динамическое наполнение оригинального HTML-тултипа Kingmaker метаданными из Canvas
+     */
+    updateTooltipState(tooltip) {
+        if (!tooltip) return;
+
+        // Если мышь ушла с гексов или гекс скрыт туманом войны (не разведан и отряд там не был)
+        const hexKey = this.hoveredHexKey;
+        const data = hexKey ? this.hexesData[hexKey] : null;
+
+        // Условие видимости: туман войны должен быть снят (explored || hasVisited || squadHere)
+        const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
+
+        if (!hexKey || !data || !isRevealed || (!data.title && !data.text)) {
+            tooltip.style.display = 'none';
+            tooltip.innerHTML = '';
+            return;
+        }
+
+        // Генерируем HTML-контент один-в-один как в вашем оригинальном HexManager.js
+        let content = '';
+
+        if (data.title) {
+            const star = data.explored ? '🔍 ' : '';
+            const mapIcon = data.mapMapped ? '📜 ' : '';
+
+            let statsLabel = '';
+            if (data.difficulty && data.regionLevel) {
+                statsLabel = ` (СЛ ${data.difficulty} / lvl ${data.regionLevel})`;
+            } else if (data.difficulty) {
+                statsLabel = ` (СЛ ${data.difficulty})`;
+            } else if (data.regionLevel) {
+                statsLabel = ` (lvl ${data.regionLevel})`;
+            }
+
+            const typeIcon = MAP_CONFIG.types[data.type]?.icon || '';
+            const terrainIcon = MAP_CONFIG.terrains[data.terrain]?.icon || '';
+
+            content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
+        }
+
+        let paramsBlock = '';
+        paramsBlock += `<div style="margin-bottom: 4px;">${data.explored ? '🔍 <b>Разведан</b>' : '❌ <b>Не разведан</b>'}</div>`;
+        paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '❌ <b>Карта отсутствует</b>'}</div>`;
+        if (data.squadHere) { paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`; }
+        if (data.difficulty) { paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`; }
+        if (data.regionLevel) { paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`; }
+
+        if (data.type && MAP_CONFIG.types[data.type]) {
+            const tData = MAP_CONFIG.types[data.type];
+            paramsBlock += `<div style="margin-bottom: 4px;">${tData.icon} <b>Объект:</b> <span class="tooltip-value">${tData.label}</span></div>`;
+        }
+
+        if (data.terrain && MAP_CONFIG.terrains[data.terrain]) {
+            const terrData = MAP_CONFIG.terrains[data.terrain];
+            paramsBlock += `<div style="margin-bottom: 4px;">${terrData.icon} <b>Местность:</b> <span class="tooltip-value">${terrData.label} 🎲СЛ ${terrData.dc}</span></div>`;
+        }
+
+        content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
+
+        if (data.text) {
+            content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
+        }
+        if (data.lastSaved) {
+            content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`;
+        }
+
+        tooltip.innerHTML = content;
+        tooltip.style.display = 'block';
     },
     triggerFocus(hexId) {
         this.focusedHexKey = hexId;
