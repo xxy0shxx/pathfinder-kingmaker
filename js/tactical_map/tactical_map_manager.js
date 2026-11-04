@@ -935,12 +935,9 @@ const TacticalMapManager = {
     // ЧАСТЬ 15 ИЗ 15: РАСШИРЕННЫЙ ТУЛТИП, КЛИКИ, DRAG-AND-DROP И ЭКСПОРТ
     // ============================================================================
 
-
-
-
     /**
      * Отрисовка расширенного игрового тултипа ячейки лагеря с калькуляцией Pathfinder-путей
-     * Часть 2 из 2: Считывание ландшафта, аур и рендеринг трека на сетке.
+     * Часть 1 из 2: Определение типов ландшафта, их накопление и раскраска клеток трека.
      */
     showTacticalTooltip(squareId) {
         const tooltip = document.getElementById('hexTooltip');
@@ -962,10 +959,10 @@ const TacticalMapManager = {
             else if (obs === 'destructible') { obstacleName = '📦 Ящик / Бочка'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">НЕПРОХОДИМАЯ (Можно перепрыгнуть)</span>'; }
             else if (obs === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (20 фт. по диагонали)</span>'; }
             else if (obs === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМАЯ / БЛОК ОБЗОРА</span>'; }
-            else if (obs === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;">5 футов (Проверка d20)</span>'; }
+            else if (obs === 'water') { obstacleName = '<span style="color:#74b9ff;font-weight:bold;">🌊 Глубокая вода</span>'; movementCostText = '<span style="color:#74b9ff;">5 футов (Проверка Атлетики d20)</span>'; }
             else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">Только прыжок</span>'; }
-            else if (obs === 'ice') { obstacleName = '❄ Скользкий лед'; movementCostText = '<span style="color:#74b9ff;">5 футов (Проверка d20)</span>'; }
-            else if (obs === 'web') { obstacleName = '🕸 Паутина'; movementCostText = '<span style="color:#9b59b6;">5 футов (Проверка d20)</span>'; }
+            else if (obs === 'ice') { obstacleName = '<span style="color:#00cec9;font-weight:bold;">❄ Скользкий лед</span>'; movementCostText = '<span style="color:#00cec9;">5 футов (Проверка Акробатики d20)</span>'; }
+            else if (obs === 'web') { obstacleName = '<span style="color:#9b59b6;font-weight:bold;">🕸 Паутина</span>'; movementCostText = '<span style="color:#9b59b6;">5 футов (Проверка Спасброска d20)</span>'; }
         }
 
         if (data && data.heroHere) paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
@@ -981,27 +978,94 @@ const TacticalMapManager = {
 
             if (pathData) {
                 this.clearVisualPath();
+
+                // Переменные для учета абсолютно всех препятствий на пути персонажа
+                let waterCount = 0, iceCount = 0, webCount = 0, jumpCount = 0, bushesCount = 0, objectJumpedCount = 0;
+
                 pathData.cells.forEach(cellKey => {
                     const cellEl = document.getElementById('visual_' + cellKey);
                     if (cellEl) {
+                        const cellData = this.state.campMapData[cellKey];
                         let costLabel = cellEl.querySelector('.square-path-cost') || document.createElement('span');
                         if (!costLabel.className) { costLabel.className = 'square-path-cost'; cellEl.appendChild(costLabel); }
 
+                        // 1. Обработка прыжков
                         if (pathData.jumpFlags[cellKey] === 'start') {
                             cellEl.classList.add('path-cell-jump-start');
-                            costLabel.textContent = 'JUMP 🦘';
-                            costLabel.style.color = '#ff9f43';
+                            cellEl.style.setProperty('background-color', 'rgba(255, 159, 67, 0.4)', 'important');
+                            costLabel.textContent = 'JUMP 🦘'; costLabel.style.color = '#ff9f43'; jumpCount++;
+
+                            // Проверяем, какой именно объект перепрыгнул персонаж (сканируем клетку впереди)
+                            const parts = cellKey.split('_');
+                            const r = parseInt(parts[1], 10), c = parseInt(parts[2], 10);
+                            // Для простоты смотрим на объект в следующей клетке траектории, если он там есть
+                            if (cellData && ['destructible', 'stones'].includes(cellData.obstacle)) {
+                                objectJumpedCount++;
+                            }
                         } else if (pathData.jumpFlags[cellKey] === 'land') {
                             cellEl.classList.add('path-cell-jump-land');
-                            costLabel.textContent = 'LAND 🎯';
-                            costLabel.style.color = '#10ac84';
-                        } else {
+                            cellEl.style.setProperty('background-color', 'rgba(16, 172, 132, 0.4)', 'important');
+                            costLabel.textContent = 'LAND 🎯'; costLabel.style.color = '#10ac84';
+                        }
+                        // 2. Густые кусты (Желтый/Оливковый)
+                        else if (cellData && cellData.obstacle === 'bushes') {
+                            cellEl.classList.add('path-cell-bushes');
+                            cellEl.style.setProperty('background-color', 'rgba(241, 196, 15, 0.35)', 'important');
+                            costLabel.textContent = 'BUSH 🌿'; costLabel.style.color = '#f1c40f'; bushesCount++;
+                        }
+                        // 3. Водная преграда
+                        else if (cellData && cellData.obstacle === 'water') {
+                            cellEl.classList.add('path-cell-water');
+                            cellEl.style.setProperty('background-color', 'rgba(116, 185, 255, 0.4)', 'important');
+                            costLabel.textContent = 'WATER 🌊'; costLabel.style.color = '#74b9ff'; waterCount++;
+                        }
+                        // 4. Скользкий лед
+                        else if (cellData && cellData.obstacle === 'ice') {
+                            cellEl.classList.add('path-cell-ice');
+                            cellEl.style.setProperty('background-color', 'rgba(0, 206, 201, 0.4)', 'important');
+                            costLabel.textContent = 'ICE ❄️'; costLabel.style.color = '#00cec9'; iceCount++;
+                        }
+                        // 5. Липкая паутина
+                        else if (cellData && cellData.obstacle === 'web') {
+                            cellEl.classList.add('path-cell-web');
+                            cellEl.style.setProperty('background-color', 'rgba(155, 89, 182, 0.4)', 'important');
+                            costLabel.textContent = 'WEB 🕸️'; costLabel.style.color = '#9b59b6'; webCount++;
+                        }
+                        // 6. Обычная клетка
+                        else {
                             cellEl.classList.add('path-cell');
                         }
                     }
                 });
+                // Динамическое накопление и сквозной вывод ВСЕХ преград и объектов ландшафта
+                let hazardReport = '';
+                if (jumpCount > 0) {
+                    hazardReport += `<div style="color: #ff9f43; margin-top: 4px;">• <b>Прыжки:</b> совершено <b>${jumpCount}</b> прыжка(ов) с места (требуется 1 действие на каждый)</div>`;
+                }
+                if (bushesCount > 0) {
+                    hazardReport += `<div style="color: #f1c40f; margin-top: 4px;">• <b>Густые кусты:</b> преодолено <b>${bushesCount}</b> клеток (Трудный ландшафт: двойная цена футов движения)</div>`;
+                }
+                if (waterCount > 0) {
+                    hazardReport += `<div style="color: #74b9ff; margin-top: 4px;">• <b>Глубокая вода:</b> пройдено <b>${waterCount}</b> клеток (требуется проверка Атлетики d20 за каждую)</div>`;
+                }
+                if (iceCount > 0) {
+                    hazardReport += `<div style="color: #00cec9; margin-top: 4px;">• <b>Скользкий лед:</b> пройдено <b>${iceCount}</b> клеток (требуется проверка Акробатики d20 за каждую)</div>`;
+                }
+                if (webCount > 0) {
+                    hazardReport += `<div style="color: #9b59b6; margin-top: 4px;">• <b>Липкая паутина:</b> пройдено <b>${webCount}</b> клеток (требуется Спасбросок d20 против опутывания)</div>`;
+                }
 
-                paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px; color: #2ecc71;">📐 <b>Маршрут:</b><br>• Дистанция: <b>${pathData.totalFeet} фт.</b><br>• Затраты действий: <b>${pathData.actions} / 3 на ход</b></div>`;
+                paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px;">`;
+                paramsBlock += `<span style="color: #2ecc71;">📐 <b>Итоговый маршрут:</b></span><br>`;
+                paramsBlock += `• Полная дистанция: <b>${pathData.totalFeet} фт.</b><br>`;
+                paramsBlock += `• Расход действий: <b>${pathData.actions} / 3 на ход</b>`;
+
+                if (hazardReport !== '') {
+                    paramsBlock += `<div style="border-top: 1px dashed #555; margin-top: 6px; padding-top: 4px; font-size: 14px;">`;
+                    paramsBlock += `⚠️ <b>Особенности ландшафта на пути:</b>${hazardReport}`;
+                    paramsBlock += `</div>`;
+                }
+                paramsBlock += `</div>`;
             } else {
                 paramsBlock += `<div style="border-top: 2px solid #ff7675; padding-top: 8px; margin-top: 8px; color: #ff7675;">🚫 <b>Маршрут заблокирован</b> (Стены/Чаща или не хватает действий)</div>`;
             }
@@ -1010,12 +1074,6 @@ const TacticalMapManager = {
         tooltip.innerHTML = content + paramsBlock + '</div>';
         tooltip.style.display = 'block';
     },
-
-
-
-
-
-
 
     /**
      * Выделение существ на карте при одиночном клике
