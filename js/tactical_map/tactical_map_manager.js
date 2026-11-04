@@ -746,19 +746,19 @@ const TacticalMapManager = {
 
 
 
+
     /**
      * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом 3-х действий на ход.
-     * Диагональное движение стоит в 2 раза дороже — 10 футов. Исправлен парсинг square_r_c.
+     * Стоимость прыжка — 1 действие. Скорость <= 30: прыжок 10 фт. Скорость > 30: прыжок 15 фт.
+     * Часть 1 из 2: Инициализация, приоритетная ходьба и расчет дальности прыжков.
      */
     calculatePathAndCost(startId, targetId, speedLimit) {
         const parseCoords = (id) => {
             if (!id) return { r: 0, c: 0 };
             const p = id.split('_');
-            // Если формат "square_r_c", то p[0]='square', p[1]=r, p[2]=c
             if (p.length === 3) {
                 return { r: parseInt(p[1], 10), c: parseInt(p[2], 10) };
             }
-            // Предосторожность на случай формата "r_c"
             return { r: parseInt(p[0], 10), c: parseInt(p[1], 10) };
         };
 
@@ -773,7 +773,13 @@ const TacticalMapManager = {
         queue.push({ id: startKey, r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
 
         while (queue.length > 0) {
-            queue.sort((a, b) => a.actions !== b.actions ? a.actions - b.actions : (a.jumpsCount !== b.jumpsCount ? b.jumpsCount - a.jumpsCount : a.feet - b.feet));
+            // КОМПАРАТОР: Приоритет отдаем путям с МЕНЬШИМ количеством действий и МЕНЬШИМ количеством прыжков
+            queue.sort((a, b) => {
+                if (a.actions !== b.actions) return a.actions - b.actions;
+                if (a.jumpsCount !== b.jumpsCount) return a.jumpsCount - b.jumpsCount;
+                return a.feet - b.feet;
+            });
+
             const curr = queue.shift();
             const currKey = curr.id;
             const currState = distances[currKey];
@@ -812,10 +818,7 @@ const TacticalMapManager = {
                     }
                 }
 
-                // ПРАВИЛО: Диагональ стоит 10 футов, шаг по прямой — 5 футов
                 let stepCost = d.isDiag ? 10 : 5;
-
-                // Трудный ландшафт (кусты) удваивает итоговую стоимость шага
                 if (nData && nData.obstacle === 'bushes') {
                     stepCost *= 2;
                 }
@@ -835,18 +838,18 @@ const TacticalMapManager = {
                     actions: nextActions,
                     currentActionSpentFeet: nextSpentFeet,
                     cameByJump: false,
-                    jumpsCount: currState.jumpsCount
+                    jumpsCount: curr.jumpsCount
                 };
 
                 if (distances[nKey] === undefined || nextState.actions < distances[nKey].actions || (nextState.actions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
                     distances[nKey] = nextState;
                     parents[nKey] = { parentKey: currKey, isJump: false };
-                    queue.push({ id: nKey, r: nr, c: nc, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: currState.jumpsCount });
+                    queue.push({ id: nKey, r: nr, c: nc, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: curr.jumpsCount });
                 }
             }
 
             // 2. НАПРАВЛЕНИЯ ДЛЯ ПРЫЖКОВ
-            const jumpCellsCount = (speedLimit >= 30) ? 3 : 2;
+            const jumpCellsCount = (speedLimit > 30) ? 3 : 2;
             const jumpTargets = [
                 { r: curr.r - jumpCellsCount, c: curr.c, dr: -1, dc: 0 },
                 { r: curr.r + jumpCellsCount, c: curr.c, dr: 1, dc: 0 },
@@ -872,11 +875,13 @@ const TacticalMapManager = {
                             blockerInPath = true;
                             break;
                         }
-                        obstacleInPath = true;
+                        if (['destructible', 'stones'].includes(checkData.obstacle)) {
+                            obstacleInPath = true;
+                        }
                     }
                 }
 
-                if (blockerInPath) continue;
+                if (blockerInPath || !obstacleInPath) continue;
 
                 const jumpActions = currState.actions + 1;
                 if (jumpActions > 3) continue;
@@ -887,13 +892,13 @@ const TacticalMapManager = {
                     actions: jumpActions,
                     currentActionSpentFeet: 0,
                     cameByJump: true,
-                    jumpsCount: currState.jumpsCount + 1
+                    jumpsCount: curr.jumpsCount + 1
                 };
 
                 if (distances[nKey] === undefined || jumpActions < distances[nKey].actions || (jumpActions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
                     distances[nKey] = nextState;
                     parents[nKey] = { parentKey: currKey, isJump: true };
-                    queue.push({ id: nKey, r: jt.r, c: jt.c, actions: jumpActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: currState.jumpsCount + 1 });
+                    queue.push({ id: nKey, r: jt.r, c: jt.c, actions: jumpActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: curr.jumpsCount + 1 });
                 }
             }
         }
@@ -912,7 +917,6 @@ const TacticalMapManager = {
         }
         return { cells: pathCells.reverse(), jumpFlags, totalFeet: distances[targetKey].feet, actions: distances[targetKey].actions };
     },
-
 
 
 
@@ -1006,6 +1010,7 @@ const TacticalMapManager = {
         tooltip.innerHTML = content + paramsBlock + '</div>';
         tooltip.style.display = 'block';
     },
+
 
 
 
