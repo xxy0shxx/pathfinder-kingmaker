@@ -103,94 +103,91 @@ function switchMapMode(mode) {
     }
 }
 
+// ============================================================================
+// ЧАСТЬ 1 ИЗ 3: ОТРИСОВКА ТОНКИХ РАЗДЕЛИТЕЛЬНЫХ СТЕН И ОКНО-ГРАНИЦ
+// ============================================================================
+
+/**
+ * Рендеринг тактической сетки лагеря с учетом тонких разделительных стен/окон на гранях
+ */
 function buildTacticalGrid() {
     const gridLayer = document.getElementById('tacticalGridLayer');
     if (!gridLayer) return;
 
     gridLayer.innerHTML = '';
 
-    const realGridWidth = campParams.cols * campParams.squareSize;
-    const realGridHeight = campParams.rows * campParams.squareSize;
+    const realGridWidth = this.campParams.cols * this.campParams.squareSize;
+    const realGridHeight = this.campParams.rows * this.campParams.squareSize;
 
     gridLayer.style.width = realGridWidth + 'px';
     gridLayer.style.height = realGridHeight + 'px';
+    gridLayer.style.left = this.campParams.offsetX + 'px';
+    gridLayer.style.top = this.campParams.offsetY + 'px';
 
-    gridLayer.style.left = campParams.offsetX + 'px';
-    gridLayer.style.top = campParams.offsetY + 'px';
+    gridLayer.style.gridTemplateColumns = `repeat(${this.campParams.cols}, ${this.campParams.squareSize}px)`;
+    gridLayer.style.gridTemplateRows = `repeat(${this.campParams.rows}, ${this.campParams.squareSize}px)`;
 
-    gridLayer.style.gridTemplateColumns = `repeat(${campParams.cols}, ${campParams.squareSize}px)`;
-    gridLayer.style.gridTemplateRows = `repeat(${campParams.rows}, ${campParams.squareSize}px)`;
+    const fragment = document.createDocumentFragment();
 
-    for (let r = 0; r < campParams.rows; r++) {
-        for (let c = 0; c < campParams.cols; c++) {
+    for (let r = 0; r < this.campParams.rows; r++) {
+        for (let c = 0; c < this.campParams.cols; c++) {
             const squareId = `square_${r}_${c}`;
+            const data = this.state.campMapData[squareId];
 
             const square = document.createElement('div');
             square.className = 'tactical-square';
             square.setAttribute('id', `visual_${squareId}`);
-            square.style.width = campParams.squareSize + 'px';
-            square.style.height = campParams.squareSize + 'px';
+            square.dataset.squareId = squareId;
 
-            const starLabel = document.createElement('span');
-            starLabel.className = 'square-star-label';
-            square.appendChild(starLabel);
+            square.style.width = this.campParams.squareSize + 'px';
+            square.style.height = this.campParams.squareSize + 'px';
 
-            const crownLabel = document.createElement('span');
-            crownLabel.className = 'square-crown-label';
-            crownLabel.setAttribute('draggable', 'true');
-            square.appendChild(crownLabel);
+            square.innerHTML = `
+                    <span class="square-star-label">${data ? '★' : ''}</span>
+                    <span class="square-crown-label" draggable="true">${data && data.heroHere ? '👑' : ''}</span>
+                    <span class="square-monster-label" draggable="true"></span>
+                    <span class="square-obstacle-label"></span>
+                `;
 
-            const monsterLabel = document.createElement('span');
-            monsterLabel.className = 'square-monster-label';
-            monsterLabel.setAttribute('draggable', 'true');
-            square.appendChild(monsterLabel);
+            // Динамическое наложение стилей для тонких стен через CSS-границы
+            if (data && data.borders && Array.isArray(data.borders)) {
+                data.borders.forEach(b => {
+                    // Формат строки в базе: "top-wall", "left-window", "right-wall", "bottom-window"
+                    if (b === 'top-wall') square.style.borderTop = '3px solid #ff7675';
+                    if (b === 'top-window') square.style.borderTop = '3px dashed #74b9ff';
+                    if (b === 'bottom-wall') square.style.borderBottom = '3px solid #ff7675';
+                    if (b === 'bottom-window') square.style.borderBottom = '3px dashed #74b9ff';
+                    if (b === 'left-wall') square.style.borderLeft = '3px solid #ff7675';
+                    if (b === 'left-window') square.style.borderLeft = '3px dashed #74b9ff';
+                    if (b === 'right-wall') square.style.borderRight = '3px solid #ff7675';
+                    if (b === 'right-window') square.style.borderRight = '3px dashed #74b9ff';
+                });
+            }
 
-            const obstacleLabel = document.createElement('span');
-            obstacleLabel.className = 'square-obstacle-label';
-            square.appendChild(obstacleLabel);
-
-            if (!campMapData[squareId] || (!campMapData[squareId].explored && !campMapData[squareId].hasVisited)) {
+            const isFoggy = !data || (!data.explored && !data.hasVisited);
+            if (this.state.isCampFogEnabled && isFoggy) {
                 square.classList.add('fog-active');
             }
 
-            if (campMapData[squareId]) {
-                starLabel.textContent = '★';
-                if (campMapData[squareId].color && campMapData[squareId].color !== 'transparent') {
-                    square.style.backgroundColor = convertHexToRgba(campMapData[squareId].color, 0.37);
+            if (data) {
+                if (data.color && data.color !== 'transparent') {
+                    square.style.backgroundColor = ColorConverter.hexToRgba(data.color, 0.37);
                 }
-                if (campMapData[squareId].heroHere) {
+                if (data.heroHere) {
                     square.classList.add('squad-dark');
-                    crownLabel.textContent = '👑';
                 }
             }
 
-            square.addEventListener('click', function (e) {
-                e.preventDefault(); e.stopPropagation();
-                if (hasMoved) return;
-                handleTacticalSquareClick(squareId);
-            });
-
-            square.addEventListener('dblclick', function (e) {
-                e.preventDefault(); e.stopPropagation();
-                if (hasMoved) return;
-
-                if (focusedEntityId === squareId) {
-                    square.classList.remove('focused-entity');
-                    focusedEntityId = null;
-                    clearVisualPath();
-                }
-
-                openTacticalMenu(squareId);
-            });
-
-            bindDragAndDropEvents(square, squareId, crownLabel, monsterLabel);
-            bindTacticalTooltip(square, squareId);
-            gridLayer.appendChild(square);
+            this.bindDragAndDropTargets(square, squareId);
+            fragment.appendChild(square);
         }
     }
 
-    recalculateCampFogOfWar();
+    gridLayer.appendChild(fragment);
+    this.recalculateCampFogOfWar();
 }
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const btnSave = document.getElementById('btnSave');
@@ -215,43 +212,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
+
+
+// ============================================================================
+// ЧАСТЬ 2 ИЗ 2: СБОР ПАРАМЕТРОВ СТЕН И ИХ ЗАПИСЬ (SAVE TACTICAL SQUARE)
+// ============================================================================
+
+/**
+ * Сбор параметров из полей формы, запись в стейт и обновление графического состояния ячейки
+ */
 function saveTacticalSquare() {
-    const id = currentHexId;
+    const id = this.state.currentHexId;
     if (!id) return;
 
     const heroHereVal = document.getElementById('inpCampHeroHere').checked;
     const monsterHereVal = document.getElementById('inpCampMonsterHere').checked;
-    const obstacleVal = document.getElementById('inpCampObstacle').value; // Читаем объединенное поле
+    const obstacleVal = document.getElementById('inpCampObstacle').value;
     const measurementVal = document.getElementById('inpCampMeasurement').value;
     const distanceVal = document.getElementById('inpCampDistance').value;
     const directionVal = document.getElementById('inpCampDirection').value;
     const colorVal = document.getElementById('inpCampColor').value || 'transparent';
     const speedVal = document.getElementById('inpCampSpeed').value;
 
+    // КРИТИЧЕСКОЕ ОБНОВЛЕНИЕ: Сбор выбранных тонких стен и окон с формы
+    const savedBorders = [];
+    const directions = ['top', 'bottom', 'left', 'right'];
+
+    directions.forEach(d => {
+        const wallEl = document.getElementById(`inpCampBorder_${d}_wall`);
+        const windowEl = document.getElementById(`inpCampBorder_${d}_window`);
+
+        if (wallEl && wallEl.checked) {
+            savedBorders.push(`${d}-wall`);
+        } else if (windowEl && windowEl.checked) {
+            savedBorders.push(`${d}-window`);
+        }
+    });
+
     const squareElement = document.getElementById('visual_' + id);
 
     if (squareElement) {
         squareElement.classList.remove('fog-active');
-
         const star = squareElement.querySelector('.square-star-label');
         if (star) star.textContent = '★';
 
-        if (heroHereVal) {
-            squareElement.classList.add('squad-dark');
-        } else {
-            squareElement.classList.remove('squad-dark');
-        }
-
+        squareElement.classList.toggle('squad-dark', heroHereVal);
         squareElement.classList.remove('monster-dark');
 
+        // Мгновенный сброс старых CSS-границ перед наложением новых
+        squareElement.style.borderTop = '';
+        squareElement.style.borderBottom = '';
+        squareElement.style.borderLeft = '';
+        squareElement.style.borderRight = '';
+
+        // Визуализируем новые тонкие стены на клетке через стили
+        savedBorders.forEach(b => {
+            if (b === 'top-wall') squareElement.style.borderTop = '3px solid #ff7675';
+            if (b === 'top-window') squareElement.style.borderTop = '3px dashed #74b9ff';
+            if (b === 'bottom-wall') squareElement.style.borderBottom = '3px solid #ff7675';
+            if (b === 'bottom-window') squareElement.style.borderBottom = '3px dashed #74b9ff';
+            if (b === 'left-wall') squareElement.style.borderLeft = '3px solid #ff7675';
+            if (b === 'left-window') squareElement.style.borderLeft = '3px dashed #74b9ff';
+            if (b === 'right-wall') squareElement.style.borderRight = '3px solid #ff7675';
+            if (b === 'right-window') squareElement.style.borderRight = '3px dashed #74b9ff';
+        });
+
         if (colorVal !== 'transparent') {
-            squareElement.style.backgroundColor = convertHexToRgba(colorVal, 0.37);
+            squareElement.style.backgroundColor = ColorConverter.hexToRgba(colorVal, 0.37);
         } else {
             squareElement.style.backgroundColor = '';
         }
     }
 
-    campMapData[id] = {
+    // Сохраняем расширенный пакет данных в изолированное состояние модуля
+    this.state.campMapData[id] = {
         heroHere: heroHereVal,
         monsterHere: monsterHereVal,
         obstacle: obstacleVal,
@@ -260,15 +295,18 @@ function saveTacticalSquare() {
         direction: directionVal,
         color: colorVal,
         speed: speedVal,
+        borders: savedBorders, // Записываем массив разделителей в базу
         explored: true,
-        hasVisited: heroHereVal || (campMapData[id] && campMapData[id].hasVisited),
+        hasVisited: heroHereVal || (this.state.campMapData[id] && this.state.campMapData[id].hasVisited),
         lastSaved: new Date().toLocaleString()
     };
 
-    localStorage.setItem('campMapSystemData', JSON.stringify(campMapData));
-    recalculateCampFogOfWar();
-    closeCampMenu();
+    localStorage.setItem('campMapSystemData', JSON.stringify(this.state.campMapData));
+    this.recalculateCampFogOfWar();
+    this.closeCampMenu();
 }
+
+
 
 function deleteTacticalSquare() {
     const id = currentHexId;
@@ -471,46 +509,61 @@ function initCampColorPresets() {
     });
 }
 
+
+// ============================================================================
+// ЧАСТЬ 1 ИЗ 2: СИНХРОНИЗАЦИЯ СТЕН ПРИ ОТКРЫТИИ И ОЧИСТКЕ (OPEN & DELETE)
+// ============================================================================
+
+/**
+ * Заполнение полей формы актуальными данными ячейки и вывод окна на экран
+ */
 function openTacticalMenu(squareId) {
-    currentHexId = squareId;
+    this.state.currentHexId = squareId;
+    const modal = document.getElementById('campMenu');
+    if (!modal) return;
 
-    const inpObstacle = document.getElementById('inpCampObstacle');
-    const inpHeroHere = document.getElementById('inpCampHeroHere');
-    const inpMonsterHere = document.getElementById('inpCampMonsterHere');
-    const inpMeasurement = document.getElementById('inpCampMeasurement');
-    const inpDistance = document.getElementById('inpCampDistance');
-    const inpColor = document.getElementById('inpCampColor');
+    const data = this.state.campMapData[squareId];
 
-    let currentColor = 'transparent';
+    // Заполнение чекбоксов персонажей и селекторов ландшафта
+    document.getElementById('inpCampHeroHere').checked = !!(data && data.heroHere);
+    document.getElementById('inpCampMonsterHere').checked = !!(data && data.monsterHere);
+    document.getElementById('inpCampMeasurement').value = data ? data.measurement || '' : '';
+    document.getElementById('inpCampObstacle').value = data ? data.obstacle || '' : '';
+    document.getElementById('inpCampSpeed').value = data ? data.speed || '30' : '30';
+    document.getElementById('inpCampDistance').value = data ? data.distance || '30' : '30';
 
-    if (campMapData[squareId]) {
-        if (inpHeroHere) inpHeroHere.checked = !!campMapData[squareId].heroHere;
-        if (inpMonsterHere) inpMonsterHere.checked = !!campMapData[squareId].monsterHere;
-        if (inpMeasurement) inpMeasurement.value = campMapData[squareId].measurement || '';
-        if (inpDistance) inpDistance.value = campMapData[squareId].distance || '5';
-        currentColor = campMapData[squareId].color || 'transparent';
-        if (inpObstacle) inpObstacle.value = campMapData[squareId].obstacle || '';
-        document.getElementById('inpCampSpeed').value = campMapData[squareId].speed || '30';
-        document.getElementById('inpCampDistance').value = campMapData[squareId].distance || '30';
-    } else {
-        if (inpHeroHere) inpHeroHere.checked = false;
-        if (inpMonsterHere) inpMonsterHere.checked = false;
-        if (inpMeasurement) inpMeasurement.value = '';
-        if (inpDistance) inpDistance.value = '5';
-        if (inpObstacle) inpObstacle.value = '';
-        document.getElementById('inpCampSpeed').value = '30';
-        document.getElementById('inpCampDistance').value = '30';
+    // КРИТИЧЕСКОЕ ОБНОВЛЕНИЕ: Сброс и выставление чекбоксов тонких стен на форме
+    const directions = ['top', 'bottom', 'left', 'right'];
+    const types = ['wall', 'window'];
+
+    // Сначала полностью очищаем галочки перед заполнением
+    directions.forEach(d => {
+        types.forEach(t => {
+            const el = document.getElementById(`inpCampBorder_${d}_${t}`);
+            if (el) el.checked = false;
+        });
+    });
+
+    // Если в базе есть сохраненные стены, активируем соответствующие чекбоксы
+    if (data && data.borders && Array.isArray(data.borders)) {
+        data.borders.forEach(b => {
+            // b имеет вид: "top-wall", "left-window" и т.д.
+            const p = b.split('-');
+            if (p.length === 2) {
+                const el = document.getElementById(`inpCampBorder_${p[0]}_${p[1]}`);
+                if (el) el.checked = true;
+            }
+        });
     }
 
-    if (inpColor) inpColor.value = currentColor;
+    const currentColor = data ? data.color || '#ff0000' : '#ff0000';
+    document.getElementById('inpCampColor').value = currentColor;
 
     const container = document.getElementById('campColorPresetsContainer');
     if (container) {
         container.querySelectorAll('.color-preset-btn').forEach(btn => {
             btn.classList.remove('active');
-            if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
-                btn.classList.add('active');
-            } else if (btn.style.backgroundColor === convertHexToRgbStandard(currentColor)) {
+            if (btn.style.backgroundColor === ColorConverter.hexToRgbStandard(currentColor)) {
                 btn.classList.add('active');
             }
         });
@@ -519,17 +572,14 @@ function openTacticalMenu(squareId) {
     const directionBox = document.getElementById('campDirectionBox');
     const inpDirection = document.getElementById('inpCampDirection');
     if (directionBox && inpDirection) {
-        if (campMapData[squareId] && campMapData[squareId].measurement === 'cone') {
-            directionBox.style.display = 'block';
-            inpDirection.value = campMapData[squareId].direction || 'N';
-        } else {
-            directionBox.style.display = 'none';
-            inpDirection.value = 'N';
-        }
+        const isCone = data && data.measurement === 'cone';
+        directionBox.style.display = isCone ? 'block' : 'none';
+        inpDirection.value = data ? data.direction || 'N' : 'N';
     }
 
-    if (campModal) campModal.classList.add('open');
+    modal.classList.add('open');
 }
+
 
 function closeCampMenu() {
     if (document.activeElement && typeof document.activeElement.blur === 'function') {
@@ -975,6 +1025,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
+
 function checkLineOfSight(r1, c1, r2, c2) {
     if (r1 === r2 && c1 === c2) return true;
 
@@ -1005,64 +1057,215 @@ function checkLineOfSight(r1, c1, r2, c2) {
     }
 }
 
-function calculatePathAndCost(startId, targetId, speedLimit) {
-    if (!startId || !targetId) return null;
+// ============================================================================
+// ЧАСТЬ 3 ИЗ 3: ТРАССИРОВКА ЛУЧЕЙ ВИДИМОСТИ (LOS) СКВОЗЬ ТОНКИЕ ГРАНИ
+// ============================================================================
 
+/**
+ * Алгоритм Брезенхэма для вычисления линии видимости (LOS) сквозь стены и чащу леса
+ * Сверхточная проверка тонких межклеточных разделителей (стены поглощают, окна пропускают ауры)
+ */
+function checkLineOfSight(r1, c1, r2, c2) {
+    if (r1 === r2 && c1 === c2) return true;
+    let dr = Math.abs(r2 - r1), dc = Math.abs(c2 - c1);
+    let sr = (r1 < r2) ? 1 : -1, sc = (c1 < c2) ? 1 : -1;
+    let err = dc - dr;
+    let currR = r1, currC = c1;
+
+    while (true) {
+        let prevR = currR;
+        let prevC = currC;
+
+        if (currR === r2 && currC === c2) return true;
+
+        // Вычисляем координаты следующего шага луча
+        let e2 = 2 * err;
+        if (e2 > -dr) { err -= dr; currC += sc; }
+        if (e2 < dc) { err += dc; currR += sr; }
+
+        // КРИТИЧЕСКАЯ ПРОВЕРКА: Пересекает ли луч тонкую капитальную стену на стыке клеток?
+        const cKey = `square_${prevR}_${prevC}`;
+        const nKey = `square_${currR}_${currC}`;
+        const cData = this.state.campMapData[cKey];
+        const nData = this.state.campMapData[nKey];
+
+        const cBorders = (cData && cData.borders) ? cData.borders : [];
+        const nBorders = (nData && nData.borders) ? nData.borders : [];
+
+        // Проверка поглощения луча глухими тонкими стенами (-wall)
+        if (currR === prevR - 1 && currC === prevC) { // Луч пошел вверх
+            if (cBorders.includes('top-wall') || nBorders.includes('bottom-wall')) return false;
+        }
+        if (currR === prevR + 1 && currC === prevC) { // Луч пошел вниз
+            if (cBorders.includes('bottom-wall') || nBorders.includes('top-wall')) return false;
+        }
+        if (currR === prevR && currC === prevC - 1) { // Луч пошел влево
+            if (cBorders.includes('left-wall') || nBorders.includes('right-wall')) return false;
+        }
+        if (currR === prevR && currC === prevC + 1) { // Луч пошел вправо
+            if (cBorders.includes('right-wall') || nBorders.includes('left-wall')) return false;
+        }
+
+        // Диагональные направления среза луча (проверяем обе смежные глухие стены)
+        if (currR === prevR - 1 && currC === prevC - 1) { // На Северо-Запад
+            if (cBorders.includes('top-wall') || cBorders.includes('left-wall')) return false;
+            if (nBorders.includes('bottom-wall') || nBorders.includes('right-wall')) return false;
+        }
+        if (currR === prevR - 1 && currC === prevC + 1) { // На Северо-Восток
+            if (cBorders.includes('top-wall') || cBorders.includes('right-wall')) return false;
+            if (nBorders.includes('bottom-wall') || nBorders.includes('left-wall')) return false;
+        }
+        if (currR === prevR + 1 && currC === prevC - 1) { // На Юго-Запад
+            if (cBorders.includes('bottom-wall') || cBorders.includes('left-wall')) return false;
+            if (nBorders.includes('top-wall') || nBorders.includes('right-wall')) return false;
+        }
+        if (currR === prevR + 1 && currC === prevC + 1) { // На Юго-Восток
+            if (currBorders = cBorders.includes('bottom-wall') || cBorders.includes('right-wall')) return false;
+            if (nBorders.includes('top-wall') || nBorders.includes('left-wall')) return false;
+        }
+
+        // Стандартная объемная проверка капитального ландшафта (блокируют только wall и forest)
+        if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'forest')) {
+            // Если луч дошел до конечной цели, то преграды на ней самой не мешают ее увидеть
+            if (currR !== r2 || currC !== c2) return false;
+        }
+    }
+}
+
+
+
+
+/**
+ * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом 3-х действий на ход.
+ * Часть 2 из 3: Интеграция проверки пересечения тонких разделительных стен и окон на гранях клеток.
+ */
+function calculatePathAndCost(startId, targetId, speedLimit) {
     const parseCoords = (id) => {
-        const parts = id.split('_');
-        return { r: parseInt(parts[1], 10), c: parseInt(parts[2], 10) };
+        const p = id.split('_');
+        if (p.length === 3) {
+            return { r: parseInt(p, 10), c: parseInt(p, 10) };
+        }
+        return { r: parseInt(p, 10), c: parseInt(p, 10) };
     };
 
     const start = parseCoords(startId);
     const target = parseCoords(targetId);
+    const queue = [], distances = {}, parents = {}, jumpFlags = {};
 
-    const queue = [];
-    const distances = {};
-    const parents = {};
-    const jumpFlags = {};
+    const startKey = `square_${start.r}_${start.c}`;
+    const targetKey = `square_${target.r}_${target.c}`;
 
-    const startKey = `${start.r}_${start.c}`;
     distances[startKey] = { feet: 0, actions: 0, currentActionSpentFeet: 0, cameByJump: false, jumpsCount: 0 };
-    queue.push({ r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
+    queue.push({ id: startKey, r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
 
     while (queue.length > 0) {
         queue.sort((a, b) => {
             if (a.actions !== b.actions) return a.actions - b.actions;
-            if (a.jumpsCount !== b.jumpsCount) return b.jumpsCount - a.jumpsCount; // Больше прыжков в начале пути = выше приоритет
+            if (a.jumpsCount !== b.jumpsCount) return a.jumpsCount - b.jumpsCount;
             return a.feet - b.feet;
         });
 
         const curr = queue.shift();
-        const currKey = `${curr.r}_${curr.c}`;
+        const currKey = curr.id;
         const currState = distances[currKey];
 
         if (curr.r === target.r && curr.c === target.c) break;
-        if (curr.actions > currState.actions || (curr.actions === currState.actions && curr.feet > currState.feet)) continue;
+        if (curr.actions > currState.actions) continue;
 
-        const neighbors = [
-            { r: curr.r - 1, c: curr.c },
-            { r: curr.r + 1, c: curr.c },
-            { r: curr.r, c: curr.c - 1 },
-            { r: curr.r, c: curr.c + 1 }
+        // Хелпер проверки: стоит ли тонкая стена/окно между текущей (curr) и соседней (nr, nc) клетками
+        const hasWallBetween = (r1, c1, r2, c2) => {
+            const cKey = `square_${r1}_${c1}`;
+            const nKey = `square_${r2}_${c2}`;
+            const cData = this.state.campMapData[cKey];
+            const nData = this.state.campMapData[nKey];
+
+            const cBorders = (cData && cData.borders) ? cData.borders : [];
+            const nBorders = (nData && nData.borders) ? nData.borders : [];
+
+            // Ортогональные проверки (прямые шаги)
+            if (r2 === r1 - 1 && c2 === c1) { // Шаг вверх (North)
+                if (cBorders.some(b => b.startsWith('top'))) return true;
+                if (nBorders.some(b => b.startsWith('bottom'))) return true;
+            }
+            if (r2 === r1 + 1 && c2 === c1) { // Шаг вниз (South)
+                if (cBorders.some(b => b.startsWith('bottom'))) return true;
+                if (nBorders.some(b => b.startsWith('top'))) return true;
+            }
+            if (r2 === r1 && c2 === c1 - 1) { // Шаг влево (West)
+                if (cBorders.some(b => b.startsWith('left'))) return true;
+                if (nBorders.some(b => b.startsWith('right'))) return true;
+            }
+            if (r2 === r1 && c2 === c1 + 1) { // Шаг вправо (East)
+                if (cBorders.some(b => b.startsWith('right'))) return true;
+                if (nBorders.some(b => b.startsWith('left'))) return true;
+            }
+
+            // Диагональные проверки (проверяем обе грани, через которые проходит срез)
+            if (r2 === r1 - 1 && c2 === c1 - 1) { // На Северо-Запад
+                if (cBorders.some(b => b.startsWith('top') || b.startsWith('left'))) return true;
+                if (nBorders.some(b => b.startsWith('bottom') || b.startsWith('right'))) return true;
+            }
+            if (r2 === r1 - 1 && c2 === c1 + 1) { // На Северо-Восток
+                if (cBorders.some(b => b.startsWith('top') || b.startsWith('right'))) return true;
+                if (nBorders.some(b => b.startsWith('bottom') || b.startsWith('left'))) return true;
+            }
+            if (r2 === r1 + 1 && c2 === c1 - 1) { // На Юго-Запад
+                if (cBorders.some(b => b.startsWith('bottom') || b.startsWith('left'))) return true;
+                if (nBorders.some(b => b.startsWith('top') || b.startsWith('right'))) return true;
+            }
+            if (r2 === r1 + 1 && c2 === c1 + 1) { // На Юго-Восток
+                if (cBorders.some(b => b.startsWith('bottom') || b.startsWith('right'))) return true;
+                if (nBorders.some(b => b.startsWith('top') || b.startsWith('left'))) return true;
+            }
+            return false;
+        };
+
+        // 1. НАПРАВЛЕНИЯ ДЛЯ ХОДЬБЫ
+        const directions = [
+            { dr: -1, dc: 0,  isDiag: false }, { dr: 1,  dc: 0,  isDiag: false },
+            { dr: 0,  dc: -1, isDiag: false }, { dr: 0,  dc: 1,  isDiag: false },
+            { dr: -1, dc: -1, isDiag: true  }, { dr: -1, dc: 1,  isDiag: true  },
+            { dr: 1,  dc: -1, isDiag: true  }, { dr: 1,  dc: 1,  isDiag: true  }
         ];
 
-        for (let n of neighbors) {
-            if (n.r < 0 || n.r >= campParams.rows || n.c < 0 || n.c >= campParams.cols) continue;
+        for (let d of directions) {
+            const nr = curr.r + d.dr;
+            const nc = curr.c + d.dc;
 
-            const nId = `square_${n.r}_${n.c}`;
-            const nKey = `${n.r}_${n.c}`;
-            const nData = campMapData[nId];
+            if (nr < 0 || nr >= this.campParams.rows || nc < 0 || nc >= this.campParams.cols) continue;
 
-            if (nData && (nData.obstacle === 'wall' || nData.obstacle === 'destructible' || nData.obstacle === 'stones')) continue;
+            const nKey = `square_${nr}_${nc}`;
+            const nData = this.state.campMapData[nKey];
 
-            let stepCost = (nData && ['bushes', 'forest',].includes(nData.obstacle)) ? 10 : 5;
+            // Проверка тонкой разделительной преграды пешком (блокирует и стены, и окна)
+            if (hasWallBetween(curr.r, curr.c, nr, nc)) continue;
+
+            if (nData && ['wall', 'destructible', 'stones', 'forest'].includes(nData.obstacle)) {
+                if (nKey !== targetKey) continue;
+                if (['wall', 'forest'].includes(nData.obstacle)) continue;
+            }
+
+            if (d.isDiag) {
+                const sideData1 = this.state.campMapData[`square_${curr.r + d.dr}_${curr.c}`];
+                const sideData2 = this.state.campMapData[`square_${curr.r}_${curr.c + d.dc}`];
+                if ((sideData1 && ['wall', 'forest'].includes(sideData1.obstacle)) ||
+                    (sideData2 && ['wall', 'forest'].includes(sideData2.obstacle))) {
+                    continue;
+                }
+            }
+
+            let stepCost = d.isDiag ? 10 : 5;
+            if (nData && nData.obstacle === 'bushes') {
+                stepCost *= 2;
+            }
+
             let nextActions = currState.actions;
             let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
 
             if (currState.currentActionSpentFeet === 0 || nextSpentFeet > speedLimit) {
                 nextActions += 1;
                 nextSpentFeet = stepCost;
-                if (stepCost > speedLimit) continue;
+                if (stepCost > speedLimit || nextActions > 3) continue;
             }
 
             let nextTotalFeet = currState.feet + stepCost;
@@ -1071,25 +1274,18 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
                 actions: nextActions,
                 currentActionSpentFeet: nextSpentFeet,
                 cameByJump: false,
-                jumpsCount: currState.jumpsCount
+                jumpsCount: curr.jumpsCount
             };
 
-            if (distances[nKey] === undefined ||
-                nextState.actions < distances[nKey].actions ||
-                (nextState.actions === distances[nKey].actions && nextState.jumpsCount > distances[nKey].jumpsCount) ||
-                (nextState.actions === distances[nKey].actions && nextState.jumpsCount === distances[nKey].jumpsCount && nextState.feet < distances[nKey].feet)) {
-
+            if (distances[nKey] === undefined || nextState.actions < distances[nKey].actions || (nextState.actions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
                 distances[nKey] = nextState;
                 parents[nKey] = { parentKey: currKey, isJump: false };
-                queue.push({ r: n.r, c: n.c, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: currState.jumpsCount });
+                queue.push({ id: nKey, r: nr, c: nc, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: curr.jumpsCount });
             }
         }
 
-        if (curr.cameByJump) continue;
-
-        const jumpCellsCount = (speedLimit >= 30) ? 3 : 2;
-        const jumpFeetDist = jumpCellsCount * 5;
-
+        // 2. НАПРАВЛЕНИЯ ДЛЯ ПРЫЖКОВ
+        const jumpCellsCount = (speedLimit > 30) ? 3 : 2;
         const jumpTargets = [
             { r: curr.r - jumpCellsCount, c: curr.c, dr: -1, dc: 0 },
             { r: curr.r + jumpCellsCount, c: curr.c, dr: 1, dc: 0 },
@@ -1098,80 +1294,79 @@ function calculatePathAndCost(startId, targetId, speedLimit) {
         ];
 
         for (let jt of jumpTargets) {
-            if (jt.r < 0 || jt.r >= campParams.rows || jt.c < 0 || jt.c >= campParams.cols) continue;
+            if (jt.r < 0 || jt.r >= this.campParams.rows || jt.c < 0 || jt.c >= this.campParams.cols) continue;
 
-            const targetCellId = `square_${jt.r}_${jt.c}`;
-            const targetCellKey = `${jt.r}_${jt.c}`;
-            const targetData = campMapData[targetCellId];
+            const nKey = `square_${jt.r}_${jt.c}`;
+            const targetData = this.state.campMapData[nKey];
 
-            if (targetData && (targetData.obstacle === 'wall' || targetData.obstacle === 'destructible')) continue;
+            if (targetData && ['wall', 'forest'].includes(targetData.obstacle)) continue;
 
             let obstacleInPath = false;
+            let blockerInPath = false;
+
+            let checkR = curr.r;
+            let checkC = curr.c;
+
             for (let i = 1; i < jumpCellsCount; i++) {
-                const checkR = curr.r + (jt.dr * i);
-                const checkC = curr.c + (jt.dc * i);
-                const checkId = `square_${checkR}_${checkC}`;
-                const checkData = campMapData[checkId];
-                if (checkData && checkData.obstacle && checkData.obstacle !== '') {
-                    obstacleInPath = true;
-                    break;
+                const nextR = curr.r + (jt.dr * i);
+                const nextC = curr.c + (jt.dc * i);
+
+                // Проверяем, нет ли на линии перелета тонкой капитальной СТЕНЫ (окна перепрыгнуть можно)
+                // Для этого сканируем границы по ходу движения луча прыжка
+                if (jt.dr === -1 && this.state.campMapData[`square_${checkR}_${checkC}`]?.borders?.includes('top-wall')) blockerInPath = true;
+                if (jt.dr === 1 && this.state.campMapData[`square_${checkR}_${checkC}`]?.borders?.includes('bottom-wall')) blockerInPath = true;
+                if (jt.dc === -1 && this.state.campMapData[`square_${checkR}_${checkC}`]?.borders?.includes('left-wall')) blockerInPath = true;
+                if (jt.dc === 1 && this.state.campMapData[`square_${checkR}_${checkC}`]?.borders?.includes('right-wall')) blockerInPath = true;
+
+                checkR = nextR;
+                checkC = nextC;
+
+                const checkData = this.state.campMapData[`square_${nextR}_${nextC}`];
+                if (checkData && checkData.obstacle) {
+                    if (checkData.obstacle === 'wall' || checkData.obstacle === 'forest') {
+                        blockerInPath = true;
+                        break;
+                    }
+                    if (['destructible', 'stones'].includes(checkData.obstacle)) {
+                        obstacleInPath = true;
+                    }
                 }
             }
-
-            if (!obstacleInPath) continue;
-
-            let nextActions = currState.actions + 1;
-            let nextSpentFeet = 0;
-            let nextTotalFeet = currState.feet + jumpFeetDist;
-            let nextJumpsCount = currState.jumpsCount + 1;
-
+            if (blockerInPath || !obstacleInPath) continue;
+            const jumpActions = currState.actions + 1;
+            if (jumpActions > 3) continue;
+            const nextTotalFeet = currState.feet + (jumpCellsCount * 5);
             const nextState = {
                 feet: nextTotalFeet,
-                actions: nextActions,
-                currentActionSpentFeet: nextSpentFeet,
+                actions: jumpActions,
+                currentActionSpentFeet: 0,
                 cameByJump: true,
-                jumpsCount: nextJumpsCount
+                jumpsCount: curr.jumpsCount + 1
             };
-
-            if (distances[targetCellKey] === undefined ||
-                nextState.actions < distances[targetCellKey].actions ||
-                (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount > distances[targetCellKey].jumpsCount) ||
-                (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount === distances[targetCellKey].jumpsCount && nextState.feet < distances[targetCellKey].feet)) {
-
-                distances[targetCellKey] = nextState;
-                parents[targetCellKey] = { parentKey: currKey, isJump: true };
-                queue.push({ r: jt.r, c: jt.c, actions: nextActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: nextJumpsCount });
+            if (distances[nKey] === undefined || jumpActions < distances[nKey].actions || (jumpActions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
+                distances[nKey] = nextState;
+                parents[nKey] = { parentKey: currKey, isJump: true };
+                queue.push({ id: nKey, r: jt.r, c: jt.c, actions: jumpActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: curr.jumpsCount + 1 });
             }
         }
     }
-
-    const targetKey = `${target.r}_${target.c}`;
     if (distances[targetKey] === undefined) return null;
-
     const pathCells = [];
-    let currentKey = targetKey;
-    let currNode = parents[currentKey];
-
+    let currentKey = targetKey, currNode = parents[currentKey];
     pathCells.push(targetKey);
-
     while (currNode) {
-        if (currNode.isJump) {
-            jumpFlags[currentKey] = 'land';
-            jumpFlags[currNode.parentKey] = 'start';
-        }
+        if (currNode.isJump) { jumpFlags[currentKey] = 'land'; jumpFlags[currNode.parentKey] = 'start'; }
         currentKey = currNode.parentKey;
         pathCells.push(currentKey);
         currNode = parents[currentKey];
     }
-    pathCells.reverse();
-
-    return {
-        cells: pathCells,
-        jumpFlags: jumpFlags,
-        totalFeet: distances[targetKey].feet,
-        actions: distances[targetKey].actions
-    };
+    return { cells: pathCells.reverse(), jumpFlags, totalFeet: distances[targetKey].feet, actions: distances[targetKey].actions };
 }
+
+
+
+
+
 
 function clearVisualPath() {
     document.querySelectorAll('.tactical-square').forEach(cell => {

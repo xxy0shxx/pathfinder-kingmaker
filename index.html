@@ -455,6 +455,58 @@
         </select>
     </div>
 
+    <!-- Тонкие разделительные стены и окна на гранях клетки -->
+    <div class="form-group-title" style="font-size: 16px; color: #ebd291; margin: 12px 0 6px 0; font-weight: bold; border-top: 1px dashed #543e0d; padding-top: 8px;">
+        📐 Разделительные перегородки ячейки
+    </div>
+    <div class="camp-borders-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; color: #ccc; margin-bottom: 12px;">
+        <!-- СЕВЕР (ВЕРХ) -->
+        <div style="background: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; border: 1px solid #33250e;">
+            <span style="color: #ff9f43;">⬆ Верхняя грань:</span><br>
+            <label style="display: inline-block; margin-top: 4px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_top_wall"> 🧱 Стена
+            </label><br>
+            <label style="display: inline-block; margin-top: 2px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_top_window"> 🪟 Окно
+            </label>
+        </div>
+
+        <!-- ВОСТОК (ПРАВО) -->
+        <div style="background: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; border: 1px solid #33250e;">
+            <span style="color: #ff9f43;">➡ Правая грань:</span><br>
+            <label style="display: inline-block; margin-top: 4px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_right_wall"> 🧱 Стена
+            </label><br>
+            <label style="display: inline-block; margin-top: 2px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_right_window"> 🪟 Окно
+            </label>
+        </div>
+
+        <!-- ЮГ (НИЗ) -->
+        <div style="background: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; border: 1px solid #33250e;">
+            <span style="color: #ff9f43;">⬇ Нижня грань:</span><br>
+            <label style="display: inline-block; margin-top: 4px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_bottom_wall"> 🧱 Стена
+            </label><br>
+            <label style="display: inline-block; margin-top: 2px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_bottom_window"> 🪟 Окно
+            </label>
+        </div>
+
+        <!-- ЗАПАД (ЛЕВО) -->
+        <div style="background: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; border: 1px solid #33250e;">
+            <span style="color: #ff9f43;">⬅ Левая грань:</span><br>
+            <label style="display: inline-block; margin-top: 4px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_left_wall"> 🧱 Стена
+            </label><br>
+            <label style="display: inline-block; margin-top: 2px; cursor: pointer;">
+                <input type="checkbox" id="inpCampBorder_left_window"> 🪟 Окно
+            </label>
+        </div>
+    </div>
+
+
+
     <div class="box">
         <label>Цвет заливки</label>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
