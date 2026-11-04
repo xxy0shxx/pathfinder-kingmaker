@@ -6,15 +6,18 @@ const HexCanvasRender = {
     canvas: null,
     ctx: null,
     hexesData: {},
-    hexCoords: {}, // Карта эталонных координат
-    hiddenSquadHexId: null, // Флаг скрытия на время полета анимации
+    hexCoords: {},
+    hiddenSquadHexId: null,
+
+    // Менеджер анимаций появления иконок (сохраняет время изменения для плавного scale)
+    spawnTimers: {},
 
     mouseX: -1000,
     mouseY: -1000,
-//    hoveredHexKey: null,
+    hoveredHexKey: null,
     focusedHexKey: null,
-    focusAlpha: 0,            // Текущая прозрачность вспышки для анимации пульсации
-    focusTime: 0,             // Таймер анимации
+    focusAlpha: 0,
+    focusTime: 0,
 
     init(canvasElement, initialHexesData, coordinatesMap) {
         this.canvas = canvasElement;
@@ -29,15 +32,36 @@ const HexCanvasRender = {
         this.startAnimationLoop();
     },
 
-    updateData(newHexesData) {
-        // Создаем глубокий структурированный клон объекта данных гексов,
-        // чтобы Canvas гарантированно увидел новые флаги hasVisited и explored в ту же миллисекунду!
-        this.hexesData = newHexesData ? JSON.parse(JSON.stringify(newHexesData)) : {};
+    /**
+     * Вызывается при сохранении изменений. Засекает время для анимации появления иконок
+     */
+    updateData(newHexesData, changedHexId = null) {
+        const oldData = this.hexesData;
+        const freshData = newHexesData ? JSON.parse(JSON.stringify(newHexesData)) : {};
+
+        // Проверяем, у каких гексов изменились статусы разведки или объекты
+        for (let key in freshData) {
+            const oldHex = oldData[key];
+            const newHex = freshData[key];
+
+            const wasChanged = !oldHex ||
+                oldHex.explored !== newHex.explored ||
+                oldHex.mapMapped !== newHex.mapMapped ||
+                oldHex.type !== newHex.type ||
+                oldHex.terrain !== newHex.terrain;
+
+            if (wasChanged) {
+                // Запоминаем текущий штамп времени для старта анимации плавного масштабирования
+                this.spawnTimers[key] = Date.now();
+            }
+            if (changedHexId) {
+                this.spawnTimers[changedHexId] = Date.now();
+            }
+        }
+
+        this.hexesData = freshData;
     },
 
-    /**
-     * Отрисовка Pointy-topped гексагона строго по углам 60*i - 30 из HexManager.js
-     */
     drawHexPath(cx, cy, r) {
         this.ctx.beginPath();
         for (let i = 0; i < 6; i++) {
@@ -63,12 +87,11 @@ const HexCanvasRender = {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         const r = MAP_CONFIG.grid.radius;
-        const h = r * Math.sqrt(3); // Физическая ширина pointy гекса
+        const h = r * Math.sqrt(3);
 
         let currentHoverKey = null;
         let minDistance = Infinity;
 
-        // Рисуем сетку строго по координатам ядра
         for (let row = 0; row < MAP_CONFIG.grid.rows; row++) {
             for (let col = 0; col < MAP_CONFIG.grid.cols; col++) {
 
@@ -80,31 +103,26 @@ const HexCanvasRender = {
                 const cx = coords.cx;
                 const cy = coords.cy;
 
-                // Для pointy-topped гексов радиус клика ограничен шириной h / 2
                 const dist = Math.hypot(this.mouseX - cx, this.mouseY - cy);
                 if (dist < h / 2 && dist < minDistance) {
                     minDistance = dist;
                     currentHoverKey = hexKey;
                 }
 
-                // Клонируем стейт данных, чтобы не испортить LocalStorage
                 const data = this.hexesData[hexKey] ? { ...this.hexesData[hexKey] } : null;
 
                 if (data) {
-                    // Если этот гекс является целью полета флага прямо сейчас
                     if (this.hiddenSquadHexId === hexKey) {
-                        data.hasVisited = true; // Туман гарантированно спадает!
-                        data.squadHere = false; // Но сам спрайт стационарного флага скрыт, пока летит DOM-анимация
+                        data.hasVisited = true;
+                        data.squadHere = false;
                     }
                 }
 
                 if (hexKey === this.focusedHexKey) {
                     this.focusTime += 0.05;
-                    // Значение колеблется от 0.2 до 0.8
                     this.focusAlpha = 0.5 + Math.sin(this.focusTime * 2) * 0.3;
                 }
 
-                // Отрисовка вспышки фокуса под гексом на Canvas
                 if (this.focusedHexKey === hexKey) {
                     this.ctx.save();
                     this.drawHexPath(cx, cy, r);
@@ -117,7 +135,8 @@ const HexCanvasRender = {
                     this.ctx.restore();
                 }
 
-                this.drawSingleHex(cx, cy, r, data);
+                // Передаем уникальный hexKey для расчета таймеров анимации иконок
+                this.drawSingleHex(cx, cy, r, data, hexKey);
 
                 if (currentHoverKey === hexKey) {
                     this.drawHoverEffect(cx, cy, r);
@@ -128,24 +147,26 @@ const HexCanvasRender = {
         this.hoveredHexKey = currentHoverKey;
     },
 
-
-    drawSingleHex(cx, cy, r, data) {
+    drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 
+        // 1. Заливка кастомным цветом подложки
         if (data && data.color && data.color !== 'transparent') {
             this.drawHexPath(cx, cy, r);
             ctx.fillStyle = ColorConverter.hexToRgba(data.color, 0.37);
             ctx.fill();
         }
 
+        // 2. Единый туман войны (исправленный, без дублирующего блока)
         const isRevealed = !!(data && (data.explored === true || data.hasVisited === true || data.squadHere === true));
 
         if (!isRevealed) {
             this.drawHexPath(cx, cy, r);
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Накладываем туман войны
-            this.ctx.fill();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fill();
         }
 
+        // 3. Свечение домашней клетки отряда
         if (data && data.squadHere) {
             this.drawHexPath(cx, cy, r);
             const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.7);
@@ -155,24 +176,70 @@ const HexCanvasRender = {
             ctx.fill();
         }
 
+        // Настройка базовых параметров шрифта для верхнего слоя
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '22px sans-serif';
+        ctx.font = '24px sans-serif'; // Немного увеличили размер для четкости
 
-        if (data && data.explored) ctx.fillText('🔍', cx - r * 0.4, cy - r * 0.2);
-        if (data && data.mapMapped) ctx.fillText('📜', cx - r * 0.4, cy + r * 0.2);
+        // Вычисляем текущий коэффициент масштабирования (scale) для анимации появления иконок
+        let iconScale = 1.0;
+        if (this.spawnTimers[hexKey]) {
+            const elapsed = Date.now() - this.spawnTimers[hexKey];
+            const duration = 250; // Время анимации в мс (как в CSS iconAppear)
+            if (elapsed < duration) {
+                iconScale = elapsed / duration; // Изменяется плавно от 0.0 до 1.0
+            } else {
+                delete this.spawnTimers[hexKey]; // Очищаем таймер по окончании анимации
+            }
+        }
 
+        // Вспомогательный хелпер для сочной отрисовки смайлов/иконок с drop-shadow
+        const drawAnimatedIcon = (iconText, targetX, targetY) => {
+            ctx.save();
+
+            // Переносим матрицу в центр иконки и плавно увеличиваем от 0.0 до 1.0
+            ctx.translate(targetX, targetY);
+            ctx.scale(iconScale, iconScale);
+
+            // РИСУЕМ КОНТРАСТНЫЙ КРУЖОК-ПОДЛОЖКУ (Убирает тусклость на 100%)
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(20, 20, 20, 0.75)'; // Темный сочный фон
+            ctx.strokeStyle = '#d4af37';             // Тонкий золотой кант
+            ctx.lineWidth = 1.5;
+            ctx.fill();
+            ctx.stroke();
+
+            // Рисуем сам эмодзи поверх кружка
+            ctx.font = '18px sans-serif'; // Оптимальный размер под кружок
+            ctx.fillText(iconText, 0, 1); // Смещение по Y для идеального центрирования смайла
+
+            ctx.restore();
+        };
+
+
+        // 4. Отрисовка статусов разведки (🔍 Лупа, 📜 Свиток)
+        if (data && data.explored) {
+            drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
+        }
+        if (data && data.mapMapped) {
+            drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
+        }
+
+        // 5. Отрисовка иконок объектов и ландшафта (🏛️ Постройки, 🌲 Леса)
         if (data && data.type && MAP_CONFIG.types[data.type]) {
-            ctx.fillText(MAP_CONFIG.types[data.type].icon, cx + r * 0.4, cy - r * 0.2);
+            drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
         }
         if (data && data.terrain && MAP_CONFIG.terrains[data.terrain]) {
-            ctx.fillText(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.4, cy + r * 0.2);
+            drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
         }
 
+        // 6. Отрисовка флага отряда с покачиванием
         if (data && data.squadHere) {
             this.drawCanvasFlag(cx, cy);
         }
 
+        // 7. Текстовые плашки (Название и Статы региона)
         if (data && data.title) {
             this.drawTextPlate(ctx, data.title, cx, cy - r + 30, false);
         }
@@ -182,7 +249,6 @@ const HexCanvasRender = {
             if (data.regionLevel) statsText += `💀${data.regionLevel}`;
             this.drawTextPlate(ctx, statsText, cx, cy + 48, true);
         }
-
     },
 
     drawHoverEffect(cx, cy, r) {
@@ -217,93 +283,56 @@ const HexCanvasRender = {
         ctx.restore();
     },
 
-    /**
-     * Отрисовка миниатюрного флага на Canvas с эффектом плавного покачивания ветра
-     * Эмулирует CSS-анимацию flagSwing (от -5deg до 5deg)
-     */
     drawCanvasFlag(cx, cy) {
         const ctx = this.ctx;
         ctx.save();
-
-        // 1. Сдвигаем матрицу к основанию древка флага (точка вращения)
-        // Чтобы флаг качался от земли, сдвигаем к нижней точке древка
         ctx.translate(cx, cy + 15);
 
-        // 2. Вычисляем динамический угол покачивания на базе времени (Date.now())
-        // Скорость качания регулируется делителем 800, амплитуда (5 градусов) — умножением
         const swingAngleDeg = Math.sin(Date.now() / 800) * 5;
         const swingAngleRad = (Math.PI / 180) * swingAngleDeg;
-
-        // Поворачиваем холст на вычисленный угол
         ctx.rotate(swingAngleRad);
-
-        // Возвращаем координаты назад для отрисовки самого флага относительно точки вращения
         ctx.translate(-cx, -(cy + 15));
-
-        // Сдвиг к верхней точке для рисования флага
         ctx.save();
         ctx.translate(cx - 5, cy - 25);
-
-        // Древко флага (.squad-pole)
         ctx.fillStyle = '#333';
         ctx.fillRect(6, 0, 4, 40);
-
-        // Полотнище флага (.squad-flag)
         ctx.fillStyle = '#c0392b';
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1.5;
-
         ctx.beginPath();
         ctx.moveTo(10, 0);
-        ctx.lineTo(35, 10); // Треугольный вырез полотнища
+        ctx.lineTo(35, 10);
         ctx.lineTo(10, 20);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
-
         ctx.restore();
-        ctx.restore(); // Дважды восстанавливаем стейт context
+        ctx.restore();
     },
-
-    /**
-     * Точный pointy-topped расчет мыши с учетом правого выравнивания
-     */
     attachMouseEvents() {
         const calculateVirtualCoords = (e) => {
             const zoom = ViewportManager.currentZoom || 1.0;
             const rect = this.canvas.getBoundingClientRect();
-
-            // Расчет смещения мыши относительно правого верхнего угла (transform-origin: 100% 0)
             const distanceFromRight = rect.right - e.clientX;
             const distanceFromTop = e.clientY - rect.top;
-
             this.mouseX = 3840 - (distanceFromRight / zoom);
             this.mouseY = distanceFromTop / zoom;
         };
-
         this.canvas.addEventListener('mousemove', calculateVirtualCoords);
-
         this.canvas.addEventListener('mouseleave', () => {
             this.mouseX = -1000;
             this.mouseY = -1000;
             this.hoveredHexKey = null;
         });
     },
-    /**
-     * Включение анимации вспышки на гексе
-     */
     triggerFocus(hexId) {
         this.focusedHexKey = hexId;
         this.focusTime = 0;
-
-        // Автоматически выключаем вспышку через 3.6 секунды (как в старом коде)
         setTimeout(() => {
             if (this.focusedHexKey === hexId) {
                 this.focusedHexKey = null;
             }
         }, 3600);
     }
-
 };
-
 export default HexCanvasRender;

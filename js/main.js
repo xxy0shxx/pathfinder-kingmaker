@@ -157,20 +157,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // Проверяем перемещение для запуска анимации
             if (formData.squadHere && oldHexId && oldHexId !== hexId) {
 
-                // Включаем изоляцию флага на Canvas (туман снимется, но флаг скроется на время полета)
+                // Включаем изоляцию флага на Canvas
                 HexCanvasRender.hiddenSquadHexId = hexId;
-                HexCanvasRender.updateData(mapData.hexes); // Мгновенно перерисовываем кадр
+
+                // Передаем данные И текущий ID гекса для запуска анимации появления иконок!
+                HexCanvasRender.updateData(mapData.hexes, hexId);
 
                 // Запускаем баллистическую траекторию летящего флага
                 AnimationManager.playFlagFlight(oldHexId, hexId, () => {
-                    // Флаг приземлился! Снимаем блокировку, стационарный флаг появляется на Canvas
                     HexCanvasRender.hiddenSquadHexId = null;
                     HexCanvasRender.updateData(mapData.hexes);
                 });
 
             } else {
-                // Обычное сохранение характеристик гекса без перемещения отряда
-                HexCanvasRender.updateData(mapData.hexes);
+                // Обычное сохранение характеристик гекса (передаем hexId для запуска анимации иконок)
+                HexCanvasRender.updateData(mapData.hexes, hexId);
             }
 
 
@@ -186,6 +187,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             HexModal.close();
         },
+        onDelete: (hexId) => {
+            // 1. Удаляем данные гекса из LocalStorage (внутриglobalMapData)
+            StorageManager.deleteHex(mapData, hexId);
+
+            // 2. Передаем очищенный массив данных в Canvas-рендер
+            // Мгновенно стираем все маркеры, иконки и тексты удаленного гекса
+            HexCanvasRender.updateData(mapData.hexes);
+
+            // 3. Закрываем модальное окно гекса
+            HexModal.close();
+        }
 
     });
 
