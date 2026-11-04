@@ -180,7 +180,7 @@ const HexCanvasRender = {
         // Настройка базовых параметров шрифта для верхнего слоя
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '24px sans-serif'; // Немного увеличили размер для четкости
+//        ctx.font = '24px sans-serif'; // Немного увеличили размер для четкости
 
         // Вычисляем текущий коэффициент масштабирования (scale) для анимации появления иконок
         let iconScale = 1.0;
@@ -218,7 +218,6 @@ const HexCanvasRender = {
             ctx.restore();
         };
 
-
         // 4. Отрисовка статусов разведки (🔍 Лупа, 📜 Свиток)
         if (data && data.explored) {
             drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
@@ -240,24 +239,30 @@ const HexCanvasRender = {
             this.drawCanvasFlag(cx, cy);
         }
 
-        // 7. Текстовые плашки (Название и Статы региона)
+        // 7. [ОБНОВЛЕНО] Текстовые плашки (Название и Статы региона)
         if (data && data.title) {
-            this.drawTextPlate(ctx, data.title, cx, cy - r + 30, false);
+            // Возвращаем название локации повыше (cy - r + 32)
+            const titleY = cy - r + 32;
+
+            // Включаем флаг ультра-крупного шрифта (последний параметр true)
+            this.drawTextPlate(ctx, data.title, cx, titleY, false, true);
         }
+
         if (data && (data.difficulty || data.regionLevel)) {
             let statsText = '';
             if (data.difficulty) statsText += `🎲${data.difficulty}`;
             if (data.regionLevel) statsText += `💀${data.regionLevel}`;
-            this.drawTextPlate(ctx, statsText, cx, cy + 48, true);
+            this.drawTextPlate(ctx, statsText, cx, cy + 54, true, false);
         }
+
+        // 8. [ОБНОВЛЕНО] Отрисовка мини-тултипа активного квеста
         if (this.showQuestTooltips && data && data.questData && data.questData.title && data.questData.status !== 'completed') {
             const questTitle = data.questData.title.trim();
             if (questTitle !== '') {
-                // Вычисляем точную позицию по Y (чуть выше верхнего угла pointy-topped гекса)
-                // В оригинальном коде смещение было (cy - radius + 12)
-                const questY = cy - r + 12;
+                // Вместо сильного задирания наверх, опускаем плашку квеста ровно НАД рамкой названия.
+                // Теперь она парит всего в 12 пикселях над верхней границей крупного заголовка.
+                const questY = cy - r + 8;
 
-                // Рисуем рамку с текстом квеста, используя геральдический знак ⚜️
                 this.drawQuestPlate(ctx, `⚜️ ${questTitle}`, cx, questY);
             }
         }
@@ -302,24 +307,43 @@ const HexCanvasRender = {
         this.ctx.restore();
     },
 
-    drawTextPlate(ctx, text, x, y, isStats) {
+    /**
+     * Отрисовка стилизованной плашки подписи с поддержкой гигантских заголовков
+     */
+    drawTextPlate(ctx, text, x, y, isStats, isLargeTitle = false) {
         ctx.save();
-        ctx.font = isStats ? '900 10px Montserrat, sans-serif' : 'italic bold 14px Tinos, serif';
-        const metrics = ctx.measureText(text);
-        const paddingH = 6;
-        const w = metrics.width + paddingH * 2;
-        const h = 18;
 
+        // Настраиваем размер шрифта
+        if (isStats) {
+            ctx.font = '900 10px Montserrat, sans-serif';
+        } else if (isLargeTitle) {
+            ctx.font = 'italic bold 22px Tinos, serif'; // Сделали заголовок ОЧЕНЬ большим (22px)!
+        } else {
+            ctx.font = 'italic bold 14px Tinos, serif';
+        }
+
+        const metrics = ctx.measureText(text);
+        const paddingH = isLargeTitle ? 12 : 8;
+        const w = metrics.width + paddingH * 2;
+
+        const h = isLargeTitle ? 28 : 18;
+
+        // Отрисовка подложки рамки
         ctx.fillStyle = 'rgba(20, 20, 20, 0.95)';
         ctx.strokeStyle = '#d4af37';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = isLargeTitle ? 2.5 : 2;
+
         ctx.beginPath();
         ctx.roundRect(x - w / 2, y - h / 2, w, h, 6);
         ctx.fill();
         ctx.stroke();
 
+        // Отрисовка текста
         ctx.fillStyle = isStats ? '#ebd291' : '#ffd875';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillText(text, x, y);
+
         ctx.restore();
     },
 
@@ -434,7 +458,7 @@ const HexCanvasRender = {
             content += `<div class="tooltip-title">${terrainIcon}${star}${mapIcon}${typeIcon}${data.title}${statsLabel}</div>`;
         } else {
             // Если гекс скрыт туманом или пустой — выводим его системные координаты Kingmaker
-            content += `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [Строка: ${row}, Колонка: ${col}]</div>`;
+            content += `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [${row};${col}]</div>`;
         }
 
         // 2. БЛОК СТАТУСНЫХ ПАРАМЕТРОВ ГЕКСА
