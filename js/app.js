@@ -261,73 +261,46 @@ let mapData = { hexes: {}, kingdom: null, paths: [] };
 // false — флаг летит из своей реальной предыдущей позиции
 let FLIGHT_FROM_CAPITAL_MODE = true;
 
-// ============================================================================
-// ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-// ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
-
-    // Загружаем актуальные данные из LocalStorage в глобальную переменную
+    // 1. Загрузка данных
     mapData = StorageManager.loadData();
 
-    // 1. Инициализация глобального лейаута и панелей управления
+    // 2. Инициализация UI-макета и панелей управления
     LayoutManager.init();
     UiPanelManager.init();
-
-    // 2. Инициализация системных и звуковых компонентов
     SoundPlayer.init();
     UiSelectManager.init();
     ViewportManager.init();
-    PathManager.init(mapData);
+
+    // 3. [ОПТИМИЗАЦИЯ] Чистый математический расчет координат БЕЗ создания HTML-нод
     const hexCoordinatesMap = {};
+    const { radius, rows, cols, offsetX, offsetY } = MAP_CONFIG.grid;
+    const widthBetweenHexes = radius * Math.sqrt(3);
+    const heightBetweenHexes = radius * 1.5;
 
-    const originalCreateHexElement = HexManager.createHexElement;
-    HexManager.createHexElement = function(hexId, row, col, cx, cy, radius, data) {
-        // Ловим оригинальные cx и cy, которые Kingmaker вычисляет пиксель-в-пиксель!
-        hexCoordinatesMap[hexId] = { cx, cy };
-        // DOM-ноды не создаем, возвращаем null, чтобы не захламлять память
-        return null;
-    };
-
-    // Запускаем оригинальный билд сетки Kingmaker для расчета координат
-    HexManager.init(mapData.hexes, (hexId) => {
-        HexModal.open(hexId, mapData.hexes[hexId]);
-    });
-
-
-
-    // Карта сбора оригинальных пиксельных координат
-//    let hexCoordinatesMap = {};
-
-    // Перехватываем создание гекса для извлечения cx и cy
-    HexManager.buildGrid = function(hasMovedCheck) {
-        const { radius, rows, cols, offsetX, offsetY } = MAP_CONFIG.grid;
-        const widthBetweenHexes = radius * Math.sqrt(3);
-        const heightBetweenHexes = radius * 1.5;
-
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                let cx = offsetX + c * widthBetweenHexes;
-                let cy = offsetY + r * heightBetweenHexes;
-                if (r % 2 !== 0) { cx += widthBetweenHexes / 2; } // Оригинальный pointy-сдвиг
-
-                const hexId = 'hex_' + r + '_' + c;
-                // Сохраняем в карту
-                hexCoordinatesMap[hexId] = { cx, cy };
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            let cx = offsetX + c * widthBetweenHexes;
+            let cy = offsetY + r * heightBetweenHexes;
+            if (r % 2 !== 0) {
+                cx += widthBetweenHexes / 2; // Pointy-сдвиг для нечетных строк
             }
+            hexCoordinatesMap[`hex_${r}_${c}`] = { cx, cy };
         }
-    };
+    }
 
-    // Генерируем массив оригинальных координат
-    HexManager.buildGrid(() => hasMoved);
+    // 4. Инициализация путей на основе рассчитанных координат
+    PathManager.init(mapData);
 
-    // Инициализируем интерактивный Canvas-рендер
+    // 5. Инициализация интерактивного Canvas-рендерера
     const canvasElement = document.getElementById('mapCanvas');
     if (canvasElement) {
         HexCanvasRender.init(canvasElement, mapData.hexes, hexCoordinatesMap);
         window.HexCanvasRender = HexCanvasRender;
 
+        // Обработка клика по Canvas (вместо старых 360-ти HTML-слушателей)
         canvasElement.addEventListener('click', () => {
-            if (!hasMoved && HexCanvasRender.hoveredHexKey) {
+            if (!ViewportManager.getHasMoved() && HexCanvasRender.hoveredHexKey) {
                 const hexId = HexCanvasRender.hoveredHexKey;
                 const hexData = mapData.hexes[hexId] || null;
                 HexModal.open(hexId, hexData);
@@ -335,20 +308,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-
-
+    // Первичный рендер путей
     setTimeout(() => { PathManager.render(); }, 300);
 
-    // Передаем фокус-вспышку из обновленного AnimationManager
+    // Настройка фокуса по клику из журнала квестов
     QuestManager.init(mapData.hexes, (hexId) => AnimationManager.focusOnHex(hexId));
 
+    // Настройка менеджмента королевства
     KingdomManager.init(mapData, () => {
         StorageManager.saveData(mapData);
     });
     KingdomManager.renderUi();
 
-    // Настройка импорта файлов
+    // Настройка импорта файлов (FileManager)
     FileManager.init((importedData) => {
         if (importedData && !importedData.hexes) {
             mapData = {
@@ -361,27 +333,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         QuestManager.updateMapData(mapData.hexes);
-
         if (typeof PathManager.updateMapData === 'function') {
             PathManager.updateMapData(mapData);
         }
         KingdomManager.updateMapData(mapData);
 
-        // Передаем новые импортированные данные в Canvas и заставляем его обновиться
+        // Передаем данные и принудительно запрашиваем один кадр перерисовки
         HexCanvasRender.updateData(mapData.hexes);
+        HexCanvasRender.requestFrame();
 
-        setTimeout(() => {
-            PathManager.render();
-        }, 50);
+        setTimeout(() => { PathManager.render(); }, 50);
     });
 
     // ============================================================================
-    // КОЛЛБЭКИ ИНТЕРФЕЙСА МОДАЛЬНОГО ОКНА ГЕКСА
+    // КОЛЛБЭКИ МОДАЛЬНОГО ОКНА ГЕКСА
     // ============================================================================
-
     HexModal.init({
-
-
         onSave: (hexId, formData) => {
             let oldHexId = null;
 
@@ -394,26 +361,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (formData.squadHere && oldHexId && oldHexId !== hexId) {
-
                 HexCanvasRender.hiddenSquadHexId = hexId;
-
-                // Определяем точку старта в зависимости от нашей переменной-режима
-                // Если режим активен — принудительно подменяем старый гекс на 'hex_0_0'
                 const finalStartHexId = FLIGHT_FROM_CAPITAL_MODE ? 'hex_0_0' : oldHexId;
 
                 StorageManager.updateHex(mapData, hexId, formData);
-                HexCanvasRender.updateData(mapData.hexes);
+                HexCanvasRender.updateData(mapData.hexes, hexId);
 
-                // Передаем вычисленный ID старта в анимационный менеджер
+                // Запуск анимации полета (внутри заложен автозапуск анимационного цикла)
                 AnimationManager.playFlagFlight(finalStartHexId, hexId, () => {
                     HexCanvasRender.hiddenSquadHexId = null;
-                    HexCanvasRender.updateData(hexId);
-                    HexCanvasRender.updateData(mapData.hexes);
+                    HexCanvasRender.updateData(mapData.hexes, hexId);
                 });
-
             } else {
                 StorageManager.updateHex(mapData, hexId, formData);
-                HexCanvasRender.updateData(mapData.hexes);
+                HexCanvasRender.updateData(mapData.hexes, hexId);
             }
 
             const questLog = document.getElementById('questLogContainer');
@@ -425,33 +386,13 @@ document.addEventListener('DOMContentLoaded', () => {
             HexModal.close();
         },
 
-
-
         onDelete: (hexId) => {
-            // 1. Удаляем данные гекса из LocalStorage (внутриglobalMapData)
             StorageManager.deleteHex(mapData, hexId);
-
-            // 2. Передаем очищенный массив данных в Canvas-рендер
-            // Мгновенно стираем все маркеры, иконки и тексты удаленного гекса
             HexCanvasRender.updateData(mapData.hexes);
-
-            // 3. Закрываем модальное окно гекса
             HexModal.close();
         }
-
     });
-
 });
 
-// ============================================================================
-// ГЛОБАЛЬНЫЕ СЛУШАТЕЛИ КАРТЫ
-// ============================================================================
-const mapImg = document.getElementById('mapImg');
-if (mapImg) {
-    mapImg.addEventListener('click', () => {
-        if (!hasMoved) HexModal.close();
-    });
-}
-
-// Проброс глобального метода закрытия для вызова из старых inline-обработчиков
 window.closeMenu = () => HexModal.close();
+
