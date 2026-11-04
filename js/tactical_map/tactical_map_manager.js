@@ -945,4 +945,6 @@ const TacticalMapManager = {
     }
 };
 
+window['TacticalMapManager'] = TacticalMapManager;
+
 export default TacticalMapManager;

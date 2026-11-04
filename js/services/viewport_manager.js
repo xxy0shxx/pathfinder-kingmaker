@@ -179,6 +179,13 @@ const ViewportManager = {
      * Автоматический пересчет координат сдвига для центрирования на отряде
      */
     focusOnSquad(force = false) {
+        // Если активен режим тактической карты лагеря — ПОЛНОСТЬЮ ОТКЛЮЧАЕМ автоцентрирование камеры
+        const TacticalMapManager = window.TacticalMapManager || null;
+        if (TacticalMapManager && TacticalMapManager.state && TacticalMapManager.state.currentMapMode === 'camp') {
+            return;
+        }
+
+        // Если идет ручное перетаскивание на глобальной карте или активен фокус на квесте — не перебиваем камеру
         if (!force && (this.isDragging || Date.now() < this.lockFocusUntil)) return;
 
         if (!HexCanvasRender || !HexCanvasRender.hexCoords || !HexCanvasRender.hexesData) return;
