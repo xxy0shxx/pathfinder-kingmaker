@@ -254,6 +254,8 @@ import UiPanelManager from './ui/ui_panel_manager.js';
  */
 //import { ColorConverter } from './utils/helpers.js';
 
+import TacticalMapManager from './tactical_map/tactical_map_manager.js';
+
 let hasMoved = false;
 // Делаем переменную mapData доступной глобально для всех слушателей в этом файле
 let mapData = { hexes: {}, kingdom: null, paths: [] };
@@ -392,6 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             HexModal.close();
         }
     });
+    TacticalMapManager.init(); // Инициализация тактической сетки лагеря
 });
 
 window.closeMenu = () => HexModal.close();
