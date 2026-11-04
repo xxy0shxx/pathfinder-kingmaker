@@ -1,5 +1,5 @@
-import { MAP_CONFIG } from './config/app_config.js';
-import FrameManager from './frame_manager.js';
+import { MAP_CONFIG } from '../config/app_config.js';
+import FrameManager from '../ui/frame_manager.js';
 
 /**
  * Модуль управления вьюпортом: скролл, зум, перемещение и адаптация рамки

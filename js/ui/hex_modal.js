@@ -1,6 +1,6 @@
-import { MAP_CONFIG } from './config/app_config.js';
-import UiSelectManager from './ui_select_manager.js';
-import TouchInterfaceAdapter from './touch_interface_adapter.js';
+import { MAP_CONFIG } from '../config/app_config.js';
+import UiSelectManager from '../controller/ui_select_manager.js';
+import TouchInterfaceAdapter from '../services/touch_interface_adapter.js';
 
 /**
  * Модуль управления модальным окном редактирования гекса

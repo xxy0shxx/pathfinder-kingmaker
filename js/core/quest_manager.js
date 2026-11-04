@@ -1,5 +1,5 @@
 // QuestManager.js
-import { MAP_CONFIG } from './config/app_config.js';
+import { MAP_CONFIG } from '../config/app_config.js';
 import KingdomManager from './kingdom_manager.js'; // Подключаем менеджер королевства
 
 /**

@@ -1,4 +1,4 @@
-import ViewportManager from './viewport_manager.js';
+import ViewportManager from '../services/viewport_manager.js';
 
 /**
  * Модуль для управления структурой интерфейса, ресайзом и верстальными DOM-хаками

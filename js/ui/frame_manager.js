@@ -1,4 +1,4 @@
-import { MAP_CONFIG } from './config/app_config.js';
+import { MAP_CONFIG } from '../config/app_config.js';
 
 /**
  * Модуль для управления стилями декоративной рамки карты, кадрированием холста холста и руническими эффектами

@@ -1,7 +1,7 @@
-import { MAP_CONFIG } from './config/app_config.js';
-import { ColorConverter } from './utils/helpers.js';
-import FogManager from './fog_manager.js';
-import HexUiSyncer from './hex_ui_syncer.js';
+import { MAP_CONFIG } from '../config/app_config.js';
+import { ColorConverter } from '../utils/helpers.js';
+import FogManager from '../controller/fog_manager.js';
+import HexUiSyncer from '../sync/hex_ui_syncer.js';
 
 /**
  * Модуль для управления сеткой гексов, их отрисовкой, слоями и тултипами

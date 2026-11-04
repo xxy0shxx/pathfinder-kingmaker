@@ -1,4 +1,4 @@
-import AnimationManager from './animation_manager.js';
+import AnimationManager from '../services/animation_manager.js';
 
 /**
  * Модуль для управления глобальными UI-панелями, кнопками переключения режимов и тултипов
