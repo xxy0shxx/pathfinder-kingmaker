@@ -15,19 +15,20 @@ body {
     box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
 }
 
+/* Общие стили скроллбаров */
 .dropdown-playlist::-webkit-scrollbar,
 .custom-options-container::-webkit-scrollbar,
 .box textarea::-webkit-scrollbar,
 #questLogContainer ::-webkit-scrollbar,
 #questLogList::-webkit-scrollbar,
 #playlistTracksContainer::-webkit-scrollbar {
-    width: 12px !important;
-    height: 12px !important;
-    display: block !important;
+    width: 12px;
+    height: 12px;
+    display: block;
 }
 
 #playlistTracksContainer::-webkit-scrollbar {
-    width: 8px !important;
+    width: 8px;
 }
 
 .dropdown-playlist::-webkit-scrollbar-track,
@@ -36,9 +37,9 @@ body {
 #questLogContainer ::-webkit-scrollbar-track,
 #questLogList::-webkit-scrollbar-track,
 #playlistTracksContainer::-webkit-scrollbar-track {
-    background: #040905 !important;
-    border-left: 1px solid rgba(138, 100, 33, 0.2) !important;
-    border-radius: 4px !important;
+    background: #040905;
+    border-left: 1px solid rgba(138, 100, 33, 0.2);
+    border-radius: 4px;
 }
 
 #questLogList::-webkit-scrollbar-track {
@@ -51,14 +52,14 @@ body {
 #questLogContainer ::-webkit-scrollbar-thumb,
 #questLogList::-webkit-scrollbar-thumb,
 #playlistTracksContainer::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%) !important;
-    border: 1px solid #543e0d !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%);
+    border: 1px solid #543e0d;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 #playlistTracksContainer::-webkit-scrollbar-thumb {
-    border-radius: 2px !important;
+    border-radius: 2px;
 }
 
 .dropdown-playlist::-webkit-scrollbar-thumb:hover,
@@ -66,8 +67,14 @@ body {
 .box textarea::-webkit-scrollbar-thumb:hover,
 #questLogContainer ::-webkit-scrollbar-thumb:hover,
 #questLogList::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%) !important;
-    border-color: #a68032 !important;
+    background: linear-gradient(180deg, #a68032 0%, #dfbc6f 50%, #8a6421 100%);
+    border-color: #a68032;
+}
+
+/* Firefox scrollbar support */
+.box textarea, .custom-options-container {
+    scrollbar-width: thin;
+    scrollbar-color: #b89445 #040905;
 }
 
 /* ============================================================================
@@ -95,7 +102,6 @@ body {
     height: 1280px;
     user-select: none;
     transform-origin: 100% 0;
-/*    will-change: transform, clip-path;*/
     will-change: transform;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: subpixel-antialiased;
@@ -173,14 +179,14 @@ body {
 }
 
 .visual-hex.hex-focused-flash::after {
-    content: "" !important;
-    position: absolute !important;
-    inset: 0 !important;
-    background: radial-gradient(circle, rgba(255, 216, 117, 0.8) 0%, rgba(231, 76, 60, 0.2) 70%) !important;
-    z-index: 999999 !important;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%) !important;
-    animation: hexPureRedFlash 1.2s ease-in-out 3 !important;
-    pointer-events: none !important;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255, 216, 117, 0.8) 0%, rgba(231, 76, 60, 0.2) 70%);
+    z-index: 999999;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    animation: hexPureRedFlash 1.2s ease-in-out 3;
+    pointer-events: none;
     filter: drop-shadow(0 0 15px #ffd875);
 }
 
@@ -303,19 +309,22 @@ body {
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8),
     0 0 20px rgba(255, 255, 255, 0.6),
     0 0 35px #ffd875,
-    0 0 60px rgba(223, 188, 111, 0.5) !important;
+    0 0 60px rgba(223, 188, 111, 0.5);
 }
 
 .hex-tooltip .tooltip-value {
-    color: #ffd875 !important;
-    font-weight: bold !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+    color: #ffd875;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.tooltip-title, .tooltip-desc {
+    font-family: "Tinos", serif;
+    font-weight: 700;
+    color: #ffd875;
 }
 
 .tooltip-title {
-    color: #ffd875;
-    font-family: "Tinos", serif;
-    font-weight: 700;
     font-size: 24px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -327,11 +336,8 @@ body {
 }
 
 .tooltip-desc {
-    color: #ffd875;
-    font-family: "Tinos", serif;
     font-style: italic;
-    font-weight: 700;
-    font-size: 24px !important;
+    font-size: 24px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
     word-break: break-word;
 }
@@ -350,7 +356,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    max-width: 220px !important;
+    max-width: 220px;
 }
 
 .hex-title-text {
@@ -385,24 +391,24 @@ body {
     max-width: 110px;
 }
 .hex-region-stats-framed .hex-title-text {
-    font-family: 'Montserrat', sans-serif !important;
-    font-size: 10px !important;
-    font-weight: 900 !important;
-    letter-spacing: 0.5px !important;
-    color: #ebd291 !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #ebd291;
 }
 .hex-title-label-framed:has(.hex-title-text:empty),
 .hex-region-stats-framed:has(.hex-title-text:empty),
 .hex-quest-mini-tooltip:empty,
 #visualLayer.hide-quest-tooltips .hex-quest-mini-tooltip {
-    display: none !important;
+    display: none;
 }
 .hex-quest-mini-tooltip {
     position: absolute;
     top: 20%;
     left: 50%;
     transform: translate(-50%, -90%);
-    z-index: 100000 !important;
+    z-index: 100000;
     background: rgba(20, 20, 20, 0.95);
     color: #dfbc6f;
     padding: 3px 6px;
@@ -429,17 +435,17 @@ body {
     z-index: 10000;
     border: 22px solid transparent;
     will-change: top, left, width, height;
-    overflow: visible !important;
+    overflow: visible;
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8),
     0 0 25px rgba(255, 255, 255, 0.9),
     0 0 45px #ffd875,
     0 0 75px rgba(223, 188, 111, 0.85),
-    0 0 120px rgba(223, 188, 111, 0.45) !important;
+    0 0 120px rgba(223, 188, 111, 0.45);
 }
 .kingmaker-frame::before {
     content: '';
     position: absolute;
-    top: -22px; left: -22px; right: -22px; bottom: -22px;
+    inset: -22px;
     padding: 22px;
     background: linear-gradient(to bottom right, #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%, #a68032 70%, #1c3324 85%, #6e4e14 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -498,13 +504,13 @@ body {
     border: 3px solid transparent;
     border-image: linear-gradient(to bottom right, #a68032, #543e0d, #b89445) 3 round;
     z-index: 10100;
-    overflow: visible !important;
+    overflow: visible;
     box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6),
     0 15px 40px rgba(0, 0, 0, 0.9),
     0 0 25px rgba(255, 255, 255, 0.9),
     0 0 45px #ffd875,
     0 0 75px rgba(223, 188, 111, 0.85),
-    0 0 120px rgba(223, 188, 111, 0.45) !important;
+    0 0 120px rgba(223, 188, 111, 0.45);
 }
 .pop-menu.open {
     display: block;
@@ -526,14 +532,15 @@ body {
     border-radius: 4px;
     border: 1px solid rgba(84, 62, 13, 0.3);
 }
+.checkbox-row label, .checkbox-row input[type="checkbox"] {
+    cursor: pointer;
+}
 .checkbox-row label {
     color: #ebd291;
     font-size: 13px;
-    cursor: pointer;
 }
 .checkbox-row input[type="checkbox"] {
     accent-color: #a68032;
-    cursor: pointer;
 }
 .box {
     margin-bottom: 8px;
@@ -551,44 +558,41 @@ body {
     width: 100%;
     padding: 6px 8px;
     background: #090f0b;
-    border: 1px solid #543e0d !important;
+    border: 1px solid #543e0d;
     border-radius: 3px;
-    color: #ebd291 !important;
+    color: #ebd291;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .box select {
-    padding: 3px 24px 3px 8px !important;
-    font-size: 16px !important;
+    padding: 3px 24px 3px 8px;
+    font-size: 16px;
 }
 .box select option {
     padding: 4px 6px;
     font-size: 16px;
 }
 .box select option:checked {
-    background-color: #1e3c27 !important;
-    color: #dfbc6f !important;
+    background-color: #1e3c27;
+    color: #dfbc6f;
 }
 .box input[type="text"]:focus, .box textarea:focus, .box select:focus,
 .box input[type="text"]:hover, .box textarea:hover, .box select:hover {
-    border-color: #b89445 !important;
+    border-color: #b89445;
     box-shadow: 0 0 5px rgba(184, 148, 69, 0.4);
 }
 .box input[type="text"]:focus,
 .box textarea:focus,
 .custom-select.active .custom-select-trigger {
-    border-color: #ffd875 !important;
-    overflow: visible !important;
+    border-color: #ffd875;
+    overflow: visible;
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.95),
     0 0 15px #ffd875,
     0 0 30px rgba(223, 188, 111, 0.85),
-    inset 0 0 6px rgba(255, 216, 117, 0.2) !important;
+    inset 0 0 6px rgba(255, 216, 117, 0.2);
 }
-
 .box textarea {
-    overflow-y: auto !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: #b89445 #040905 !important;
+    overflow-y: auto;
 }
 .box-row-combined {
     display: flex;
@@ -600,53 +604,49 @@ body {
     flex: 1;
     margin-bottom: 0;
 }
-
 .custom-select {
-    position: relative !important;
-    width: 100% !important;
+    position: relative;
+    width: 100%;
     cursor: pointer;
 }
 .custom-select-trigger {
-    display: block !important;
-    width: 100% !important;
-    padding: 6px 8px !important;
-    background: #090f0b !important;
-    border: 1px solid #543e0d !important;
-    border-radius: 3px !important;
-    color: #ebd291 !important;
+    display: block;
+    width: 100%;
+    padding: 6px 8px;
+    background: #090f0b;
+    border: 1px solid #543e0d;
+    border-radius: 3px;
+    color: #ebd291;
 }
 .custom-options-container {
-    display: none !important;
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    width: 100% !important;
-    max-height: 180px !important;
-    background: #090f0b !important;
-    border: 1px solid #b89445 !important;
-    border-radius: 0 0 4px 4px !important;
-    z-index: 99999 !important;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.85) !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: #b89445 #040905 !important;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 180px;
+    background: #090f0b;
+    border: 1px solid #b89445;
+    border-radius: 0 0 4px 4px;
+    z-index: 99999;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.85);
 }
 .custom-select.active .custom-options-container {
-    display: block !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    display: block;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .custom-option {
-    padding: 6px 10px !important;
-    color: #ebd291 !important;
-    cursor: pointer !important;
-    transition: background 0.2s ease !important;
+    padding: 6px 10px;
+    color: #ebd291;
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
 .custom-option:hover,
 .custom-option.selected {
-    background-color: #1e3c27 !important;
-    color: #dfbc6f !important;
+    background-color: #1e3c27;
+    color: #dfbc6f;
 }
-
 #colorPresetsContainer {
     display: flex;
     gap: 8px;
@@ -672,29 +672,27 @@ body {
     color: #e74c3c;
     font-weight: bold;
 }
-
 .buttons {
-    display: flex !important;
-    gap: 15px !important;
-    margin: 20px 0 0 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    justify-content: space-between !important;
-    box-sizing: border-box !important;
-    clear: both !important;
+    display: flex;
+    gap: 15px;
+    margin: 20px 0 0 0;
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
+    clear: both;
 }
 .buttons .btn {
-    flex: 1 1 0% !important;
-    width: 100% !important;
-    padding: 12px 16px !important;
-    border-radius: 3px !important;
-    font: bold 14px sans-serif !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
-    text-align: center !important;
-    white-space: nowrap !important;
+    flex: 1 1 0%;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 3px;
+    font: bold 14px sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    white-space: nowrap;
 }
 .btn.del { background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%); color: #f7baba; border: 1px solid #823030; }
 .btn.del:hover { border-color: #ff7675; filter: brightness(1.2); }
@@ -706,190 +704,187 @@ body {
 7. МОНОЛИТНЫЙ АУДИОПЛЕЕР И ЛЕГЕНДА КАРТЫ
 ============================================================================ */
 .music-player-monolith-wrapper {
-    position: fixed !important;
-    bottom: 20px !important;
-    left: 20px !important;
-    width: 504px !important;
-    z-index: 1005 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    background: #112417 !important;
-    border: 2px solid #543e0d !important;
-    border-radius: 4px !important;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 504px;
+    z-index: 1005;
+    display: flex;
+    flex-direction: column;
+    background: #112417;
+    border: 2px solid #543e0d;
+    border-radius: 4px;
     box-shadow: inset 1px 1px 0px #8a6421,
     inset -1px -1px 0px #8a6421,
     0 15px 35px rgba(0, 0, 0, 0.9),
     0 0 20px rgba(255, 255, 255, 0.9),
     0 0 40px #ffd875,
     0 0 70px rgba(223, 188, 111, 0.8),
-    0 0 100px rgba(223, 188, 111, 0.4) !important;
-
-    transform: translateX(-550px) !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    overflow: visible !important;
-    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.25s ease !important;
+    0 0 100px rgba(223, 188, 111, 0.4);
+    transform: translateX(-550px);
+    opacity: 0;
+    pointer-events: none;
+    overflow: visible;
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.25s ease;
 }
 .music-player-monolith-wrapper.ui-expanded {
-    transform: translateX(0) !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
 }
-
 .legend-container {
-    position: relative !important;
-    display: block !important;
-    width: 100% !important;
-    z-index: 2 !important;
-    transition: border-bottom 0.15s ease !important;
+    position: relative;
+    display: block;
+    width: 100%;
+    z-index: 2;
+    transition: border-bottom 0.15s ease;
+}
+.legend-container.open {
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4);
 }
 .legend-header {
-    background: rgba(0, 0, 0, 0.4) !important;
-    color: #ffd875 !important;
-    font-family: "Tinos", serif !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1.5px !important;
-    cursor: pointer !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    box-shadow: inset 0 1px 0px #8a6421, inset 0 -1px 0px #8a6421, inset 1px 0px 0px #8a6421, inset -1px 0px 0px #8a6421 !important;
-    padding: 6px 12px !important;
-    height: 27px !important;
-    font-size: 16px !important;
-    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    background: rgba(0, 0, 0, 0.4);
+    color: #ffd875;
+    font-family: "Tinos", serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: inset 0 1px 0px #8a6421, inset 0 -1px 0px #8a6421, inset 1px 0px 0px #8a6421, inset -1px 0px 0px #8a6421;
+    padding: 6px 12px;
+    height: 27px;
+    font-size: 16px;
+    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 .legend-container.open .legend-header {
-    border-bottom: 1px solid #543e0d !important;
+    border-bottom: 1px solid #543e0d;
 }
 .legend-header:hover {
-    background: rgba(0, 0, 0, 0.5) !important;
+    background: rgba(0, 0, 0, 0.5);
 }
 .legend-header button {
-    font-size: 16px !important;
-    background: none !important;
-    border: none !important;
-    color: #dfbc6f !important;
+    font-size: 16px;
+    background: none;
+    border: none;
+    color: #dfbc6f;
     cursor: pointer;
 }
 .legend-content {
-    background: #112417 !important;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)) !important;
-    border: 1px solid #543e0d !important;
-    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.9), inset 1px 1px 0px #8a6421, inset -1px -1px 0px #8a6421 !important;
-    overflow: hidden !important;
-    max-height: 0px;
+    background: #112417;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3));
+    border: 1px solid #543e0d;
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.9), inset 1px 1px 0px #8a6421, inset -1px -1px 0px #8a6421;
+    overflow: hidden;
+    max-height: 0;
     opacity: 0;
-    transform: translateY(-4px) !important;
-    will-change: max-height, opacity, transform !important;
-    transition: max-height 0.6s ease-in-out, opacity 0.5s ease-in-out, transform 0.6s ease-in-out, margin 0.6s ease-in-out !important;
+    transform: translateY(-4px);
+    will-change: max-height, opacity, transform;
+    transition: max-height 0.6s ease-in-out, opacity 0.5s ease-in-out, transform 0.6s ease-in-out, margin 0.6s ease-in-out;
 }
 .legend-container.open .legend-content {
-    margin: 6px 6px 0px 6px !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
+    margin: 6px 6px 0 6px;
+    opacity: 1;
+    transform: translateY(0);
 }
 .legend-group {
-    margin-bottom: 24px !important;
-    width: 100% !important;
+    margin-bottom: 24px;
+    width: 100%;
 }
-.legend-group:not(:first-of-type) { margin-top: 10px !important; }
-.legend-group:last-of-type { margin-bottom: 0 !important; }
+.legend-group:not(:first-of-type) { margin-top: 10px; }
+.legend-group:last-of-type { margin-bottom: 0; }
 .legend-group p {
-    color: #ffd875 !important;
-    font-family: "Tinos", serif !important;
-    font-size: 18px !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    margin: 8px 0 10px 0 !important;
-    letter-spacing: 1.5px !important;
-    padding-bottom: 6px !important;
-    text-align: center !important;
-    display: block !important;
-    border-bottom: 1px solid #dfbc6f !important;
-    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    color: #ffd875;
+    font-family: "Tinos", serif;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 8px 0 10px 0;
+    letter-spacing: 1.5px;
+    padding-bottom: 6px;
+    text-align: center;
+    display: block;
+    border-bottom: 1px solid #dfbc6f;
+    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 .legend-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 3px 10px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    padding-bottom: 4px !important;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3px 10px;
+    width: 100%;
+    box-sizing: border-box;
+    padding-bottom: 4px;
 }
 .legend-grid span {
-    font-family: "Tinos", serif !important;
-    font-weight: bold !important;
-    color: #ebd291 !important;
-    font-size: 18px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    /* Слегка отодвигаем пункты от левого края (на 10px) и добавляем отступ справа */
-    padding: 4px 6px 6px 10px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    border-bottom: 1px dashed rgba(138, 100, 33, 0.25) !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-family: "Tinos", serif;
+    font-weight: bold;
+    color: #ebd291;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 6px 6px 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px dashed rgba(138, 100, 33, 0.25);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
 }
-
 .music-controller {
-    position: relative !important;
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    z-index: 1 !important;
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
 }
 .music-player-monolith-wrapper.playlist-open .music-controller {
-    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4);
 }
 .winamp-title-bar {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    background: rgba(0, 0, 0, 0.3) !important;
-    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
-    padding: 0 4px !important;
-    font-weight: bold !important;
-    color: #ebd291 !important;
-    letter-spacing: 0.5px !important;
-    margin: 6px 6px 0 6px !important;
-    width: calc(100% - 12px) !important;
-    height: 27px !important;
-    font-size: 16px !important;
-    box-shadow: inset 0 1px 0px #8a6421, inset 0 -1px 0px #8a6421, inset 1px 0px 0px #8a6421, inset -1px 0px 0px #8a6421 !important;
-    line-height: 27px !important;
-    cursor: pointer !important;
-    transition: background-color 0.2s ease, border-color 0.2s ease !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4);
+    padding: 0 4px;
+    margin: 6px 6px 0 6px;
+    width: calc(100% - 12px);
+    height: 27px;
+    font-size: 16px;
+    box-shadow: inset 0 1px 0px #8a6421, inset 0 -1px 0px #8a6421, inset 1px 0px 0px #8a6421, inset -1px 0px 0px #8a6421;
+    line-height: 27px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 .winamp-title-bar:hover {
-    background: rgba(138, 100, 33, 0.2) !important;
-    border-color: #dfbc6f !important;
+    background: rgba(138, 100, 33, 0.2);
+    border-color: #dfbc6f;
 }
 .winamp-title-bar,
 .winamp-track-info-marquee {
-    font-family: "Tinos", serif !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    color: #ffd875 !important;
-    letter-spacing: 1.5px !important;
+    font-family: "Tinos", serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #ffd875;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 .winamp-display-section,
 .winamp-timeline-section,
 .winamp-action-section {
-    margin-left: 6px !important;
-    margin-right: 6px !important;
-    width: calc(100% - 12px) !important;
+    margin-left: 6px;
+    margin-right: 6px;
+    width: calc(100% - 12px);
 }
 .winamp-display-section {
-    display: grid !important;
-    grid-template-columns: 172px 1fr !important;
-    gap: 6px !important;
-    height: 78px !important;
-    margin-top: 9px !important;
-    box-sizing: border-box !important;
+    display: grid;
+    grid-template-columns: 172px 1fr;
+    gap: 6px;
+    height: 78px;
+    margin-top: 9px;
+    box-sizing: border-box;
 }
 .winamp-display-left,
 .winamp-track-info-marquee {
@@ -897,30 +892,12 @@ body {
     border: 1px solid #543e0d;
     box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9);
 }
-.winamp-track-info-marquee,
-.winamp-track-info-marquee .marquee-text,
-.winamp-title-bar {
-    font-family: "Tinos", serif !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    color: #ffd875 !important;
-    letter-spacing: 1.5px !important;
-    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9) !important;
-}
-.winamp-title-bar {
-    font-size: 16px !important;
-    line-height: 27px !important;
-    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9) !important;
-}
-
 .winamp-track-info-marquee .marquee-text {
-    display: inline-block !important;
-    white-space: nowrap !important;
-    padding-left: 100% !important;
-    animation: winampMarquee 15s linear infinite !important;
-    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    animation: winampMarquee 15s linear infinite;
 }
-
 .winamp-display-left {
     display: flex;
     flex-direction: column;
@@ -937,18 +914,18 @@ body {
     color: #dfbc6f;
 }
 .winamp-display-left .time-lbl {
-    font-family: 'Courier New', monospace !important;
-    font-size: 27px !important;
+    font-family: 'Courier New', monospace;
+    font-size: 27px;
     font-weight: bold;
-    color: #dfbc6f !important;
+    color: #dfbc6f;
     text-shadow: 0 0 5px rgba(223, 188, 111, 0.6);
 }
 .winamp-display-right {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    overflow: hidden !important;
-    width: 100% !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    width: 100%;
 }
 .winamp-audio-kbps {
     display: flex;
@@ -984,7 +961,7 @@ body {
     gap: 4px;
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(84, 62, 13, 0.4);
-    padding: 3px 6px !important;
+    padding: 3px 6px;
 }
 .wa-slider-icon { font-size: 9px; }
 .wa-slider-container input[type="range"] {
@@ -1006,14 +983,14 @@ body {
     cursor: pointer;
 }
 .winamp-timeline-section {
-    position: relative !important;
-    height: 18px !important;
-    background: #040905 !important;
-    border: 1px solid #543e0d !important;
-    box-shadow: inset 1px 1px 4px rgba(0,0,0,0.9) !important;
-    cursor: pointer !important;
-    margin-top: 9px !important;
-    box-sizing: border-box !important;
+    position: relative;
+    height: 18px;
+    background: #040905;
+    border: 1px solid #543e0d;
+    box-shadow: inset 1px 1px 4px rgba(0,0,0,0.9);
+    cursor: pointer;
+    margin-top: 9px;
+    box-sizing: border-box;
 }
 .timeline-fill {
     height: 100%;
@@ -1027,24 +1004,27 @@ body {
     gap: 4px;
     margin-top: 6px;
 }
+.music-player-monolith-wrapper:not(.playlist-open) .music-controller .winamp-action-section {
+    margin-bottom: 6px;
+}
 .winamp-playback-buttons {
     display: flex;
     gap: 3px;
 }
 .winamp-playback-buttons button {
     flex: 1;
-    background: linear-gradient(to bottom, #42351f 0%, #292011 100%) !important;
-    border: 1px solid #543e0d !important;
-    color: #ebd291 !important;
+    background: linear-gradient(to bottom, #42351f 0%, #292011 100%);
+    border: 1px solid #543e0d;
+    color: #ebd291;
     font-family: 'Courier New', monospace;
     font-weight: bold;
     cursor: pointer;
     box-shadow: inset 1px 1px 0px #8a6421;
-    height: 36px !important;
-    font-size: 16px !important;
+    height: 36px;
+    font-size: 16px;
 }
 .winamp-playback-buttons button.winamp-main-play {
-    color: #dfbc6f !important;
+    color: #dfbc6f;
     flex: 1.5;
 }
 .winamp-meta-toggles {
@@ -1055,156 +1035,141 @@ body {
 .winamp-meta-toggles button {
     font-family: monospace;
     font-weight: bold;
-    background: linear-gradient(to bottom, #42351f 0%, #292011 100%) !important;
-    border: 1px solid #543e0d !important;
-    color: #ebd291 !important;
+    background: linear-gradient(to bottom, #42351f 0%, #292011 100%);
+    border: 1px solid #543e0d;
+    color: #ebd291;
     cursor: pointer;
     box-shadow: inset 1px 1px 0px #8a6421;
     text-transform: uppercase;
-    height: 30px !important;
-    font-size: 15px !important;
+    height: 30px;
+    font-size: 15px;
 }
 .winamp-meta-toggles button.active,
 .winamp-meta-toggles button.winamp-pl-toggle.active {
-    background: #09140d !important;
-    color: #dfbc6f !important;
-    border-color: #dfbc6f !important;
+    background: #09140d;
+    color: #dfbc6f;
+    border-color: #dfbc6f;
     box-shadow: inset 1px 1px 3px rgba(0,0,0,0.8);
     text-shadow: 0 0 4px rgba(223, 188, 111, 0.8);
 }
 .winamp-meta-toggles .winamp-pl-toggle {
-    background: linear-gradient(to bottom, #1e3c27 0%, #112417 100%) !important;
-    border-color: #3e6349 !important;
+    background: linear-gradient(to bottom, #1e3c27 0%, #112417 100%);
+    border-color: #3e6349;
     box-shadow: inset 1px 1px 0px #53805e;
     padding: 0 8px;
 }
 .winamp-playback-buttons button:active,
 .winamp-meta-toggles button:active {
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.9) !important;
-    background: #19140b !important;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.9);
+    background: #19140b;
 }
-
 #playerPlaylist {
-    position: relative !important;
-    width: 100% !important;
-    background: transparent !important;
-    display: flex !important;
-    flex-direction: column !important;
-    max-height: 0px !important;
-    opacity: 0 !important;
-    transform: translateY(-5px) !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in-out, transform 0.5s ease-in-out, visibility 0.5s !important;
+    position: relative;
+    width: 100%;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-5px);
+    overflow: hidden;
+    visibility: hidden;
+    transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in-out, transform 0.5s ease-in-out, visibility 0.5s;
 }
 #playerPlaylist.open {
-    max-height: 430px !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    visibility: visible !important;
+    max-height: 430px;
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
 }
 .playlist-title-bar {
-    margin: 1px !important;
-    width: calc(100% - 2px) !important;
+    margin: 1px;
+    width: calc(100% - 2px);
 }
 #playlistTracksContainer {
-    max-height: 390px !important;
-    height: 390px !important;
-    overflow-y: auto !important;
-    background: #040905 !important;
-    border: 1px solid #543e0d !important;
-    box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9) !important;
-    padding: 4px !important;
-    box-sizing: border-box !important;
+    max-height: 390px;
+    height: 390px;
+    overflow-y: auto;
+    background: #040905;
+    border: 1px solid #543e0d;
+    box-shadow: inset 1px 1px 4px rgba(0, 0, 0, 0.9);
+    padding: 4px;
+    box-sizing: border-box;
 }
 .playlist-item {
-    font-family: 'Courier New', monospace !important;
-    font-weight: bold !important;
-    color: #00e100 !important;
-    text-shadow: 0 0 3px rgba(0, 225, 0, 0.4) !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    transition: background 0.1s ease !important;
-    font-size: 18px !important;
-    padding: 5px 6px !important;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #00e100;
+    text-shadow: 0 0 3px rgba(0, 225, 0, 0.4);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.1s ease;
+    font-size: 18px;
+    padding: 5px 6px;
 }
 .playlist-item:hover {
-    background: #12281a !important;
-    color: #ffffff !important;
-    text-shadow: 0 0 4px rgba(255, 255, 255, 0.6) !important;
+    background: #12281a;
+    color: #ffffff;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
 }
 .playlist-item.current {
-    color: #ffffff !important;
-    background: #163d24 !important;
-    border: 1px dashed #ebd291 !important;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8) !important;
-}
-.music-player-monolith-wrapper:not(.playlist-open) .music-controller .winamp-action-section {
-    margin-bottom: 6px !important;
-}
-.legend-container.open {
-    border-bottom: 1px solid rgba(84, 62, 13, 0.4) !important;
+    color: #ffffff;
+    background: #163d24;
+    border: 1px dashed #ebd291;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
 }
 /* ============================================================================
-   8. ЖУРНАЛ ЗАДАНИЙ (ПОЛНЫЙ БЛОК НА ШРИФТЕ TINOS)
-   ============================================================================ */
+8. ЖУРНАЛ ЗАДАНИЙ (ПОЛНЫЙ БЛОК НА ШРИФТЕ TINOS)
+============================================================================ */
 .quest-log-container {
-    position: fixed !important;
-    width: 1100px !important;
-    height: 800px !important;
-    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-    margin: auto !important;
-    z-index: 1015 !important;
+    position: fixed;
+    width: 1100px;
+    height: 800px;
+    inset: 0;
+    margin: auto;
+    z-index: 1015;
     background: linear-gradient(135deg, rgba(17, 38, 24, 0.98) 0%, rgba(9, 20, 13, 0.99) 100%);
     border: 4px solid transparent;
     border-image: linear-gradient(to bottom right, #a68032, #543e0d, #b89445) 4 round;
     border-radius: 8px;
-    display: flex !important;
+    display: flex;
     flex-direction: column;
     backdrop-filter: blur(8px);
     transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.4s;
-    transform: scale(1) !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    overflow: visible !important;
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+    overflow: visible;
     box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8),
     0 25px 60px rgba(0, 0, 0, 0.95),
     0 0 30px rgba(255, 255, 255, 0.9),
     0 0 55px #ffd875,
     0 0 90px rgba(223, 188, 111, 0.85),
-    0 0 150px rgba(223, 188, 111, 0.45) !important;
-    font-family: "Tinos", serif !important;
+    0 0 150px rgba(223, 188, 111, 0.45);
+    font-family: "Tinos", serif;
 }
-
 .quest-log-container.ui-collapsed {
-    transform: scale(0.9) !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
+    transform: scale(0.9);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
-
 .quest-log-header {
     background: rgba(21, 46, 29, 0.7);
-    color: #ffd875 !important;
+    color: #ffd875;
     padding: 24px 30px;
-    font-family: "Tinos", serif !important;
-    font-size: 32px !important;
-    font-weight: bold !important;
+    font-family: "Tinos", serif;
+    font-size: 32px;
+    font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 2px;
     border-bottom: 3px solid #543e0d;
     text-align: center;
     position: relative;
-
-    /* Фирменное текстовое свечение */
-    text-shadow: 0 0 4px #ffd875,
-    0 0 10px #dfbc6f,
-    0 0 20px rgba(223, 188, 111, 0.6),
-    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
-
 .btn-close-quest-log {
     position: absolute;
     top: 50%;
@@ -1225,55 +1190,42 @@ body {
     transition: all 0.2s ease;
     box-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
-
 .btn-close-quest-log:hover {
     filter: brightness(1.2);
     border-color: #ff7675;
     color: #fff;
     box-shadow: 0 0 8px rgba(255, 118, 117, 0.4);
 }
-
 .quest-log-tabs {
     display: flex;
     background: rgba(0, 0, 0, 0.4);
     border-bottom: 1px solid rgba(84, 62, 13, 0.4);
 }
-
 .quest-tab-btn {
     flex: 1;
     background: none;
     border: none;
     padding: 20px;
     color: #ebd291;
-    font-family: "Tinos", serif !important;
-    font-size: 24px !important;
-    font-weight: bold !important;
+    font-family: "Tinos", serif;
+    font-size: 24px;
+    font-weight: bold;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 1px;
     transition: all 0.2s ease;
 }
-
 .quest-tab-btn:hover {
     background: rgba(21, 46, 29, 0.4);
-    color: #fff;
+    color: #ebd291;
+    text-shadow: 0 0 6px #dfbc6f, 0 0 12px rgba(223, 188, 111, 0.4);
 }
-
 .quest-tab-btn.active {
     background: rgba(21, 46, 29, 0.6);
-    color: #ffd875 !important;
+    color: #ffd875;
     border-bottom: 5px solid #a68032;
-    text-shadow: 0 0 4px #ffd875,
-    0 0 10px #dfbc6f,
-    0 0 20px rgba(223, 188, 111, 0.6),
-    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    text-shadow: 0 0 4px #ffd875, 0 0 10px #dfbc6f, 0 0 20px rgba(223, 188, 111, 0.6), 0 2px 4px rgba(0, 0, 0, 0.9);
 }
-.quest-tab-btn:hover:not(.active) {
-    color: #ebd291 !important;
-    text-shadow: 0 0 6px #dfbc6f,
-    0 0 12px rgba(223, 188, 111, 0.4) !important;
-}
-
 .quest-log-list {
     flex-grow: 1;
     overflow-y: auto;
@@ -1282,7 +1234,6 @@ body {
     flex-direction: column;
     gap: 20px;
 }
-
 .quest-log-item {
     background: rgba(0, 0, 0, 0.4);
     border: 2px solid rgba(84, 62, 13, 0.4);
@@ -1291,62 +1242,52 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
 }
-
 .quest-log-item:hover {
     border-color: #b89445;
     background: rgba(21, 46, 29, 0.35);
     box-shadow: 0 6px 25px rgba(0,0,0,0.6);
 }
-
 .quest-log-item.status-rumor {
     border-left: 4px solid #a68032;
     background: linear-gradient(90deg, rgba(84, 62, 13, 0.15) 0%, rgba(0, 0, 0, 0.4) 100%);
 }
-
 .quest-log-item.status-rumor:hover {
     border-left-color: #dfbc6f;
     background: linear-gradient(90deg, rgba(166, 128, 50, 0.25) 0%, rgba(21, 46, 29, 0.35) 100%);
 }
-
 .quest-item-title {
-    font-family: "Tinos", serif !important;
-    font-size: 35px !important;
-    font-weight: bold !important;
+    font-family: "Tinos", serif;
+    font-size: 35px;
+    font-weight: bold;
     margin-bottom: 8px;
-    color: #ffd875 !important;
-    text-shadow: none !important;
+    color: #ffd875;
 }
-
 .quest-item-location {
-    font-family: "Tinos", serif !important;
-    font-size: 18px !important;
+    font-family: "Tinos", serif;
+    font-size: 18px;
     color: #a4b0be;
     margin-bottom: 14px;
 }
-
 .quest-item-desc {
-    font-family: "Tinos", serif !important;
-    font-size: 35px !important;
+    font-family: "Tinos", serif;
+    font-size: 35px;
     line-height: 1.5;
     font-style: italic;
     border-top: 2px dashed rgba(84, 62, 13, 0.4);
     padding-top: 16px;
     margin-top: 12px;
-    color: #dfbc6f !important;
-    text-shadow: none !important;
+    color: #dfbc6f;
 }
-
 .quest-log-empty {
     text-align: center;
     color: #888;
-    font-family: "Tinos", serif !important;
-    font-size: 24px !important;
+    font-family: "Tinos", serif;
+    font-size: 24px;
     padding: 60px 0;
 }
-
 /* ============================================================================
-9. ПРАВАЯ ПАНЕЛЬ И КНОПКИ ИНТЕРФЕЙСА
-============================================================================ */
+   9. ПРАВАЯ ПАНЕЛЬ И КНОПКИ ИНТЕРФЕЙСА
+   ============================================================================ */
 .right-controls-panel {
     position: fixed !important;
     right: 40px !important;
@@ -1364,20 +1305,7 @@ body {
     transition: background 0.25s ease, box-shadow 0.25s ease !important;
 }
 
-.right-controls-panel.ui-expanded {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    position: fixed !important;
-}
-
-.right-controls-panel.ui-expanded {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    position: fixed !important;
-}
-
+/* Эффект свечения заднего фона при разворачивании панели */
 .right-controls-panel.ui-expanded::before {
     content: "" !important;
     position: absolute !important;
@@ -1393,14 +1321,13 @@ body {
     filter: blur(14px) !important;
     pointer-events: none !important;
 }
-.right-controls-panel.ui-expanded::after {
-    content: none !important;
-}
 
 .right-controls-panel button {
     pointer-events: auto !important;
     will-change: transform, opacity;
 }
+
+/* Базовый стиль кнопок управления */
 .right-controls-panel .btn-ui-toggle,
 .right-controls-panel #btnFrameStyle {
     width: 46px !important;
@@ -1418,14 +1345,19 @@ body {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
     transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
+
+/* Специфический стиль для главной кнопки-переключателя (шестеренка/бургер) */
 .right-controls-panel .master-toggle-btn {
     background: linear-gradient(180deg, #4f5d65 0%, #2c3539 100%) !important;
     border: 1px solid #778ca3 !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 14px rgba(209, 216, 224, 0.3) !important;
 }
+
 .right-controls-panel .master-toggle-btn.ui-active {
     transform: rotate(90deg) !important;
 }
+
+/* Ховер-эффекты для всех кнопок в панели */
 .right-controls-panel button:hover,
 .right-controls-panel .btn-ui-toggle:hover,
 .right-controls-panel #btnFrameStyle:hover {
@@ -1435,24 +1367,30 @@ body {
     box-shadow: 0 0 12px rgba(184, 148, 69, 0.6), 0 6px 18px rgba(0, 0, 0, 0.6) !important;
 }
 
-.right-controls-panel:not(.ui-collapsed) button:not(.master-toggle-btn),
+/* Логика анимации: когда панель свернута (или НЕ развернута), второстепенные кнопки прячутся вниз */
+.right-controls-panel:not(.ui-expanded) button:not(.master-toggle-btn),
 .right-controls-panel.ui-collapsed button:not(.master-toggle-btn) {
     transform: scale(0.6) translateY(40px) !important;
     opacity: 0 !important;
     pointer-events: none !important;
     transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
+
+/* Когда панель активна (.ui-expanded), кнопки плавно вылетают на свои места */
 .right-controls-panel.ui-expanded button:not(.master-toggle-btn) {
     transform: scale(1) translateY(0) !important;
     opacity: 1 !important;
     pointer-events: auto !important;
 }
+
+/* Состояние кнопки тултипов, когда они выключены */
 #visualLayer.hide-quest-tooltips ~ .right-controls-panel #btnToggleTooltips {
     background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
     border-color: #823030 !important;
     color: #f7baba !important;
 }
 
+/* Дополнительное свечение для мастер-кнопки, когда панель закрыта */
 .right-controls-panel:not(.ui-expanded) .master-toggle-btn {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6),
     0 0 15px rgba(255, 255, 255, 0.8),
@@ -1503,26 +1441,28 @@ body {
     0% { transform: translate3d(0, 0, 0); }
     100% { transform: translate3d(-100%, 0, 0); }
 }
-@media (max-width: 480px) {
-    .buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
+@keyframes beamShootOut {
+    0% { transform: rotate(var(--angle, 0deg)) translateY(0px) scaleY(0.01) scaleX(0.1); opacity: 0; }
+    20% { opacity: 1; transform: rotate(var(--angle, 0deg)) translateY(-15px) scaleY(1) scaleX(3.8); }
+    55% { opacity: 0.85; transform: rotate(var(--angle, 0deg)) translateY(-40px) scaleY(1.15) scaleX(1.4); }
+    100% { transform: rotate(var(--angle, 0deg)) translateY(-70px) scaleY(1.45) scaleX(0.01); opacity: 0; }
 }
-
+@keyframes pathLineFlow {
+    from { stroke-dashoffset: 500; }
+    to { stroke-dashoffset: 0; }
+}
+/* ============================================================================
+11. ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ И МЕДИА-ЗАПРОСЫ
+============================================================================ */
 .wa-minimize {
-    display: inline-block !important;
-    cursor: pointer !important;
-    transition: color 0.2s ease, text-shadow 0.2s ease !important;
+    display: inline-block;
+    cursor: pointer;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
 }
-
 .wa-minimize:hover {
-    color: #ffffff !important;
-    text-shadow: 0 0 8px #ffd875,
-    0 0 15px #dfbc6f,
-    0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    color: #ffffff;
+    text-shadow: 0 0 8px #ffd875, 0 0 15px #dfbc6f, 0 2px 4px rgba(0, 0, 0, 0.9);
 }
-
 .hex-beams-burst {
     position: fixed;
     z-index: 999998;
@@ -1534,86 +1474,55 @@ body {
     align-items: center;
     justify-content: center;
 }
-
 .focus-beam {
     position: absolute;
-    background: transparent !important;
+    background: transparent;
     width: 1px;
     height: 1px;
-    border-radius: 0% !important;
-
-    box-shadow:
-            0 -15px 12px 12px #ffffff,
-            0 -25px 20px 15px #ffffff,
-            0 -40px 35px 25px #ffd875,
-            0 -55px 50px 35px #ffd875,
-            0 -75px 80px 55px #dfbc6f,
-            0 -95px 130px 80px rgba(223, 188, 111, 0.95);
-
+    border-radius: 0;
+    box-shadow: 0 -15px 12px 12px #ffffff,
+    0 -25px 20px 15px #ffffff,
+    0 -40px 35px 25px #ffd875,
+    0 -55px 50px 35px #ffd875,
+    0 -75px 80px 55px #dfbc6f,
+    0 -95px 130px 80px rgba(223, 188, 111, 0.95);
     filter: blur(1px);
-
     transform-origin: center bottom;
     will-change: transform, opacity;
     animation: beamShootOut 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
-
-@keyframes beamShootOut {
-    0% {
-        transform: rotate(var(--angle, 0deg)) translateY(0px) scaleY(0.01) scaleX(0.1);
-        opacity: 0;
-    }
-    20% {
-        opacity: 1;
-        transform: rotate(var(--angle, 0deg)) translateY(-15px) scaleY(1) scaleX(3.8);
-    }
-    55% {
-        opacity: 0.85;
-        transform: rotate(var(--angle, 0deg)) translateY(-40px) scaleY(1.15) scaleX(1.4);
-    }
-    100% {
-        transform: rotate(var(--angle, 0deg)) translateY(-70px) scaleY(1.45) scaleX(0.01);
-        opacity: 0;
-    }
-}
-
-/* ============================================================================
-   12. СТИЛИ МАРШРУТОВ И ПУТЕЙ ОТРАДА (SVG)
-   ============================================================================ */
 .squad-path-line {
-    stroke: #ffd875 !important;
-    stroke-width: 6px !important;
+    stroke: #ffd875;
+    stroke-width: 6px;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-dasharray: 8, 8;
     filter: drop-shadow(0 0 5px rgba(223, 188, 111, 0.7));
     animation: pathLineFlow 30s linear infinite;
 }
-
-@keyframes pathLineFlow {
-    from {
-        stroke-dashoffset: 500;
-    }
-    to {
-        stroke-dashoffset: 0;
+@media (max-width: 480px) {
+    .buttons {
+        flex-direction: column;
+        gap: 10px;
     }
 }
-
-/* Планшет королевства внутри Журнала */
+/* ============================================================================
+12. ПЛАНШЕТ КОРОЛЕВСТВА (ВНУТРИ ЖУРНАЛА)
+============================================================================ */
 .kingdom-tablet-content {
     display: flex;
     gap: 30px;
     padding: 30px;
     flex-grow: 1;
     overflow-y: auto;
-    font-family: "Tinos", serif !important;
+    font-family: "Tinos", serif;
+    flex-wrap: nowrap;
 }
-
 .kingdom-left-col {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
-
 .kingdom-right-col {
     flex: 1.2;
     display: flex;
@@ -1621,7 +1530,6 @@ body {
     border-left: 2px dashed rgba(138, 100, 33, 0.3);
     padding-left: 30px;
 }
-
 .kingdom-section-title {
     font-size: 24px;
     font-weight: bold;
@@ -1633,14 +1541,11 @@ body {
     padding-bottom: 5px;
     text-shadow: 0 0 6px rgba(255, 216, 117, 0.4);
 }
-
-/* Сетки атрибутов */
 .kingdom-stats-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
 }
-
 .k-stat-card {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid #543e0d;
@@ -1651,18 +1556,15 @@ body {
     align-items: center;
     gap: 8px;
 }
-
 .k-stat-name {
     font-size: 18px;
     color: #dfbc6f;
 }
-
 .k-stat-controls, .k-res-controls {
     display: flex;
     align-items: center;
     gap: 12px;
 }
-
 .k-stat-controls button, .k-res-controls button {
     background: linear-gradient(180deg, #42351f 0%, #292011 100%);
     border: 1px solid #543e0d;
@@ -1673,12 +1575,10 @@ body {
     font-weight: bold;
     border-radius: 3px;
 }
-
 .k-stat-controls button:hover, .k-res-controls button:hover {
     border-color: #ebd291;
     color: #fff;
 }
-
 .k-stat-val, .k-res-number {
     font-size: 18px;
     font-weight: bold;
@@ -1686,8 +1586,6 @@ body {
     min-width: 60px;
     text-align: center;
 }
-
-/* Панель ресурсов */
 .kingdom-resources-panel {
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(84, 62, 13, 0.5);
@@ -1697,7 +1595,6 @@ body {
     flex-direction: column;
     gap: 12px;
 }
-
 .k-resource-item {
     display: flex;
     justify-content: space-between;
@@ -1705,14 +1602,11 @@ body {
     font-size: 18px;
     color: #ebd291;
 }
-
-/* Список советников */
 .kingdom-leaders-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
-
 .k-leader-row {
     display: grid;
     grid-template-columns: 140px 1fr;
@@ -1722,13 +1616,11 @@ body {
     border: 1px solid rgba(84, 62, 13, 0.3);
     border-radius: 4px;
 }
-
 .k-leader-role {
     color: #dfbc6f;
     font-weight: bold;
     font-size: 16px;
 }
-
 .k-leader-row input[type="text"] {
     background: #090f0b;
     border: 1px solid #543e0d;
@@ -1739,34 +1631,21 @@ body {
     font-size: 16px;
     outline: none;
 }
-
 .k-leader-row input[type="text"]:focus {
     border-color: #ffd875;
     box-shadow: 0 0 5px rgba(255, 216, 117, 0.4);
 }
-
-.kingdom-tablet-content {
-    flex-wrap: wrap !important;
-}
-
 .kingdom-save-wrapper {
     display: flex;
     justify-content: flex-end;
-    margin-top: auto; /* Прижимает кнопку к низу, если колонка высокая */
-    padding-top: 25px; /* Зазор между инпутами и кнопкой */
-    padding-bottom: 10px; /* Приподнимает кнопку чуть выше самого нижнего края */
+    margin-top: auto;
+    padding-top: 25px;
+    padding-bottom: 10px;
 }
-
-/* Кастомный модификатор для уменьшения кнопки */
 .btn.ok.k-btn-save-small {
-    flex: none !important; /* Отменяет flex: 1 1 0% из базовых стилей .btn */
-    width: auto !important; /* Убирает растягивание */
-    min-width: 140px !important; /* Ограничивает минимальную ширину */
-    padding: 8px 20px !important; /* Делает её компактнее по высоте */
-    font-size: 13px !important; /* Чуть уменьшает шрифт */
-}
-
-/* Убираем flex-wrap, так как кнопка теперь живет внутри колонки */
-.kingdom-tablet-content {
-    flex-wrap: nowrap !important;
+    flex: none;
+    width: auto;
+    min-width: 140px;
+    padding: 8px 20px;
+    font-size: 13px;
 }
