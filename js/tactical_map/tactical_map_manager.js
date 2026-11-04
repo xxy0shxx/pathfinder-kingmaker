@@ -1,3 +1,7 @@
+// ============================================================================
+// ЧАСТЬ 1 ИЗ 15: ИМПОРТЫ, СТРУКТУРА ОБЪЕКТА И БАЗОВОЕ СОСТОЯНИЕ (STATE)
+// ============================================================================
+
 import { MAP_CONFIG } from '../config/app_config.js';
 import { ColorConverter } from '../utils/helpers.js';
 import ViewportManager from '../services/viewport_manager.js';
@@ -24,8 +28,11 @@ const TacticalMapManager = {
         focusedEntityId: null,
         campMapData: {},
         currentMapMode: 'global',
-        currentHexId: null // Заменяет неявную внешнюю переменную
+        currentHexId: null
     },
+    // ============================================================================
+    // ЧАСТЬ 2 ИЗ 15: ИНИЦИАЛИЗАЦИЯ (INIT) И КОНТРОЛЛЕР ПЕРЕКЛЮЧЕНИЯ РЕЖИМОВ
+    // ============================================================================
 
     /**
      * Точка входа: Первичная калькуляция сетки лагеря
@@ -42,12 +49,13 @@ const TacticalMapManager = {
             this.state.campMapData = {};
         }
 
-        // Запуск связывания обработчиков (будет описан в следующих частях)
+        // Запуск связывания обработчиков
         this.initMapSelector();
         this.initFormEventListeners();
         this.initFogToggleButton();
         this.initGridEventDelegation();
     },
+
     /**
      * Контроллер переключения режимов (Глобальная карта / Лагерь)
      */
@@ -77,6 +85,9 @@ const TacticalMapManager = {
             }
         });
     },
+    // ============================================================================
+    // ЧАСТЬ 3 ИЗ 15: МЕНЕДЖЕР РЕСУРСОВ И СЛОЕВ ВИДИМОСТИ (SWITCH MAP MODE)
+    // ============================================================================
 
     /**
      * Переключение ресурсов подложки, размеров вьюпорта и слоев видимости
@@ -96,7 +107,7 @@ const TacticalMapManager = {
         if (typeof window.closeMenu === 'function') window.closeMenu();
         this.closeCampMenu();
 
-        // [ОПТИМИЗАЦИЯ] Безопасный сброс координат вьюпорта через явные свойства объекта
+        // [ОПТИМИЗАЦИЯ] Безопасный сброс координат вьюпорта через свойства объекта
         ViewportManager.x = 0;
         ViewportManager.y = 0;
         ViewportManager.currentZoom = 1.0;
@@ -134,6 +145,10 @@ const TacticalMapManager = {
 
         ViewportManager.updateMapTransform();
     },
+    // ============================================================================
+    // ЧАСТЬ 4 ИЗ 15: ГЕНЕРАЦИЯ И СБОРКА ТАКТИЧЕСКОЙ СЕТКИ (BUILD TACTICAL GRID)
+    // ============================================================================
+
     /**
      * Рендеринг тактической сетки лагеря БЕЗ создания лишних слушателей событий на ячейках
      */
@@ -191,7 +206,7 @@ const TacticalMapManager = {
                     }
                 }
 
-                // Привязываем только Drag-and-Drop логику (описана далее)
+                // Привязываем только Drag-and-Drop логику
                 this.bindDragAndDropTargets(square, squareId);
                 fragment.appendChild(square);
             }
@@ -200,6 +215,10 @@ const TacticalMapManager = {
         gridLayer.appendChild(fragment);
         this.recalculateCampFogOfWar();
     },
+    // ============================================================================
+    // ЧАСТЬ 5 ИЗ 15: АРХИТЕКТУРНОЕ ДЕЛЕГИРОВАНИЕ СОБЫТИЙ СЕТКИ
+    // ============================================================================
+
     /**
      * [ОПТИМИЗАЦИЯ] Архитектурное делегирование событий: 4 слушателя на корень вместо 1000+ на ячейках
      */
@@ -252,6 +271,10 @@ const TacticalMapManager = {
             if (this.state.focusedEntityId) this.clearVisualPath();
         }, { capture: true });
     },
+    // ============================================================================
+    // ЧАСТЬ 6 ИЗ 15: ОБРАБОТЧИКИ ФОРМЫ МОДАЛЬНОГО ОКНА (FORM EVENT LISTENERS)
+    // ============================================================================
+
     /**
      * Однократная привязка обработчиков для элементов управления формы модального окна лагеря
      */
@@ -294,6 +317,9 @@ const TacticalMapManager = {
 
         this.initCampColorPresets();
     },
+    // ============================================================================
+    // ЧАСТЬ 7 ИЗ 15: ЦВЕТОВЫЕ ПРЕСЕТЫ И ТУМАН ВОЙНЫ (COLOR PRESETS & FOG TOGGLE)
+    // ============================================================================
 
     /**
      * Динамическая генерация палитры кнопок быстрых пресетов цвета в форме лагеря
@@ -349,7 +375,9 @@ const TacticalMapManager = {
             }
         });
     },
-
+    // ============================================================================
+    // ЧАСТЬ 8 ИЗ 15: УПРАВЛЕНИЕ МОДАЛЬНЫМ ОКНОМ (OPEN & CLOSE CAMP MENU)
+    // ============================================================================
 
     /**
      * Заполнение полей формы актуальными данными ячейки и вывод окна на экран
@@ -396,7 +424,6 @@ const TacticalMapManager = {
         modal.classList.add('open');
     },
 
-
     /**
      * Скрытие модального окна и снятие фокуса со строк ввода
      */
@@ -407,6 +434,9 @@ const TacticalMapManager = {
         const modal = document.getElementById('campMenu');
         if (modal) modal.classList.remove('open');
     },
+    // ============================================================================
+    // ЧАСТЬ 9 ИЗ 15: КРУД-ОПЕРАЦИИ ЯЧЕЕК (SAVE & DELETE TACTICAL SQUARE)
+    // ============================================================================
 
     /**
      * Сбор параметров из полей формы, запись в стейт и обновление графического состояния ячейки
@@ -489,6 +519,10 @@ const TacticalMapManager = {
         this.recalculateCampFogOfWar();
         this.closeCampMenu();
     },
+    // ============================================================================
+    // ЧАСТЬ 10 ИЗ 15: ЦИКЛ ТУМАНА ВОЙНЫ И ОБЪЕКТОВ ЛАНДШАФТА (RECALCULATE CAMP FOG)
+    // ============================================================================
+
     /**
      * Полноценный цикл обновления видимости, типов препятствий и наложения AoE-аур на холсте лагеря
      */
@@ -557,6 +591,9 @@ const TacticalMapManager = {
                 }
             }
         }
+        // ============================================================================
+        // ЧАСТЬ 11 ИЗ 15: РАСЧЕТ И МНОГОСЛОЙНЫЙ РЕНДЕРИНГ ПЕРЕСЕЧЕНИЙ АУР
+        // ============================================================================
 
         // Шаг 2: Расчет источников аур Героев (с автоматическим раскрытием тумана вокруг них)
         for (let id in this.state.campMapData) {
@@ -611,6 +648,10 @@ const TacticalMapManager = {
             }
         }
     },
+    // ============================================================================
+    // ЧАСТЬ 12 ИЗ 15: ГЕОМЕТРИЯ АУР И ЛИНЕЙНАЯ ТРАССИРОВКА ЛУЧЕЙ (LOS & CONE)
+    // ============================================================================
+
     /**
      * Поклеточный просчет радиуса действия источника и заполнение карты аур
      */
@@ -619,7 +660,7 @@ const TacticalMapManager = {
 
         const parts = id.split('_');
         const centerR = parseInt(parts[1], 10);
-        const centerC = parseInt(parts[2], 10); // [ИСПРАВЛЕНО] Корректно читаем индекс колонки (parts[2])
+        const centerC = parseInt(parts[2], 10);
 
         const ftDistance = parseInt(data.distance, 10) || 5;
         let cellRadius = data.measurement === 'radius' ? Math.round(ftDistance / 5) : Math.round((ftDistance / 2) / 5);
@@ -660,7 +701,6 @@ const TacticalMapManager = {
         const distR = r - centerR;
         const distC = c - centerC;
 
-        // [ИСПРАВЛЕНО] Исправлены имена переменных dr/dc на distR/distC для исключения ошибок
         if (Math.sqrt(distR ** 2 + distC ** 2) > radius + 0.5) return false;
         if (distR === 0 && distC === 0) return true;
 
@@ -678,7 +718,7 @@ const TacticalMapManager = {
     },
 
     /**
-     * Алгоритм Брезенхэма для вычисления линии видимости (LOS) сквозь стены и ящики
+     * Алгоритм Брезенхэма для вычисления линии видимости (LOS) сквозь стены и чащу леса
      */
     checkLineOfSight(r1, c1, r2, c2) {
         if (r1 === r2 && c1 === c2) return true;
@@ -691,56 +731,55 @@ const TacticalMapManager = {
             if (currR === r2 && currC === c2) return true;
             if (currR !== r1 || currC !== c1) {
                 const cellData = this.state.campMapData[`square_${currR}_${currC}`];
-                // Препятствия типа wall и destructible полностью блокируют распространение лучей аур
-                if (cellData && (cellData.obstacle === 'wall' || cellData.obstacle === 'destructible')) return false;
+                // ОБНОВЛЕНИЕ: Препятствия типа wall и forest полностью блокируют распространение лучей аур
+                if (cellData && (cellData.obstacle === 'wall' || cellData.obstacle === 'forest')) return false;
             }
             let e2 = 2 * err;
             if (e2 > -dr) { err -= dr; currC += sc; }
             if (e2 < dc) { err += dc; currR += sr; }
         }
     },
+    // ============================================================================
+    // ЧАСТЬ 13 ИЗ 15: АЛГОРИТМ ДЕЙКСТРЫ (КАЛЬКУЛЯЦИЯ ПЕШЕХОДНОГО МАРШРУТА)
+    // ============================================================================
 
     /**
      * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом 3-х действий на ход.
-     * Обычный шаг тратит футы действия. Прыжок — это отдельное атомарное действие «с места».
-     * @param {string} startId - ID стартовой ячейки существа.
-     * @param {string} targetId - ID целевой ячейки назначения.
-     * @param {number} speedLimit - Базовая скорость существа в футах за ОДНО действие перемещения (например, 30).
-     * @returns {Object|null} Маршрут или null
      */
     calculatePathAndCost(startId, targetId, speedLimit) {
         const parseCoords = (id) => {
             const p = id.split('_');
-            return { r: parseInt(p[1], 10), c: parseInt(p[2], 10) };
+            if (p.length === 3) {
+                return { r: parseInt(p[1], 10), c: parseInt(p[2], 10) };
+            }
+            return { r: parseInt(p[0], 10), c: parseInt(p[1], 10) };
         };
+
         const start = parseCoords(startId);
         const target = parseCoords(targetId);
         const queue = [], distances = {}, parents = {}, jumpFlags = {};
 
-        const startKey = `${start.r}_${start.c}`;
-        // currentActionSpentFeet — сколько футов уже потрачено в рамках ТЕКУЩЕГО действия перемещения
+        const startKey = `square_${start.r}_${start.c}`;
+        const targetKey = `square_${target.r}_${target.c}`;
+
         distances[startKey] = { feet: 0, actions: 0, currentActionSpentFeet: 0, cameByJump: false, jumpsCount: 0 };
-        queue.push({ r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
+        queue.push({ id: startKey, r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
 
         while (queue.length > 0) {
-            // Сортировка по минимальному количеству потраченных действий (actions)
             queue.sort((a, b) => a.actions !== b.actions ? a.actions - b.actions : (a.jumpsCount !== b.jumpsCount ? b.jumpsCount - a.jumpsCount : a.feet - b.feet));
             const curr = queue.shift();
-            const currKey = `${curr.r}_${curr.c}`;
+            const currKey = curr.id;
             const currState = distances[currKey];
 
             if (curr.r === target.r && curr.c === target.c) break;
+            if (curr.actions > currState.actions) continue;
 
-            if (curr.actions > currState.actions || (curr.actions === currState.actions && curr.feet > currState.feet)) continue;
-
-            // ----------------------------------------------------------------
-            // 1. ВАРИАНТ: ОБЫЧНОЕ ПЕРЕМЕЩЕНИЕ ПЕШКОМ (8 НАПРАВЛЕНИЙ) — СИНТАКСИС ИСПРАВЛЕН
-            // ----------------------------------------------------------------
+            // 1. НАПРАВЛЕНИЯ ДЛЯ ХОДЬБЫ
             const directions = [
-                { dr: -1, dc: 0,  isDiag: false }, { dr: 1,  dc: 0,  isDiag: false }, // Вверх, Вниз
-                { dr: 0,  dc: -1, isDiag: false }, { dr: 0,  dc: 1,  isDiag: false }, // Влево, Вправо
-                { dr: -1, dc: -1, isDiag: true  }, { dr: -1, dc: 1,  isDiag: true  }, // СЗ, СВ
-                { dr: 1,  dc: -1, isDiag: true  }, { dr: 1,  dc: 1,  isDiag: true  }  // ЮЗ, ЮВ
+                { dr: -1, dc: 0,  isDiag: false }, { dr: 1,  dc: 0,  isDiag: false },
+                { dr: 0,  dc: -1, isDiag: false }, { dr: 0,  dc: 1,  isDiag: false },
+                { dr: -1, dc: -1, isDiag: true  }, { dr: -1, dc: 1,  isDiag: true  },
+                { dr: 1,  dc: -1, isDiag: true  }, { dr: 1,  dc: 1,  isDiag: true  }
             ];
 
             for (let d of directions) {
@@ -749,26 +788,25 @@ const TacticalMapManager = {
 
                 if (nr < 0 || nr >= this.campParams.rows || nc < 0 || nc >= this.campParams.cols) continue;
 
-                const nKey = `${nr}_${nc}`;
-                const nData = this.state.campMapData[`square_${nr}_${nc}`];
+                const nKey = `square_${nr}_${nc}`;
+                const nData = this.state.campMapData[nKey];
 
-                // Клетка физически непроходима пешком
-                if (nData && ['wall', 'destructible', 'stones'].includes(nData.obstacle)) continue;
+                if (nData && ['wall', 'destructible', 'stones', 'forest'].includes(nData.obstacle)) {
+                    if (nKey !== targetKey) continue;
+                    if (['wall', 'forest'].includes(nData.obstacle)) continue;
+                }
 
-                // Запрет на срезание углов капитальных стен по диагонали
                 if (d.isDiag) {
                     const sideData1 = this.state.campMapData[`square_${curr.r + d.dr}_${curr.c}`];
                     const sideData2 = this.state.campMapData[`square_${curr.r}_${curr.c + d.dc}`];
-                    if ((sideData1 && ['wall', 'destructible'].includes(sideData1.obstacle)) ||
-                        (sideData2 && ['wall', 'destructible'].includes(sideData2.obstacle))) {
+                    if ((sideData1 && ['wall', 'forest'].includes(sideData1.obstacle)) ||
+                        (sideData2 && ['wall', 'forest'].includes(sideData2.obstacle))) {
                         continue;
                     }
                 }
 
                 let stepCost = 5;
-                if (nData && ['bushes', 'forest'].includes(nData.obstacle)) {
-                    stepCost = 10;
-                }
+                if (nData && nData.obstacle === 'bushes') stepCost = 10;
 
                 let nextActions = currState.actions;
                 let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
@@ -788,20 +826,14 @@ const TacticalMapManager = {
                     jumpsCount: currState.jumpsCount
                 };
 
-                if (distances[nKey] === undefined ||
-                    nextState.actions < distances[nKey].actions ||
-                    (nextState.actions === distances[nKey].actions && nextState.jumpsCount > distances[nKey].jumpsCount) ||
-                    (nextState.actions === distances[nKey].actions && nextState.jumpsCount === distances[nKey].jumpsCount && nextState.feet < distances[nKey].feet)) {
-
+                if (distances[nKey] === undefined || nextState.actions < distances[nKey].actions || (nextState.actions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
                     distances[nKey] = nextState;
                     parents[nKey] = { parentKey: currKey, isJump: false };
-                    queue.push({ r: nr, c: nc, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: currState.jumpsCount });
+                    queue.push({ id: nKey, r: nr, c: nc, actions: nextActions, feet: nextTotalFeet, cameByJump: false, jumpsCount: currState.jumpsCount });
                 }
             }
 
-            // ----------------------------------------------------------------
-            // 2. ВАРИАНТ: АТОМАРНЫЙ ПРЫЖОК С МЕСТА (ОТДЕЛЬНОЕ ДЕЙСТВИЕ)
-            // ----------------------------------------------------------------
+            // 2. НАПРАВЛЕНИЯ ДЛЯ ПРЫЖКОВ
             const jumpCellsCount = (speedLimit >= 30) ? 3 : 2;
             const jumpTargets = [
                 { r: curr.r - jumpCellsCount, c: curr.c, dr: -1, dc: 0 },
@@ -813,26 +845,26 @@ const TacticalMapManager = {
             for (let jt of jumpTargets) {
                 if (jt.r < 0 || jt.r >= this.campParams.rows || jt.c < 0 || jt.c >= this.campParams.cols) continue;
 
-                const targetCellKey = `${jt.r}_${jt.c}`;
-                const targetData = this.state.campMapData[`square_${jt.r}_${jt.c}`];
+                const nKey = `square_${jt.r}_${jt.c}`;
+                const targetData = this.state.campMapData[nKey];
 
-                if (targetData && (targetData.obstacle === 'wall' || targetData.obstacle === 'destructible')) continue;
+                if (targetData && ['wall', 'forest'].includes(targetData.obstacle)) continue;
 
                 let obstacleInPath = false;
-                let wallInPath = false;
+                let blockerInPath = false;
 
                 for (let i = 1; i < jumpCellsCount; i++) {
                     const checkData = this.state.campMapData[`square_${curr.r + (jt.dr * i)}_${curr.c + (jt.dc * i)}`];
                     if (checkData && checkData.obstacle) {
-                        if (checkData.obstacle === 'wall') {
-                            wallInPath = true;
+                        if (checkData.obstacle === 'wall' || checkData.obstacle === 'forest') {
+                            blockerInPath = true;
                             break;
                         }
                         obstacleInPath = true;
                     }
                 }
 
-                if (wallInPath || !obstacleInPath) continue;
+                if (blockerInPath) continue;
 
                 const jumpActions = currState.actions + 1;
                 if (jumpActions > 3) continue;
@@ -846,19 +878,14 @@ const TacticalMapManager = {
                     jumpsCount: currState.jumpsCount + 1
                 };
 
-                if (distances[targetCellKey] === undefined ||
-                    jumpActions < distances[targetCellKey].actions ||
-                    (jumpActions === distances[targetCellKey].actions && nextState.jumpsCount > distances[targetCellKey].jumpsCount) ||
-                    (jumpActions === distances[targetCellKey].actions && nextState.jumpsCount === distances[targetCellKey].jumpsCount && nextState.feet < distances[targetCellKey].feet)) {
-
-                    distances[targetCellKey] = nextState;
-                    parents[targetCellKey] = { parentKey: currKey, isJump: true };
-                    queue.push({ r: jt.r, c: jt.c, actions: jumpActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: nextState.jumpsCount });
+                if (distances[nKey] === undefined || jumpActions < distances[nKey].actions || (jumpActions === distances[nKey].actions && nextState.feet < distances[nKey].feet)) {
+                    distances[nKey] = nextState;
+                    parents[nKey] = { parentKey: currKey, isJump: true };
+                    queue.push({ id: nKey, r: jt.r, c: jt.c, actions: jumpActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: currState.jumpsCount + 1 });
                 }
             }
         }
 
-        const targetKey = `${target.r}_${target.c}`;
         if (distances[targetKey] === undefined) return null;
 
         const pathCells = [];
@@ -878,6 +905,9 @@ const TacticalMapManager = {
 
 
 
+    /**
+     * Очистка визуальных эффектов пути с карты
+     */
     clearVisualPath() {
         document.querySelectorAll('.tactical-square').forEach(cell => {
             cell.classList.remove('path-cell', 'path-cell-jump', 'path-cell-jump-start', 'path-cell-jump-land');
@@ -885,10 +915,14 @@ const TacticalMapManager = {
             if (costLabel) { costLabel.textContent = ''; costLabel.style.color = ''; }
         });
     },
+    // ============================================================================
+    // ЧАСТЬ 15 ИЗ 15: РАСШИРЕННЫЙ ТУЛТИП, КЛИКИ, DRAG-AND-DROP И ЭКСПОРТ
+    // ============================================================================
 
 
     /**
      * Отрисовка расширенного игрового тултипа ячейки лагеря с калькуляцией Pathfinder-путей
+     * Часть 2 из 2: Считывание ландшафта, аур и рендеринг трека на сетке.
      */
     showTacticalTooltip(squareId) {
         const tooltip = document.getElementById('hexTooltip');
@@ -906,14 +940,14 @@ const TacticalMapManager = {
 
         if (data && data.obstacle) {
             const obs = data.obstacle;
-            if (obs === 'wall') { obstacleName = '🧱 Стена'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО / БЛОК ОБЗОРА</span>'; }
-            else if (obs === 'destructible') { obstacleName = '📦 Ящик / Бочка'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО</span>'; }
+            if (obs === 'wall') { obstacleName = '🧱 Стена'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМАЯ / БЛОК ОБЗОРА</span>'; }
+            else if (obs === 'destructible') { obstacleName = '📦 Ящик / Бочка'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">НЕПРОХОДИМАЯ (Можно перепрыгнуть)</span>'; }
             else if (obs === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (Трудная)</span>'; }
-            else if (obs === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (Трудная)</span>'; }
-            else if (obs === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;font-weight:bold;">10 футов (Трудная)</span>'; }
-            else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#e67e22;font-weight:bold;">Только прыжок</span>'; }
-            else if (obs === 'ice') { obstacleName = '❄ Скользкий лед'; movementCostText = '<span style="color:#74b9ff;">Проверка d20</span>'; }
-            else if (obs === 'web') { obstacleName = '🕸 Паутина'; movementCostText = '<span style="color:#9b59b6;">Проверка d20</span>'; }
+            else if (obs === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМАЯ / БЛОК ОБЗОРА</span>'; }
+            else if (obs === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;">5 футов (Проверка d20)</span>'; }
+            else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">Только прыжок</span>'; }
+            else if (obs === 'ice') { obstacleName = '❄ Скользкий лед'; movementCostText = '<span style="color:#74b9ff;">5 футов (Проверка d20)</span>'; }
+            else if (obs === 'web') { obstacleName = '🕸 Паутина'; movementCostText = '<span style="color:#9b59b6;">5 футов (Проверка d20)</span>'; }
         }
 
         if (data && data.heroHere) paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
@@ -922,7 +956,6 @@ const TacticalMapManager = {
         paramsBlock += `<div style="margin-bottom: 4px;">📍 <b>Объект:</b> ${obstacleName}</div>`;
         paramsBlock += `<div style="margin-bottom: 8px;">👣 <b>Цена перехода:</b> ${movementCostText}</div>`;
 
-        // Проверка: выбран ли персонаж на поле для расчета пути?
         if (this.state.focusedEntityId && this.state.focusedEntityId !== squareId) {
             const sourceData = this.state.campMapData[this.state.focusedEntityId];
             const speedLimit = (sourceData && sourceData.speed) ? parseInt(sourceData.speed, 10) : 30;
@@ -931,7 +964,8 @@ const TacticalMapManager = {
             if (pathData) {
                 this.clearVisualPath();
                 pathData.cells.forEach(cellKey => {
-                    const cellEl = document.getElementById(`visual_square_${cellKey}`);
+                    // Абсолютная синхронизация: cellKey содержит 'square_r_c'
+                    const cellEl = document.getElementById('visual_' + cellKey);
                     if (cellEl) {
                         let costLabel = cellEl.querySelector('.square-path-cost') || document.createElement('span');
                         if (!costLabel.className) { costLabel.className = 'square-path-cost'; cellEl.appendChild(costLabel); }
@@ -950,17 +984,15 @@ const TacticalMapManager = {
                     }
                 });
 
-                // Вывод реального количества действий, рассчитанных алгоритмом Дейкстры (макс 3)
                 paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px; color: #2ecc71;">📐 <b>Маршрут:</b><br>• Дистанция: <b>${pathData.totalFeet} фт.</b><br>• Затраты действий: <b>${pathData.actions} / 3 на ход</b></div>`;
             } else {
-                paramsBlock += `<div style="border-top: 2px solid #ff7675; padding-top: 8px; margin-top: 8px; color: #ff7675;">🚫 <b>Маршрут заблокирован</b> (Стены или не хватает действий)</div>`;
+                paramsBlock += `<div style="border-top: 2px solid #ff7675; padding-top: 8px; margin-top: 8px; color: #ff7675;">🚫 <b>Маршрут заблокирован</b> (Стены/Чаща или не хватает действий)</div>`;
             }
         }
 
         tooltip.innerHTML = content + paramsBlock + '</div>';
         tooltip.style.display = 'block';
     },
-
 
 
     /**
@@ -992,6 +1024,7 @@ const TacticalMapManager = {
             this.openTacticalMenu(squareId);
         }
     },
+
     /**
      * Обработка событий Drag-and-Drop перемещения токенов персонажей на игровом поле лагеря
      */
