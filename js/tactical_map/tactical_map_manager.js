@@ -743,15 +743,22 @@ const TacticalMapManager = {
     // ЧАСТЬ 13 ИЗ 15: АЛГОРИТМ ДЕЙКСТРЫ (КАЛЬКУЛЯЦИЯ ПЕШЕХОДНОГО МАРШРУТА)
     // ============================================================================
 
+
+
+
     /**
      * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом 3-х действий на ход.
+     * Диагональное движение стоит в 2 раза дороже — 10 футов. Исправлен парсинг square_r_c.
      */
     calculatePathAndCost(startId, targetId, speedLimit) {
         const parseCoords = (id) => {
+            if (!id) return { r: 0, c: 0 };
             const p = id.split('_');
+            // Если формат "square_r_c", то p[0]='square', p[1]=r, p[2]=c
             if (p.length === 3) {
                 return { r: parseInt(p[1], 10), c: parseInt(p[2], 10) };
             }
+            // Предосторожность на случай формата "r_c"
             return { r: parseInt(p[0], 10), c: parseInt(p[1], 10) };
         };
 
@@ -774,7 +781,7 @@ const TacticalMapManager = {
             if (curr.r === target.r && curr.c === target.c) break;
             if (curr.actions > currState.actions) continue;
 
-            // 1. НАПРАВЛЕНИЯ ДЛЯ ХОДЬБЫ
+            // 1. НАПРАВЛЕНИЯ ДЛЯ ХОДЬБЫ (8 НАПРАВЛЕНИЙ)
             const directions = [
                 { dr: -1, dc: 0,  isDiag: false }, { dr: 1,  dc: 0,  isDiag: false },
                 { dr: 0,  dc: -1, isDiag: false }, { dr: 0,  dc: 1,  isDiag: false },
@@ -805,8 +812,13 @@ const TacticalMapManager = {
                     }
                 }
 
-                let stepCost = 5;
-                if (nData && nData.obstacle === 'bushes') stepCost = 10;
+                // ПРАВИЛО: Диагональ стоит 10 футов, шаг по прямой — 5 футов
+                let stepCost = d.isDiag ? 10 : 5;
+
+                // Трудный ландшафт (кусты) удваивает итоговую стоимость шага
+                if (nData && nData.obstacle === 'bushes') {
+                    stepCost *= 2;
+                }
 
                 let nextActions = currState.actions;
                 let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
@@ -920,6 +932,8 @@ const TacticalMapManager = {
     // ============================================================================
 
 
+
+
     /**
      * Отрисовка расширенного игрового тултипа ячейки лагеря с калькуляцией Pathfinder-путей
      * Часть 2 из 2: Считывание ландшафта, аур и рендеринг трека на сетке.
@@ -936,13 +950,13 @@ const TacticalMapManager = {
 
         const data = this.state.campMapData[squareId];
         let obstacleName = 'Чистая земля';
-        let movementCostText = '5 футов';
+        let movementCostText = '5 футов (10 футов по диагонали)';
 
         if (data && data.obstacle) {
             const obs = data.obstacle;
             if (obs === 'wall') { obstacleName = '🧱 Стена'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМАЯ / БЛОК ОБЗОРА</span>'; }
             else if (obs === 'destructible') { obstacleName = '📦 Ящик / Бочка'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">НЕПРОХОДИМАЯ (Можно перепрыгнуть)</span>'; }
-            else if (obs === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (Трудная)</span>'; }
+            else if (obs === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (20 фт. по диагонали)</span>'; }
             else if (obs === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМАЯ / БЛОК ОБЗОРА</span>'; }
             else if (obs === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;">5 футов (Проверка d20)</span>'; }
             else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">Только прыжок</span>'; }
@@ -964,7 +978,6 @@ const TacticalMapManager = {
             if (pathData) {
                 this.clearVisualPath();
                 pathData.cells.forEach(cellKey => {
-                    // Абсолютная синхронизация: cellKey содержит 'square_r_c'
                     const cellEl = document.getElementById('visual_' + cellKey);
                     if (cellEl) {
                         let costLabel = cellEl.querySelector('.square-path-cost') || document.createElement('span');
@@ -993,6 +1006,10 @@ const TacticalMapManager = {
         tooltip.innerHTML = content + paramsBlock + '</div>';
         tooltip.style.display = 'block';
     },
+
+
+
+
 
 
     /**
