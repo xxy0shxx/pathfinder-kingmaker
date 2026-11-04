@@ -1,5 +1,6 @@
 import { MAP_CONFIG } from '../config/app_config.js';
 import FrameManager from '../ui/frame_manager.js';
+import HexCanvasRender from '../core/hex_canvas_render.js';
 
 /**
  * Модуль управления вьюпортом: скролл, зум, перемещение и адаптация рамки
@@ -44,7 +45,11 @@ const ViewportManager = {
         window.addEventListener('resize', () => this.updateMapTransform());
 
         FrameManager.init();
-        setTimeout(() => this.updateMapTransform(), 150);
+
+        // Первичное принудительное центрирование на отряде при старте системы
+        setTimeout(() => {
+            this.updateMapTransform();
+        }, 150);
     },
 
     getHasMoved() {
@@ -92,10 +97,11 @@ const ViewportManager = {
 
             if (newZoom >= this.minZoom && newZoom <= this.maxZoom) {
                 this.currentZoom = newZoom;
-                this.updateMapTransform();
+                this.updateMapTransform(); // Фокусировка на отряде сработает внутри этого метода
             }
         }, { passive: false });
     },
+
     /**
      * Привязка тач-событий (Mobile)
      */
@@ -107,7 +113,7 @@ const ViewportManager = {
 
             this.isDragging = true;
             this.hasMoved = false;
-            const touch = e.touches[0];
+            const touch = e.touches;
             this.startX = touch.pageX - this.x;
             this.startY = touch.pageY - this.y;
         }, { passive: true });
@@ -116,22 +122,22 @@ const ViewportManager = {
             if (!this.isDragging) return;
             if (e.cancelable) e.preventDefault();
 
-            const touch = e.touches[0];
+            const touch = e.touches;
             this.processMove(touch.pageX, touch.pageY);
         }, { passive: false });
 
-        this.viewport.addEventListener('touchend', () => {
+        window.addEventListener('touchend', () => {
             this.isDragging = false;
             setTimeout(() => { this.hasMoved = false; }, 20);
         });
 
-        this.viewport.addEventListener('touchcancel', () => {
+        window.addEventListener('touchcancel', () => {
             this.isDragging = false;
         });
     },
 
     /**
-     * Общая математика смещения координат холста с учетом лимитов из конфигурации
+     * Общая математика смещения координат холста с учетом лимитов
      */
     processMove(pageX, pageY) {
         let newX = pageX - this.startX;
@@ -153,29 +159,30 @@ const ViewportManager = {
      * Расчет CSS-трансформаций и динамическое inset-кадрирование холста
      */
     updateMapTransform() {
-        // ПРИНУДИТЕЛЬНО КОРРЕКТИРУЕМ КООРДИНАТЫ: Центрируем камеру на отряде при любом изменении масштаба
+        // [ВЕРНУЛИ ОРИГИНАЛ] Принудительно удерживаем фокус на отряде при зуме и изменении размеров окна
         this.focusOnSquad();
 
         requestAnimationFrame(() => {
-            // Элемент .mapContainer сдвигается по скорректированным this.x и this.y
             this.mapContainer.style.transform = `translate(${Math.round(this.x)}px, ${Math.round(this.y)}px) scale(${this.currentZoom})`;
 
-            // Отдаем всю работу с рамкой и clipPath менеджеру рамок
+            // Обновляем декоративную рамку видимой зоны
             FrameManager.updateBounds(this.viewport, this.mapContainer, this.currentZoom);
+
+            // Запрашиваем перерисовку одного кадка Canvas для плавности
+            if (HexCanvasRender && typeof HexCanvasRender.requestFrame === 'function') {
+                HexCanvasRender.requestFrame();
+            }
         });
     },
 
     /**
      * Автоматический пересчет координат сдвига для центрирования на отряде
+     * @param {boolean} force - игнорировать любые блокировки (ручной скролл/квесты)
      */
-    focusOnSquad() {
-        // УСЛОВИЕ 1: Если пользователь тащит карту руками — не центрируем
-        if (this.isDragging) return;
+    focusOnSquad(force = false) {
+        // Если пользователь тащит карту прямо сейчас или активен фокус на квесте — не перебиваем камеру
+        if (!force && (this.isDragging || Date.now() < this.lockFocusUntil)) return;
 
-        // УСЛОВИЕ 2: Если активна блокировка фокуса на квесте — не центрируем на отряде
-        if (Date.now() < this.lockFocusUntil) return;
-
-        const HexCanvasRender = window.HexCanvasRender || null;
         if (!HexCanvasRender || !HexCanvasRender.hexCoords || !HexCanvasRender.hexesData) return;
 
         let squadHexId = null;
@@ -205,9 +212,7 @@ const ViewportManager = {
 
         this.x = Math.max(minX, Math.min(maxX, targetPanX));
         this.y = Math.max(minY, Math.min(maxY, targetPanY));
-    },
-
-
+    }
 };
 
 export default ViewportManager;
