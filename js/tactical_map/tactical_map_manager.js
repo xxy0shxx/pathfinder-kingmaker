@@ -349,6 +349,8 @@ const TacticalMapManager = {
             }
         });
     },
+
+
     /**
      * Заполнение полей формы актуальными данными ячейки и вывод окна на экран
      */
@@ -359,28 +361,30 @@ const TacticalMapManager = {
 
         const data = this.state.campMapData[squareId];
 
+        // Заполнение чекбоксов персонажей
         document.getElementById('inpCampHeroHere').checked = !!(data && data.heroHere);
         document.getElementById('inpCampMonsterHere').checked = !!(data && data.monsterHere);
+
+        // Синхронизация селекторов под новые значения со страницы
         document.getElementById('inpCampMeasurement').value = data ? data.measurement || '' : '';
         document.getElementById('inpCampObstacle').value = data ? data.obstacle || '' : '';
         document.getElementById('inpCampSpeed').value = data ? data.speed || '30' : '30';
         document.getElementById('inpCampDistance').value = data ? data.distance || '30' : '30';
 
-        const currentColor = data ? data.color || 'transparent' : 'transparent';
+        const currentColor = data ? data.color || '#ff0000' : '#ff0000';
         document.getElementById('inpCampColor').value = currentColor;
 
         const container = document.getElementById('campColorPresetsContainer');
         if (container) {
             container.querySelectorAll('.color-preset-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (currentColor === 'transparent' && btn.classList.contains('transparent-preset')) {
-                    btn.classList.add('active');
-                } else if (btn.style.backgroundColor === ColorConverter.hexToRgbStandard(currentColor)) {
+                if (btn.style.backgroundColor === ColorConverter.hexToRgbStandard(currentColor)) {
                     btn.classList.add('active');
                 }
             });
         }
 
+        // Показ или скрытие селектора направления конуса
         const directionBox = document.getElementById('campDirectionBox');
         const inpDirection = document.getElementById('inpCampDirection');
         if (directionBox && inpDirection) {
@@ -391,6 +395,7 @@ const TacticalMapManager = {
 
         modal.classList.add('open');
     },
+
 
     /**
      * Скрытие модального окна и снятие фокуса со строк ввода
@@ -695,13 +700,12 @@ const TacticalMapManager = {
         }
     },
 
-
     /**
-     * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом 8 направлений, цены ландшафта,
-     * запрета «срезания углов» стен и зон прыжков.
+     * Поиск кратчайшего пути (Алгоритм Дейкстры) с учетом 3-х действий на ход.
+     * Обычный шаг тратит футы действия. Прыжок — это отдельное атомарное действие «с места».
      * @param {string} startId - ID стартовой ячейки существа.
      * @param {string} targetId - ID целевой ячейки назначения.
-     * @param {number} speedLimit - Базовая скорость существа в футах (например, 30).
+     * @param {number} speedLimit - Базовая скорость существа в футах за ОДНО действие перемещения (например, 30).
      * @returns {Object|null} Маршрут или null
      */
     calculatePathAndCost(startId, targetId, speedLimit) {
@@ -714,69 +718,65 @@ const TacticalMapManager = {
         const queue = [], distances = {}, parents = {}, jumpFlags = {};
 
         const startKey = `${start.r}_${start.c}`;
-        // currentActionSpentFeet — сколько футов потрачено в рамках ТЕКУЩЕГО действия движения
+        // currentActionSpentFeet — сколько футов уже потрачено в рамках ТЕКУЩЕГО действия перемещения
         distances[startKey] = { feet: 0, actions: 0, currentActionSpentFeet: 0, cameByJump: false, jumpsCount: 0 };
         queue.push({ r: start.r, c: start.c, actions: 0, feet: 0, cameByJump: false, jumpsCount: 0 });
 
         while (queue.length > 0) {
-            // Сортировка очереди: сначала меньше действий, затем больше прыжков, затем меньше футов
+            // Сортировка по минимальному количеству потраченных действий (actions)
             queue.sort((a, b) => a.actions !== b.actions ? a.actions - b.actions : (a.jumpsCount !== b.jumpsCount ? b.jumpsCount - a.jumpsCount : a.feet - b.feet));
             const curr = queue.shift();
             const currKey = `${curr.r}_${curr.c}`;
             const currState = distances[currKey];
 
             if (curr.r === target.r && curr.c === target.c) break;
+
             if (curr.actions > currState.actions || (curr.actions === currState.actions && curr.feet > currState.feet)) continue;
 
-            // 1. ДВИЖЕНИЕ ПО СЕТКЕ (8 НАПРАВЛЕНИЙ)
-            // dr, dc и флаг диагонали isDiag
+            // ----------------------------------------------------------------
+            // 1. ВАРИАНТ: ОБЫЧНОЕ ПЕРЕМЕЩЕНИЕ ПЕШКОМ (8 НАПРАВЛЕНИЙ) — СИНТАКСИС ИСПРАВЛЕН
+            // ----------------------------------------------------------------
             const directions = [
-                { dr: -1, dc: 0, isDiag: false }, { r: curr.r + 1, c: curr.c, dr: 1, dc: 0, isDiag: false }, // Вверх, Вниз
-                { dr: 0, dc: -1, isDiag: false }, { r: curr.r, c: curr.c + 1, dr: 0, dc: 1, isDiag: false }, // Влево, Вправо
-                { dr: -1, dc: -1, isDiag: true }, { r: curr.r - 1, c: curr.c + 1, dr: -1, dc: 1, isDiag: true }, // СЗ, СВ
-                { dr: 1, dc: -1, isDiag: true }, { r: curr.r + 1, c: curr.c + 1, dr: 1, dc: 1, isDiag: true }   // ЮЗ, ЮВ
+                { dr: -1, dc: 0,  isDiag: false }, { dr: 1,  dc: 0,  isDiag: false }, // Вверх, Вниз
+                { dr: 0,  dc: -1, isDiag: false }, { dr: 0,  dc: 1,  isDiag: false }, // Влево, Вправо
+                { dr: -1, dc: -1, isDiag: true  }, { dr: -1, dc: 1,  isDiag: true  }, // СЗ, СВ
+                { dr: 1,  dc: -1, isDiag: true  }, { dr: 1,  dc: 1,  isDiag: true  }  // ЮЗ, ЮВ
             ];
 
             for (let d of directions) {
                 const nr = curr.r + d.dr;
                 const nc = curr.c + d.dc;
 
-                // Проверка границ карты
                 if (nr < 0 || nr >= this.campParams.rows || nc < 0 || nc >= this.campParams.cols) continue;
 
                 const nKey = `${nr}_${nc}`;
                 const nData = this.state.campMapData[`square_${nr}_${nc}`];
 
-                // Сама целевая клетка непроходима?
+                // Клетка физически непроходима пешком
                 if (nData && ['wall', 'destructible', 'stones'].includes(nData.obstacle)) continue;
 
-                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Проверка «срезания углов» стен при движении по диагонали
+                // Запрет на срезание углов капитальных стен по диагонали
                 if (d.isDiag) {
-                    // Соседние клетки, формирующие угол
                     const sideData1 = this.state.campMapData[`square_${curr.r + d.dr}_${curr.c}`];
-                    const sideData2 = this.state.campMapData[`square_${curr.r}_${curr.c + d.dr}`];
-
-                    const isBlocked1 = sideData1 && ['wall', 'destructible'].includes(sideData1.obstacle);
-                    const isBlocked2 = sideData2 && ['wall', 'destructible'].includes(sideData2.obstacle);
-
-                    // Если хотя бы одна из угловых клеток — стена, протиснуться по диагонали нельзя
-                    if (isBlocked1 || isBlocked2) continue;
+                    const sideData2 = this.state.campMapData[`square_${curr.r}_${curr.c + d.dc}`];
+                    if ((sideData1 && ['wall', 'destructible'].includes(sideData1.obstacle)) ||
+                        (sideData2 && ['wall', 'destructible'].includes(sideData2.obstacle))) {
+                        continue;
+                    }
                 }
 
-                // Базовая стоимость шага: по правилам d20 диагональ обычно стоит столько же (или 1.5х, заменим на 5 для простоты тактической карты)
                 let stepCost = 5;
                 if (nData && ['bushes', 'forest'].includes(nData.obstacle)) {
-                    stepCost = 10; // Трудный ландшафт удваивает стоимость
+                    stepCost = 10;
                 }
 
                 let nextActions = currState.actions;
                 let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
 
-                // Если уперлись в лимит скорости текущего действия (Move Action)
                 if (currState.currentActionSpentFeet === 0 || nextSpentFeet > speedLimit) {
                     nextActions += 1;
                     nextSpentFeet = stepCost;
-                    if (stepCost > speedLimit) continue; // Скорости не хватает даже на одну клетку
+                    if (stepCost > speedLimit || nextActions > 3) continue;
                 }
 
                 let nextTotalFeet = currState.feet + stepCost;
@@ -788,7 +788,6 @@ const TacticalMapManager = {
                     jumpsCount: currState.jumpsCount
                 };
 
-                // Релаксация ребра графа
                 if (distances[nKey] === undefined ||
                     nextState.actions < distances[nKey].actions ||
                     (nextState.actions === distances[nKey].actions && nextState.jumpsCount > distances[nKey].jumpsCount) ||
@@ -800,10 +799,9 @@ const TacticalMapManager = {
                 }
             }
 
-
-
-            // 2. МЕХАНИКА ПРЫЖКОВ (Запрещено прыгать сквозь высокие стены 'wall')
-            if (curr.cameByJump) continue;
+            // ----------------------------------------------------------------
+            // 2. ВАРИАНТ: АТОМАРНЫЙ ПРЫЖОК С МЕСТА (ОТДЕЛЬНОЕ ДЕЙСТВИЕ)
+            // ----------------------------------------------------------------
             const jumpCellsCount = (speedLimit >= 30) ? 3 : 2;
             const jumpTargets = [
                 { r: curr.r - jumpCellsCount, c: curr.c, dr: -1, dc: 0 },
@@ -814,42 +812,50 @@ const TacticalMapManager = {
 
             for (let jt of jumpTargets) {
                 if (jt.r < 0 || jt.r >= this.campParams.rows || jt.c < 0 || jt.c >= this.campParams.cols) continue;
+
                 const targetCellKey = `${jt.r}_${jt.c}`;
                 const targetData = this.state.campMapData[`square_${jt.r}_${jt.c}`];
 
-                // Целевая клетка приземления не должна быть стеной или ящиком
                 if (targetData && (targetData.obstacle === 'wall' || targetData.obstacle === 'destructible')) continue;
 
                 let obstacleInPath = false;
                 let wallInPath = false;
 
-                // Сканируем траекторию прыжка
                 for (let i = 1; i < jumpCellsCount; i++) {
                     const checkData = this.state.campMapData[`square_${curr.r + (jt.dr * i)}_${curr.c + (jt.dc * i)}`];
                     if (checkData && checkData.obstacle) {
-                        // Если на траектории оказалась капитальная стена — прыжок невозможен
                         if (checkData.obstacle === 'wall') {
                             wallInPath = true;
                             break;
                         }
-                        obstacleInPath = true; // Нашли низкое препятствие (камни, ящик, кусты), которое МОЖНО перепрыгнуть
+                        obstacleInPath = true;
                     }
                 }
 
-                // Критическое исправление: если на пути стена — сбрасываем этот прыжок
-                if (wallInPath) continue;
-                if (!obstacleInPath) continue; // Если препятствий вообще нет, прыгать не нужно (идем обычным шагом)
+                if (wallInPath || !obstacleInPath) continue;
 
-                const nextState = { feet: currState.feet + (jumpCellsCount * 5), actions: currState.actions + 1, currentActionSpentFeet: 0, cameByJump: true, jumpsCount: currState.jumpsCount + 1 };
-                if (distances[targetCellKey] === undefined || nextState.actions < distances[targetCellKey].actions || (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount > distances[targetCellKey].jumpsCount) || (nextState.actions === distances[targetCellKey].actions && nextState.jumpsCount === distances[targetCellKey].jumpsCount && nextState.feet < distances[targetCellKey].feet)) {
+                const jumpActions = currState.actions + 1;
+                if (jumpActions > 3) continue;
+
+                const nextTotalFeet = currState.feet + (jumpCellsCount * 5);
+                const nextState = {
+                    feet: nextTotalFeet,
+                    actions: jumpActions,
+                    currentActionSpentFeet: 0,
+                    cameByJump: true,
+                    jumpsCount: currState.jumpsCount + 1
+                };
+
+                if (distances[targetCellKey] === undefined ||
+                    jumpActions < distances[targetCellKey].actions ||
+                    (jumpActions === distances[targetCellKey].actions && nextState.jumpsCount > distances[targetCellKey].jumpsCount) ||
+                    (jumpActions === distances[targetCellKey].actions && nextState.jumpsCount === distances[targetCellKey].jumpsCount && nextState.feet < distances[targetCellKey].feet)) {
+
                     distances[targetCellKey] = nextState;
                     parents[targetCellKey] = { parentKey: currKey, isJump: true };
-                    queue.push({ r: jt.r, c: jt.c, actions: nextState.actions, feet: nextState.feet, cameByJump: true, jumpsCount: nextState.jumpsCount });
+                    queue.push({ r: jt.r, c: jt.c, actions: jumpActions, feet: nextTotalFeet, cameByJump: true, jumpsCount: nextState.jumpsCount });
                 }
             }
-
-
-
         }
 
         const targetKey = `${target.r}_${target.c}`;
@@ -870,6 +876,8 @@ const TacticalMapManager = {
 
 
 
+
+
     clearVisualPath() {
         document.querySelectorAll('.tactical-square').forEach(cell => {
             cell.classList.remove('path-cell', 'path-cell-jump', 'path-cell-jump-start', 'path-cell-jump-land');
@@ -877,6 +885,8 @@ const TacticalMapManager = {
             if (costLabel) { costLabel.textContent = ''; costLabel.style.color = ''; }
         });
     },
+
+
     /**
      * Отрисовка расширенного игрового тултипа ячейки лагеря с калькуляцией Pathfinder-путей
      */
@@ -891,16 +901,19 @@ const TacticalMapManager = {
         let paramsBlock = '<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.4;">';
 
         const data = this.state.campMapData[squareId];
-        let obstacleName = 'Чистая земля', movementCostText = '5 футов';
+        let obstacleName = 'Чистая земля';
+        let movementCostText = '5 футов';
 
         if (data && data.obstacle) {
             const obs = data.obstacle;
-            if (obs === 'wall') { obstacleName = '🧱 Стена'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО</span>'; }
+            if (obs === 'wall') { obstacleName = '🧱 Стена'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО / БЛОК ОБЗОРА</span>'; }
             else if (obs === 'destructible') { obstacleName = '📦 Ящик / Бочка'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМО</span>'; }
-            else if (obs === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
-            else if (obs === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
-            else if (obs === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;font-weight:bold;">Риск d20</span>'; }
-            else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#e67e22;font-weight:bold;">ПРЫЖОК</span>'; }
+            else if (obs === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (Трудная)</span>'; }
+            else if (obs === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (Трудная)</span>'; }
+            else if (obs === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;font-weight:bold;">10 футов (Трудная)</span>'; }
+            else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#e67e22;font-weight:bold;">Только прыжок</span>'; }
+            else if (obs === 'ice') { obstacleName = '❄ Скользкий лед'; movementCostText = '<span style="color:#74b9ff;">Проверка d20</span>'; }
+            else if (obs === 'web') { obstacleName = '🕸 Паутина'; movementCostText = '<span style="color:#9b59b6;">Проверка d20</span>'; }
         }
 
         if (data && data.heroHere) paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
@@ -909,6 +922,7 @@ const TacticalMapManager = {
         paramsBlock += `<div style="margin-bottom: 4px;">📍 <b>Объект:</b> ${obstacleName}</div>`;
         paramsBlock += `<div style="margin-bottom: 8px;">👣 <b>Цена перехода:</b> ${movementCostText}</div>`;
 
+        // Проверка: выбран ли персонаж на поле для расчета пути?
         if (this.state.focusedEntityId && this.state.focusedEntityId !== squareId) {
             const sourceData = this.state.campMapData[this.state.focusedEntityId];
             const speedLimit = (sourceData && sourceData.speed) ? parseInt(sourceData.speed, 10) : 30;
@@ -923,22 +937,31 @@ const TacticalMapManager = {
                         if (!costLabel.className) { costLabel.className = 'square-path-cost'; cellEl.appendChild(costLabel); }
 
                         if (pathData.jumpFlags[cellKey] === 'start') {
-                            cellEl.classList.add('path-cell-jump-start'); costLabel.textContent = 'JUMP 🦘'; costLabel.style.color = '#ff9f43';
+                            cellEl.classList.add('path-cell-jump-start');
+                            costLabel.textContent = 'JUMP 🦘';
+                            costLabel.style.color = '#ff9f43';
                         } else if (pathData.jumpFlags[cellKey] === 'land') {
-                            cellEl.classList.add('path-cell-jump-land'); costLabel.textContent = 'LAND 🎯'; costLabel.style.color = '#10ac84';
+                            cellEl.classList.add('path-cell-jump-land');
+                            costLabel.textContent = 'LAND 🎯';
+                            costLabel.style.color = '#10ac84';
                         } else {
                             cellEl.classList.add('path-cell');
                         }
                     }
                 });
 
-                paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px; color: #2ecc71;">📐 <b>Маршрут:</b><br>• Путь: <b>${pathData.totalFeet} фт.</b><br>• Действий: <b>${pathData.actions} / 3</b></div>`;
+                // Вывод реального количества действий, рассчитанных алгоритмом Дейкстры (макс 3)
+                paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px; color: #2ecc71;">📐 <b>Маршрут:</b><br>• Дистанция: <b>${pathData.totalFeet} фт.</b><br>• Затраты действий: <b>${pathData.actions} / 3 на ход</b></div>`;
+            } else {
+                paramsBlock += `<div style="border-top: 2px solid #ff7675; padding-top: 8px; margin-top: 8px; color: #ff7675;">🚫 <b>Маршрут заблокирован</b> (Стены или не хватает действий)</div>`;
             }
         }
 
         tooltip.innerHTML = content + paramsBlock + '</div>';
         tooltip.style.display = 'block';
     },
+
+
 
     /**
      * Выделение существ на карте при одиночном клике
