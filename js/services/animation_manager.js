@@ -29,10 +29,30 @@ const AnimationManager = {
     },
 
     /**
-     * Запускает баллистический полет флага отряда между гексами на базе координат Viewport (100% 0)
+     * [НОВЫЙ МЕТОД] Генерирует сочную вспышку шести золотых лучей в стиле квестов
      */
+    spawnBeamsBurst(cx, cy) {
+        const beamsContainer = document.createElement('div');
+        beamsContainer.className = 'hex-beams-burst';
+        beamsContainer.style.left = `${cx}px`;
+        beamsContainer.style.top = `${cy}px`;
+
+        for (let i = 0; i < 6; i++) {
+            const beam = document.createElement('div');
+            beam.className = 'focus-beam';
+            const currentAngle = 60 * i - 30;
+            beam.style.setProperty('--angle', `${currentAngle}deg`);
+            beam.style.setProperty('--radius', `0px`);
+            beamsContainer.appendChild(beam);
+        }
+
+        document.body.appendChild(beamsContainer);
+        setTimeout(() => { beamsContainer.remove(); }, 1200);
+    },
+
+
     /**
-     * Запускает баллистический полет флага отряда между гексами Pointy-topped
+     * Запускает баллистический полет флага отряда между гексами
      */
     playFlagFlight(oldHexId, currentHexId, onImpactCallback) {
         const startCoords = HexCanvasRender.hexCoords[oldHexId] || HexCanvasRender.hexCoords['hex_0_0'];
@@ -40,7 +60,6 @@ const AnimationManager = {
 
         if (!targetCoords) return;
 
-        // Берем значения напрямую из ViewportManager
         const zoom = ViewportManager.currentZoom || 1.0;
         const panX = ViewportManager.x || 0;
         const panY = ViewportManager.y || 0;
@@ -49,15 +68,10 @@ const AnimationManager = {
         const viewRect = viewportElement ? viewportElement.getBoundingClientRect() : { left: 0, top: 0 };
         const viewWidth = viewportElement ? viewportElement.clientWidth : 0;
 
-        // МАТЕМАТИКА ЭКРАНА: Так как трансформация идет от правого верхнего угла (100% 0),
-        // вычисляем положение точек относительно границ окна браузера
         const calculateScreenCoords = (coords) => {
-            const virtualXFromLeft = coords.cx;
-            const virtualXFromRight = 3840 - virtualXFromLeft;
-
+            const virtualXFromRight = 3840 - coords.cx;
             const screenX = viewRect.left + panX + viewWidth - (virtualXFromRight * zoom);
             const screenY = viewRect.top + panY + (coords.cy * zoom);
-
             return { x: screenX, y: screenY };
         };
 
@@ -70,7 +84,6 @@ const AnimationManager = {
             return;
         }
 
-        // Создаем летящий элемент флага поверх окон
         const flyingFlag = document.createElement('div');
         flyingFlag.className = 'global-flying-flag';
         flyingFlag.innerHTML = `
@@ -79,7 +92,6 @@ const AnimationManager = {
             </div>
         `;
 
-        // Центрирование флага над гексом
         const sX = startScreen.x - 9;
         const sY = startScreen.y - 50;
         const tX = targetScreen.x - 9;
@@ -92,13 +104,14 @@ const AnimationManager = {
 
         document.body.appendChild(flyingFlag);
 
-        // Коллбэк приземления
+        // --- ТАЙМИНГИ И СТИЛИ ПРИЗЕМЛЕНИЯ ФЛАГА ---
         setTimeout(() => {
             flyingFlag.style.animation = 'none';
             flyingFlag.style.transition = 'transform 0.05s ease-out';
             flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
 
-            this.createBurst(targetScreen.x, targetScreen.y);
+            // Вспышка стиля квеста №1 (Главный удар ровно в центр гекса)
+            this.spawnBeamsBurst(targetScreen.x, targetScreen.y);
 
             if (typeof onImpactCallback === 'function') {
                 onImpactCallback();
@@ -107,9 +120,9 @@ const AnimationManager = {
 
         setTimeout(() => { flyingFlag.remove(); }, 1300);
 
-        // Каскад искр взрыва
-        setTimeout(() => { this.createBurst(targetScreen.x - 45, targetScreen.y + 40); }, 1430);
-        setTimeout(() => { this.createBurst(targetScreen.x + 45, targetScreen.y - 40); }, 1610);
+        // Каскадные вспышки стиля квеста №2 и №3 (расходятся по оригинальным таймингам по бокам клетки)
+        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40); }, 1430);
+        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40); }, 1610);
     },
 
 
@@ -135,21 +148,17 @@ const AnimationManager = {
     /**
      * Быстрый каскад из вспышек лучей света с предварительным центрированием карты
      */
+
     focusOnHex(hexId) {
-        // Находим эталонные координаты гекса Kingmaker
         const coords = HexCanvasRender.hexCoords[hexId];
         if (!coords) return;
 
         const zoom = ViewportManager.currentZoom || 1.0;
         const viewportElement = document.getElementById('viewport');
 
-        // ==========================================
-        // ФАЗА 1: МГНОВЕННЫЙ СДВИГ КАРТЫ К ЦЕЛИ
-        // ==========================================
         if (viewportElement) {
             const viewWidth = viewportElement.clientWidth;
             const viewHeight = viewportElement.clientHeight;
-
             const virtualXFromRight = 3840 - coords.cx;
             const virtualYFromTop = coords.cy;
 
@@ -166,51 +175,24 @@ const AnimationManager = {
             ViewportManager.updateMapTransform();
         }
 
-        // ==========================================
-        // ФАЗА 2: ЗАПУСК ЭФФЕКТОВ ПОСЛЕ ОТРИСОВКИ СДВИГА
-        // ==========================================
-        // Даем браузеру 100мс, чтобы карта зафиксировалась в новой позиции на экране
         setTimeout(() => {
-            // Пересчитываем актуальные параметры трансформации
             const currentPanX = ViewportManager.x || 0;
             const currentPanY = ViewportManager.y || 0;
             const viewRect = viewportElement ? viewportElement.getBoundingClientRect() : { left: 0, top: 0 };
             const viewWidth = viewportElement ? viewportElement.clientWidth : 0;
 
-            // Включаем пульсирующее Canvas-свечение под гексом
             HexCanvasRender.triggerFocus(hexId);
 
-            // Считаем новые, уже актуальные экранные пиксели центра гекса
             const virtualXFromRight = 3840 - coords.cx;
             const cx = viewRect.left + currentPanX + viewWidth - (virtualXFromRight * zoom);
             const cy = viewRect.top + currentPanY + (coords.cy * zoom);
 
-            // Внутренний хелпер для генерации вспышек лучей (.focus-beam)
-            const spawnBurst = () => {
-                const beamsContainer = document.createElement('div');
-                beamsContainer.className = 'hex-beams-burst';
-                beamsContainer.style.left = `${cx}px`;
-                beamsContainer.style.top = `${cy}px`;
+            this.spawnBeamsBurst(cx, cy);
+            setTimeout(() => { this.spawnBeamsBurst(cx, cy); }, 100);
 
-                for (let i = 0; i < 6; i++) {
-                    const beam = document.createElement('div');
-                    beam.className = 'focus-beam';
-                    const currentAngle = 60 * i - 30;
-                    beam.style.setProperty('--angle', `${currentAngle}deg`);
-                    beam.style.setProperty('--radius', `0px`);
-                    beamsContainer.appendChild(beam);
-                }
-
-                document.body.appendChild(beamsContainer);
-                setTimeout(() => { beamsContainer.remove(); }, 1200);
-            };
-
-            // Создаем красивый каскад лучей
-            spawnBurst();
-            setTimeout(() => { spawnBurst(); }, 100);
-
-        }, 100); // 100 миллисекунд паузы гарантируют, что карта успеет переместиться
+        }, 100);
     },
+
 
     /**
      * Переключение видимости мини-тултипов квестов на карте
@@ -219,9 +201,7 @@ const AnimationManager = {
     toggleQuestTooltips(btnElement) {
         const visualLayer = document.getElementById('visualLayer');
         if (!visualLayer) return;
-
         const areHidden = visualLayer.classList.toggle('hide-quest-tooltips');
-
         if (btnElement) {
             btnElement.title = areHidden ? "Показать маркеры заданий" : "Скрыть маркеры заданий";
         }

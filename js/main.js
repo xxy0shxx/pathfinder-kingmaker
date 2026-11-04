@@ -166,6 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Запускаем баллистическую траекторию летящего флага
                 AnimationManager.playFlagFlight(oldHexId, hexId, () => {
                     HexCanvasRender.hiddenSquadHexId = null;
+
+                    // Дополнительно поджигаем красивое пульсирующее Canvas-свечение под флагом в точке удара!
+                    HexCanvasRender.triggerFocus(hexId);
+
                     HexCanvasRender.updateData(mapData.hexes);
                 });
 
