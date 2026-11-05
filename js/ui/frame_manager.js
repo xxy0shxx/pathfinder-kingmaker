@@ -3,7 +3,7 @@ import { MAP_CONFIG } from '../config/app_config.js';
 const FrameManager = {
     RUNE_POOL: ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'],
     frameElement: null,
-    runeCharacterCache: [], // <-- Новый массив для фиксации выпавших рандомных рун
+    runeCharacterCache: new Map(), // <-- Новый массив для фиксации выпавших рандомных рун
 
     init() {
         this.frameElement = document.querySelector('.kingmaker-frame');
@@ -43,14 +43,14 @@ const FrameManager = {
         this.applyFrameStyle(startStyle.id);
     },
 
+
     applyFrameStyle(styleId) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement) return;
 
         this.frameElement.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament', 'frame-style-ornament-heavy');
-        this.runeCharacterCache = [];
 
-        if (styleId === 'ornament' || styleId === 'ornament-heavy') {
+        if (styleId === 'ornament' || styleId === 'ornament-heavy' || styleId === 'runes') {
             this.frameElement.classList.add('frame-style-norunes', `frame-style-${styleId}`);
         } else {
             this.frameElement.classList.add(`frame-style-${styleId}`);
@@ -65,22 +65,34 @@ const FrameManager = {
             }
         });
 
-//        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, #ornamentCanvas').forEach(el => el.remove());
-        // Полностью очищаем старый декор (включая новую глухую заглушку карт)
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, #ornamentCanvas, .frame-heavy-backdrop').forEach(el => el.remove());
-
+        this.runeCharacterCache.clear(); // Полностью очищаем кэш при смене стиля
 
         const width = this.frameElement.offsetWidth;
         const height = this.frameElement.offsetHeight;
 
-        if (styleId === 'runes') {
-            this.updateFrameRunes(width, height);
-        } else if (styleId === 'ornament') {
+
+        if (styleId === 'runes' || styleId === 'ornament') {
             this.initStandardOrnamentCanvas();
+            const canvas = document.getElementById('ornamentCanvas');
+
+            if (canvas) {
+                if (styleId === 'runes') {
+                    // Поднимаем холст НАВЕРХ только для рун, чтобы они легли поверх золота
+                    canvas.style.zIndex = '10003';
+                    this.updateFrameRunes(width, height);
+                } else {
+                    // Возвращаем холст ВНИЗ для обычной пилы из ромбов, чтобы не перекрывать уголки
+                    canvas.style.zIndex = '-1';
+                    this.drawStandardOrnamentCanvas(width, height);
+                }
+            }
         } else if (styleId === 'ornament-heavy') {
             this.updateFrameOrnament(styleId);
         }
+
     },
+
 
     initStandardOrnamentCanvas() {
         if (this.frameElement.querySelector('#ornamentCanvas')) return;
@@ -201,6 +213,8 @@ const FrameManager = {
             this.frameElement.style.height = `${fHeight}px`;
 
             if (currentStyleId === 'runes') {
+                const canvas = document.getElementById('ornamentCanvas');
+                if (canvas) canvas.style.zIndex = '10003'; // Гарантируем, что руны наверху при драге
                 this.updateFrameRunes(fWidth, fHeight);
             } else if (currentStyleId === 'ornament') {
                 this.drawStandardOrnamentCanvas(fWidth, fHeight);
@@ -221,63 +235,75 @@ const FrameManager = {
         }
     },
 
-
     updateFrameRunes(width, height) {
-        // Получаем все существующие руны на рамке прямо сейчас
-        const existingRunes = Array.from(this.frameElement.querySelectorAll('.hex-rune'));
+        const canvas = document.getElementById('ornamentCanvas');
+        if (!canvas) return;
 
+        // Физический размер холста с учетом расширения бордеров на -22px со всех сторон
+        const canvasWidth = width + 44;
+        const canvasHeight = height + 44;
+
+        if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+        }
+
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // ВЫЧИСЛЕНИЕ МЕРЦАНИЯ: Синусоида времени (период ~2 секунды)
+        const time = Date.now() * 0.003;
+        const breatheAlpha = 0.2 + Math.abs(Math.sin(time)) * 0.8; // Прозрачность от 0.2 до 1.0
+
+        // НАСТРОЙКА ШРИФТА: Делаем руны крупнее (размер 18px), чтобы они хорошо читались
+        ctx.font = 'bold 18px monospace';
+        ctx.fillStyle = `rgba(223, 188, 111, ${breatheAlpha})`; // Неоновый золотистый цвет с альфой
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Добавляем красивую неоновую подсветку вокруг руны
+        ctx.shadowColor = 'rgba(223, 188, 111, 0.7)';
+        ctx.shadowBlur = 5;
+
+        // Настройки шага сетки
         const step = MAP_CONFIG.viewport.step || 50;
         const padding = MAP_CONFIG.viewport.padding || 20;
 
-        const cTop = -11;
-        const cLeft = -11;
-        const cBottom = height - 33;
-        const cRight = width - 33;
+        // МАТЕМАТИЧЕСКАЯ СМЕЩЕНИЕ ВВЕРХ И ВЛЕВО:
+        // Уменьшаем отступ с 33px до 24px, чтобы сдвинуть руны по осям X и Y
+        const topY = 13;
+        const bottomY = canvasHeight - 54;
+        const leftX = 13;
+        const rightX = canvasWidth - 54;
 
-        const innerWidth = width - 44;
-        const innerHeight = height - 44;
-
-        // Собираем все целевые координаты, где ДОЛЖНЫ стоять руны
-        const targetPositions = [];
-
-        for (let l = padding; l < innerWidth - padding; l += step) { targetPositions.push({ left: l, top: cTop }); }
-        for (let l = padding; l < innerWidth - padding; l += step) { targetPositions.push({ left: l, top: cBottom }); }
-        for (let t = padding; t < innerHeight - padding; t += step) { targetPositions.push({ left: cLeft, top: t }); }
-        for (let t = padding; t < innerHeight - padding; t += step) { targetPositions.push({ left: cRight, top: t }); }
-
-        // Двигаем существующие руны или создаем новые, если их не хватает
-        targetPositions.forEach((pos, index) => {
-            let runeElement = existingRunes[index];
-
-            // Если в кэше под этим порядковым номером еще нет зафиксированной руны — генерируем один раз
-            if (!this.runeCharacterCache[index]) {
-                this.runeCharacterCache[index] = this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)];
+        const drawRuneAt = (x, y) => {
+            const coordKey = `${Math.round(x)}_${Math.round(y)}`;
+            if (!this.runeCharacterCache.has(coordKey)) {
+                const randomRune = this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)];
+                this.runeCharacterCache.set(coordKey, randomRune);
             }
+            ctx.fillText(this.runeCharacterCache.get(coordKey), x, y);
+        };
 
-            if (!runeElement) {
-                // Создаем узел только в том случае, если на экране физически не хватает рун
-                runeElement = document.createElement('div');
-                runeElement.className = 'hex-rune';
-                runeElement.style.transform = 'translate(-50%, -50%)';
-                // Анимация мерцания тоже фиксирует задержку и не сбрасывается
-                runeElement.style.animationDelay = `${Math.random() * -5}s`;
-                this.frameElement.appendChild(runeElement);
-            }
-
-            // Жёстко закрепляем за элементом его сохраненный символ руны
-            runeElement.textContent = this.runeCharacterCache[index];
-
-            // Просто обновляем координаты без пересоздания DOM-ноды
-            runeElement.style.left = `${pos.left}px`;
-            runeElement.style.top = `${pos.top}px`;
-        });
-
-        // Если при сжатии рамки рун на экране оказалось больше, чем нужно — аккуратно удаляем лишние с конца
-        if (existingRunes.length > targetPositions.length) {
-            for (let i = targetPositions.length; i < existingRunes.length; i++) {
-                existingRunes[i].remove();
-            }
+        // Отрисовка горизонтальных рядов рун
+        for (let x = padding + 44; x <= canvasWidth - padding - 44; x += step) {
+            drawRuneAt(x, topY);
+            drawRuneAt(x, bottomY);
         }
+
+        // Отрисовка вертикальных рядов рун
+        for (let y = padding + 44; y <= canvasHeight - padding - 44; y += step) {
+            drawRuneAt(leftX, y);
+            drawRuneAt(rightX, y);
+        }
+
+        // Отрисовка вертикальных рядов рун (смещаем отступы углов на 44px)
+        for (let y = padding + 44; y <= canvasHeight - padding - 44; y += step) {
+            drawRuneAt(leftX, y);
+            drawRuneAt(rightX, y);
+        }
+
+
     },
 
 

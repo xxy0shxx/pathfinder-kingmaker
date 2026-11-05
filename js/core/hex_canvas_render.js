@@ -135,7 +135,9 @@ const HexCanvasRender = {
 
         this.hexesData = freshData;
 
-        if (hasActiveSpawnAnimations) {
+        const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
+
+        if (hasActiveSpawnAnimations || isRuneStyleActive) {
             this.startAnimationLoop();
         } else {
             this.requestFrame();
@@ -160,6 +162,13 @@ const HexCanvasRender = {
         }
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (localStorage.getItem('kingmakerFrameStyle') === 'runes' && window.FrameManager) {
+            const frame = document.querySelector('.kingmaker-frame');
+            if (frame) {
+                window.FrameManager.updateFrameRunes(frame.offsetWidth, frame.offsetHeight);
+            }
+        }
 
         const r = MAP_CONFIG.grid.radius;
         let activeTimersCount = 0;
@@ -217,7 +226,9 @@ const HexCanvasRender = {
             }
         }
 
-        if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap) {
+        const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
+
+        if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap || isRuneStyleActive) {
             this.isAnimating = true;
         } else if (this.isAnimating) {
             this.stopAnimationLoop();
