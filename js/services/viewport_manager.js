@@ -150,10 +150,16 @@ const ViewportManager = {
             this.hasMoved = true;
         }
 
+        const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
+        const isHeavy = currentStyleId === 'ornament-heavy';
+
+        // Раздвигаем невидимые лимиты упора камеры наружу на 24px (вылет вершин ромбов)
+        const extraOffset = isHeavy ? 24 : 0;
+
         const { minX, maxX, minY, maxY } = MAP_CONFIG.viewport.limits;
 
-        this.x = Math.max(minX, Math.min(maxX, newX));
-        this.y = Math.max(minY, Math.min(maxY, newY));
+        this.x = Math.max(minX - extraOffset, Math.min(maxX + extraOffset, newX));
+        this.y = Math.max(minY - extraOffset, Math.min(maxY + extraOffset, newY));
 
         this.updateMapTransform();
     },
@@ -174,7 +180,6 @@ const ViewportManager = {
             }
         });
     },
-
     /**
      * Автоматический пересчет координат сдвига для центрирования на отряде
      */

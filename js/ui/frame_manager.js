@@ -156,7 +156,9 @@ const FrameManager = {
         const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
         if (baseWidth > 0 && baseHeight > 0) {
+            // ЖЁСТКАЯ ФИКСАЦИЯ: Всегда 22px бордера! Это убирает внутренние и внешние полосы
             const borderWidth = 22;
+
             this.frameElement.style.display = 'block';
 
             let frameLeft = cleanLeft - borderWidth;
@@ -182,6 +184,8 @@ const FrameManager = {
                 this.updateFrameRunes(fWidth, fHeight);
             } else if (currentStyleId === 'ornament') {
                 this.drawStandardOrnamentCanvas(fWidth, fHeight);
+            } else if (currentStyleId === 'ornament-heavy') {
+                this.updateFrameOrnament(currentStyleId);
             }
 
             const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
@@ -195,6 +199,8 @@ const FrameManager = {
             mapContainer.style.clipPath = 'none';
         }
     },
+
+
 
     updateFrameRunes(width, height) {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth').forEach(el => el.remove());
