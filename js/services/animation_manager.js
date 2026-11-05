@@ -55,7 +55,7 @@ const AnimationManager = {
     },
 
     /**
-     * Запускает баллистический полет флага отряда с уменьшенными вспышками золотых лучей
+     * Запускает баллистический полет флага отряда с динамическим определением стороны вылета
      */
     playFlagFlight(oldHexId, currentHexId, onImpactCallback) {
         if (oldHexId === currentHexId) {
@@ -63,10 +63,27 @@ const AnimationManager = {
             return;
         }
 
-        const startCoords = HexCanvasRender.hexCoords[oldHexId] || HexCanvasRender.hexCoords['hex_0_0'];
         const targetCoords = HexCanvasRender.hexCoords[currentHexId];
-
         if (!targetCoords) return;
+
+        // Определяем стартовые координаты:
+        // Если была реальная предыдущая позиция (и режим полета из столицы выключен), берем ее.
+        // Иначе рассчитываем противоположную сторону экрана на той же высоте (cy), что и цель.
+        let startCoords = HexCanvasRender.hexCoords[oldHexId];
+
+        if (!startCoords || oldHexId === 'hex_0_0') {
+            // Максимальная ширина карты в системе (исходя из формулы virtualXFromRight: 3840)
+            const mapWidth = 3840;
+
+            // Если целевой гекс находится в правой половине виртуальной карты (> 1920)
+            if (targetCoords.cx > mapWidth / 2) {
+                // Отряд справа -> флаг летит слева (координата X близка к 0)
+                startCoords = { cx: 100, cy: targetCoords.cy };
+            } else {
+                // Отряд слева -> флаг летит справа (координата X близка к краю)
+                startCoords = { cx: mapWidth - 100, cy: targetCoords.cy };
+            }
+        }
 
         const zoom = ViewportManager.currentZoom || 1.0;
         const panX = ViewportManager.x || 0;
