@@ -1682,7 +1682,7 @@ body {
 }
 
 /* ============================================================================
-   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (ПОЛНАЯ ЗАЩИТА ОТ НАСЛОЕНИЙ)
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (БЕЗУПРЕЧНАЯ СТЫКОВКА С БАСТИОНАМИ)
    ============================================================================ */
 .frame-style-ornament-heavy {
     opacity: 1 !important;
@@ -1695,16 +1695,32 @@ body {
     pointer-events: none;
     z-index: 10003; /* Выше рамки, но ниже центральных бастионов */
     overflow: hidden;
-    justify-content: space-between;
 }
 
-/* Сдвиг -16px удерживает изящный легкий выступ вершин за рамку */
-.frame-style-ornament-heavy .diamond-row.row-top    { top: -16px; left: 22px; right: 22px; height: 38px; }
-.frame-style-ornament-heavy .diamond-row.row-bottom { bottom: -16px; left: 22px; right: 22px; height: 38px; }
-.frame-style-ornament-heavy .diamond-row.row-left   { left: -16px; top: 22px; bottom: 22px; width: 38px; flex-direction: column; }
-.frame-style-ornament-heavy .diamond-row.row-right  { right: -16px; top: 22px; bottom: 22px; width: 38px; flex-direction: column; }
+/* Горизонтальные ряды теперь жестко прижимаются к углам и идут к центру */
+.frame-style-ornament-heavy .diamond-row.row-top,
+.frame-style-ornament-heavy .diamond-row.row-bottom {
+    justify-content: flex-start;
+    height: 38px;
+    left: 22px;
+    right: 22px;
+}
+.frame-style-ornament-heavy .diamond-row.row-top    { top: -16px; }
+.frame-style-ornament-heavy .diamond-row.row-bottom { bottom: -16px; }
 
-/* Мелкий элемент — изящный ромб */
+/* Вертикальные ряды расталкиваются по краям с помощью распорки */
+.frame-style-ornament-heavy .diamond-row.row-left,
+.frame-style-ornament-heavy .diamond-row.row-right {
+    justify-content: space-between;
+    width: 38px;
+    flex-direction: column;
+    top: 22px;
+    bottom: 22px;
+}
+.frame-style-ornament-heavy .diamond-row.row-left   { left: -16px; }
+.frame-style-ornament-heavy .diamond-row.row-right  { right: -16px; }
+
+/* Сам элемент — изящный ромб */
 .frame-style-ornament-heavy .diamond-tooth {
     width: 18px;
     height: 18px;
@@ -1715,14 +1731,14 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Защитные зазоры: для горизонтальных — по бокам, для вертикальных — по вертикали */
+/* Фиксированные зазоры: предотвращают наложение углов на любых экранах */
 .frame-style-ornament-heavy .diamond-row.row-top .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-bottom .diamond-tooth {
-    margin: auto 4px; /* Разделяет ромбы по горизонтали, исключая наложение боковых углов */
+    margin: auto 4.5px; /* Идеальное расстояние для горизонтального шага */
 }
 .frame-style-ornament-heavy .diamond-row.row-left .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-right .diamond-tooth {
-    margin: 4px auto; /* Разделяет ромбы по вертикали */
+    margin: 4px auto;
 }
 
 /* ЦЕНТРАЛЬНЫЕ КРУПНЫЕ РОМБЫ-БАСТИОНЫ */
@@ -1731,7 +1747,7 @@ body {
     background: linear-gradient(135deg, #a68032, #543e0d);
     border: 3px solid #dfbc6f;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 8px #ffd875;
-    z-index: 10006;
+    z-index: 10006; /* Самый высокий приоритет — перекрывает провал в центре */
     pointer-events: none;
 }
 
@@ -1748,7 +1764,7 @@ body {
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
 
-/* СВЕРХШИРОКИЕ БАСТИОНЫ (180px на 60px) */
+/* СВЕРХШИРОКИЕ БАСТИОНЫ */
 .bastion-top    { width: 180px; height: 60px; top: -42px; left: 50%; transform: translateX(-50%); }
 .bastion-bottom { width: 180px; height: 60px; bottom: -42px; left: 50%; transform: translateX(-50%); }
 .bastion-left   { width: 60px; height: 180px; left: -42px; top: 50%; transform: translateY(-50%); }

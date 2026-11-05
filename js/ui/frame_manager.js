@@ -183,7 +183,7 @@ const FrameManager = {
 
 
     /**
-     * Универсальное создание линеек орнамента (Симметричный бесконфликтный шаг)
+     * Универсальное создание линеек орнамента (Марш от углов к центру под бастионы)
      */
     updateFrameOrnament(styleId = 'ornament') {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
@@ -196,14 +196,12 @@ const FrameManager = {
 
         const isHeavy = styleId === 'ornament-heavy';
 
-        // Базовые шаги для обычного стиля
         let stepHorizontal = 35;
         let stepVertical = 35;
 
-        // Если включен тяжелый стиль, делаем шаг просторнее со всех сторон (44px)
         if (isHeavy) {
-            stepHorizontal = 44; // Свободный шаг для верхней и нижней сторон
-            stepVertical = 44;   // Свободный шаг для левой и правой сторон
+            stepHorizontal = 27; // Жесткий фиксированный шаг для плотного ковра ромбов 18х18 по горизонтали
+            stepVertical = 44;   // Свободный шаг для вертикалей
         }
 
         const paddingOffset = isHeavy ? 44 : 56;
@@ -225,6 +223,7 @@ const FrameManager = {
                 const half = Math.floor(count / 2);
 
                 for (let i = 0; i < count; i++) {
+                    // Разделительная распорка для всех осей, расталкивающая элементы от центра к углам
                     if (isHeavy && i === half) {
                         const spacer = document.createElement('div');
                         spacer.className = 'diamond-spacer';
@@ -247,6 +246,8 @@ const FrameManager = {
 
         this.frameElement.appendChild(fragment);
     }
+
+
 
 }
 
