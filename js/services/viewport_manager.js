@@ -138,9 +138,8 @@ const ViewportManager = {
             this.isDragging = false;
         });
     },
-
     /**
-     * Общая математика смещения координат холста с учетом лимитов
+     * Общая математика смещения координат холста с учетом лимитов и выступа пилы
      */
     processMove(pageX, pageY) {
         let newX = pageX - this.startX;
@@ -150,19 +149,25 @@ const ViewportManager = {
             this.hasMoved = true;
         }
 
+        // Считываем текущий стиль рамки из хранилища
         const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
         const isHeavy = currentStyleId === 'ornament-heavy';
 
-        // Раздвигаем лимиты упора камеры наружу ровно на 24px (вылет вершин ромбов)
+        // МАКСИМАЛЬНЫЙ УПОР: Если включен тяжелый стиль, мы искусственно зажимаем
+        // лимиты упора камеры на 24px (вылет вершин ромбов) внутрь экрана.
+        // Это заставит всю конструкцию намертво стопориться ровно по кончикам пилы!
         const extraOffset = isHeavy ? 24 : 0;
 
         const { minX, maxX, minY, maxY } = MAP_CONFIG.viewport.limits;
 
-        this.x = Math.max(minX - extraOffset, Math.min(maxX + extraOffset, newX));
-        this.y = Math.max(minY - extraOffset, Math.min(maxY + extraOffset, newY));
+        // Корректируем лимиты: сдвигаем границы остановки карты к центру на 24px
+        this.x = Math.max(minX + extraOffset, Math.min(maxX - extraOffset, newX));
+        this.y = Math.max(minY + extraOffset, Math.min(maxY - extraOffset, newY));
 
         this.updateMapTransform();
     },
+
+
 
     /**
      * Расчет CSS-трансформаций и динамическое inset-кадрирование холста

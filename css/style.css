@@ -1701,55 +1701,29 @@ body {
     will-change: transform;
 }
 /* ============================================================================
-   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (ЗАПЕЧАТАННЫЙ БАРЬЕР С УПОРОМ)
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (ЭКСТРЕМАЛЬНЫЙ ВЫСТУП РОМБОВ ОТ УГЛОВ)
    ============================================================================ */
 .frame-style-ornament-heavy {
     opacity: 1 !important;
     visibility: visible !important;
 }
 
-/* Базовый контейнер рамки: без теней, так как они перенесены на край пилы */
 .kingmaker-frame.frame-style-ornament-heavy {
     border: 22px solid transparent !important;
-    box-shadow: none !important;
-}
-
-/* ФИКСАЦИЯ: Сжимаем оригинальный градиент рамки внутрь.
-   Жесткие пиксели не дадут ему сминаться, полностью убирая внутреннюю темную полосу! */
-.kingmaker-frame.frame-style-ornament-heavy::before {
-    position: absolute !important;
-    top: 24px !important;
-    left: 24px !important;
-    right: 24px !important;
-    bottom: 24px !important;
-    padding: 22px !important;
-    background: linear-gradient(to bottom right, #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%, #a68032 70%, #1c3324 85%, #6e4e14 100%) !important;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
-    -webkit-mask-composite: xor !important;
-    mask-composite: exclude !important;
-}
-
-/* КОНТЕЙНЕР-БАРЬЕР: Скрывает карту под невидимыми полями и выносит тени за вершины ромбов */
-.kingmaker-frame.frame-style-ornament-heavy::after {
-    content: "" !important;
-    position: absolute !important;
-    top: 0px !important;
-    left: 0px !important;
-    right: 0px !important;
-    bottom: 0px !important;
-    pointer-events: none !important;
-    z-index: -2; /* Под ромбами, но НАД картой, чтобы полностью её перекрыть */
-
-    /* Заливаем внешние 24px цветом фона приложения, убирая просвечивание карты за рамкой */
-    border: 24px solid #16291b !important;
-    background-clip: border-box !important;
-
-    /* Роскошное королевское свечение, смещенное наружу за вершины ромбов */
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8),
     0 0 25px rgba(255, 255, 255, 0.9),
     0 0 45px #ffd875,
     0 0 75px rgba(223, 188, 111, 0.85),
     0 0 120px rgba(223, 188, 111, 0.45) !important;
+}
+
+.kingmaker-frame.frame-style-ornament-heavy::before {
+    inset: -22px !important;
+    padding: 22px !important;
+}
+
+.kingmaker-frame.frame-style-ornament-heavy::after {
+    content: none !important;
 }
 
 .frame-style-ornament-heavy .diamond-row {
@@ -1760,29 +1734,27 @@ body {
     overflow: hidden;
 }
 
-/* Координаты линеек ромбов возвращены к вашим эталонным позициям */
 .frame-style-ornament-heavy .diamond-row.row-top,
 .frame-style-ornament-heavy .diamond-row.row-bottom {
     justify-content: flex-start;
     height: 34px;
-    left: 50px;
-    right: 50px;
+    left: 26px;
+    right: 26px;
 }
-.frame-style-ornament-heavy .diamond-row.row-top    { top: -5px; }
-.frame-style-ornament-heavy .diamond-row.row-bottom { bottom: -5px; }
+.frame-style-ornament-heavy .diamond-row.row-top    { top: -29px; }
+.frame-style-ornament-heavy .diamond-row.row-bottom { bottom: -29px; }
 
 .frame-style-ornament-heavy .diamond-row.row-left,
 .frame-style-ornament-heavy .diamond-row.row-right {
     justify-content: space-between;
     width: 34px;
     flex-direction: column;
-    top: 46px;
-    bottom: 46px;
+    top: 22px;
+    bottom: 22px;
 }
-.frame-style-ornament-heavy .diamond-row.row-left   { left: -5px; }
-.frame-style-ornament-heavy .diamond-row.row-right  { right: -5px; }
+.frame-style-ornament-heavy .diamond-row.row-left   { left: -29px; }
+.frame-style-ornament-heavy .diamond-row.row-right  { right: -29px; }
 
-/* Сам элемент — изящный ромб */
 .frame-style-ornament-heavy .diamond-tooth {
     width: 18px;
     height: 18px;
@@ -1793,11 +1765,11 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.frame-style-ornament-heavy .diamond-tooth { margin: 4px auto; }
 .frame-style-ornament-heavy .diamond-row.row-top .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-bottom .diamond-tooth { margin: auto 4.5px; }
+.frame-style-ornament-heavy .diamond-row.row-left .diamond-tooth,
+.frame-style-ornament-heavy .diamond-row.row-right .diamond-tooth { margin: 4px auto; }
 
-/* ЦЕНТРАЛЬНЫЕ КРУПНЫЕ РОМБЫ-БАСТИОНЫ */
 .center-bastion {
     position: absolute;
     background: linear-gradient(135deg, #a68032, #543e0d);
@@ -1815,26 +1787,18 @@ body {
 }
 .center-bastion, .center-bastion::before { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
 
-.bastion-top    { width: 180px; height: 60px; top: -18px; left: 50%; transform: translateX(-50%); }
-.bastion-bottom { width: 180px; height: 60px; bottom: -18px; left: 50%; transform: translateX(-50%); }
-.bastion-left   { width: 60px; height: 180px; left: -18px; top: 50%; transform: translateY(-50%); }
-.bastion-right  { width: 60px; height: 180px; right: -18px; top: 50%; transform: translateY(-50%); }
+.bastion-top    { width: 180px; height: 60px; top: -42px; left: 50%; transform: translateX(-50%); }
+.bastion-bottom { width: 180px; height: 60px; bottom: -42px; left: 50%; transform: translateX(-50%); }
+.bastion-left   { width: 60px; height: 180px; left: -42px; top: 50%; transform: translateY(-50%); }
+.bastion-right  { width: 60px; height: 180px; right: -42px; top: 50%; transform: translateY(-50%); }
 
 .diamond-spacer { flex-grow: 1; pointer-events: none; }
 
-/* ВЕКТОРНАЯ МОДИФИКАЦИЯ УГЛОВ СТРОГО ДЛЯ СТИЛЯ ORNAMENT-HEAVY */
-.frame-style-ornament-heavy .frame-corner {
-    width: 68px;
-    height: 68px;
-    border: 3px solid #36260d;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.85), 0 0 5px #ffd875;
-    z-index: 10006;
-}
+.frame-style-ornament-heavy .frame-corner { width: 68px; height: 68px; border: 3px solid #36260d; box-shadow: 0 0 15px rgba(0, 0, 0, 0.85), 0 0 5px #ffd875; z-index: 10006; }
 .frame-style-ornament-heavy .frame-corner::before { inset: 5px; border: 2px solid #23472e; box-shadow: inset 0 0 12px rgba(35, 71, 46, 0.9); }
 .frame-style-ornament-heavy .frame-corner, .frame-style-ornament-heavy .frame-corner::before { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
 
-/* Координаты углов-68px зафиксированы на своих посадочных местах */
-.frame-style-ornament-heavy .top-left     { top: -22px; left: -22px; }
-.frame-style-ornament-heavy .top-right    { top: -22px; right: -22px; }
-.frame-style-ornament-heavy .bottom-left  { bottom: -22px; left: -22px; }
-.frame-style-ornament-heavy .bottom-right { bottom: -22px; right: -22px; }
+.frame-style-ornament-heavy .top-left     { top: -46px; left: -46px; }
+.frame-style-ornament-heavy .top-right    { top: -46px; right: -46px; }
+.frame-style-ornament-heavy .bottom-left  { bottom: -46px; left: -46px; }
+.frame-style-ornament-heavy .bottom-right { bottom: -46px; right: -46px; }

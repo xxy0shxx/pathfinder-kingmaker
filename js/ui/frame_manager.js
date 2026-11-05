@@ -63,7 +63,10 @@ const FrameManager = {
             }
         });
 
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, #ornamentCanvas').forEach(el => el.remove());
+//        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, #ornamentCanvas').forEach(el => el.remove());
+        // Полностью очищаем старый декор (включая новую глухую заглушку карт)
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, #ornamentCanvas, .frame-heavy-backdrop').forEach(el => el.remove());
+
 
         const width = this.frameElement.offsetWidth;
         const height = this.frameElement.offsetHeight;
@@ -140,6 +143,9 @@ const FrameManager = {
         }
     },
 
+
+
+
     updateBounds(viewport, mapContainer, currentZoom) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement || !viewport || !mapContainer) return;
@@ -147,16 +153,24 @@ const FrameManager = {
         const mapRect = mapContainer.getBoundingClientRect();
         const viewRect = viewport.getBoundingClientRect();
 
-        const cleanLeft = Math.max(viewRect.left, mapRect.left);
-        const cleanTop = Math.max(viewRect.top, mapRect.top);
-        const cleanRight = Math.min(viewRect.right, mapRect.right);
-        const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
+        // Проверяем текущий стиль
+        const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
+        const isHeavy = currentStyleId === 'ornament-heavy';
+
+        // Виртуальный барьер-отступ: 24px для тяжелого орнамента, чтобы упор шел по вершинам
+        const screenPadding = isHeavy ? 24 : 0;
+
+        // Корректируем виртуальные границы экрана с учетом вылета ромбов наружу
+        const cleanLeft = Math.max(viewRect.left + screenPadding, mapRect.left);
+        const cleanTop = Math.max(viewRect.top + screenPadding, mapRect.top);
+        const cleanRight = Math.min(viewRect.right - screenPadding, mapRect.right);
+        const cleanBottom = Math.min(viewRect.bottom - screenPadding, mapRect.bottom);
 
         const baseWidth = Math.max(0, cleanRight - cleanLeft);
         const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
         if (baseWidth > 0 && baseHeight > 0) {
-            // ЖЁСТКАЯ ФИКСАЦИЯ: Всегда чистые 22px! Карта под рамкой сохраняет исходный 100% размер
+            // ЖЁСТКАЯ ФИКСАЦИЯ: Всегда 22px бордера! Карта сохраняет исходный 100% масштаб
             const borderWidth = 22;
 
             this.frameElement.style.display = 'block';
@@ -166,6 +180,7 @@ const FrameManager = {
             let frameWidth = baseWidth + (borderWidth * 2);
             let frameHeight = baseHeight + (borderWidth * 2);
 
+            // Ограничиваем движение рамки, не давая ей заезжать за вершины ромбов
             if (frameLeft < viewRect.left) { frameWidth -= (viewRect.left - frameLeft); frameLeft = viewRect.left; }
             if (frameTop < viewRect.top) { frameHeight -= (viewRect.top - frameTop); frameTop = viewRect.top; }
             if (frameLeft + frameWidth > viewRect.right) { frameWidth = viewRect.right - frameLeft; }
@@ -179,15 +194,15 @@ const FrameManager = {
             this.frameElement.style.width = `${fWidth}px`;
             this.frameElement.style.height = `${fHeight}px`;
 
-            const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
             if (currentStyleId === 'runes') {
                 this.updateFrameRunes(fWidth, fHeight);
             } else if (currentStyleId === 'ornament') {
                 this.drawStandardOrnamentCanvas(fWidth, fHeight);
-            } else if (currentStyleId === 'ornament-heavy') {
+            } else if (isHeavy) {
                 this.updateFrameOrnament(currentStyleId);
             }
 
+            // Маска карты всегда режется по стандартным 22px видимого золотого канта
             const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
             const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
             const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
@@ -233,11 +248,9 @@ const FrameManager = {
         for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
     },
 
-    /**
-     * ОРИГИНАЛЬНЫЙ ТЯЖЕЛЫЙ ОРНАМЕНТ - ПОЛНОСТЬЮ СОХРАНЕН БЕЗ ИЗМЕНЕНИЙ
-     */
+
     updateFrameOrnament(styleId = 'ornament') {
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-edge-shield').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
         const height = this.frameElement.offsetHeight || window.innerHeight;
@@ -283,11 +296,18 @@ const FrameManager = {
                 const bastion = document.createElement('div');
                 bastion.className = `center-bastion bastion-${dir}`;
                 fragment.appendChild(bastion);
+
+                // Создаем защитную плашку цвета общего фона для текущей стороны
+                const shield = document.createElement('div');
+                shield.className = `heavy-edge-shield shield-${dir}`;
+                fragment.appendChild(shield);
             }
         });
 
         this.frameElement.appendChild(fragment);
     }
+
+
 };
 
 export default FrameManager;
