@@ -25,6 +25,10 @@ const HexCanvasRender = {
     isAnimating: false,
     frameRequested: false,
 
+    // [ПРОФИЛИРОВАНИЕ] Внутренние переменные для замера FPS
+    _fpsLastTime: performance.now(),
+    _fpsFrames: 0,
+
     init(canvasElement, initialHexesData, coordinatesMap) {
         this.canvas = canvasElement;
         this.ctx = this.canvas.getContext('2d');
@@ -51,12 +55,15 @@ const HexCanvasRender = {
     },
 
     /**
-     * Контролируемый запуск цикла анимации (включается только при наличии динамических эффектов)
+     * Контролируемый запуск цикла анимации
      */
     startAnimationLoop() {
         if (this.isAnimating) return;
         this.isAnimating = true;
         const loop = () => {
+            if (MAP_CONFIG.ENABLE_FPS_MONITOR) {
+                this._profileFps();
+            }
             this.render();
             if (this.isAnimating) {
                 requestAnimationFrame(loop);
@@ -73,13 +80,36 @@ const HexCanvasRender = {
     },
 
     /**
+     * Внутренний метод калькуляции производительности кадра
+     */
+    _profileFps() {
+        this._fpsFrames++;
+        const now = performance.now();
+
+        if (now >= this._fpsLastTime + 1000) {
+            const fps = Math.round((this._fpsFrames * 1000) / (now - this._fpsLastTime));
+
+            let color = '#4aff4a';
+            if (fps < 30) color = '#ff4a4a';
+            else if (fps < 50) color = '#ffaa00';
+
+            console.log(
+                `%c [Canvas Monitor] Текущий FPS: ${fps} | Рендер: 360 гексов `,
+                `background: #1e1e24; color: ${color}; font-weight: bold; border-left: 4px solid ${color}; padding: 2px 4px;`
+            );
+
+            this._fpsFrames = 0;
+            this._fpsLastTime = now;
+        }
+    },
+
+    /**
      * Прием свежих данных гексов с предварительным кэшированием цветов
      */
     updateData(newHexesData, changedHexId = null) {
         const oldData = this.hexesData;
         const freshData = newHexesData ? JSON.parse(JSON.stringify(newHexesData)) : {};
 
-        // Полностью очищаем старый кэш цветов при перезаписи всей базы данных
         this.colorCache = {};
         let hasActiveSpawnAnimations = false;
 
@@ -87,7 +117,6 @@ const HexCanvasRender = {
             const oldHex = oldData[key];
             const newHex = freshData[key];
 
-            // [ОПТИМИЗАЦИЯ] Формируем RGBA-строку один раз, вместо вызова парсера 60 раз в секунду
             if (newHex.color && newHex.color !== 'transparent') {
                 this.colorCache[key] = ColorConverter.hexToRgba(newHex.color, 0.37);
             }
@@ -106,7 +135,6 @@ const HexCanvasRender = {
 
         this.hexesData = freshData;
 
-        // Если обнаружены новые иконки для анимации — заводим цикл, иначе просто обновляем кадр
         if (hasActiveSpawnAnimations) {
             this.startAnimationLoop();
         } else {
@@ -126,18 +154,17 @@ const HexCanvasRender = {
         this.ctx.closePath();
     },
 
-
-
-
-
-
     render() {
+        if (MAP_CONFIG.ENABLE_FPS_MONITOR && !this.isAnimating) {
+            this._profileFps();
+        }
+
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         const r = MAP_CONFIG.grid.radius;
         let activeTimersCount = 0;
         let needsOngoingAnimation = false;
-        let isSquadPresentOnMap = false; // Флаг проверки наличия отряда на игровом холсте
+        let isSquadPresentOnMap = false;
 
         for (let row = 0; row < MAP_CONFIG.grid.rows; row++) {
             for (let col = 0; col < MAP_CONFIG.grid.cols; col++) {
@@ -154,12 +181,10 @@ const HexCanvasRender = {
                     data.squadHere = false;
                 }
 
-                // Запоминаем, что отряд сейчас на карте и его флаг нужно непрерывно анимировать
                 if (data && data.squadHere) {
                     isSquadPresentOnMap = true;
                 }
 
-                // Анимация пульсации фокуса выбранного квеста
                 if (hexKey === this.focusedHexKey) {
                     this.focusTime += 0.05;
                     this.focusAlpha = 0.5 + Math.sin(this.focusTime * 2) * 0.3;
@@ -176,7 +201,6 @@ const HexCanvasRender = {
                     this.ctx.restore();
                 }
 
-                // Проверка таймеров плавного масштабирования иконок
                 if (this.spawnTimers[hexKey]) {
                     if (Date.now() - this.spawnTimers[hexKey] < 250) {
                         activeTimersCount++;
@@ -193,19 +217,12 @@ const HexCanvasRender = {
             }
         }
 
-        // [ОБНОВЛЕНО] Включаем бесконечный loop, если на карте есть живой флаг отряда (isSquadPresentOnMap)
         if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap) {
             this.isAnimating = true;
         } else if (this.isAnimating) {
             this.stopAnimationLoop();
         }
     },
-
-
-
-
-
-
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 
@@ -268,7 +285,7 @@ const HexCanvasRender = {
         if (data && data.type && MAP_CONFIG.types[data.type]) drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
         if (data && data.terrain && MAP_CONFIG.terrains[data.terrain]) drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
 
-        // [ОБНОВЛЕНО] Флаг отрисовывается и колышется всегда, так как рендер-цикл запущен постоянно
+        // Флаг отрисовывается и колышется всегда
         if (data && data.squadHere) {
             this.drawCanvasFlag(cx, cy);
         }
@@ -293,11 +310,6 @@ const HexCanvasRender = {
             }
         }
     },
-
-
-
-
-
 
     drawQuestPlate(ctx, text, x, y) {
         ctx.save();
@@ -352,14 +364,11 @@ const HexCanvasRender = {
         ctx.fillText(text, x, y);
         ctx.restore();
     },
-
     drawCanvasFlag(cx, cy) {
         const ctx = this.ctx;
         ctx.save();
         ctx.translate(cx, cy + 15);
 
-        // [ОПТИМИЗАЦИЯ] Флаг колышется на ветру только тогда, когда запущена анимация вьюпорта или полета флага
-        /* const swingAngleDeg = this.isAnimating ? Math.sin(Date.now() / 800) * 5 : 0; */
         const swingAngleDeg = Math.sin(Date.now() / 800) * 5;
         ctx.rotate((Math.PI / 180) * swingAngleDeg);
         ctx.translate(-cx, -(cy + 15));
@@ -397,7 +406,6 @@ const HexCanvasRender = {
             this.mouseX = 3840 - (distanceFromRight / zoom);
             this.mouseY = distanceFromTop / zoom;
 
-            // [ОПТИМИЗАЦИЯ] Расчет hovered гекса вынесен из рендера напрямую в mousemove (O(n) в изоляции)
             let currentHoverKey = null;
             let minDistance = Infinity;
 
@@ -410,7 +418,6 @@ const HexCanvasRender = {
                 }
             }
 
-            // [ОПТИМИЗАЦИЯ] Запрашиваем перерисовку только при реальном изменении hovered гекса
             if (this.hoveredHexKey !== currentHoverKey) {
                 this.hoveredHexKey = currentHoverKey;
                 this.updateTooltipState(tooltipElem);
@@ -492,15 +499,14 @@ const HexCanvasRender = {
     triggerFocus(hexId) {
         this.focusedHexKey = hexId;
         this.focusTime = 0;
-        this.startAnimationLoop(); // Запускаем цикл для плавной пульсации
+        this.startAnimationLoop();
         setTimeout(() => {
             if (this.focusedHexKey === hexId) {
                 this.focusedHexKey = null;
-                this.requestFrame(); // Финальный сброс кадра
+                this.requestFrame();
             }
         }, 3600);
     }
 };
 
 export default HexCanvasRender;
-
