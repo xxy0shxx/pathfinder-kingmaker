@@ -82,7 +82,6 @@ const FrameManager = {
             this.frameElement.appendChild(canvas);
 
             if (styleId === 'runes') {
-                canvas.style.zIndex = '10003';
                 this.startRuneAnimation();
             } else {
                 this.isRuneAnimating = false;
@@ -134,37 +133,42 @@ const FrameManager = {
         ctx.shadowBlur = 5;
 
         const step = MAP_CONFIG.viewport.step || 50;
-        const padding = MAP_CONFIG.viewport.padding || 20;
 
+        /* не трогать позиции */
         const topY = 13;
         const bottomY = canvasHeight - 54;
         const leftX = 11;
         const rightX = canvasWidth - 54;
 
+        const cornerBuffer = 75;
+
         const drawRuneAt = (x, y) => {
             const coordKey = `${Math.round(x)}_${Math.round(y)}`;
 
-            // Если руны нет в кэше — генерируем её символ и уникальное смещение фазы анимации
             if (!this.runeCharacterCache.has(coordKey)) {
                 this.runeCharacterCache.set(coordKey, {
                     char: this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)],
-                    phaseShift: Math.random() * Math.PI * 2 // Случайная фаза от 0 до 360 градусов
+                    phaseShift: Math.random() * Math.PI * 2
                 });
             }
 
             const runeData = this.runeCharacterCache.get(coordKey);
-
             const runeAlpha = 0.2 + Math.abs(Math.sin(time + runeData.phaseShift)) * 0.8;
 
             ctx.fillStyle = `rgba(223, 188, 111, ${runeAlpha})`;
             ctx.fillText(runeData.char, x, y);
         };
 
-        for (let x = padding + 44; x <= canvasWidth - padding - 44; x += step) {
-            drawRuneAt(x, topY); drawRuneAt(x, bottomY);
+        // Горизонтальные ряды (Топ и Низ)
+        for (let x = cornerBuffer; x <= canvasWidth - cornerBuffer; x += step) {
+            drawRuneAt(x, topY);
+            drawRuneAt(x, bottomY);
         }
-        for (let y = padding + 44; y <= canvasHeight - padding - 44; y += step) {
-            drawRuneAt(leftX, y); drawRuneAt(rightX, y);
+
+        // Вертикальные ряды (Лево и Право)
+        for (let y = cornerBuffer; y <= canvasHeight - cornerBuffer; y += step) {
+            drawRuneAt(leftX, y);
+            drawRuneAt(rightX, y);
         }
     },
 
@@ -252,8 +256,7 @@ const FrameManager = {
             this.frameElement.style.height = `${fHeight}px`;
 
             if (currentStyleId === 'runes') {
-                const canvas = document.getElementById('ornamentCanvas');
-                if (canvas) canvas.style.zIndex = '10003';
+//                const canvas = document.getElementById('ornamentCanvas');
                 this.startRuneAnimation();
             } else if (currentStyleId === 'ornament') {
                 this.drawStandardOrnamentCanvas(fWidth, fHeight);

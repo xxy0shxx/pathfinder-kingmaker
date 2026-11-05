@@ -461,7 +461,7 @@ body {
     background: linear-gradient(135deg, #a68032, #543e0d);
     border: 2px solid #36260d;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-    z-index: 10002;
+    z-index: 10005;
 }
 .frame-corner::before {
     content: '';
@@ -1695,7 +1695,7 @@ body {
     position: absolute;
     inset: -22px;
     pointer-events: none;
-    z-index: -1; /* Ромбы по умолчанию остаются внизу под уголками */
+    z-index: 10003;
     will-change: transform;
 }
 /* ============================================================================
