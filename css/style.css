@@ -1711,19 +1711,35 @@ body {
 /* Переносим свечение на сам контейнер, растянутый в JS наружу на 24px */
 .kingmaker-frame.frame-style-ornament-heavy {
     border: 22px solid transparent !important;
+    box-shadow: none !important;
+}
+/* СУПЕР-ХАК: Сжимаем оригинальный фон и градиент рамки внутрь на 24px.
+   Это делает внешние 24px контейнера полностью прозрачными, убирая внешнюю темную полосу! */
+.frame-style-ornament-heavy::before {
+    inset: 24px !important;
+    padding: 22px !important;
+    background-clip: padding-box !important;
+}
+
+/* СОЗДАЕМ НЕВИДИМЫЙ КОНТЕЙНЕР-БАРЬЕР: перекрывает карту и выносит свечение наружу */
+.frame-style-ornament-heavy::after {
+    content: "" !important;
+    position: absolute !important;
+    /* Полностью перекрываем всю расширенную 46-пиксельную зону в JS */
+    inset: 0px !important;
+    pointer-events: none !important;
+    z-index: -2; /* Уводим под ромбы, но оставляем НАД картой, чтобы отсечь её */
+
+    /* Задаем жесткие 24px непрозрачного поля, покрашенного в глубокий цвет фона вашего приложения */
+    border: 24px solid #16291b !important;
+    background-clip: border-box !important;
+
+    /* ВЫНОС СВЕЧЕНИЯ: теперь многослойное облако начинается СТРОГО за пределами невидимой рамки */
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8),
     0 0 25px rgba(255, 255, 255, 0.9),
     0 0 45px #ffd875,
     0 0 75px rgba(223, 188, 111, 0.85),
     0 0 120px rgba(223, 188, 111, 0.45) !important;
-}
-
-/* СУПЕР-ХАК: Сжимаем оригинальный фон и градиент рамки внутрь на 24px.
-   Это делает внешние 24px контейнера полностью прозрачными, убирая внешнюю темную полосу! */
-.frame-style-ornament-heavy::before {
-    inset: 2px !important; /* Утапливаем фон ровно на величину тяжелого сдвига */
-    padding: 22px !important;
-    background-clip: padding-box !important;
 }
 
 .frame-style-ornament-heavy .diamond-row {
