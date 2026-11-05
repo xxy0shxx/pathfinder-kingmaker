@@ -183,34 +183,49 @@ const FrameManager = {
     },
 
 
-
     /**
-     * Создание разметки линеек. Вызывается один раз. Распределением управляет CSS Flexbox.
+     * Создание разметки линеек орнамента со строгим отсечением по высоте
      */
     updateFrameOrnament() {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
 
+        const width = this.frameElement.offsetWidth || window.innerWidth;
+        const height = this.frameElement.offsetHeight || window.innerHeight;
+
         const directions = ['top', 'bottom', 'left', 'right'];
         const fragment = document.createDocumentFragment();
+
+        // Оптимальный шаг для плотного вертикального и горизонтального ряда
+        const targetStep = 16;
 
         directions.forEach(dir => {
             const row = document.createElement('div');
             row.className = `diamond-row row-${dir}`;
 
-            // Задаем фиксированное красивое количество ромбов на каждую сторону (например, по 25 штук)
-            // Flexbox сам распределит их по всей длине рамки, как бы она ни сжималась
-            const count = (dir === 'top' || dir === 'bottom') ? 30 : 15;
-
-            for (let i = 0; i < count; i++) {
-                const tooth = document.createElement('div');
-                tooth.className = 'diamond-tooth';
-                row.appendChild(tooth);
+            let count = 0;
+            if (dir === 'top' || dir === 'bottom') {
+                const availableWidth = Math.max(0, width - 48);
+                count = Math.floor(availableWidth / targetStep);
+            } else {
+                const availableHeight = Math.max(0, height - 48);
+                // Берем с небольшим запасом, так как overflow: hidden в CSS сам чисто отрежет лишнее
+                count = Math.ceil(availableHeight / targetStep);
             }
-            fragment.appendChild(row);
+
+            if (count > 0) {
+                for (let i = 0; i < count; i++) {
+                    const tooth = document.createElement('div');
+                    tooth.className = 'diamond-tooth';
+                    row.appendChild(tooth);
+                }
+                fragment.appendChild(row);
+            }
         });
 
         this.frameElement.appendChild(fragment);
     }
+
+
 }
 
 
