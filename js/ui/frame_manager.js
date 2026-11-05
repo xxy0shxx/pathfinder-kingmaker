@@ -156,22 +156,15 @@ const FrameManager = {
         const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
         if (baseWidth > 0 && baseHeight > 0) {
-            // Жёсткие 22px бордера: карта внутри рамки ВСЕГДА сохраняет исходный 100% размер
+            // ЖЁСТКАЯ ФИКСАЦИЯ: Всегда чистые 22px! Карта под рамкой сохраняет исходный 100% размер
             const borderWidth = 22;
-
-            const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
-            const isHeavy = currentStyleId === 'ornament-heavy';
-
-            // Если включен тяжелый стиль, виртуально расширяем габариты рамки на 24px наружу
-            // Это создает эффект невидимого внешнего контейнера, который упрется в края экрана вершинами
-            const heavyOffset = isHeavy ? 24 : 0;
 
             this.frameElement.style.display = 'block';
 
-            let frameLeft = cleanLeft - borderWidth - heavyOffset;
-            let frameTop = cleanTop - borderWidth - heavyOffset;
-            let frameWidth = baseWidth + (borderWidth * 2) + (heavyOffset * 2);
-            let frameHeight = baseHeight + (borderWidth * 2) + (heavyOffset * 2);
+            let frameLeft = cleanLeft - borderWidth;
+            let frameTop = cleanTop - borderWidth;
+            let frameWidth = baseWidth + (borderWidth * 2);
+            let frameHeight = baseHeight + (borderWidth * 2);
 
             if (frameLeft < viewRect.left) { frameWidth -= (viewRect.left - frameLeft); frameLeft = viewRect.left; }
             if (frameTop < viewRect.top) { frameHeight -= (viewRect.top - frameTop); frameTop = viewRect.top; }
@@ -186,11 +179,12 @@ const FrameManager = {
             this.frameElement.style.width = `${fWidth}px`;
             this.frameElement.style.height = `${fHeight}px`;
 
+            const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
             if (currentStyleId === 'runes') {
                 this.updateFrameRunes(fWidth, fHeight);
             } else if (currentStyleId === 'ornament') {
                 this.drawStandardOrnamentCanvas(fWidth, fHeight);
-            } else if (isHeavy) {
+            } else if (currentStyleId === 'ornament-heavy') {
                 this.updateFrameOrnament(currentStyleId);
             }
 

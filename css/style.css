@@ -1701,40 +1701,50 @@ body {
     will-change: transform;
 }
 /* ============================================================================
-   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (НЕВИДИМЫЙ ВНЕШНИЙ КОНТЕЙНЕР)
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (ЗАПЕЧАТАННЫЙ БАРЬЕР С УПОРОМ)
    ============================================================================ */
 .frame-style-ornament-heavy {
     opacity: 1 !important;
     visibility: visible !important;
 }
 
-/* Переносим свечение на сам контейнер, растянутый в JS наружу на 24px */
+/* Базовый контейнер рамки: без теней, так как они перенесены на край пилы */
 .kingmaker-frame.frame-style-ornament-heavy {
     border: 22px solid transparent !important;
     box-shadow: none !important;
 }
-/* СУПЕР-ХАК: Сжимаем оригинальный фон и градиент рамки внутрь на 24px.
-   Это делает внешние 24px контейнера полностью прозрачными, убирая внешнюю темную полосу! */
-.frame-style-ornament-heavy::before {
-    inset: 24px !important;
+
+/* ФИКСАЦИЯ: Сжимаем оригинальный градиент рамки внутрь.
+   Жесткие пиксели не дадут ему сминаться, полностью убирая внутреннюю темную полосу! */
+.kingmaker-frame.frame-style-ornament-heavy::before {
+    position: absolute !important;
+    top: 24px !important;
+    left: 24px !important;
+    right: 24px !important;
+    bottom: 24px !important;
     padding: 22px !important;
-    background-clip: padding-box !important;
+    background: linear-gradient(to bottom right, #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%, #a68032 70%, #1c3324 85%, #6e4e14 100%) !important;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+    -webkit-mask-composite: xor !important;
+    mask-composite: exclude !important;
 }
 
-/* СОЗДАЕМ НЕВИДИМЫЙ КОНТЕЙНЕР-БАРЬЕР: перекрывает карту и выносит свечение наружу */
-.frame-style-ornament-heavy::after {
+/* КОНТЕЙНЕР-БАРЬЕР: Скрывает карту под невидимыми полями и выносит тени за вершины ромбов */
+.kingmaker-frame.frame-style-ornament-heavy::after {
     content: "" !important;
     position: absolute !important;
-    /* Полностью перекрываем всю расширенную 46-пиксельную зону в JS */
-    inset: 0px !important;
+    top: 0px !important;
+    left: 0px !important;
+    right: 0px !important;
+    bottom: 0px !important;
     pointer-events: none !important;
-    z-index: -2; /* Уводим под ромбы, но оставляем НАД картой, чтобы отсечь её */
+    z-index: -2; /* Под ромбами, но НАД картой, чтобы полностью её перекрыть */
 
-    /* Задаем жесткие 24px непрозрачного поля, покрашенного в глубокий цвет фона вашего приложения */
+    /* Заливаем внешние 24px цветом фона приложения, убирая просвечивание карты за рамкой */
     border: 24px solid #16291b !important;
     background-clip: border-box !important;
 
-    /* ВЫНОС СВЕЧЕНИЯ: теперь многослойное облако начинается СТРОГО за пределами невидимой рамки */
+    /* Роскошное королевское свечение, смещенное наружу за вершины ромбов */
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8),
     0 0 25px rgba(255, 255, 255, 0.9),
     0 0 45px #ffd875,
@@ -1750,12 +1760,12 @@ body {
     overflow: hidden;
 }
 
-/* Корректируем координаты линеек ромбов под новые габариты внешнего контейнера, никуда их не смещая */
+/* Координаты линеек ромбов возвращены к вашим эталонным позициям */
 .frame-style-ornament-heavy .diamond-row.row-top,
 .frame-style-ornament-heavy .diamond-row.row-bottom {
     justify-content: flex-start;
     height: 34px;
-    left: 50px; /* Смещаем к углам нового размера */
+    left: 50px;
     right: 50px;
 }
 .frame-style-ornament-heavy .diamond-row.row-top    { top: -5px; }
@@ -1787,7 +1797,7 @@ body {
 .frame-style-ornament-heavy .diamond-row.row-top .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-bottom .diamond-tooth { margin: auto 4.5px; }
 
-/* ЦЕНТРАЛЬНЫЕ КРУПНЫЕ РОМБЫ-БАСТИОНЫ (Идеально позиционируются по новому центру) */
+/* ЦЕНТРАЛЬНЫЕ КРУПНЫЕ РОМБЫ-БАСТИОНЫ */
 .center-bastion {
     position: absolute;
     background: linear-gradient(135deg, #a68032, #543e0d);
@@ -1823,7 +1833,7 @@ body {
 .frame-style-ornament-heavy .frame-corner::before { inset: 5px; border: 2px solid #23472e; box-shadow: inset 0 0 12px rgba(35, 71, 46, 0.9); }
 .frame-style-ornament-heavy .frame-corner, .frame-style-ornament-heavy .frame-corner::before { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
 
-/* Выдвигаем угловые ромбы наружу от центра нового контейнера */
+/* Координаты углов-68px зафиксированы на своих посадочных местах */
 .frame-style-ornament-heavy .top-left     { top: -22px; left: -22px; }
 .frame-style-ornament-heavy .top-right    { top: -22px; right: -22px; }
 .frame-style-ornament-heavy .bottom-left  { bottom: -22px; left: -22px; }

@@ -153,7 +153,7 @@ const ViewportManager = {
         const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
         const isHeavy = currentStyleId === 'ornament-heavy';
 
-        // Раздвигаем невидимые лимиты упора камеры наружу на 24px (вылет вершин ромбов)
+        // Раздвигаем лимиты упора камеры наружу ровно на 24px (вылет вершин ромбов)
         const extraOffset = isHeavy ? 24 : 0;
 
         const { minX, maxX, minY, maxY } = MAP_CONFIG.viewport.limits;
