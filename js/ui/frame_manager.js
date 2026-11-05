@@ -143,8 +143,6 @@ const FrameManager = {
         }
     },
 
-
-
     updateBounds(viewport, mapContainer, currentZoom) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement || !viewport || !mapContainer) return;
@@ -161,7 +159,7 @@ const FrameManager = {
         const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
         if (baseWidth > 0 && baseHeight > 0) {
-            // ЖЁСТКАЯ ФИКСАЦИЯ: Базовый бордер всегда 22px
+            // ЖЁСТКАЯ ФИКСАЦИЯ: Всегда 22px бордера! Карта возвращает исходный 100% масштаб без дыр
             const borderWidth = 22;
 
             const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
@@ -174,7 +172,7 @@ const FrameManager = {
             let frameWidth = baseWidth + (borderWidth * 2);
             let frameHeight = baseHeight + (borderWidth * 2);
 
-            // Фиксированный отступ упора для тяжелого орнамента
+            // МАКСИМАЛЬНЫЙ УПОР: Если включен тяжелый стиль, рамка стопорится за 24px до края экрана кончиками ромбов
             const heavyPadding = isHeavy ? 24 : 0;
 
             if (frameLeft < viewRect.left + heavyPadding) {
@@ -208,13 +206,11 @@ const FrameManager = {
                 this.updateFrameOrnament(currentStyleId);
             }
 
-            // ИСПРАВЛЕННАЯ СИНХРОННАЯ МАСКА КАРТЫ: Прибавляем и вычитаем heavyPadding,
-            // чтобы обрезать холст карты точно по внутренней золотой линии видимой рамки,
-            // не давая гексам выходить наружу под парящие ромбы!
-            const clipLeft = (Math.max(0, viewRect.left - mapRect.left) + heavyPadding) / currentZoom;
-            const clipTop = (Math.max(0, viewRect.top - mapRect.top) + heavyPadding) / currentZoom;
-            const clipRight = (Math.max(0, mapRect.right - viewRect.right) + heavyPadding) / currentZoom;
-            const clipBottom = (Math.max(0, mapRect.bottom - viewRect.bottom) + heavyPadding) / currentZoom;
+            // Кадрирование карты строго по осям вьюпорта — без внутренних щелей и деформаций!
+            const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
+            const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
+            const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
+            const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
 
             mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
         } else {
@@ -257,7 +253,8 @@ const FrameManager = {
 
 
     updateFrameOrnament(styleId = 'ornament') {
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-edge-shield').forEach(el => el.remove());
+        // Зачищаем все старые элементы, линейки, бастионы и щиты
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-absolute-shield').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
         const height = this.frameElement.offsetHeight || window.innerHeight;
@@ -303,17 +300,18 @@ const FrameManager = {
                 const bastion = document.createElement('div');
                 bastion.className = `center-bastion bastion-${dir}`;
                 fragment.appendChild(bastion);
-
-                // Создаем защитную плашку цвета общего фона для текущей стороны
-                const shield = document.createElement('div');
-                shield.className = `heavy-edge-shield shield-${dir}`;
-                fragment.appendChild(shield);
             }
         });
 
+        // ЖЁСТКАЯ ГЕНЕРАЦИЯ: Создаем физический фоновый щит, запечатывающий карту под ромбами снаружи
+        if (isHeavy) {
+            const shield = document.createElement('div');
+            shield.className = 'heavy-absolute-shield';
+            fragment.appendChild(shield);
+        }
+
         this.frameElement.appendChild(fragment);
     }
-
 
 };
 

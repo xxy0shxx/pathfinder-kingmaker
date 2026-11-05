@@ -1720,7 +1720,7 @@ body {
     0 0 120px rgba(223, 188, 111, 0.45) !important;
 }
 
-/* Градиент рамки ложится идеально на свои базовые 22px */
+/* Градиент рамки ложится идеально на свои базовые 22px, убирая внутренний разрыв */
 .kingmaker-frame.frame-style-ornament-heavy::before {
     position: absolute !important;
     inset: -22px !important;
@@ -1730,10 +1730,25 @@ body {
     -webkit-mask-composite: xor !important;
     mask-composite: exclude !important;
 }
-
 .kingmaker-frame.frame-style-ornament-heavy::after {
     content: none !important;
 }
+
+.heavy-absolute-shield {
+    position: absolute !important;
+    /* Раздуваем щит ровно на величину вылета ромбов (24px наружу от 22-пиксельной рамки) */
+    inset: -46px !important;
+    /* Прозрачное окно в центре шириной под карту, а внешние 24px — глухой цвет фона приложения! */
+    border: 24px solid #16291b !important;
+    background-color: transparent !important;
+    background-clip: border-box !important;
+    /* Принудительно отсекаем градиенты и маски, чистый слой */
+    -webkit-mask: none !important;
+    mask: none !important;
+    z-index: 10001 !important; /* Строго под рядами ромбов и бастионов, но НАД просвечивающей картой */
+    pointer-events: none !important;
+}
+
 .frame-style-ornament-heavy .diamond-row {
     position: absolute;
     display: flex;
@@ -1812,18 +1827,16 @@ body {
 .frame-style-ornament-heavy .bottom-right { bottom: -46px; right: -46px; }
 
 /* ============================================================================
-   15. ФИКСАЦИЯ ИЗОЛЯЦИИ КАРТЫ СЗАДИ ДЛЯ ТЯЖЕЛОГО ОРНАМЕНТА
+   15. АППАРАТНАЯ СТЫКОВКА И ОБРЕЗКА ХОЛСТА КАРТЫ ПО ЗОЛОТОМУ КАНТУ
    ============================================================================ */
+.frame-style-ornament-heavy ~ .map-viewport .map-container,
 .frame-style-ornament-heavy ~ .map-container,
-.frame-style-ornament-heavy + .map-container,
-.kingmaker-frame.frame-style-ornament-heavy ~ #mapCanvas {
-    /* Создаем гигантский глухой воротник цвета глубокого фона приложения вокруг карты.
-       Он физически перекроет и запечатает любые вылезающие за пределы золотой рамки гексы,
-       при этом сама карта внутри рамки останется в своем исходном 100% масштабе! */
-    outline: 300px solid #16291b !important;
-    /* Смещаем аутлайн точно во внутреннюю границу 22-пиксельного бордера рамки */
-    outline-offset: -22px !important;
+.kingmaker-frame.frame-style-ornament-heavy ~ .map-container {
+    /* ЖЕСТКИЙ СРЕЗ: Заставляем браузер аппаратно обрезать холст карты точно
+       по внутреннему периметру золотой рамки. Теперь при любом перетаскивании
+       и залипании гексы физически не смогут вытечь наружу за пределы канта! */
+    clip-path: inset(22px) !important;
 
-    /* Уводим под рамку, чтобы золотой кант и ромбы перекрывали этот барьер */
+    /* Уводим под рамку, сохраняя правильную иерархию слоев */
     z-index: 1 !important;
 }
