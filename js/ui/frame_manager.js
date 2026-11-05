@@ -22,7 +22,8 @@ const FrameManager = {
         const styles = [
             {id: 'norunes', icon: '🔲', title: 'Рамка: Без рун'},
             {id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами'},
-            {id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент'}
+            {id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент'},
+            {id: 'ornament-heavy', icon: '🔶', title: 'Рамка: Орнамент Крупный'}
         ];
 
         let currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
@@ -55,10 +56,12 @@ const FrameManager = {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement) return;
 
-        this.frameElement.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament');
+        // Очищаем все возможные старые классы стилей
+        this.frameElement.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament', 'frame-style-ornament-heavy');
 
-        if (styleId === 'ornament') {
-            this.frameElement.classList.add('frame-style-norunes', 'frame-style-ornament');
+        // Оба орнамента используют красивую базовую подложку norunes
+        if (styleId === 'ornament' || styleId === 'ornament-heavy') {
+            this.frameElement.classList.add('frame-style-norunes', `frame-style-${styleId}`);
         } else {
             this.frameElement.classList.add(`frame-style-${styleId}`);
         }
@@ -72,7 +75,7 @@ const FrameManager = {
             }
         });
 
-        // Полностью очищаем старый декор (руны, старые ромбы и линейки)
+        // Полная очистка DOM от старых элементов
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth;
@@ -80,12 +83,12 @@ const FrameManager = {
 
         if (styleId === 'runes') {
             this.updateFrameRunes(width, height);
-        } else if (styleId === 'ornament') {
-            this.updateFrameOrnament();
+        } else if (styleId === 'ornament' || styleId === 'ornament-heavy') {
+            this.updateFrameOrnament(styleId);
         }
     },
     /**
-     * Динамическое позиционирование рамки — ПОЛНОСТЬЮ СТАТИЧНО ДЛЯ РОМБОВ
+     * Динамическое позиционирование рамки
      */
     updateBounds(viewport, mapContainer, currentZoom) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
@@ -122,7 +125,6 @@ const FrameManager = {
             this.frameElement.style.height = `${Math.ceil(frameHeight)}px`;
 
             const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
-            // Перерисовываем на лету ТОЛЬКО руны. Орнамент теперь на CSS-автоматике!
             if (currentStyleId === 'runes') {
                 this.updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
             }
@@ -138,7 +140,6 @@ const FrameManager = {
             mapContainer.style.clipPath = 'none';
         }
     },
-
 
 
     /**
@@ -184,9 +185,9 @@ const FrameManager = {
 
 
     /**
-     * Создание разметки линеек орнамента (Максимально крупные ромбы)
+     * Универсальное создание линеек орнамента (Поддерживает обычный и тяжелый стили)
      */
-    updateFrameOrnament() {
+    updateFrameOrnament(styleId = 'ornament') {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
@@ -195,8 +196,10 @@ const FrameManager = {
         const directions = ['top', 'bottom', 'left', 'right'];
         const fragment = document.createDocumentFragment();
 
-        // 35px — выверенный шаг для плотного стыка ромбов 26x26
-        const targetStep = 35;
+        // Задаем шаг под каждый стиль отдельно: 35px для обычного (26х26), 70px для тяжелого (52х52)
+        const isHeavy = styleId === 'ornament-heavy';
+        const targetStep = isHeavy ? 70 : 35;
+        const paddingOffset = isHeavy ? 80 : 56; // Отступы от углов (40px * 2 для тяжелого)
 
         directions.forEach(dir => {
             const row = document.createElement('div');
@@ -204,10 +207,10 @@ const FrameManager = {
 
             let count = 0;
             if (dir === 'top' || dir === 'bottom') {
-                const availableWidth = Math.max(0, width - 56); // Защита отступов угловых квадратов (28px * 2)
+                const availableWidth = Math.max(0, width - paddingOffset);
                 count = Math.floor(availableWidth / targetStep);
             } else {
-                const availableHeight = Math.max(0, height - 56);
+                const availableHeight = Math.max(0, height - paddingOffset);
                 count = Math.ceil(availableHeight / targetStep);
             }
 
@@ -223,7 +226,6 @@ const FrameManager = {
 
         this.frameElement.appendChild(fragment);
     }
-
 
 }
 

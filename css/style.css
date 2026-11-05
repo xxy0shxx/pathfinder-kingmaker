@@ -1744,3 +1744,70 @@ body {
 .diamond-row.row-bottom .diamond-tooth {
     margin: auto 4px;
 }
+
+/* ============================================================================
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (ГИГАНТСКИЕ РОМБЫ ПОВЕРХ РАМКИ)
+   ============================================================================ */
+.frame-style-ornament-heavy {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Контейнеры-линейки теперь ложатся ПОВЕРХ рамки и её уголков */
+.frame-style-ornament-heavy .diamond-row {
+    position: absolute;
+    display: flex;
+    pointer-events: none;
+    z-index: 10005; /* Максимальный приоритет — перекрывает всё */
+    overflow: hidden;
+}
+
+/* Центрирование линеек ровно по осевой линии 22px рамки */
+.frame-style-ornament-heavy .diamond-row.row-top {
+    top: -4px;
+    left: 40px; /* Увеличенный отступ, чтобы гиганты не вылезали за края */
+    right: 40px;
+    height: 74px;
+    justify-content: space-between;
+}
+.frame-style-ornament-heavy .diamond-row.row-bottom {
+    bottom: -4px;
+    left: 40px;
+    right: 40px;
+    height: 74px;
+    justify-content: space-between;
+}
+.frame-style-ornament-heavy .diamond-row.row-left {
+    left: -4px;
+    top: 40px;
+    bottom: 40px;
+    width: 74px;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.frame-style-ornament-heavy .diamond-row.row-right {
+    right: -4px;
+    top: 40px;
+    bottom: 40px;
+    width: 74px;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Элемент — удвоенный королевский ромб */
+.frame-style-ornament-heavy .diamond-tooth {
+    width: 52px; /* В два раза больше предыдущего */
+    height: 52px;
+    background-color: #8a6421;
+    border: 3.5px solid #dfbc6f; /* Массивная золотая обводка */
+    transform: rotate(45deg);
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    margin: 8px auto;
+}
+
+.frame-style-ornament-heavy .diamond-row.row-top .diamond-tooth,
+.frame-style-ornament-heavy .diamond-row.row-bottom .diamond-tooth {
+    margin: auto 8px;
+}
+
