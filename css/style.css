@@ -1697,7 +1697,6 @@ body {
     overflow: hidden;
 }
 
-/* Сдвиг -29px выталкивает ромбы наружу для максимального парящего эффекта */
 .frame-style-ornament-heavy .diamond-row.row-top,
 .frame-style-ornament-heavy .diamond-row.row-bottom {
     justify-content: flex-start;
@@ -1774,3 +1773,29 @@ body {
     flex-grow: 1;
     pointer-events: none;
 }
+
+/* ВЕКТОРНАЯ МОДИФИКАЦИЯ УГЛОВ СТРОГО ДЛЯ СТИЛЯ ORNAMENT-HEAVY */
+.frame-style-ornament-heavy .frame-corner {
+    width: 68px;
+    height: 68px;
+    border: 3px solid #36260d;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.85), 0 0 5px #ffd875;
+    z-index: 10006;
+}
+
+.frame-style-ornament-heavy .frame-corner::before {
+    inset: 5px;
+    border: 2px solid #23472e;
+    box-shadow: inset 0 0 12px rgba(35, 71, 46, 0.9);
+}
+
+.frame-style-ornament-heavy .frame-corner,
+.frame-style-ornament-heavy .frame-corner::before {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* Экстремальный сдвиг угловых ромбов наружу от краев экрана (-46px вместо -34px) */
+.frame-style-ornament-heavy .top-left     { top: -46px; left: -46px; }
+.frame-style-ornament-heavy .top-right    { top: -46px; right: -46px; }
+.frame-style-ornament-heavy .bottom-left  { bottom: -46px; left: -46px; }
+.frame-style-ornament-heavy .bottom-right { bottom: -46px; right: -46px; }
