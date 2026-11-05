@@ -64,45 +64,60 @@ const PathManager = {
     /**
      * Генерация SVG-линий между всеми посещенными точками на карте на основе эталонных координат
      */
+    /**
+     * Высокопроизводительная генерация SVG-маршрута на базе единого тега <path>
+     */
+    /**
+     * Оптимизированный рендеринг пути через один тег <path>
+     */
     render() {
         if (!this.svgLayer) this.svgLayer = document.getElementById('mapPathsSvg');
         if (!this.svgLayer || !this.mapDataRef) return;
 
-        // Полностью очищаем старые линии на SVG-слое
-        this.svgLayer.innerHTML = '';
-
         const currentHistory = this.history;
-        // Если точек в истории меньше двух — рисовать линию не между чем
-        if (currentHistory.length < 2) return;
+        // Если точек в истории меньше двух — рисовать нечего
+        if (currentHistory.length < 2) {
+            this.svgLayer.innerHTML = '';
+            return;
+        }
 
-        let svgContent = '';
+        const coordsSource = HexCanvasRender.hexCoords || HexCanvasRender.coordinatesMap || null;
 
-        for (let i = 0; i < currentHistory.length - 1; i++) {
-            const startId = currentHistory[i];
-            const endId = currentHistory[i + 1];
+        if (!coordsSource) {
+            console.error("PathManager: Координаты гексов в HexCanvasRender не найдены!");
+            return;
+        }
 
-            // Вместо поиска DOM-элементов берем чистые, эталонные cx и cy центра гексов
-            const startCoords = HexCanvasRender.hexCoords[startId];
-            const endCoords = HexCanvasRender.hexCoords[endId];
+        let pathData = '';
+        let isFirstPoint = true;
 
-            // Если для обеих точек у нас есть вычисленные координаты — генерируем SVG-линию
-            if (startCoords && endCoords) {
-                svgContent += `
-                    <line 
-                        x1="${startCoords.cx}" 
-                        y1="${startCoords.cy}" 
-                        x2="${endCoords.cx}" 
-                        y2="${endCoords.cy}" 
-                        stroke="#ffd875" 
-                        stroke-width="5" 
-                        class="squad-path-line"
-                    ></line>
-                `;
+        for (let i = 0; i < currentHistory.length; i++) {
+            const pointId = currentHistory[i];
+            const coords = coordsSource[pointId];
+
+            if (coords) {
+                if (isFirstPoint) {
+                    pathData += `M ${coords.cx} ${coords.cy}`;
+                    isFirstPoint = false;
+                } else {
+                    pathData += ` L ${coords.cx} ${coords.cy}`;
+                }
             }
         }
 
-        // Записываем сгенерированные линии в SVG-слой
-        this.svgLayer.innerHTML = svgContent;
+        if (pathData) {
+            this.svgLayer.innerHTML = `
+                <path 
+                    d="${pathData}" 
+                    stroke="#ffd875" 
+                    stroke-width="5" 
+                    fill="none" 
+                    class="squad-path-line"
+                ></path>
+            `;
+        } else {
+            this.svgLayer.innerHTML = '';
+        }
     }
 
 };

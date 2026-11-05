@@ -1516,8 +1516,8 @@ body {
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-dasharray: 8, 8;
+    fill: none;
     filter: drop-shadow(0 0 5px rgba(223, 188, 111, 0.7));
-    /*animation: pathLineFlow 30s linear infinite;*/ /* пусть пока будет! */
     will-change: transform;
 }
 
