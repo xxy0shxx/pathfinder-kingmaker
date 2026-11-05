@@ -60,17 +60,25 @@ const HexCanvasRender = {
     startAnimationLoop() {
         if (this.isAnimating) return;
         this.isAnimating = true;
+
         const loop = () => {
             if (MAP_CONFIG.ENABLE_FPS_MONITOR) {
                 this._profileFps();
             }
+
             this.render();
-            if (this.isAnimating) {
+
+            // ЖЕСТКАЯ ПРОВЕРКА: Если выбраны руны, мы гарантированно продолжаем цикл,
+            // даже если на карте нет анимаций спавна или движения отряда
+            const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
+
+            if (this.isAnimating || isRuneStyleActive) {
                 requestAnimationFrame(loop);
             }
         };
         requestAnimationFrame(loop);
     },
+
 
     /**
      * Перевод графического движка в режим энергосбережения
@@ -138,7 +146,7 @@ const HexCanvasRender = {
         const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
 
         if (hasActiveSpawnAnimations || isRuneStyleActive) {
-            this.startAnimationLoop();
+            this.startAnimationLoop(); // Запускаем постоянный цикл для мерцания рун
         } else {
             this.requestFrame();
         }
@@ -228,12 +236,14 @@ const HexCanvasRender = {
 
         const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
 
-        if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap || isRuneStyleActive) {
+        if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap) {
             this.isAnimating = true;
         } else if (this.isAnimating) {
             this.stopAnimationLoop();
         }
     },
+
+
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 

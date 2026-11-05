@@ -338,6 +338,11 @@ document.addEventListener('DOMContentLoaded', () => {
         HexCanvasRender.init(canvasElement, mapData.hexes, hexCoordinatesMap);
         window.HexCanvasRender = HexCanvasRender;
 
+        // Если при загрузке страницы уже выбраны руны — сразу запускаем цикл дыхания
+        if (localStorage.getItem('kingmakerFrameStyle') === 'runes') {
+            HexCanvasRender.startAnimationLoop();
+        }
+
         // Обработка клика по Canvas (вместо старых 360-ти HTML-слушателей)
         canvasElement.addEventListener('click', () => {
             if (!ViewportManager.getHasMoved() && HexCanvasRender.hoveredHexKey) {

@@ -3,11 +3,17 @@ import { MAP_CONFIG } from '../config/app_config.js';
 const FrameManager = {
     RUNE_POOL: ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'],
     frameElement: null,
-    runeCharacterCache: new Map(), // <-- Новый массив для фиксации выпавших рандомных рун
+    runeCharacterCache: new Map(),
+    isRuneAnimating: false, // Изолированный поток анимации рун
 
     init() {
         this.frameElement = document.querySelector('.kingmaker-frame');
         this.initFrameStyleControls();
+
+        // Автозапуск изолированного дыхания при первой загрузке
+        if (localStorage.getItem('kingmakerFrameStyle') === 'runes') {
+            this.startRuneAnimation();
+        }
     },
 
     initFrameStyleControls() {
@@ -42,8 +48,6 @@ const FrameManager = {
         btn.title = startStyle.title;
         this.applyFrameStyle(startStyle.id);
     },
-
-
     applyFrameStyle(styleId) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement) return;
@@ -66,47 +70,98 @@ const FrameManager = {
         });
 
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, #ornamentCanvas, .frame-heavy-backdrop').forEach(el => el.remove());
-        this.runeCharacterCache.clear(); // Полностью очищаем кэш при смене стиля
+        this.runeCharacterCache.clear();
 
         const width = this.frameElement.offsetWidth;
         const height = this.frameElement.offsetHeight;
 
-
         if (styleId === 'runes' || styleId === 'ornament') {
-            this.initStandardOrnamentCanvas();
-            const canvas = document.getElementById('ornamentCanvas');
+            if (this.frameElement.querySelector('#ornamentCanvas')) return;
+            const canvas = document.createElement('canvas');
+            canvas.id = 'ornamentCanvas';
+            this.frameElement.appendChild(canvas);
 
-            if (canvas) {
-                if (styleId === 'runes') {
-                    // Поднимаем холст НАВЕРХ только для рун, чтобы они легли поверх золота
-                    canvas.style.zIndex = '10003';
-                    this.updateFrameRunes(width, height);
-                } else {
-                    // Возвращаем холст ВНИЗ для обычной пилы из ромбов, чтобы не перекрывать уголки
-                    canvas.style.zIndex = '-1';
-                    this.drawStandardOrnamentCanvas(width, height);
-                }
+            if (styleId === 'runes') {
+                canvas.style.zIndex = '10003';
+                this.startRuneAnimation();
+            } else {
+                this.isRuneAnimating = false;
+                canvas.style.zIndex = '-1';
+                this.drawStandardOrnamentCanvas(width, height);
             }
-        } else if (styleId === 'ornament-heavy') {
-            this.updateFrameOrnament(styleId);
+        } else {
+            this.isRuneAnimating = false;
+            if (styleId === 'ornament-heavy') this.updateFrameOrnament(styleId);
+        }
+    },
+
+    startRuneAnimation() {
+        if (this.isRuneAnimating) return;
+        this.isRuneAnimating = true;
+
+        const runeLoop = () => {
+            if (!this.isRuneAnimating || localStorage.getItem('kingmakerFrameStyle') !== 'runes') {
+                this.isRuneAnimating = false;
+                return;
+            }
+            this.updateFrameRunes(this.frameElement.offsetWidth, this.frameElement.offsetHeight);
+            requestAnimationFrame(runeLoop);
+        };
+        requestAnimationFrame(runeLoop);
+    },
+
+    updateFrameRunes(width, height) {
+        const canvas = document.getElementById('ornamentCanvas');
+        if (!canvas) return;
+
+        const canvasWidth = width + 44;
+        const canvasHeight = height + 44;
+
+        if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
         }
 
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        const time = Date.now() * 0.0025;
+        const breatheAlpha = 0.25 + Math.abs(Math.sin(time)) * 0.75;
+
+        ctx.font = 'bold 18px monospace';
+        ctx.fillStyle = `rgba(223, 188, 111, ${breatheAlpha})`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(223, 188, 111, 0.6)';
+        ctx.shadowBlur = 5;
+
+        const step = MAP_CONFIG.viewport.step || 50;
+        const padding = MAP_CONFIG.viewport.padding || 20;
+
+        const topY = 13;
+        const bottomY = canvasHeight - 54;
+        const leftX = 11;
+        const rightX = canvasWidth - 54;
+
+        const drawRuneAt = (x, y) => {
+            const coordKey = `${Math.round(x)}_${Math.round(y)}`;
+            if (!this.runeCharacterCache.has(coordKey)) {
+                this.runeCharacterCache.set(coordKey, this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)]);
+            }
+            ctx.fillText(this.runeCharacterCache.get(coordKey), x, y);
+        };
+
+        for (let x = padding + 44; x <= canvasWidth - padding - 44; x += step) {
+            drawRuneAt(x, topY); drawRuneAt(x, bottomY);
+        }
+        for (let y = padding + 44; y <= canvasHeight - padding - 44; y += step) {
+            drawRuneAt(leftX, y); drawRuneAt(rightX, y);
+        }
     },
-
-
-    initStandardOrnamentCanvas() {
-        if (this.frameElement.querySelector('#ornamentCanvas')) return;
-        const canvas = document.createElement('canvas');
-        canvas.id = 'ornamentCanvas';
-        this.frameElement.appendChild(canvas);
-        this.drawStandardOrnamentCanvas(this.frameElement.offsetWidth, this.frameElement.offsetHeight);
-    },
-
     drawStandardOrnamentCanvas(width, height) {
         const canvas = document.getElementById('ornamentCanvas');
         if (!canvas) return;
 
-        // Физический размер холста с учетом расширения бордеров
         const canvasWidth = width + 44;
         const canvasHeight = height + 44;
 
@@ -119,41 +174,22 @@ const FrameManager = {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
         const drawDiamond = (cx, cy, size) => {
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - size);
-            ctx.lineTo(cx + size, cy);
-            ctx.lineTo(cx, cy + size);
-            ctx.lineTo(cx - size, cy);
-            ctx.closePath();
-
-            ctx.fillStyle = '#8a6421';
-            ctx.fill();
-            ctx.strokeStyle = '#dfbc6f';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-            ctx.restore();
+            ctx.save(); ctx.beginPath();
+            ctx.moveTo(cx, cy - size); ctx.lineTo(cx + size, cy);
+            ctx.lineTo(cx, cy + size); ctx.lineTo(cx - size, cy);
+            ctx.closePath(); ctx.fillStyle = '#8a6421'; ctx.fill();
+            ctx.strokeStyle = '#dfbc6f'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore();
         };
 
-        const size = 9;
-        const step = 22;
-        const pad = 44;
+        const size = 9; const step = 22; const pad = 44;
+        const topY = 22; const bottomY = height - 22;
+        const leftX = 22; const rightX = width - 22;
 
-        const topY = 22;
-        const bottomY = height - 22; // Сдвигаем снизу внутрь к видимой золотой кромке
-        const leftX = 22;
-        const rightX = width - 22;   // Сдвигаем справа внутрь к видимой золотой кромке
-
-        // 1. Горизонтальные линии (Верх / Низ)
         for (let x = pad; x <= canvasWidth - pad; x += step) {
-            drawDiamond(x, topY, size);
-            drawDiamond(x, bottomY, size);
+            drawDiamond(x, topY, size); drawDiamond(x, bottomY, size);
         }
-
-        // 2. Вертикальные линии (Лево / Право)
         for (let y = pad; y <= canvasHeight - pad; y += step) {
-            drawDiamond(leftX, y, size);
-            drawDiamond(rightX, y, size);
+            drawDiamond(leftX, y, size); drawDiamond(rightX, y, size);
         }
     },
 
@@ -173,9 +209,7 @@ const FrameManager = {
         const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
         if (baseWidth > 0 && baseHeight > 0) {
-            // ЖЁСТКАЯ ФИКСАЦИЯ: Всегда 22px бордера! Карта возвращает исходный 100% масштаб без дыр
             const borderWidth = 22;
-
             const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
             const isHeavy = currentStyleId === 'ornament-heavy';
 
@@ -186,16 +220,13 @@ const FrameManager = {
             let frameWidth = baseWidth + (borderWidth * 2);
             let frameHeight = baseHeight + (borderWidth * 2);
 
-            // МАКСИМАЛЬНЫЙ УПОР: Если включен тяжелый стиль, рамка стопорится за 24px до края экрана кончиками ромбов
             const heavyPadding = isHeavy ? 24 : 0;
 
             if (frameLeft < viewRect.left + heavyPadding) {
-                frameWidth -= ((viewRect.left + heavyPadding) - frameLeft);
-                frameLeft = viewRect.left + heavyPadding;
+                frameWidth -= ((viewRect.left + heavyPadding) - frameLeft); frameLeft = viewRect.left + heavyPadding;
             }
             if (frameTop < viewRect.top + heavyPadding) {
-                frameHeight -= ((viewRect.top + heavyPadding) - frameTop);
-                frameTop = viewRect.top + heavyPadding;
+                frameHeight -= ((viewRect.top + heavyPadding) - frameTop); frameTop = viewRect.top + heavyPadding;
             }
             if (frameLeft + frameWidth > viewRect.right - heavyPadding) {
                 frameWidth = (viewRect.right - heavyPadding) - frameLeft;
@@ -204,9 +235,7 @@ const FrameManager = {
                 frameHeight = (viewRect.bottom - heavyPadding) - frameTop;
             }
 
-            const fWidth = Math.ceil(frameWidth);
-            const fHeight = Math.ceil(frameHeight);
-
+            const fWidth = Math.ceil(frameWidth); const fHeight = Math.ceil(frameHeight);
             this.frameElement.style.left = `${Math.floor(frameLeft)}px`;
             this.frameElement.style.top = `${Math.floor(frameTop)}px`;
             this.frameElement.style.width = `${fWidth}px`;
@@ -214,167 +243,66 @@ const FrameManager = {
 
             if (currentStyleId === 'runes') {
                 const canvas = document.getElementById('ornamentCanvas');
-                if (canvas) canvas.style.zIndex = '10003'; // Гарантируем, что руны наверху при драге
-                this.updateFrameRunes(fWidth, fHeight);
+                if (canvas) canvas.style.zIndex = '10003';
+                this.startRuneAnimation();
             } else if (currentStyleId === 'ornament') {
                 this.drawStandardOrnamentCanvas(fWidth, fHeight);
             } else if (isHeavy) {
                 this.updateFrameOrnament(currentStyleId);
             }
 
-            // Кадрирование карты строго по осям вьюпорта — без внутренних щелей и деформаций!
             const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
             const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
             const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
             const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
-
             mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
         } else {
-            this.frameElement.style.display = 'none';
-            mapContainer.style.clipPath = 'none';
+            this.frameElement.style.display = 'none'; mapContainer.style.clipPath = 'none';
         }
     },
-
-    updateFrameRunes(width, height) {
-        const canvas = document.getElementById('ornamentCanvas');
-        if (!canvas) return;
-
-        // Физический размер холста с учетом расширения бордеров на -22px со всех сторон
-        const canvasWidth = width + 44;
-        const canvasHeight = height + 44;
-
-        if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-        }
-
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-        // ВЫЧИСЛЕНИЕ МЕРЦАНИЯ: Синусоида времени (период ~2 секунды)
-        const time = Date.now() * 0.003;
-        const breatheAlpha = 0.2 + Math.abs(Math.sin(time)) * 0.8; // Прозрачность от 0.2 до 1.0
-
-        // НАСТРОЙКА ШРИФТА: Делаем руны крупнее (размер 18px), чтобы они хорошо читались
-        ctx.font = 'bold 18px monospace';
-        ctx.fillStyle = `rgba(223, 188, 111, ${breatheAlpha})`; // Неоновый золотистый цвет с альфой
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        // Добавляем красивую неоновую подсветку вокруг руны
-        ctx.shadowColor = 'rgba(223, 188, 111, 0.7)';
-        ctx.shadowBlur = 5;
-
-        // Настройки шага сетки
-        const step = MAP_CONFIG.viewport.step || 50;
-        const padding = MAP_CONFIG.viewport.padding || 20;
-
-        // МАТЕМАТИЧЕСКАЯ СМЕЩЕНИЕ ВВЕРХ И ВЛЕВО:
-        // Уменьшаем отступ с 33px до 24px, чтобы сдвинуть руны по осям X и Y
-        const topY = 13;
-        const bottomY = canvasHeight - 54;
-        const leftX = 13;
-        const rightX = canvasWidth - 54;
-
-        const drawRuneAt = (x, y) => {
-            const coordKey = `${Math.round(x)}_${Math.round(y)}`;
-            if (!this.runeCharacterCache.has(coordKey)) {
-                const randomRune = this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)];
-                this.runeCharacterCache.set(coordKey, randomRune);
-            }
-            ctx.fillText(this.runeCharacterCache.get(coordKey), x, y);
-        };
-
-        // Отрисовка горизонтальных рядов рун
-        for (let x = padding + 44; x <= canvasWidth - padding - 44; x += step) {
-            drawRuneAt(x, topY);
-            drawRuneAt(x, bottomY);
-        }
-
-        // Отрисовка вертикальных рядов рун
-        for (let y = padding + 44; y <= canvasHeight - padding - 44; y += step) {
-            drawRuneAt(leftX, y);
-            drawRuneAt(rightX, y);
-        }
-
-        // Отрисовка вертикальных рядов рун (смещаем отступы углов на 44px)
-        for (let y = padding + 44; y <= canvasHeight - padding - 44; y += step) {
-            drawRuneAt(leftX, y);
-            drawRuneAt(rightX, y);
-        }
-
-
-    },
-
-
 
     updateFrameOrnament(styleId = 'ornament') {
-        // Зачищаем все старые элементы, линейки, бастионы и щиты
-//        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-absolute-shield').forEach(el => el.remove());
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-absolute-shield, .heavy-glow-underlay').forEach(el => el.remove());
-
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
         const height = this.frameElement.offsetHeight || window.innerHeight;
-
         const directions = ['top', 'bottom', 'left', 'right'];
         const fragment = document.createDocumentFragment();
 
         const isHeavy = styleId === 'ornament-heavy';
-        const targetStep = isHeavy ? 38 : 35;
-        const paddingOffset = isHeavy ? 44 : 56;
+        const targetStep = isHeavy ? 38 : 35; const paddingOffset = isHeavy ? 44 : 56;
 
         directions.forEach(dir => {
-            const row = document.createElement('div');
-            row.className = `diamond-row row-${dir}`;
-
+            const row = document.createElement('div'); row.className = `diamond-row row-${dir}`;
             let count = 0;
             if (dir === 'top' || dir === 'bottom') {
-                const availableWidth = Math.max(0, width - paddingOffset);
-                count = Math.floor(availableWidth / targetStep);
+                count = Math.floor(Math.max(0, width - paddingOffset) / targetStep);
             } else {
-                const availableHeight = Math.max(0, height - paddingOffset);
-                count = Math.ceil(availableHeight / targetStep);
+                count = Math.ceil(Math.max(0, height - paddingOffset) / targetStep);
             }
 
             if (count > 0) {
                 const half = Math.floor(count / 2);
-
                 for (let i = 0; i < count; i++) {
                     if (isHeavy && i === half) {
-                        const spacer = document.createElement('div');
-                        spacer.className = 'diamond-spacer';
-                        row.appendChild(spacer);
+                        const spacer = document.createElement('div'); spacer.className = 'diamond-spacer'; row.appendChild(spacer);
                     }
-
-                    const tooth = document.createElement('div');
-                    tooth.className = 'diamond-tooth';
-                    row.appendChild(tooth);
+                    const tooth = document.createElement('div'); tooth.className = 'diamond-tooth'; row.appendChild(tooth);
                 }
                 fragment.appendChild(row);
             }
 
             if (isHeavy) {
-                const bastion = document.createElement('div');
-                bastion.className = `center-bastion bastion-${dir}`;
-                fragment.appendChild(bastion);
+                const bastion = document.createElement('div'); bastion.className = `center-bastion bastion-${dir}`; fragment.appendChild(bastion);
             }
         });
 
-        // ЖЁСТКАЯ ГЕНЕРАЦИЯ: Создаем физический фоновый щит, запечатывающий карту под ромбами снаружи
         if (isHeavy) {
-            const glowUnderlay = document.createElement('div');
-            glowUnderlay.className = 'heavy-glow-underlay';
-            fragment.appendChild(glowUnderlay);
-
-            const shield = document.createElement('div');
-            shield.className = 'heavy-absolute-shield';
-            fragment.appendChild(shield);
+            const glowUnderlay = document.createElement('div'); glowUnderlay.className = 'heavy-glow-underlay'; fragment.appendChild(glowUnderlay);
+            const shield = document.createElement('div'); shield.className = 'heavy-absolute-shield'; fragment.appendChild(shield);
         }
-
         this.frameElement.appendChild(fragment);
     }
-
 };
 
 export default FrameManager;
