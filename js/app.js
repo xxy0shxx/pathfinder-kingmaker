@@ -323,6 +323,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Инициализация путей на основе рассчитанных координат
     PathManager.init(mapData);
+    const svgPathsLayer = document.getElementById('mapPathsSvg');
+    const btnTogglePaths = document.getElementById('btnTogglePaths');
+    if (svgPathsLayer) {
+        svgPathsLayer.classList.add('hide-paths'); // Добавляем класс скрытия на SVG-слой
+    }
+    if (btnTogglePaths) {
+        btnTogglePaths.classList.add('paths-hidden'); // Окрашиваем кнопку в красный цвет
+    }
 
     // 5. Инициализация интерактивного Canvas-рендерера
     const canvasElement = document.getElementById('mapCanvas');

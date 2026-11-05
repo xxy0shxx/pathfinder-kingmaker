@@ -1829,7 +1829,7 @@ body {
 .center-bastion {
     position: absolute;
     background: linear-gradient(135deg, #a68032, #543e0d);
-    border: 3px solid #dfbc6f;
+/*    border: 3px solid #dfbc6f;*/
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 8px #ffd875;
     z-index: 10006 !important; /* Выше линеек ромбов и свечения */
     pointer-events: none;
@@ -1854,11 +1854,15 @@ body {
 .frame-style-ornament-heavy .frame-corner {
     width: 68px;
     height: 68px;
-    border: 3px solid #36260d;
+    border: 0px solid #184024;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.85), 0 0 5px #ffd875;
-    z-index: 10006 !important; /* Наравне с бастионами, намертво перекрывают свечение */
+    z-index: 10006 !important;
 }
-.frame-style-ornament-heavy .frame-corner::before { inset: 5px; border: 2px solid #23472e; box-shadow: inset 0 0 12px rgba(35, 71, 46, 0.9); }
+.frame-style-ornament-heavy .frame-corner::before {
+    inset: 5px;
+    border: 2px solid #23472e;
+    box-shadow: inset 0 0 12px rgba(35, 71, 46, 0.9);
+}
 .frame-style-ornament-heavy .frame-corner, .frame-style-ornament-heavy .frame-corner::before { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
 
 .frame-style-ornament-heavy .top-left     { top: -46px; left: -46px; }
