@@ -183,7 +183,7 @@ const FrameManager = {
 
 
     /**
-     * Создание разметки линеек орнамента со сплошными рядами и центральными бастионами
+     * Универсальное создание линеек орнамента (Защита от наслоения боковых ромбов)
      */
     updateFrameOrnament(styleId = 'ornament') {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
@@ -195,8 +195,17 @@ const FrameManager = {
         const fragment = document.createDocumentFragment();
 
         const isHeavy = styleId === 'ornament-heavy';
-        // 19px для тяжелого (плотная сплошная линия), 35px для стандартного
-        const targetStep = isHeavy ? 19 : 35;
+
+        // Базовые шаги для обычного стиля
+        let stepHorizontal = 35;
+        let stepVertical = 35;
+
+        // Если включен тяжелый стиль, увеличиваем вертикальный шаг для исключения наслоений
+        if (isHeavy) {
+            stepHorizontal = 38;
+            stepVertical = 44; // Увеличенный свободный шаг для левой и правой сторон
+        }
+
         const paddingOffset = isHeavy ? 44 : 56;
 
         directions.forEach(dir => {
@@ -206,14 +215,22 @@ const FrameManager = {
             let count = 0;
             if (dir === 'top' || dir === 'bottom') {
                 const availableWidth = Math.max(0, width - paddingOffset);
-                count = Math.floor(availableWidth / targetStep);
+                count = Math.floor(availableWidth / stepHorizontal);
             } else {
                 const availableHeight = Math.max(0, height - paddingOffset);
-                count = Math.ceil(availableHeight / targetStep);
+                count = Math.ceil(availableHeight / stepVertical);
             }
 
             if (count > 0) {
+                const half = Math.floor(count / 2);
+
                 for (let i = 0; i < count; i++) {
+                    if (isHeavy && i === half) {
+                        const spacer = document.createElement('div');
+                        spacer.className = 'diamond-spacer';
+                        row.appendChild(spacer);
+                    }
+
                     const tooth = document.createElement('div');
                     tooth.className = 'diamond-tooth';
                     row.appendChild(tooth);
@@ -221,7 +238,6 @@ const FrameManager = {
                 fragment.appendChild(row);
             }
 
-            // ЕСЛИ СТИЛЬ HEAVY — создаем большой центральный квадрат для текущей стороны
             if (isHeavy) {
                 const bastion = document.createElement('div');
                 bastion.className = `center-bastion bastion-${dir}`;
@@ -231,6 +247,7 @@ const FrameManager = {
 
         this.frameElement.appendChild(fragment);
     }
+
 }
 
 
