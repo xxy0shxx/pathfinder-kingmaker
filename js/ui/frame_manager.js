@@ -3,6 +3,7 @@ import { MAP_CONFIG } from '../config/app_config.js';
 const FrameManager = {
     RUNE_POOL: ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'],
     frameElement: null,
+    runeCharacterCache: [], // <-- Новый массив для фиксации выпавших рандомных рун
 
     init() {
         this.frameElement = document.querySelector('.kingmaker-frame');
@@ -47,6 +48,7 @@ const FrameManager = {
         if (!this.frameElement) return;
 
         this.frameElement.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament', 'frame-style-ornament-heavy');
+        this.runeCharacterCache = [];
 
         if (styleId === 'ornament' || styleId === 'ornament-heavy') {
             this.frameElement.classList.add('frame-style-norunes', `frame-style-${styleId}`);
@@ -221,7 +223,8 @@ const FrameManager = {
 
 
     updateFrameRunes(width, height) {
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth').forEach(el => el.remove());
+        // Получаем все существующие руны на рамке прямо сейчас
+        const existingRunes = Array.from(this.frameElement.querySelectorAll('.hex-rune'));
 
         const step = MAP_CONFIG.viewport.step || 50;
         const padding = MAP_CONFIG.viewport.padding || 20;
@@ -231,25 +234,52 @@ const FrameManager = {
         const cBottom = height - 33;
         const cRight = width - 33;
 
-        const createRune = (left, top) => {
-            const runeElement = document.createElement('div');
-            runeElement.className = 'hex-rune';
-            runeElement.style.left = `${left}px`;
-            runeElement.style.top = `${top}px`;
-            runeElement.style.transform = 'translate(-50%, -50%)';
-            runeElement.style.animationDelay = `${Math.random() * -5}s`;
-            runeElement.textContent = this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)];
-            this.frameElement.appendChild(runeElement);
-        };
-
         const innerWidth = width - 44;
         const innerHeight = height - 44;
 
-        for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cTop); }
-        for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cBottom); }
-        for (let t = padding; t < innerHeight - padding; t += step) { createRune(cLeft, t); }
-        for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
+        // Собираем все целевые координаты, где ДОЛЖНЫ стоять руны
+        const targetPositions = [];
+
+        for (let l = padding; l < innerWidth - padding; l += step) { targetPositions.push({ left: l, top: cTop }); }
+        for (let l = padding; l < innerWidth - padding; l += step) { targetPositions.push({ left: l, top: cBottom }); }
+        for (let t = padding; t < innerHeight - padding; t += step) { targetPositions.push({ left: cLeft, top: t }); }
+        for (let t = padding; t < innerHeight - padding; t += step) { targetPositions.push({ left: cRight, top: t }); }
+
+        // Двигаем существующие руны или создаем новые, если их не хватает
+        targetPositions.forEach((pos, index) => {
+            let runeElement = existingRunes[index];
+
+            // Если в кэше под этим порядковым номером еще нет зафиксированной руны — генерируем один раз
+            if (!this.runeCharacterCache[index]) {
+                this.runeCharacterCache[index] = this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)];
+            }
+
+            if (!runeElement) {
+                // Создаем узел только в том случае, если на экране физически не хватает рун
+                runeElement = document.createElement('div');
+                runeElement.className = 'hex-rune';
+                runeElement.style.transform = 'translate(-50%, -50%)';
+                // Анимация мерцания тоже фиксирует задержку и не сбрасывается
+                runeElement.style.animationDelay = `${Math.random() * -5}s`;
+                this.frameElement.appendChild(runeElement);
+            }
+
+            // Жёстко закрепляем за элементом его сохраненный символ руны
+            runeElement.textContent = this.runeCharacterCache[index];
+
+            // Просто обновляем координаты без пересоздания DOM-ноды
+            runeElement.style.left = `${pos.left}px`;
+            runeElement.style.top = `${pos.top}px`;
+        });
+
+        // Если при сжатии рамки рун на экране оказалось больше, чем нужно — аккуратно удаляем лишние с конца
+        if (existingRunes.length > targetPositions.length) {
+            for (let i = targetPositions.length; i < existingRunes.length; i++) {
+                existingRunes[i].remove();
+            }
+        }
     },
+
 
 
     updateFrameOrnament(styleId = 'ornament') {
