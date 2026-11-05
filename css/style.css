@@ -1682,7 +1682,7 @@ body {
 }
 
 /* ============================================================================
-   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (БЕЗУПРЕЧНАЯ СТЫКОВКА С БАСТИОНАМИ)
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (ЭКСТРЕМАЛЬНЫЙ ВЫСТУП РОМБОВ ОТ УГЛОВ)
    ============================================================================ */
 .frame-style-ornament-heavy {
     opacity: 1 !important;
@@ -1697,7 +1697,7 @@ body {
     overflow: hidden;
 }
 
-/* Горизонтальные ряды теперь жестко прижимаются к углам и идут к центру */
+/* Сдвиг -29px выталкивает ромбы наружу для максимального парящего эффекта */
 .frame-style-ornament-heavy .diamond-row.row-top,
 .frame-style-ornament-heavy .diamond-row.row-bottom {
     justify-content: flex-start;
@@ -1705,10 +1705,9 @@ body {
     left: 22px;
     right: 22px;
 }
-.frame-style-ornament-heavy .diamond-row.row-top    { top: -16px; }
-.frame-style-ornament-heavy .diamond-row.row-bottom { bottom: -16px; }
+.frame-style-ornament-heavy .diamond-row.row-top    { top: -29px; }
+.frame-style-ornament-heavy .diamond-row.row-bottom { bottom: -29px; }
 
-/* Вертикальные ряды расталкиваются по краям с помощью распорки */
 .frame-style-ornament-heavy .diamond-row.row-left,
 .frame-style-ornament-heavy .diamond-row.row-right {
     justify-content: space-between;
@@ -1717,8 +1716,8 @@ body {
     top: 22px;
     bottom: 22px;
 }
-.frame-style-ornament-heavy .diamond-row.row-left   { left: -16px; }
-.frame-style-ornament-heavy .diamond-row.row-right  { right: -16px; }
+.frame-style-ornament-heavy .diamond-row.row-left   { left: -29px; }
+.frame-style-ornament-heavy .diamond-row.row-right  { right: -29px; }
 
 /* Сам элемент — изящный ромб */
 .frame-style-ornament-heavy .diamond-tooth {
@@ -1731,10 +1730,10 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* Фиксированные зазоры: предотвращают наложение углов на любых экранах */
+/* Фиксированные зазоры для бесшовного шага */
 .frame-style-ornament-heavy .diamond-row.row-top .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-bottom .diamond-tooth {
-    margin: auto 4.5px; /* Идеальное расстояние для горизонтального шага */
+    margin: auto 4.5px;
 }
 .frame-style-ornament-heavy .diamond-row.row-left .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-right .diamond-tooth {
@@ -1747,7 +1746,7 @@ body {
     background: linear-gradient(135deg, #a68032, #543e0d);
     border: 3px solid #dfbc6f;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 8px #ffd875;
-    z-index: 10006; /* Самый высокий приоритет — перекрывает провал в центре */
+    z-index: 10006; /* Высший приоритет — перекрывает центральные стыки */
     pointer-events: none;
 }
 
@@ -1764,7 +1763,7 @@ body {
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
 
-/* СВЕРХШИРОКИЕ БАСТИОНЫ */
+/* СВЕРХШИРОКИЕ БАСТИОНЫ ПОВЕРХ ВСЕГО (-42px) */
 .bastion-top    { width: 180px; height: 60px; top: -42px; left: 50%; transform: translateX(-50%); }
 .bastion-bottom { width: 180px; height: 60px; bottom: -42px; left: 50%; transform: translateX(-50%); }
 .bastion-left   { width: 60px; height: 180px; left: -42px; top: 50%; transform: translateY(-50%); }
