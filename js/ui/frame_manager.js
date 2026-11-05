@@ -184,7 +184,7 @@ const FrameManager = {
 
 
     /**
-     * Создание разметки линеек орнамента со строгим отсечением по высоте
+     * Создание разметки линеек орнамента (Максимально крупные ромбы)
      */
     updateFrameOrnament() {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
@@ -195,8 +195,8 @@ const FrameManager = {
         const directions = ['top', 'bottom', 'left', 'right'];
         const fragment = document.createDocumentFragment();
 
-        // Оптимальный шаг для плотного вертикального и горизонтального ряда
-        const targetStep = 16;
+        // 35px — выверенный шаг для плотного стыка ромбов 26x26
+        const targetStep = 35;
 
         directions.forEach(dir => {
             const row = document.createElement('div');
@@ -204,11 +204,10 @@ const FrameManager = {
 
             let count = 0;
             if (dir === 'top' || dir === 'bottom') {
-                const availableWidth = Math.max(0, width - 48);
+                const availableWidth = Math.max(0, width - 56); // Защита отступов угловых квадратов (28px * 2)
                 count = Math.floor(availableWidth / targetStep);
             } else {
-                const availableHeight = Math.max(0, height - 48);
-                // Берем с небольшим запасом, так как overflow: hidden в CSS сам чисто отрежет лишнее
+                const availableHeight = Math.max(0, height - 56);
                 count = Math.ceil(availableHeight / targetStep);
             }
 

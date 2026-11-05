@@ -1682,58 +1682,65 @@ body {
 }
 
 /* ============================================================================
-   13. СТИЛЬ РАМКИ: КОРОЛЕВСКИЙ ОРНАМЕНТ (СТРОГО ОГРАНИЧЕННЫЕ ВЕРТИКАЛИ)
+   13. СТИЛЬ РАМКИ: КОРОЛЕВСКИЙ ОРНАМЕНТ (ГИГАНТСКАЯ ПИЛА ПОД РАМКОЙ)
    ============================================================================ */
 .diamond-row {
     position: absolute;
     display: flex;
     pointer-events: none;
-    z-index: -1; /* Намертво под рамкой */
-    overflow: hidden; /* Защита: всё, что не поместилось, мгновенно отрезается */
+    z-index: -1; /* Намертво под базовой рамкой и уголками */
+    overflow: hidden; /* Чисто отсекает лишние хвосты на стыках */
 }
 
 /* Горизонтальные линейки (Верх / Низ) */
 .diamond-row.row-top {
-    top: -6px;
-    left: 24px;
-    right: 24px;
-    height: 12px;
+    top: -19px; /* Сдвиг наружу ровно на половину диагонали ромба */
+    left: 28px;  /* Увеличенный отступ, чтобы крупные ромбы не перекрывали углы */
+    right: 28px;
+    height: 38px;
     justify-content: space-between;
 }
 .diamond-row.row-bottom {
-    bottom: -6px;
-    left: 24px;
-    right: 24px;
-    height: 12px;
+    bottom: -19px;
+    left: 28px;
+    right: 28px;
+    height: 38px;
     justify-content: space-between;
 }
 
-/* Вертикальные линейки (Лево / Право) — прижимаем ромбы вверх и жестко режем снизу */
+/* Вертикальные линейки (Лево / Право) */
 .diamond-row.row-left {
-    left: -6px;
-    top: 24px;
-    bottom: 24px; /* Жестко привязываем к нижнему углу рамки, не давая уйти ниже */
-    width: 12px;
+    left: -19px;
+    top: 28px;
+    bottom: 28px;
+    width: 38px;
     flex-direction: column;
-    justify-content: flex-start; /* Ромбы идут плотно сверху вниз, а излишек режется */
+    justify-content: flex-start;
 }
 .diamond-row.row-right {
-    right: -6px;
-    top: 24px;
-    bottom: 24px; /* Жестко привязываем к нижнему углу рамки */
-    width: 12px;
+    right: -19px;
+    top: 28px;
+    bottom: 28px;
+    width: 38px;
     flex-direction: column;
-    justify-content: flex-start; /* Ромбы идут плотно сверху вниз, а излишек режется */
+    justify-content: flex-start;
 }
 
-/* Сам элемент — идеальный, плотно прижатый ромб */
+/* Сам элемент — гигантский, четкий геометрический ромб */
 .diamond-tooth {
-    width: 12px;
-    height: 12px;
+    width: 26px;  /* Новый внушительный размер */
+    height: 26px;
     background-color: #8a6421;
-    border: 1.5px solid #dfbc6f;
+    border: 2.5px solid #dfbc6f; /* Утолщенная золотая кайма под стать размеру */
     transform: rotate(45deg);
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-    margin: 2px 0; /* Небольшой вертикальный отступ, чтобы ромбы не накладывались гранями друг на друга */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    /* Центрирование внутри широких линеек, защищающее от усечения углов */
+    margin: 4px auto;
+}
+
+/* Для горизонтальных рядов сбрасываем вертикальные отступы */
+.diamond-row.row-top .diamond-tooth,
+.diamond-row.row-bottom .diamond-tooth {
+    margin: auto 4px;
 }
