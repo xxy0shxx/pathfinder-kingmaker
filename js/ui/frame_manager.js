@@ -125,11 +125,9 @@ const FrameManager = {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        const time = Date.now() * 0.0025;
-        const breatheAlpha = 0.25 + Math.abs(Math.sin(time)) * 0.75;
+        const time = Date.now() * 0.0007;
 
         ctx.font = 'bold 18px monospace';
-        ctx.fillStyle = `rgba(223, 188, 111, ${breatheAlpha})`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(223, 188, 111, 0.6)';
@@ -145,10 +143,21 @@ const FrameManager = {
 
         const drawRuneAt = (x, y) => {
             const coordKey = `${Math.round(x)}_${Math.round(y)}`;
+
+            // Если руны нет в кэше — генерируем её символ и уникальное смещение фазы анимации
             if (!this.runeCharacterCache.has(coordKey)) {
-                this.runeCharacterCache.set(coordKey, this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)]);
+                this.runeCharacterCache.set(coordKey, {
+                    char: this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)],
+                    phaseShift: Math.random() * Math.PI * 2 // Случайная фаза от 0 до 360 градусов
+                });
             }
-            ctx.fillText(this.runeCharacterCache.get(coordKey), x, y);
+
+            const runeData = this.runeCharacterCache.get(coordKey);
+
+            const runeAlpha = 0.2 + Math.abs(Math.sin(time + runeData.phaseShift)) * 0.8;
+
+            ctx.fillStyle = `rgba(223, 188, 111, ${runeAlpha})`;
+            ctx.fillText(runeData.char, x, y);
         };
 
         for (let x = padding + 44; x <= canvasWidth - padding - 44; x += step) {
@@ -158,6 +167,7 @@ const FrameManager = {
             drawRuneAt(leftX, y); drawRuneAt(rightX, y);
         }
     },
+
     drawStandardOrnamentCanvas(width, height) {
         const canvas = document.getElementById('ornamentCanvas');
         if (!canvas) return;
