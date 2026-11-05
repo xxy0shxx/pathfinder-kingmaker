@@ -24,7 +24,6 @@ const UiPanelManager = {
      */
     attachEvents() {
         // 1. Клик по кнопке "_" в шапке плеера Winamp — скрывает ТОЛЬКО плеер.
-        // Правое меню кнопок при этом остаётся открытым.
         if (this.btnMinimize && this.playerWrapper) {
             this.btnMinimize.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -39,29 +38,47 @@ const UiPanelManager = {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // Переключаем класс поворота шестеренки
                 this.masterToggleBtn.classList.toggle('ui-active');
-
-                // Переключаем видимость правой панели кнопок
                 const isMenuExpanded = this.rightPanel.classList.toggle('ui-expanded');
 
                 if (this.playerWrapper) {
                     if (isMenuExpanded) {
-                        // Если меню ОТКРЫВАЕТСЯ — принудительно выкатываем и плеер
                         this.playerWrapper.classList.add('ui-expanded');
                     } else {
-                        // Если меню ЗАКРЫВАЕТСЯ — принудительно прячем и плеер тоже
                         this.playerWrapper.classList.remove('ui-expanded');
                     }
                 }
             });
         }
+
+        // 3. Переключение мини-тултипов квестов
         const btnToggleTooltips = document.getElementById('btnToggleTooltips');
         if (btnToggleTooltips) {
             btnToggleTooltips.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 AnimationManager.toggleQuestTooltips(btnToggleTooltips);
+            });
+        }
+
+        // 4. Скрытие и отображение путей отряда
+        const btnTogglePaths = document.getElementById('btnTogglePaths');
+        const svgPathsLayer = document.getElementById('mapPathsSvg');
+
+        if (btnTogglePaths && svgPathsLayer) {
+            btnTogglePaths.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Переключаем класс скрытия на самом SVG слое путей
+                const isHidden = svgPathsLayer.classList.toggle('hide-paths');
+
+                // Меняем визуальный статус кнопки (красный/дефолтный) для индикации
+                if (isHidden) {
+                    btnTogglePaths.classList.add('paths-hidden');
+                } else {
+                    btnTogglePaths.classList.remove('paths-hidden');
+                }
             });
         }
     }

@@ -1287,8 +1287,9 @@ body {
     font-size: 24px;
     padding: 60px 0;
 }
+
 /* ============================================================================
-   9. ПРАВАЯ ПАНЕЛЬ И КНОПКИ ИНТЕРФЕЙСА
+   9. ПРАВАЯ ПАНЕЛЬ И КНОПКИ ИНТЕРФЕЙСА (СЕТКА 3x4)
    ============================================================================ */
 .right-controls-panel {
     position: fixed !important;
@@ -1296,7 +1297,8 @@ body {
     bottom: 40px !important;
     z-index: 10005 !important;
     display: grid !important;
-    grid-template-columns: repeat(2, 46px) !important;
+    /* Изменено на 3 колонки */
+    grid-template-columns: repeat(3, 46px) !important;
     gap: 8px !important;
     border-radius: 6px !important;
     padding: 6px !important;
@@ -1331,7 +1333,8 @@ body {
 
 /* Базовый стиль кнопок управления */
 .right-controls-panel .btn-ui-toggle,
-.right-controls-panel #btnFrameStyle {
+.right-controls-panel #btnFrameStyle,
+.right-controls-panel #btnTogglePaths {
     width: 46px !important;
     height: 44px !important;
     font-size: 20px !important;
@@ -1362,14 +1365,15 @@ body {
 /* Ховер-эффекты для всех кнопок в панели */
 .right-controls-panel button:hover,
 .right-controls-panel .btn-ui-toggle:hover,
-.right-controls-panel #btnFrameStyle:hover {
+.right-controls-panel #btnFrameStyle:hover,
+.right-controls-panel #btnTogglePaths:hover {
     background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
     border-color: #ebd291 !important;
     color: #fff !important;
     box-shadow: 0 0 12px rgba(184, 148, 69, 0.6), 0 6px 18px rgba(0, 0, 0, 0.6) !important;
 }
 
-/* Логика анимации: когда панель свернута (или НЕ развернута), второстепенные кнопки прячутся вниз */
+/* Логика анимации скрытия кнопок */
 .right-controls-panel:not(.ui-expanded) button:not(.master-toggle-btn),
 .right-controls-panel.ui-collapsed button:not(.master-toggle-btn) {
     transform: scale(0.6) translateY(40px) !important;
@@ -1392,6 +1396,13 @@ body {
     color: #f7baba !important;
 }
 
+/* Состояние новой кнопки путей, когда отображение пути ВЫКЛЮЧЕНО (красный стиль) */
+.right-controls-panel #btnTogglePaths.paths-hidden {
+    background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
+    border-color: #823030 !important;
+    color: #f7baba !important;
+}
+
 /* Дополнительное свечение для мастер-кнопки, когда панель закрыта */
 .right-controls-panel:not(.ui-expanded) .master-toggle-btn {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6),
@@ -1405,6 +1416,11 @@ body {
     0 0 35px #ffd875,
     0 0 55px #dfbc6f,
     0 6px 18px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Скрытие SVG слоя путей при активации класса */
+#mapPathsSvg.hide-paths {
+    display: none !important;
 }
 
 /* ============================================================================
