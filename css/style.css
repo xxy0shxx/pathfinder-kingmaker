@@ -1745,7 +1745,7 @@ body {
     margin: auto 4px;
 }
 /* ============================================================================
-   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (ЭКСТРЕМАЛЬНО ВЫДВИНУТЫЕ ЧАСТЫЕ РОМБЫ)
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (МИКРО-РОМБЫ ВПЛИТНУЮ К УГЛАМ)
    ============================================================================ */
 .frame-style-ornament-heavy {
     opacity: 1 !important;
@@ -1761,49 +1761,49 @@ body {
     justify-content: space-between;
 }
 
-/* Сдвигаем линейки еще дальше наружу от краев (-36px вместо -24px) */
+/* Сдвиг линеек наружу (-26px) и начало линий впритык к квадратам углов (22px) */
 .frame-style-ornament-heavy .diamond-row.row-top {
-    top: -36px;
-    left: 40px;
-    right: 40px;
-    height: 48px;
+    top: -26px;
+    left: 22px;
+    right: 22px;
+    height: 38px;
 }
 .frame-style-ornament-heavy .diamond-row.row-bottom {
-    bottom: -36px;
-    left: 40px;
-    right: 40px;
-    height: 48px;
+    bottom: -26px;
+    left: 22px;
+    right: 22px;
+    height: 38px;
 }
 .frame-style-ornament-heavy .diamond-row.row-left {
-    left: -36px;
-    top: 40px;
-    bottom: 40px;
-    width: 48px;
+    left: -26px;
+    top: 22px;
+    bottom: 22px;
+    width: 38px;
     flex-direction: column;
 }
 .frame-style-ornament-heavy .diamond-row.row-right {
-    right: -36px;
-    top: 40px;
-    bottom: 40px;
-    width: 48px;
+    right: -26px;
+    top: 22px;
+    bottom: 22px;
+    width: 38px;
     flex-direction: column;
 }
 
-/* Элемент — частый королевский ромб */
+/* Элемент — миниатюрный королевский ромб */
 .frame-style-ornament-heavy .diamond-tooth {
-    width: 24px;
-    height: 24px;
+    width: 18px; /* Уменьшенный изящный размер */
+    height: 18px;
     background-color: #8a6421;
-    border: 2px solid #dfbc6f;
+    border: 1.5px solid #dfbc6f; /* Аккуратная тонкая золотая обводка */
     transform: rotate(45deg);
     flex-shrink: 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    margin: 6px auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 4px auto; /* Сближенные отступы по вертикали */
 }
 
 .frame-style-ornament-heavy .diamond-row.row-top .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-bottom .diamond-tooth {
-    margin: auto 6px;
+    margin: auto 4px; /* Сближенные отступы по горизонтали */
 }
 
 /* Невидимый распорочный элемент по центру, удерживающий ромбы у краев */

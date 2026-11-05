@@ -185,7 +185,7 @@ const FrameManager = {
 
 
     /**
-     * Универсальное создание линеек орнамента с увеличенной плотностью элементов
+     * Универсальное создание линеек орнамента (Микро-ромбы, заполнение до углов)
      */
     updateFrameOrnament(styleId = 'ornament') {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
@@ -197,9 +197,10 @@ const FrameManager = {
         const fragment = document.createDocumentFragment();
 
         const isHeavy = styleId === 'ornament-heavy';
-        // 35px для обычного стиля, 36px для тяжелого (дает высокую плотность под размер 24х24)
-        const targetStep = isHeavy ? 36 : 35;
-        const paddingOffset = isHeavy ? 80 : 56;
+        // 35px для обычного стиля, 26px для тяжелого (дает плотный частый шаг)
+        const targetStep = isHeavy ? 26 : 35;
+        // 56px для обычного, 44px для тяжелого (по 22px отступа с каждой стороны под квадраты)
+        const paddingOffset = isHeavy ? 44 : 56;
 
         directions.forEach(dir => {
             const row = document.createElement('div');
