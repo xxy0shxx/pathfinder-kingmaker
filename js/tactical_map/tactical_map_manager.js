@@ -581,6 +581,7 @@ const TacticalMapManager = {
     // ЧАСТЬ 7 ИЗ 10: ГРАФИЧЕСКИЙ ЦИКЛ ОБНОВЛЕНИЯ (RECALCULATE CAMP FOG OF WAR)
     // ============================================================================
 
+
     /**
      * Полноценный цикл обновления видимости, типов препятствий, аое-аур и ТОНКИХ СТЕН
      */
@@ -667,6 +668,9 @@ const TacticalMapManager = {
                     else if (obsType === 'stones') { squareElement.classList.add('obstacle-stones'); if (obstacle) obstacle.textContent = '🪨'; }
                     else if (obsType === 'ice') { squareElement.classList.add('obstacle-ice'); if (obstacle) obstacle.textContent = '❄️'; }
                     else if (obsType === 'web') { squareElement.classList.add('obstacle-web'); if (obstacle) obstacle.textContent = '🕸️'; }
+                    else if (obsType === 'floor-planks') { squareElement.classList.add('floor-planks'); }
+                    else if (obsType === 'floor-cobble') { squareElement.classList.add('floor-cobble'); }
+                    else if (obsType === 'floor-earth') { squareElement.classList.add('floor-earth'); }
                 }
             }
         }
@@ -724,6 +728,8 @@ const TacticalMapManager = {
             }
         }
     },
+
+
     // ============================================================================
     // ЧАСТЬ 8 ИЗ 10: ГЕОМЕТРИЯ АУР И СВЕРХТОЧНАЯ ТРАССИРОВКА ЛУЧЕЙ (LOS & CONE)
     // ============================================================================
@@ -1069,6 +1075,9 @@ const TacticalMapManager = {
             else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">Только прыжок</span>'; }
             else if (obs === 'ice') { obstacleName = '<span style="color:#00cec9;font-weight:bold;">❄ Скользкий лед</span>'; movementCostText = '<span style="color:#00cec9;">5 футов (Проверка d20 Акробатика)</span>'; }
             else if (obs === 'web') { obstacleName = '<span style="color:#9b59b6;font-weight:bold;">🕸 Паутина</span>'; movementCostText = '<span style="color:#9b59b6;">5 футов (Проверка d20 Спасбросок)</span>'; }
+            else if (obs === 'floor-planks') { obstacleName = '🪵 Пол: Деревянные доски'; movementCostText = '5 футов'; }
+            else if (obs === 'floor-cobble') { obstacleName = '🧱 Пол: Брусчатка'; movementCostText = '5 футов'; }
+            else if (obs === 'floor-earth') { obstacleName = '🌱 Пол: Утоптанная земля'; movementCostText = '5 футов'; }
         }
 
         if (data && data.heroHere) paramsBlock += `<div style="margin-bottom: 6px; color: #54a0ff;">👑 <b>Герой в клетке</b></div>`;
