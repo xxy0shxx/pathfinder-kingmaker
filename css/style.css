@@ -1700,9 +1700,9 @@ body {
 .frame-style-ornament-heavy .diamond-row.row-top,
 .frame-style-ornament-heavy .diamond-row.row-bottom {
     justify-content: flex-start;
-    height: 38px;
-    left: 22px;
-    right: 22px;
+    height: 34px;
+    left: 26px;
+    right: 26px;
 }
 .frame-style-ornament-heavy .diamond-row.row-top    { top: -29px; }
 .frame-style-ornament-heavy .diamond-row.row-bottom { bottom: -29px; }
@@ -1710,7 +1710,7 @@ body {
 .frame-style-ornament-heavy .diamond-row.row-left,
 .frame-style-ornament-heavy .diamond-row.row-right {
     justify-content: space-between;
-    width: 38px;
+    width: 34px;
     flex-direction: column;
     top: 22px;
     bottom: 22px;
