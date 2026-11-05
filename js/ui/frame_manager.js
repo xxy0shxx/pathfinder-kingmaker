@@ -56,10 +56,8 @@ const FrameManager = {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement) return;
 
-        // Очищаем все возможные старые классы стилей
         this.frameElement.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament', 'frame-style-ornament-heavy');
 
-        // Оба орнамента используют красивую базовую подложку norunes
         if (styleId === 'ornament' || styleId === 'ornament-heavy') {
             this.frameElement.classList.add('frame-style-norunes', `frame-style-${styleId}`);
         } else {
@@ -75,8 +73,8 @@ const FrameManager = {
             }
         });
 
-        // Полная очистка DOM от старых элементов
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
+        // ПОЛНАЯ ОЧИСТКА: удаляем старые руны, ромбы, линейки и центральные бастионы
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth;
         const height = this.frameElement.offsetHeight;
@@ -185,10 +183,10 @@ const FrameManager = {
 
 
     /**
-     * Универсальное создание линеек орнамента (Микро-ромбы, заполнение до углов)
+     * Создание разметки линеек орнамента со сплошными рядами и центральными бастионами
      */
     updateFrameOrnament(styleId = 'ornament') {
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
         const height = this.frameElement.offsetHeight || window.innerHeight;
@@ -197,9 +195,8 @@ const FrameManager = {
         const fragment = document.createDocumentFragment();
 
         const isHeavy = styleId === 'ornament-heavy';
-        // 35px для обычного стиля, 26px для тяжелого (дает плотный частый шаг)
-        const targetStep = isHeavy ? 26 : 35;
-        // 56px для обычного, 44px для тяжелого (по 22px отступа с каждой стороны под квадраты)
+        // 19px для тяжелого (плотная сплошная линия), 35px для стандартного
+        const targetStep = isHeavy ? 19 : 35;
         const paddingOffset = isHeavy ? 44 : 56;
 
         directions.forEach(dir => {
@@ -216,26 +213,24 @@ const FrameManager = {
             }
 
             if (count > 0) {
-                const half = Math.floor(count / 2);
-
                 for (let i = 0; i < count; i++) {
-                    if (isHeavy && i === half) {
-                        const spacer = document.createElement('div');
-                        spacer.className = 'diamond-spacer';
-                        row.appendChild(spacer);
-                    }
-
                     const tooth = document.createElement('div');
                     tooth.className = 'diamond-tooth';
                     row.appendChild(tooth);
                 }
                 fragment.appendChild(row);
             }
+
+            // ЕСЛИ СТИЛЬ HEAVY — создаем большой центральный квадрат для текущей стороны
+            if (isHeavy) {
+                const bastion = document.createElement('div');
+                bastion.className = `center-bastion bastion-${dir}`;
+                fragment.appendChild(bastion);
+            }
         });
 
         this.frameElement.appendChild(fragment);
     }
-
 }
 
 
