@@ -132,15 +132,19 @@ const FrameManager = {
         ctx.shadowColor = 'rgba(223, 188, 111, 0.6)';
         ctx.shadowBlur = 5;
 
+        // Считываем динамические параметры из глобального конфига
         const step = MAP_CONFIG.viewport.step || 50;
+        const configPadding = MAP_CONFIG.viewport.padding || 20;
 
         /* не трогать позиции */
-        const topY = 13;
+        const topY = 12;
         const bottomY = canvasHeight - 54;
         const leftX = 11;
         const rightX = canvasWidth - 54;
 
-        const cornerBuffer = 75;
+        // Рассчитываем безопасную буферную зону от углов на основе padding из конфигурации.
+        // Добавляем +25px к вашему отступу, чтобы руны гарантированно не заходили под текстуру угловых квадратов.
+        const cornerBuffer = configPadding + 25;
 
         const drawRuneAt = (x, y) => {
             const coordKey = `${Math.round(x)}_${Math.round(y)}`;
@@ -159,18 +163,19 @@ const FrameManager = {
             ctx.fillText(runeData.char, x, y);
         };
 
-        // Горизонтальные ряды (Топ и Низ)
+        // Горизонтальные ряды (Топ и Низ) — отрисовка в безопасных границах от углов
         for (let x = cornerBuffer; x <= canvasWidth - cornerBuffer; x += step) {
             drawRuneAt(x, topY);
             drawRuneAt(x, bottomY);
         }
 
-        // Вертикальные ряды (Лево и Право)
+        // Вертикальные ряды (Лево и Право) — отрисовка в безопасных границах от углов
         for (let y = cornerBuffer; y <= canvasHeight - cornerBuffer; y += step) {
             drawRuneAt(leftX, y);
             drawRuneAt(rightX, y);
         }
     },
+
 
     drawStandardOrnamentCanvas(width, height) {
         const canvas = document.getElementById('ornamentCanvas');

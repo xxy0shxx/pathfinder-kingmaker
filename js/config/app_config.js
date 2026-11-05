@@ -18,8 +18,8 @@ export const MAP_CONFIG = {
         minZoom: 0.5,
         maxZoom: 3.0,
         defaultZoom: 1.0,
-        step: 50,      // Шаг отрисовки рун на рамке
-        padding: 20,   // Отступ для рун от краев
+        step: 20,      // Шаг отрисовки рун на рамке
+        padding: 0,   // Отступ для рун от краев
         limits: {
             maxX: 3840 * 1.5,
             minX: -3840 * 1.5,
