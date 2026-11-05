@@ -20,9 +20,9 @@ const FrameManager = {
         if (!btn) return;
 
         const styles = [
-            { id: 'norunes', icon: '🔲', title: 'Рамка: Без рун' },
-            { id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами' },
-            { id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент' }
+            {id: 'norunes', icon: '🔲', title: 'Рамка: Без рун'},
+            {id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами'},
+            {id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент'}
         ];
 
         let currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
@@ -47,6 +47,7 @@ const FrameManager = {
         this.applyFrameStyle(startStyle.id);
     },
 
+
     /**
      * Применение CSS-классов темы и генерация базовых уголков рамки
      */
@@ -55,7 +56,12 @@ const FrameManager = {
         if (!this.frameElement) return;
 
         this.frameElement.classList.remove('frame-style-runes', 'frame-style-norunes', 'frame-style-ornament');
-        this.frameElement.classList.add(`frame-style-${styleId}`);
+
+        if (styleId === 'ornament') {
+            this.frameElement.classList.add('frame-style-norunes', 'frame-style-ornament');
+        } else {
+            this.frameElement.classList.add(`frame-style-${styleId}`);
+        }
 
         const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
         corners.forEach(cClass => {
@@ -66,15 +72,20 @@ const FrameManager = {
             }
         });
 
+        // Полностью очищаем старый декор (руны, старые ромбы и линейки)
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
+
+        const width = this.frameElement.offsetWidth;
+        const height = this.frameElement.offsetHeight;
+
         if (styleId === 'runes') {
-            this.updateFrameRunes(this.frameElement.offsetWidth, this.frameElement.offsetHeight);
-        } else {
-            this.frameElement.querySelectorAll('.hex-rune').forEach(el => el.remove());
+            this.updateFrameRunes(width, height);
+        } else if (styleId === 'ornament') {
+            this.updateFrameOrnament();
         }
     },
     /**
-     * Динамическое позиционирование рамки и расчет clip-path для холста карты
-     * (Вызывается при апдейте трансформаций из ViewportManager)
+     * Динамическое позиционирование рамки — ПОЛНОСТЬЮ СТАТИЧНО ДЛЯ РОМБОВ
      */
     updateBounds(viewport, mapContainer, currentZoom) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
@@ -100,27 +111,21 @@ const FrameManager = {
             let frameWidth = baseWidth + (borderWidth * 2);
             let frameHeight = baseHeight + (borderWidth * 2);
 
-            if (frameLeft < viewRect.left) {
-                frameWidth -= (viewRect.left - frameLeft);
-                frameLeft = viewRect.left;
-            }
-            if (frameTop < viewRect.top) {
-                frameHeight -= (viewRect.top - frameTop);
-                frameTop = viewRect.top;
-            }
-            if (frameLeft + frameWidth > viewRect.right) {
-                frameWidth = viewRect.right - frameLeft;
-            }
-            if (frameTop + frameHeight > viewRect.bottom) {
-                frameHeight = viewRect.bottom - frameTop;
-            }
+            if (frameLeft < viewRect.left) { frameWidth -= (viewRect.left - frameLeft); frameLeft = viewRect.left; }
+            if (frameTop < viewRect.top) { frameHeight -= (viewRect.top - frameTop); frameTop = viewRect.top; }
+            if (frameLeft + frameWidth > viewRect.right) { frameWidth = viewRect.right - frameLeft; }
+            if (frameTop + frameHeight > viewRect.bottom) { frameHeight = viewRect.bottom - frameTop; }
 
             this.frameElement.style.left = `${Math.floor(frameLeft)}px`;
             this.frameElement.style.top = `${Math.floor(frameTop)}px`;
             this.frameElement.style.width = `${Math.ceil(frameWidth)}px`;
             this.frameElement.style.height = `${Math.ceil(frameHeight)}px`;
 
-            this.updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
+            const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
+            // Перерисовываем на лету ТОЛЬКО руны. Орнамент теперь на CSS-автоматике!
+            if (currentStyleId === 'runes') {
+                this.updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
+            }
 
             const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
             const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
@@ -134,23 +139,18 @@ const FrameManager = {
         }
     },
 
+
+
     /**
-     * Отрисовка скандинавских рун по периметру рамки на основе POOL'а
+     * Отрисовка скандинавских рун по периметру рамки
      */
     updateFrameRunes(width, height) {
-        const currentFrameStyle = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
-        if (!this.frameElement) return;
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth').forEach(el => el.remove());
 
-        if (currentFrameStyle !== 'runes') {
-            this.frameElement.querySelectorAll('.hex-rune').forEach(el => el.remove());
-            return;
-        }
+        const step = MAP_CONFIG.viewport.step || 50;
+        const padding = MAP_CONFIG.viewport.padding || 20;
 
-        this.frameElement.querySelectorAll('.hex-rune').forEach(el => el.remove());
-
-        const step = MAP_CONFIG.viewport.step;
-        const padding = MAP_CONFIG.viewport.padding;
-
+        // Коррекция на -22px бордера для точного попадания в центр золотой линии
         const cTop = -11;
         const cLeft = -11;
         const cBottom = height - 33;
@@ -162,7 +162,7 @@ const FrameManager = {
             runeElement.style.left = `${left}px`;
             runeElement.style.top = `${top}px`;
             runeElement.style.transform = 'translate(-50%, -50%)';
-            runeElement.style.animationDelay = `${Math.random() * -5}s`;
+            runeElement.style.animationDelay = `${Math.random() * -3.5}s`;
             runeElement.textContent = this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)];
             this.frameElement.appendChild(runeElement);
         };
@@ -170,11 +170,48 @@ const FrameManager = {
         const innerWidth = width - 44;
         const innerHeight = height - 44;
 
-        for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cTop); }
-        for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cBottom); }
-        for (let t = padding; t < innerHeight - padding; t += step) { createRune(cLeft, t); }
-        for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
+        // Горизонтальные ряды
+        for (let l = padding; l < innerWidth - padding; l += step) {
+            createRune(l, cTop);
+            createRune(l, cBottom);
+        }
+        // Вертикальные ряды
+        for (let t = padding; t < innerHeight - padding; t += step) {
+            createRune(cLeft, t);
+            createRune(cRight, t);
+        }
+    },
+
+
+
+    /**
+     * Создание разметки линеек. Вызывается один раз. Распределением управляет CSS Flexbox.
+     */
+    updateFrameOrnament() {
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
+
+        const directions = ['top', 'bottom', 'left', 'right'];
+        const fragment = document.createDocumentFragment();
+
+        directions.forEach(dir => {
+            const row = document.createElement('div');
+            row.className = `diamond-row row-${dir}`;
+
+            // Задаем фиксированное красивое количество ромбов на каждую сторону (например, по 25 штук)
+            // Flexbox сам распределит их по всей длине рамки, как бы она ни сжималась
+            const count = (dir === 'top' || dir === 'bottom') ? 30 : 15;
+
+            for (let i = 0; i < count; i++) {
+                const tooth = document.createElement('div');
+                tooth.className = 'diamond-tooth';
+                row.appendChild(tooth);
+            }
+            fragment.appendChild(row);
+        });
+
+        this.frameElement.appendChild(fragment);
     }
-};
+}
+
 
 export default FrameManager;

@@ -1680,3 +1680,66 @@ body {
     z-index: 3;
     pointer-events: auto;
 }
+
+/* ============================================================================
+   13. СТИЛЬ РАМКИ: КОРОЛЕВСКИЙ ОРНАМЕНТ (АППАРАТНЫЙ FLEX-ОРНАМЕНТ)
+   ============================================================================ */
+.frame-style-ornament {
+    /* Базовая рамка norunes */
+}
+
+/* Контейнеры-линейки для автоматического распределения ромбов */
+.diamond-row {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 10; /* Ниже, чем .frame-corner, чтобы не перекрывать углы */
+}
+
+/* Горизонтальные линейки (Верх / Низ) */
+.diamond-row.row-top {
+    top: -6px; /* Выталкиваем наружу, чтобы ромбы красиво выпирали */
+    left: 30px;
+    right: 30px;
+    height: 12px;
+}
+.diamond-row.row-bottom {
+    bottom: -6px;
+    left: 30px;
+    right: 30px;
+    height: 12px;
+}
+
+/* Вертикальные линейки (Лево / Право) */
+.diamond-row.row-left {
+    left: -6px;
+    top: 30px;
+    bottom: 30px;
+    width: 12px;
+    flex-direction: column;
+}
+.diamond-row.row-right {
+    right: -6px;
+    top: 30px;
+    bottom: 30px;
+    width: 12px;
+    flex-direction: column;
+}
+
+/* Сам элемент — идеальный, четкий золотой ромб */
+.diamond-tooth {
+    width: 12px;
+    height: 12px;
+    background-color: #8a6421;
+    border: 1.5px solid #dfbc6f;
+    transform: rotate(45deg);
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* Очищаем псевдоэлементы, они больше не нужны */
+.frame-style-ornament::before,
+.frame-style-ornament::after {
+    content: none !important;
+}
