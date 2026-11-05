@@ -161,7 +161,7 @@ const FrameManager = {
         const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
         if (baseWidth > 0 && baseHeight > 0) {
-            // ЖЁСТКАЯ ФИКСАЦИЯ: Карта ВСЕГДА строится по стандартным 22px
+            // ЖЁСТКАЯ ФИКСАЦИЯ: Базовый бордер всегда 22px
             const borderWidth = 22;
 
             const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
@@ -174,9 +174,7 @@ const FrameManager = {
             let frameWidth = baseWidth + (borderWidth * 2);
             let frameHeight = baseHeight + (borderWidth * 2);
 
-            // МАКСИМАЛЬНЫЙ УПОР: Если включен тяжелый стиль, мы искусственно сдвигаем границы
-            // прижатия рамки к краям экрана на 24px (величина вылета ромбов наружу).
-            // Это заставит рамку останавливаться точно по кончикам парящих ромбов!
+            // Фиксированный отступ упора для тяжелого орнамента
             const heavyPadding = isHeavy ? 24 : 0;
 
             if (frameLeft < viewRect.left + heavyPadding) {
@@ -210,10 +208,13 @@ const FrameManager = {
                 this.updateFrameOrnament(currentStyleId);
             }
 
-            const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
-            const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
-            const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
-            const clipBottom = Math.max(0, mapRect.bottom - viewRect.bottom) / currentZoom;
+            // ИСПРАВЛЕННАЯ СИНХРОННАЯ МАСКА КАРТЫ: Прибавляем и вычитаем heavyPadding,
+            // чтобы обрезать холст карты точно по внутренней золотой линии видимой рамки,
+            // не давая гексам выходить наружу под парящие ромбы!
+            const clipLeft = (Math.max(0, viewRect.left - mapRect.left) + heavyPadding) / currentZoom;
+            const clipTop = (Math.max(0, viewRect.top - mapRect.top) + heavyPadding) / currentZoom;
+            const clipRight = (Math.max(0, mapRect.right - viewRect.right) + heavyPadding) / currentZoom;
+            const clipBottom = (Math.max(0, mapRect.bottom - viewRect.bottom) + heavyPadding) / currentZoom;
 
             mapContainer.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
         } else {

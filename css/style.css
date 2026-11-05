@@ -1810,3 +1810,20 @@ body {
 .frame-style-ornament-heavy .top-right    { top: -46px; right: -46px; }
 .frame-style-ornament-heavy .bottom-left  { bottom: -46px; left: -46px; }
 .frame-style-ornament-heavy .bottom-right { bottom: -46px; right: -46px; }
+
+/* ============================================================================
+   15. ФИКСАЦИЯ ИЗОЛЯЦИИ КАРТЫ СЗАДИ ДЛЯ ТЯЖЕЛОГО ОРНАМЕНТА
+   ============================================================================ */
+.frame-style-ornament-heavy ~ .map-container,
+.frame-style-ornament-heavy + .map-container,
+.kingmaker-frame.frame-style-ornament-heavy ~ #mapCanvas {
+    /* Создаем гигантский глухой воротник цвета глубокого фона приложения вокруг карты.
+       Он физически перекроет и запечатает любые вылезающие за пределы золотой рамки гексы,
+       при этом сама карта внутри рамки останется в своем исходном 100% масштабе! */
+    outline: 300px solid #16291b !important;
+    /* Смещаем аутлайн точно во внутреннюю границу 22-пиксельного бордера рамки */
+    outline-offset: -22px !important;
+
+    /* Уводим под рамку, чтобы золотой кант и ромбы перекрывали этот барьер */
+    z-index: 1 !important;
+}
