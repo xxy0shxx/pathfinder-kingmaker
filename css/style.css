@@ -1746,7 +1746,7 @@ body {
 }
 
 /* ============================================================================
-   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (РАЗДВИНУТЫЕ РОМБЫ ПОВЕРХ РАМКИ)
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (МАКСИМАЛЬНО ВЫДВИНУТЫЕ ГИГАНТСКИЕ РОМБЫ)
    ============================================================================ */
 .frame-style-ornament-heavy {
     opacity: 1 !important;
@@ -1759,32 +1759,31 @@ body {
     pointer-events: none;
     z-index: 10005; /* Поверх рамки и уголков */
     overflow: hidden;
-    /* Изменяем на space-between, чтобы группы разлетались к краям рамки */
     justify-content: space-between;
 }
 
-/* Центрирование линеек по осевой линии 22px рамки */
+/* Экстремальный сдвиг линеек наружу от центральной оси рамки (-48px) */
 .frame-style-ornament-heavy .diamond-row.row-top {
-    top: -4px;
+    top: -48px;
     left: 40px;
     right: 40px;
     height: 74px;
 }
 .frame-style-ornament-heavy .diamond-row.row-bottom {
-    bottom: -4px;
+    bottom: -48px;
     left: 40px;
     right: 40px;
     height: 74px;
 }
 .frame-style-ornament-heavy .diamond-row.row-left {
-    left: -4px;
+    left: -48px;
     top: 40px;
     bottom: 40px;
     width: 74px;
     flex-direction: column;
 }
 .frame-style-ornament-heavy .diamond-row.row-right {
-    right: -4px;
+    right: -48px;
     top: 40px;
     bottom: 40px;
     width: 74px;
@@ -1808,7 +1807,7 @@ body {
     margin: auto 8px;
 }
 
-/* Невидимый распорочный элемент по центру, который раздвигает ромбы к углам */
+/* Невидимый распорочный элемент по центру, удерживающий ромбы у краев */
 .diamond-spacer {
     flex-grow: 1;
     pointer-events: none;
