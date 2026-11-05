@@ -50,7 +50,7 @@ const FrameManager = {
 
 
     /**
-     * Применение CSS-классов темы и генерация базовых уголков рамки
+     * Применение CSS-классов темы и запуск соответствующего рендера декора
      */
     applyFrameStyle(styleId) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
@@ -73,7 +73,7 @@ const FrameManager = {
             }
         });
 
-        // ПОЛНАЯ ОЧИСТКА: удаляем старые руны, ромбы, линейки и центральные бастионы
+        // Зачистка старого декора
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth;
@@ -81,8 +81,10 @@ const FrameManager = {
 
         if (styleId === 'runes') {
             this.updateFrameRunes(width, height);
-        } else if (styleId === 'ornament' || styleId === 'ornament-heavy') {
-            this.updateFrameOrnament(styleId);
+        } else if (styleId === 'ornament') {
+            this.buildStandardOrnament(width, height);
+        } else if (styleId === 'ornament-heavy') {
+            this.buildHeavyOrnament(width, height);
         }
     },
     /**
@@ -183,10 +185,11 @@ const FrameManager = {
 
 
     /**
-     * Универсальное создание линеек орнамента (Марш от углов к центру под бастионы)
+     * Универсальное создание линеек орнамента (Полная стабилизация обычного и тяжелого стилей)
      */
     updateFrameOrnament(styleId = 'ornament') {
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
+        // Полностью зачищаем старые элементы, линейки, бастионы и заплатки
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .ornament-center-plug').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
         const height = this.frameElement.offsetHeight || window.innerHeight;
@@ -196,15 +199,11 @@ const FrameManager = {
 
         const isHeavy = styleId === 'ornament-heavy';
 
-        let stepHorizontal = 35;
-        let stepVertical = 35;
+        // Математически выверенные шаги: 24px для обычной пилы (18х18), 26px/44px для тяжелого
+        let stepHorizontal = isHeavy ? 26 : 24;
+        let stepVertical = isHeavy ? 44 : 24;
 
-        if (isHeavy) {
-            stepHorizontal = 27; // Жесткий фиксированный шаг для плотного ковра ромбов 18х18 по горизонтали
-            stepVertical = 44;   // Свободный шаг для вертикалей
-        }
-
-        const paddingOffset = isHeavy ? 44 : 56;
+        const paddingOffset = isHeavy ? 44 : 48;
 
         directions.forEach(dir => {
             const row = document.createElement('div');
@@ -223,8 +222,8 @@ const FrameManager = {
                 const half = Math.floor(count / 2);
 
                 for (let i = 0; i < count; i++) {
-                    // Разделительная распорка для всех осей, расталкивающая элементы от центра к углам
-                    if (isHeavy && i === half) {
+                    // Распорочный спейсер нужен только тяжелому орнаменту и вертикалям легкого
+                    if (i === half && (isHeavy || (!isHeavy && (dir === 'left' || dir === 'right')))) {
                         const spacer = document.createElement('div');
                         spacer.className = 'diamond-spacer';
                         row.appendChild(spacer);
@@ -237,19 +236,109 @@ const FrameManager = {
                 fragment.appendChild(row);
             }
 
+            // РЕНДЕР ЦЕНТРАЛЬНЫХ ЭЛЕМЕНТОВ
             if (isHeavy) {
+                // Для тяжелого стиля создаем гигантские геральдические щиты
                 const bastion = document.createElement('div');
                 bastion.className = `center-bastion bastion-${dir}`;
                 fragment.appendChild(bastion);
+            } else {
+                // ДЛЯ ОБЫЧНОГО ОРНАМЕНТА: создаем аккуратный центрирующий ромб-заплатку, перекрывающий провал
+                const plug = document.createElement('div');
+                plug.className = `ornament-center-plug plug-${dir}`;
+                fragment.appendChild(plug);
             }
         });
 
         this.frameElement.appendChild(fragment);
+    },
+
+    /**
+     * МЕТОД 1: Отрисовка ОБЫЧНОГО орнамента (Жесткие фиксированные пиксели, пила под рамкой)
+     */
+    buildStandardOrnament(width, height) {
+        const fragment = document.createDocumentFragment();
+
+        // Шаг 24px гарантирует, что ромбы 18х18 встанут идеально встык без наездов
+        const step = 24;
+        const padding = 24;
+
+        // Посадочная глубина осей под рамкой
+        const cTop = -13;
+        const cLeft = -13;
+        const cBottom = height - 13;
+        const cRight = width - 13;
+
+        const createTooth = (left, top) => {
+            const tooth = document.createElement('div');
+            tooth.className = 'diamond-tooth hex-diamond-teeth';
+            tooth.style.left = `${left}px`;
+            tooth.style.top = `${top}px`;
+            fragment.appendChild(tooth);
+        };
+
+        // Горизонтальные линии (Верх / Низ)
+        for (let l = padding; l <= width - padding; l += step) {
+            createTooth(l, cTop);
+            createTooth(l, cBottom);
+        }
+        // Вертикальные линии (Лево / Право)
+        for (let t = padding; t <= height - padding; t += step) {
+            createTooth(cLeft, t);
+            createTooth(cRight, t);
+        }
+
+        this.frameElement.appendChild(fragment);
+    },
+
+    /**
+     * МЕТОД 2: Отрисовка ТЯЖЕЛОГО орнамента (Флекс-автоматика, раздвижение и бастионы)
+     */
+    buildHeavyOrnament(width, height) {
+        const directions = ['top', 'bottom', 'left', 'right'];
+        const fragment = document.createDocumentFragment();
+
+        const stepHorizontal = 38;
+        const stepVertical = 44;
+        const paddingOffset = 44;
+
+        directions.forEach(dir => {
+            const row = document.createElement('div');
+            row.className = `diamond-row row-${dir}`;
+
+            let count = 0;
+            if (dir === 'top' || dir === 'bottom') {
+                const availableWidth = Math.max(0, width - paddingOffset);
+                count = Math.floor(availableWidth / stepHorizontal);
+            } else {
+                const availableHeight = Math.max(0, height - paddingOffset);
+                count = Math.ceil(availableHeight / stepVertical);
+            }
+
+            if (count > 0) {
+                const half = Math.floor(count / 2);
+
+                for (let i = 0; i < count; i++) {
+                    if (i === half) {
+                        const spacer = document.createElement('div');
+                        spacer.className = 'diamond-spacer';
+                        row.appendChild(spacer);
+                    }
+
+                    const tooth = document.createElement('div');
+                    tooth.className = 'diamond-tooth';
+                    row.appendChild(tooth);
+                }
+                fragment.appendChild(row);
+            }
+
+            const bastion = document.createElement('div');
+            bastion.className = `center-bastion bastion-${dir}`;
+            fragment.appendChild(bastion);
+        });
+
+        this.frameElement.appendChild(fragment);
     }
-
-
-
 }
-
 
 export default FrameManager;

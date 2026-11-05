@@ -1799,3 +1799,17 @@ body {
 .frame-style-ornament-heavy .top-right    { top: -46px; right: -46px; }
 .frame-style-ornament-heavy .bottom-left  { bottom: -46px; left: -46px; }
 .frame-style-ornament-heavy .bottom-right { bottom: -46px; right: -46px; }
+
+/* ============================================================================
+   13. СТИЛЬ РАМКИ: ОБЫЧНЫЙ ОРНАМЕНТ (СТАТИЧНАЯ ЧЕТКАЯ ПИЛА ПОД РАМКОЙ)
+   ============================================================================ */
+.frame-style-ornament .diamond-tooth {
+    position: absolute !important;
+    width: 18px;
+    height: 18px;
+    background-color: #8a6421;
+    border: 1.5px solid #dfbc6f;
+    transform: translate(-50%, -50%) rotate(45deg);
+    z-index: -1; /* Строго под рамкой */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
