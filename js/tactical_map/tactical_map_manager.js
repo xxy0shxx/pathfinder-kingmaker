@@ -658,13 +658,14 @@ const TacticalMapManager = {
                 }
 
                 // Встраивание эмодзи-индикаторов и стилей для физических препятствий (Obstacles)
+                // Встраивание эмодзи-индикаторов и стилей для физических препятствий (Obstacles)
                 if (savedData && savedData.obstacle) {
                     const obsType = savedData.obstacle;
                     if (obsType === 'wall') { squareElement.classList.add('obstacle-wall'); if (obstacle) obstacle.textContent = '🧱'; }
-                    else if (obsType === 'destructible') { if (obstacle) obstacle.textContent = '📦'; }
-                    else if (obsType === 'bushes') { if (obstacle) obstacle.textContent = '🌿'; }
-                    else if (obsType === 'forest') { if (obstacle) obstacle.textContent = '🌲'; }
-                    else if (obsType === 'water') { if (obstacle) obstacle.textContent = '🌊'; }
+                    else if (obsType === 'destructible') { squareElement.classList.add('obstacle-destructible'); if (obstacle) obstacle.textContent = '📦'; }
+                    else if (obsType === 'bushes') { squareElement.classList.add('obstacle-bushes'); if (obstacle) obstacle.textContent = '🌿'; }
+                    else if (obsType === 'forest') { squareElement.classList.add('obstacle-forest'); if (obstacle) obstacle.textContent = '🌲'; }
+                    else if (obsType === 'water') { squareElement.classList.add('obstacle-water'); if (obstacle) obstacle.textContent = '🌊'; }
                     else if (obsType === 'stones') { squareElement.classList.add('obstacle-stones'); if (obstacle) obstacle.textContent = '🪨'; }
                     else if (obsType === 'ice') { squareElement.classList.add('obstacle-ice'); if (obstacle) obstacle.textContent = '❄️'; }
                     else if (obsType === 'web') { squareElement.classList.add('obstacle-web'); if (obstacle) obstacle.textContent = '🕸️'; }
@@ -672,6 +673,7 @@ const TacticalMapManager = {
                     else if (obsType === 'floor-cobble') { squareElement.classList.add('floor-cobble'); }
                     else if (obsType === 'floor-earth') { squareElement.classList.add('floor-earth'); }
                 }
+
             }
         }
 
@@ -703,6 +705,7 @@ const TacticalMapManager = {
             }
         }
 
+
         // Шаг 4: Послойная отрисовка пересечений цветовых аур через множественные градиенты
         for (let targetId in cellAuras) {
             const targetElement = document.getElementById('visual_' + targetId);
@@ -715,20 +718,23 @@ const TacticalMapManager = {
             if (auras.length === 1) {
                 const col = auras[0];
                 targetElement.style.backgroundImage = '';
-                targetElement.style.backgroundColor = col.startsWith('rgba') ? col : ColorConverter.hexToRgba(col, 0.45);
-                targetElement.style.boxShadow = `inset 0 0 6px ${col.startsWith('rgba') ? 'rgba(255,255,255,0.2)' : ColorConverter.hexToRgba(col, 0.3)}`;
+                // Заменили жесткий красный дефолт на мягкую подсветку в тон интерфейса
+                const finalCol = (col === '#ff0000' || col === 'transparent') ? 'rgba(223, 188, 111, 0.15)' : col;
+                targetElement.style.backgroundColor = finalCol.startsWith('rgba') ? finalCol : ColorConverter.hexToRgba(finalCol, 0.45);
+                targetElement.style.boxShadow = `inset 0 0 6px ${finalCol.startsWith('rgba') ? 'rgba(255,255,255,0.2)' : ColorConverter.hexToRgba(finalCol, 0.3)}`;
             } else if (auras.length > 1) {
                 targetElement.style.backgroundColor = 'transparent';
                 const gradientLayers = auras.map(col => {
-                    const rgbaColor = col.startsWith('rgba') ? col : ColorConverter.hexToRgba(col, 0.40);
+                    const finalCol = col === '#ff0000' ? 'rgba(223, 188, 111, 0.15)' : col;
+                    const rgbaColor = finalCol.startsWith('rgba') ? finalCol : ColorConverter.hexToRgba(finalCol, 0.40);
                     return `linear-gradient(${rgbaColor}, ${rgbaColor})`;
                 }).join(', ');
                 targetElement.style.backgroundImage = gradientLayers;
                 targetElement.style.boxShadow = 'inset 0 0 8px rgba(255, 255, 255, 0.35)';
             }
         }
-    },
 
+    },
 
     // ============================================================================
     // ЧАСТЬ 8 ИЗ 10: ГЕОМЕТРИЯ АУР И СВЕРХТОЧНАЯ ТРАССИРОВКА ЛУЧЕЙ (LOS & CONE)
