@@ -89,6 +89,7 @@ const FrameManager = {
         const canvas = document.getElementById('ornamentCanvas');
         if (!canvas) return;
 
+        // Физический размер холста с учетом расширения бордеров
         const canvasWidth = width + 44;
         const canvasHeight = height + 44;
 
@@ -122,20 +123,23 @@ const FrameManager = {
         const pad = 44;
 
         const topY = 22;
-        const bottomY = canvasHeight - 22;
+        const bottomY = height - 22; // Сдвигаем снизу внутрь к видимой золотой кромке
         const leftX = 22;
-        const rightX = canvasWidth - 22;
+        const rightX = width - 22;   // Сдвигаем справа внутрь к видимой золотой кромке
 
+        // 1. Горизонтальные линии (Верх / Низ)
         for (let x = pad; x <= canvasWidth - pad; x += step) {
             drawDiamond(x, topY, size);
             drawDiamond(x, bottomY, size);
         }
 
+        // 2. Вертикальные линии (Лево / Право)
         for (let y = pad; y <= canvasHeight - pad; y += step) {
             drawDiamond(leftX, y, size);
             drawDiamond(rightX, y, size);
         }
     },
+
     updateBounds(viewport, mapContainer, currentZoom) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement || !viewport || !mapContainer) return;
