@@ -182,7 +182,7 @@ const TacticalMapManager = {
                 square.style.height = self.campParams.squareSize + 'px';
 
                 square.innerHTML = `
-                    <span class="square-star-label">${data ? '★' : ''}</span>
+                    <span class="square-star-label"></span>
                     <span class="square-crown-label" draggable="true">${data && data.heroHere ? '👑' : ''}</span>
                     <span class="square-monster-label" draggable="true"></span>
                     <span class="square-obstacle-label"></span>
@@ -426,6 +426,7 @@ const TacticalMapManager = {
 
         // Синхронизация селекторов под новые значения со страницы
         document.getElementById('inpCampMeasurement').value = data ? data.measurement || '' : '';
+        document.getElementById('inpCampFloor').value = data ? data.floor || '' : '';
         document.getElementById('inpCampObstacle').value = data ? data.obstacle || '' : '';
         document.getElementById('inpCampSpeed').value = data ? data.speed || '30' : '30';
         document.getElementById('inpCampDistance').value = data ? data.distance || '30' : '30';
@@ -496,6 +497,7 @@ const TacticalMapManager = {
 
         const heroHereVal = document.getElementById('inpCampHeroHere').checked;
         const monsterHereVal = document.getElementById('inpCampMonsterHere').checked;
+        const floorVal = document.getElementById('inpCampFloor').value;
         const obstacleVal = document.getElementById('inpCampObstacle').value;
         const measurementVal = document.getElementById('inpCampMeasurement').value;
         const distanceVal = document.getElementById('inpCampDistance').value;
@@ -521,7 +523,7 @@ const TacticalMapManager = {
         if (squareElement) {
             squareElement.classList.remove('fog-active');
             const star = squareElement.querySelector('.square-star-label');
-            if (star) star.textContent = '★';
+            if (star) star.textContent = '';
 
             squareElement.classList.toggle('squad-dark', heroHereVal);
             squareElement.classList.remove('monster-dark');
@@ -530,6 +532,7 @@ const TacticalMapManager = {
         self.state.campMapData[id] = {
             heroHere: heroHereVal,
             monsterHere: monsterHereVal,
+            floor: floorVal,
             obstacle: obstacleVal,
             measurement: measurementVal,
             distance: distanceVal,
@@ -615,6 +618,11 @@ const TacticalMapManager = {
 
                 const savedData = self.state.campMapData[squareId];
 
+                // Накладываем базовый плотный слой ПОЛА, если он сохранен
+                if (savedData && savedData.floor) {
+                    squareElement.classList.add(savedData.floor);
+                }
+
                 // ОТРИСОВКА ТОНКИХ СТЕН: Накладываем CSS-границы из сохраненного массива borders
                 if (savedData && savedData.borders && Array.isArray(savedData.borders)) {
                     savedData.borders.forEach(b => {
@@ -630,35 +638,23 @@ const TacticalMapManager = {
                 }
 
                 // Обработка видимости с учетом глобального флага тумана лагеря
+
                 if (!self.state.isCampFogEnabled) {
                     squareElement.classList.remove('fog-active');
-                    squareElement.style.backgroundImage = '';
-                    squareElement.style.boxShadow = '';
                     if (savedData && savedData.color && savedData.color !== 'transparent') {
                         squareElement.style.backgroundColor = ColorConverter.hexToRgba(savedData.color, 0.37);
-                    } else {
-                        squareElement.style.backgroundColor = '';
                     }
                 } else {
                     if (savedData && savedData.explored && !savedData.monsterHere) {
                         squareElement.classList.remove('fog-active');
-                        squareElement.style.backgroundImage = '';
-                        squareElement.style.boxShadow = '';
                         if (savedData.color && savedData.color !== 'transparent') {
                             squareElement.style.backgroundColor = ColorConverter.hexToRgba(savedData.color, 0.37);
-                        } else {
-                            squareElement.style.backgroundColor = '';
                         }
                     } else {
                         squareElement.classList.add('fog-active');
-                        squareElement.style.backgroundColor = '';
-                        squareElement.style.backgroundImage = '';
-                        squareElement.style.boxShadow = '';
                     }
                 }
 
-                // Встраивание эмодзи-индикаторов и стилей для физических препятствий (Obstacles)
-                // Встраивание эмодзи-индикаторов и стилей для физических препятствий (Obstacles)
                 if (savedData && savedData.obstacle) {
                     const obsType = savedData.obstacle;
                     if (obsType === 'wall') { squareElement.classList.add('obstacle-wall'); if (obstacle) obstacle.textContent = '🧱'; }
@@ -669,9 +665,6 @@ const TacticalMapManager = {
                     else if (obsType === 'stones') { squareElement.classList.add('obstacle-stones'); if (obstacle) obstacle.textContent = '🪨'; }
                     else if (obsType === 'ice') { squareElement.classList.add('obstacle-ice'); if (obstacle) obstacle.textContent = '❄️'; }
                     else if (obsType === 'web') { squareElement.classList.add('obstacle-web'); if (obstacle) obstacle.textContent = '🕸️'; }
-                    else if (obsType === 'floor-planks') { squareElement.classList.add('floor-planks'); }
-                    else if (obsType === 'floor-cobble') { squareElement.classList.add('floor-cobble'); }
-                    else if (obsType === 'floor-earth') { squareElement.classList.add('floor-earth'); }
                 }
 
             }
