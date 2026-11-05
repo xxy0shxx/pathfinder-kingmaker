@@ -254,7 +254,9 @@ const FrameManager = {
 
     updateFrameOrnament(styleId = 'ornament') {
         // Зачищаем все старые элементы, линейки, бастионы и щиты
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-absolute-shield').forEach(el => el.remove());
+//        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-absolute-shield').forEach(el => el.remove());
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .heavy-absolute-shield, .heavy-glow-underlay').forEach(el => el.remove());
+
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
         const height = this.frameElement.offsetHeight || window.innerHeight;
@@ -305,6 +307,10 @@ const FrameManager = {
 
         // ЖЁСТКАЯ ГЕНЕРАЦИЯ: Создаем физический фоновый щит, запечатывающий карту под ромбами снаружи
         if (isHeavy) {
+            const glowUnderlay = document.createElement('div');
+            glowUnderlay.className = 'heavy-glow-underlay';
+            fragment.appendChild(glowUnderlay);
+
             const shield = document.createElement('div');
             shield.className = 'heavy-absolute-shield';
             fragment.appendChild(shield);

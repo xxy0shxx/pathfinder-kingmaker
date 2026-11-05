@@ -1716,7 +1716,7 @@ body {
 }
 
 /* ============================================================================
-   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (БЕЗУПРЕЧНОЕ СЛОЕНИЕ И ГЛУБОКОЕ СИЯНИЕ)
+   14. СТИЛЬ РАМКИ: ТЯЖЕЛЫЙ ОРНАМЕНТ (БЕЗУПРЕЧНАЯ ИЕРАРХИЯ СЛОЕВ)
    ============================================================================ */
 .frame-style-ornament-heavy {
     opacity: 1 !important;
@@ -1742,8 +1742,8 @@ body {
     mask-composite: exclude !important;
 }
 
-/* ПОДЛОЖКА СВЕЧЕНИЯ: Опущена под элементы орнамента (z-index: 10002),
-   но остается НАД заглушкой и картой. Излучает мощный свет строго из-под ромбов! */
+/* ФИНАЛЬНОЕ СВЕЧЕНИЕ: Опущено на самый нижний слой декора (z-index: 10002).
+   Теперь оно физически рождается ПОД ромбами, ПОД бастионами и ПОД углами. */
 .kingmaker-frame.frame-style-ornament-heavy::after {
     content: "" !important;
     position: absolute !important;
@@ -1751,18 +1751,18 @@ body {
     border: none !important;
     background-color: transparent !important;
     pointer-events: none !important;
-    z-index: 10002 !important; /* Ниже ромбов, углов и бастионов */
+    z-index: 10002 !important; /* Строго ПОД всем декором тяжелой рамки */
 
     box-shadow:
-            0 0 20px 24px #ffd875,
-            0 0 35px 28px rgba(255, 255, 255, 1),
-            0 0 65px 36px #ffd875,
-            0 0 140px 48px rgba(223, 188, 111, 0.95),
-            0 0 240px 64px #ffd875,
-            0 0 380px 80px rgba(223, 188, 111, 0.45) !important;
+            0 0 15px 24px rgba(255, 216, 117, 0.85),
+            0 0 25px 28px rgba(255, 255, 255, 0.55),
+            0 0 45px 34px rgba(223, 188, 111, 0.65),
+            0 0 100px 42px rgba(223, 188, 111, 0.4),
+            0 0 180px 54px rgba(223, 188, 111, 0.2),
+            0 0 280px 64px rgba(223, 188, 111, 0.08) !important;
 }
 
-/* СКРЫВАЮЩИЙ ЩИТ КАРТЫ: Глухая подложка с самого низу конструкции */
+/* СКРЫВАЮЩИЙ ЩИТ КАРТЫ: Утоплен в самый низ, под свечение */
 .heavy-absolute-shield {
     display: none !important;
 }
@@ -1775,17 +1775,17 @@ body {
     background-clip: border-box !important;
     -webkit-mask: none !important;
     mask: none !important;
-    z-index: 10001 !important; /* Самый нижний слой над картой */
+    z-index: 10001 !important; /* Ниже слоя свечения */
     pointer-events: none !important;
     box-shadow: none !important;
 }
 
-/* ГОРИЗОНТАЛЬНЫЕ И ВЕРТИКАЛЬНЫЕ ЛИНЕЙКИ РОМБОВ ПОВЕРХ СВЕЧЕНИЯ (z-index: 10004) */
+/* ЛИНЕЙКИ МЕЛКИХ РОМБОВ: Подняты выше свечения */
 .frame-style-ornament-heavy .diamond-row {
     position: absolute;
     display: flex;
     pointer-events: none;
-    z-index: 10004; /* Выше подложки свечения */
+    z-index: 10004 !important; /* Гарантированно выше ::after */
     overflow: hidden;
 }
 
@@ -1825,13 +1825,13 @@ body {
 .frame-style-ornament-heavy .diamond-row.row-left .diamond-tooth,
 .frame-style-ornament-heavy .diamond-row.row-right .diamond-tooth { margin: 4px auto; }
 
-/* ЦЕНТРАЛЬНЫЕ БАСТИОНЫ ПОВЕРХ ВСЕГО (z-index: 10006) */
+/* ЦЕНТРАЛЬНЫЕ БАСТИОНЫ: Абсолютный приоритет */
 .center-bastion {
     position: absolute;
     background: linear-gradient(135deg, #a68032, #543e0d);
     border: 3px solid #dfbc6f;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 8px #ffd875;
-    z-index: 10006;
+    z-index: 10006 !important; /* Выше линеек ромбов и свечения */
     pointer-events: none;
 }
 .center-bastion::before {
@@ -1850,13 +1850,13 @@ body {
 
 .diamond-spacer { flex-grow: 1; pointer-events: none; }
 
-/* ГИГАНТСКИЕ УГЛОВЫЕ РОМБЫ ПОВЕРХ ВСЕГО (z-index: 10006) */
+/* ГИГАНТСКИЕ УГЛОВЫЕ РОМБЫ ПОВЕРХ ВСЕГО ОБЛАКА СВЕЧЕНИЯ */
 .frame-style-ornament-heavy .frame-corner {
     width: 68px;
     height: 68px;
     border: 3px solid #36260d;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.85), 0 0 5px #ffd875;
-    z-index: 10006; /* На одном уровне с бастионами, перекрывают стыки линеек */
+    z-index: 10006 !important; /* Наравне с бастионами, намертво перекрывают свечение */
 }
 .frame-style-ornament-heavy .frame-corner::before { inset: 5px; border: 2px solid #23472e; box-shadow: inset 0 0 12px rgba(35, 71, 46, 0.9); }
 .frame-style-ornament-heavy .frame-corner, .frame-style-ornament-heavy .frame-corner::before { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
@@ -1865,7 +1865,6 @@ body {
 .frame-style-ornament-heavy .top-right    { top: -46px; right: -46px; }
 .frame-style-ornament-heavy .bottom-left  { bottom: -46px; left: -46px; }
 .frame-style-ornament-heavy .bottom-right { bottom: -46px; right: -46px; }
-
 
 /* ============================================================================
    15. АППАРАТНАЯ СТЫКОВКА И ОБРЕЗКА ХОЛСТА КАРТЫ ПО ЗОЛОТОМУ КАНТУ
