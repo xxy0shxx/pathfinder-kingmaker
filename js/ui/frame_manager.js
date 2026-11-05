@@ -145,7 +145,6 @@ const FrameManager = {
 
 
 
-
     updateBounds(viewport, mapContainer, currentZoom) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement || !viewport || !mapContainer) return;
@@ -153,25 +152,20 @@ const FrameManager = {
         const mapRect = mapContainer.getBoundingClientRect();
         const viewRect = viewport.getBoundingClientRect();
 
-        // Проверяем текущий стиль
-        const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
-        const isHeavy = currentStyleId === 'ornament-heavy';
-
-        // Виртуальный барьер-отступ: 24px для тяжелого орнамента, чтобы упор шел по вершинам
-        const screenPadding = isHeavy ? 24 : 0;
-
-        // Корректируем виртуальные границы экрана с учетом вылета ромбов наружу
-        const cleanLeft = Math.max(viewRect.left + screenPadding, mapRect.left);
-        const cleanTop = Math.max(viewRect.top + screenPadding, mapRect.top);
-        const cleanRight = Math.min(viewRect.right - screenPadding, mapRect.right);
-        const cleanBottom = Math.min(viewRect.bottom - screenPadding, mapRect.bottom);
+        const cleanLeft = Math.max(viewRect.left, mapRect.left);
+        const cleanTop = Math.max(viewRect.top, mapRect.top);
+        const cleanRight = Math.min(viewRect.right, mapRect.right);
+        const cleanBottom = Math.min(viewRect.bottom, mapRect.bottom);
 
         const baseWidth = Math.max(0, cleanRight - cleanLeft);
         const baseHeight = Math.max(0, cleanBottom - cleanTop);
 
         if (baseWidth > 0 && baseHeight > 0) {
-            // ЖЁСТКАЯ ФИКСАЦИЯ: Всегда 22px бордера! Карта сохраняет исходный 100% масштаб
+            // ЖЁСТКАЯ ФИКСАЦИЯ: Карта ВСЕГДА строится по стандартным 22px
             const borderWidth = 22;
+
+            const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
+            const isHeavy = currentStyleId === 'ornament-heavy';
 
             this.frameElement.style.display = 'block';
 
@@ -180,11 +174,25 @@ const FrameManager = {
             let frameWidth = baseWidth + (borderWidth * 2);
             let frameHeight = baseHeight + (borderWidth * 2);
 
-            // Ограничиваем движение рамки, не давая ей заезжать за вершины ромбов
-            if (frameLeft < viewRect.left) { frameWidth -= (viewRect.left - frameLeft); frameLeft = viewRect.left; }
-            if (frameTop < viewRect.top) { frameHeight -= (viewRect.top - frameTop); frameTop = viewRect.top; }
-            if (frameLeft + frameWidth > viewRect.right) { frameWidth = viewRect.right - frameLeft; }
-            if (frameTop + frameHeight > viewRect.bottom) { frameHeight = viewRect.bottom - frameTop; }
+            // МАКСИМАЛЬНЫЙ УПОР: Если включен тяжелый стиль, мы искусственно сдвигаем границы
+            // прижатия рамки к краям экрана на 24px (величина вылета ромбов наружу).
+            // Это заставит рамку останавливаться точно по кончикам парящих ромбов!
+            const heavyPadding = isHeavy ? 24 : 0;
+
+            if (frameLeft < viewRect.left + heavyPadding) {
+                frameWidth -= ((viewRect.left + heavyPadding) - frameLeft);
+                frameLeft = viewRect.left + heavyPadding;
+            }
+            if (frameTop < viewRect.top + heavyPadding) {
+                frameHeight -= ((viewRect.top + heavyPadding) - frameTop);
+                frameTop = viewRect.top + heavyPadding;
+            }
+            if (frameLeft + frameWidth > viewRect.right - heavyPadding) {
+                frameWidth = (viewRect.right - heavyPadding) - frameLeft;
+            }
+            if (frameTop + frameHeight > viewRect.bottom - heavyPadding) {
+                frameHeight = (viewRect.bottom - heavyPadding) - frameTop;
+            }
 
             const fWidth = Math.ceil(frameWidth);
             const fHeight = Math.ceil(frameHeight);
@@ -202,7 +210,6 @@ const FrameManager = {
                 this.updateFrameOrnament(currentStyleId);
             }
 
-            // Маска карты всегда режется по стандартным 22px видимого золотого канта
             const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
             const clipTop = Math.max(0, viewRect.top - mapRect.top) / currentZoom;
             const clipRight = Math.max(0, mapRect.right - viewRect.right) / currentZoom;
@@ -214,7 +221,6 @@ const FrameManager = {
             mapContainer.style.clipPath = 'none';
         }
     },
-
 
 
     updateFrameRunes(width, height) {

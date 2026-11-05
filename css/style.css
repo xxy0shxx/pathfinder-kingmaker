@@ -1708,8 +1708,11 @@ body {
     visibility: visible !important;
 }
 
+/* Возвращаем оригинальные чистые свойства рамки без внешних деформирующих полей */
 .kingmaker-frame.frame-style-ornament-heavy {
     border: 22px solid transparent !important;
+    padding: 0px !important;
+    margin: 0px !important;
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8),
     0 0 25px rgba(255, 255, 255, 0.9),
     0 0 45px #ffd875,
@@ -1717,15 +1720,20 @@ body {
     0 0 120px rgba(223, 188, 111, 0.45) !important;
 }
 
+/* Градиент рамки ложится идеально на свои базовые 22px */
 .kingmaker-frame.frame-style-ornament-heavy::before {
+    position: absolute !important;
     inset: -22px !important;
     padding: 22px !important;
+    background: linear-gradient(to bottom right, #8a6421 0%, #1e3625 15%, #b89445 30%, #152e1d 50%, #a68032 70%, #1c3324 85%, #6e4e14 100%) !important;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+    -webkit-mask-composite: xor !important;
+    mask-composite: exclude !important;
 }
 
 .kingmaker-frame.frame-style-ornament-heavy::after {
     content: none !important;
 }
-
 .frame-style-ornament-heavy .diamond-row {
     position: absolute;
     display: flex;
