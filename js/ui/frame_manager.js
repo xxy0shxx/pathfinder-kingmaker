@@ -185,7 +185,7 @@ const FrameManager = {
 
 
     /**
-     * Универсальное создание линеек орнамента с поддержкой раздвижения к углам
+     * Универсальное создание линеек орнамента с увеличенной плотностью элементов
      */
     updateFrameOrnament(styleId = 'ornament') {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row').forEach(el => el.remove());
@@ -197,7 +197,8 @@ const FrameManager = {
         const fragment = document.createDocumentFragment();
 
         const isHeavy = styleId === 'ornament-heavy';
-        const targetStep = isHeavy ? 70 : 35;
+        // 35px для обычного стиля, 36px для тяжелого (дает высокую плотность под размер 24х24)
+        const targetStep = isHeavy ? 36 : 35;
         const paddingOffset = isHeavy ? 80 : 56;
 
         directions.forEach(dir => {
@@ -214,11 +215,9 @@ const FrameManager = {
             }
 
             if (count > 0) {
-                // Вычисляем середину для вставки распорки
                 const half = Math.floor(count / 2);
 
                 for (let i = 0; i < count; i++) {
-                    // Если включен тяжелый стиль, ровно по центру вставляем пустую флекс-распорку
                     if (isHeavy && i === half) {
                         const spacer = document.createElement('div');
                         spacer.className = 'diamond-spacer';
@@ -235,7 +234,6 @@ const FrameManager = {
 
         this.frameElement.appendChild(fragment);
     }
-
 
 }
 
