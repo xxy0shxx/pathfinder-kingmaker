@@ -17,7 +17,7 @@ const FrameManager = {
             { id: 'norunes', icon: '🔲', title: 'Рамка: Без рун' },
             { id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами' },
             { id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент' },
-            { id: 'ornament-heavy', icon: '🔸', title: 'Рамка: Орнамент' }
+            { id: 'ornament-heavy', icon: '🔶', title: 'Рамка: Орнамент Крупный' }
         ];
 
         let currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
