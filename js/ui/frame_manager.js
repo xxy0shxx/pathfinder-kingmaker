@@ -183,7 +183,7 @@ const FrameManager = {
 
 
     /**
-     * Универсальное создание линеек орнамента (Защита от наслоения боковых ромбов)
+     * Универсальное создание линеек орнамента (Симметричный бесконфликтный шаг)
      */
     updateFrameOrnament(styleId = 'ornament') {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
@@ -200,10 +200,10 @@ const FrameManager = {
         let stepHorizontal = 35;
         let stepVertical = 35;
 
-        // Если включен тяжелый стиль, увеличиваем вертикальный шаг для исключения наслоений
+        // Если включен тяжелый стиль, делаем шаг просторнее со всех сторон (44px)
         if (isHeavy) {
-            stepHorizontal = 38;
-            stepVertical = 44; // Увеличенный свободный шаг для левой и правой сторон
+            stepHorizontal = 44; // Свободный шаг для верхней и нижней сторон
+            stepVertical = 44;   // Свободный шаг для левой и правой сторон
         }
 
         const paddingOffset = isHeavy ? 44 : 56;
