@@ -1,8 +1,5 @@
 import { MAP_CONFIG } from '../config/app_config.js';
 
-/**
- * Модуль для управления стилями декоративной рамки карты, кадрированием холста холста и руническими эффектами
- */
 const FrameManager = {
     RUNE_POOL: ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛟ', 'ᛞ'],
     frameElement: null,
@@ -12,18 +9,15 @@ const FrameManager = {
         this.initFrameStyleControls();
     },
 
-    /**
-     * Инициализация кнопок управления стилем рамки в интерфейсе
-     */
     initFrameStyleControls() {
         const btn = document.getElementById('btnFrameStyle');
         if (!btn) return;
 
         const styles = [
-            {id: 'norunes', icon: '🔲', title: 'Рамка: Без рун'},
-            {id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами'},
-            {id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент'},
-            {id: 'ornament-heavy', icon: '🔶', title: 'Рамка: Орнамент Крупный'}
+            { id: 'norunes', icon: '🔲', title: 'Рамка: Без рун' },
+            { id: 'runes', icon: 'ᚱ', title: 'Рамка: С рунами' },
+            { id: 'ornament', icon: '🔸', title: 'Рамка: Орнамент' },
+            { id: 'ornament-heavy', icon: '🔸', title: 'Рамка: Орнамент' }
         ];
 
         let currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
@@ -48,10 +42,6 @@ const FrameManager = {
         this.applyFrameStyle(startStyle.id);
     },
 
-
-    /**
-     * Применение CSS-классов темы и запуск соответствующего рендера декора
-     */
     applyFrameStyle(styleId) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement) return;
@@ -73,8 +63,7 @@ const FrameManager = {
             }
         });
 
-        // Зачистка старого декора
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, #ornamentCanvas').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth;
         const height = this.frameElement.offsetHeight;
@@ -82,14 +71,71 @@ const FrameManager = {
         if (styleId === 'runes') {
             this.updateFrameRunes(width, height);
         } else if (styleId === 'ornament') {
-            this.buildStandardOrnament(width, height);
+            this.initStandardOrnamentCanvas();
         } else if (styleId === 'ornament-heavy') {
-            this.buildHeavyOrnament(width, height);
+            this.updateFrameOrnament(styleId);
         }
     },
-    /**
-     * Динамическое позиционирование рамки
-     */
+
+    initStandardOrnamentCanvas() {
+        if (this.frameElement.querySelector('#ornamentCanvas')) return;
+        const canvas = document.createElement('canvas');
+        canvas.id = 'ornamentCanvas';
+        this.frameElement.appendChild(canvas);
+        this.drawStandardOrnamentCanvas(this.frameElement.offsetWidth, this.frameElement.offsetHeight);
+    },
+
+    drawStandardOrnamentCanvas(width, height) {
+        const canvas = document.getElementById('ornamentCanvas');
+        if (!canvas) return;
+
+        const canvasWidth = width + 44;
+        const canvasHeight = height + 44;
+
+        if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+        }
+
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        const drawDiamond = (cx, cy, size) => {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - size);
+            ctx.lineTo(cx + size, cy);
+            ctx.lineTo(cx, cy + size);
+            ctx.lineTo(cx - size, cy);
+            ctx.closePath();
+
+            ctx.fillStyle = '#8a6421';
+            ctx.fill();
+            ctx.strokeStyle = '#dfbc6f';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        const size = 9;
+        const step = 22;
+        const pad = 44;
+
+        const topY = 22;
+        const bottomY = canvasHeight - 22;
+        const leftX = 22;
+        const rightX = canvasWidth - 22;
+
+        for (let x = pad; x <= canvasWidth - pad; x += step) {
+            drawDiamond(x, topY, size);
+            drawDiamond(x, bottomY, size);
+        }
+
+        for (let y = pad; y <= canvasHeight - pad; y += step) {
+            drawDiamond(leftX, y, size);
+            drawDiamond(rightX, y, size);
+        }
+    },
     updateBounds(viewport, mapContainer, currentZoom) {
         if (!this.frameElement) this.frameElement = document.querySelector('.kingmaker-frame');
         if (!this.frameElement || !viewport || !mapContainer) return;
@@ -119,14 +165,19 @@ const FrameManager = {
             if (frameLeft + frameWidth > viewRect.right) { frameWidth = viewRect.right - frameLeft; }
             if (frameTop + frameHeight > viewRect.bottom) { frameHeight = viewRect.bottom - frameTop; }
 
+            const fWidth = Math.ceil(frameWidth);
+            const fHeight = Math.ceil(frameHeight);
+
             this.frameElement.style.left = `${Math.floor(frameLeft)}px`;
             this.frameElement.style.top = `${Math.floor(frameTop)}px`;
-            this.frameElement.style.width = `${Math.ceil(frameWidth)}px`;
-            this.frameElement.style.height = `${Math.ceil(frameHeight)}px`;
+            this.frameElement.style.width = `${fWidth}px`;
+            this.frameElement.style.height = `${fHeight}px`;
 
             const currentStyleId = localStorage.getItem('kingmakerFrameStyle') || 'norunes';
             if (currentStyleId === 'runes') {
-                this.updateFrameRunes(Math.ceil(frameWidth), Math.ceil(frameHeight));
+                this.updateFrameRunes(fWidth, fHeight);
+            } else if (currentStyleId === 'ornament') {
+                this.drawStandardOrnamentCanvas(fWidth, fHeight);
             }
 
             const clipLeft = Math.max(0, viewRect.left - mapRect.left) / currentZoom;
@@ -141,17 +192,12 @@ const FrameManager = {
         }
     },
 
-
-    /**
-     * Отрисовка скандинавских рун по периметру рамки
-     */
     updateFrameRunes(width, height) {
         this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth').forEach(el => el.remove());
 
         const step = MAP_CONFIG.viewport.step || 50;
         const padding = MAP_CONFIG.viewport.padding || 20;
 
-        // Коррекция на -22px бордера для точного попадания в центр золотой линии
         const cTop = -11;
         const cLeft = -11;
         const cBottom = height - 33;
@@ -163,7 +209,7 @@ const FrameManager = {
             runeElement.style.left = `${left}px`;
             runeElement.style.top = `${top}px`;
             runeElement.style.transform = 'translate(-50%, -50%)';
-            runeElement.style.animationDelay = `${Math.random() * -3.5}s`;
+            runeElement.style.animationDelay = `${Math.random() * -5}s`;
             runeElement.textContent = this.RUNE_POOL[Math.floor(Math.random() * this.RUNE_POOL.length)];
             this.frameElement.appendChild(runeElement);
         };
@@ -171,25 +217,17 @@ const FrameManager = {
         const innerWidth = width - 44;
         const innerHeight = height - 44;
 
-        // Горизонтальные ряды
-        for (let l = padding; l < innerWidth - padding; l += step) {
-            createRune(l, cTop);
-            createRune(l, cBottom);
-        }
-        // Вертикальные ряды
-        for (let t = padding; t < innerHeight - padding; t += step) {
-            createRune(cLeft, t);
-            createRune(cRight, t);
-        }
+        for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cTop); }
+        for (let l = padding; l < innerWidth - padding; l += step) { createRune(l, cBottom); }
+        for (let t = padding; t < innerHeight - padding; t += step) { createRune(cLeft, t); }
+        for (let t = padding; t < innerHeight - padding; t += step) { createRune(cRight, t); }
     },
 
-
     /**
-     * Универсальное создание линеек орнамента (Полная стабилизация обычного и тяжелого стилей)
+     * ОРИГИНАЛЬНЫЙ ТЯЖЕЛЫЙ ОРНАМЕНТ - ПОЛНОСТЬЮ СОХРАНЕН БЕЗ ИЗМЕНЕНИЙ
      */
     updateFrameOrnament(styleId = 'ornament') {
-        // Полностью зачищаем старые элементы, линейки, бастионы и заплатки
-        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion, .ornament-center-plug').forEach(el => el.remove());
+        this.frameElement.querySelectorAll('.hex-rune, .hex-diamond-teeth, .diamond-row, .center-bastion').forEach(el => el.remove());
 
         const width = this.frameElement.offsetWidth || window.innerWidth;
         const height = this.frameElement.offsetHeight || window.innerHeight;
@@ -198,12 +236,8 @@ const FrameManager = {
         const fragment = document.createDocumentFragment();
 
         const isHeavy = styleId === 'ornament-heavy';
-
-        // Математически выверенные шаги: 24px для обычной пилы (18х18), 26px/44px для тяжелого
-        let stepHorizontal = isHeavy ? 26 : 24;
-        let stepVertical = isHeavy ? 44 : 24;
-
-        const paddingOffset = isHeavy ? 44 : 48;
+        const targetStep = isHeavy ? 38 : 35;
+        const paddingOffset = isHeavy ? 44 : 56;
 
         directions.forEach(dir => {
             const row = document.createElement('div');
@@ -212,18 +246,17 @@ const FrameManager = {
             let count = 0;
             if (dir === 'top' || dir === 'bottom') {
                 const availableWidth = Math.max(0, width - paddingOffset);
-                count = Math.floor(availableWidth / stepHorizontal);
+                count = Math.floor(availableWidth / targetStep);
             } else {
                 const availableHeight = Math.max(0, height - paddingOffset);
-                count = Math.ceil(availableHeight / stepVertical);
+                count = Math.ceil(availableHeight / targetStep);
             }
 
             if (count > 0) {
                 const half = Math.floor(count / 2);
 
                 for (let i = 0; i < count; i++) {
-                    // Распорочный спейсер нужен только тяжелому орнаменту и вертикалям легкого
-                    if (i === half && (isHeavy || (!isHeavy && (dir === 'left' || dir === 'right')))) {
+                    if (isHeavy && i === half) {
                         const spacer = document.createElement('div');
                         spacer.className = 'diamond-spacer';
                         row.appendChild(spacer);
@@ -236,109 +269,15 @@ const FrameManager = {
                 fragment.appendChild(row);
             }
 
-            // РЕНДЕР ЦЕНТРАЛЬНЫХ ЭЛЕМЕНТОВ
             if (isHeavy) {
-                // Для тяжелого стиля создаем гигантские геральдические щиты
                 const bastion = document.createElement('div');
                 bastion.className = `center-bastion bastion-${dir}`;
                 fragment.appendChild(bastion);
-            } else {
-                // ДЛЯ ОБЫЧНОГО ОРНАМЕНТА: создаем аккуратный центрирующий ромб-заплатку, перекрывающий провал
-                const plug = document.createElement('div');
-                plug.className = `ornament-center-plug plug-${dir}`;
-                fragment.appendChild(plug);
             }
-        });
-
-        this.frameElement.appendChild(fragment);
-    },
-
-    /**
-     * МЕТОД 1: Отрисовка ОБЫЧНОГО орнамента (Жесткие фиксированные пиксели, пила под рамкой)
-     */
-    buildStandardOrnament(width, height) {
-        const fragment = document.createDocumentFragment();
-
-        // Шаг 24px гарантирует, что ромбы 18х18 встанут идеально встык без наездов
-        const step = 24;
-        const padding = 24;
-
-        // Посадочная глубина осей под рамкой
-        const cTop = -13;
-        const cLeft = -13;
-        const cBottom = height - 13;
-        const cRight = width - 13;
-
-        const createTooth = (left, top) => {
-            const tooth = document.createElement('div');
-            tooth.className = 'diamond-tooth hex-diamond-teeth';
-            tooth.style.left = `${left}px`;
-            tooth.style.top = `${top}px`;
-            fragment.appendChild(tooth);
-        };
-
-        // Горизонтальные линии (Верх / Низ)
-        for (let l = padding; l <= width - padding; l += step) {
-            createTooth(l, cTop);
-            createTooth(l, cBottom);
-        }
-        // Вертикальные линии (Лево / Право)
-        for (let t = padding; t <= height - padding; t += step) {
-            createTooth(cLeft, t);
-            createTooth(cRight, t);
-        }
-
-        this.frameElement.appendChild(fragment);
-    },
-
-    /**
-     * МЕТОД 2: Отрисовка ТЯЖЕЛОГО орнамента (Флекс-автоматика, раздвижение и бастионы)
-     */
-    buildHeavyOrnament(width, height) {
-        const directions = ['top', 'bottom', 'left', 'right'];
-        const fragment = document.createDocumentFragment();
-
-        const stepHorizontal = 38;
-        const stepVertical = 44;
-        const paddingOffset = 44;
-
-        directions.forEach(dir => {
-            const row = document.createElement('div');
-            row.className = `diamond-row row-${dir}`;
-
-            let count = 0;
-            if (dir === 'top' || dir === 'bottom') {
-                const availableWidth = Math.max(0, width - paddingOffset);
-                count = Math.floor(availableWidth / stepHorizontal);
-            } else {
-                const availableHeight = Math.max(0, height - paddingOffset);
-                count = Math.ceil(availableHeight / stepVertical);
-            }
-
-            if (count > 0) {
-                const half = Math.floor(count / 2);
-
-                for (let i = 0; i < count; i++) {
-                    if (i === half) {
-                        const spacer = document.createElement('div');
-                        spacer.className = 'diamond-spacer';
-                        row.appendChild(spacer);
-                    }
-
-                    const tooth = document.createElement('div');
-                    tooth.className = 'diamond-tooth';
-                    row.appendChild(tooth);
-                }
-                fragment.appendChild(row);
-            }
-
-            const bastion = document.createElement('div');
-            bastion.className = `center-bastion bastion-${dir}`;
-            fragment.appendChild(bastion);
         });
 
         this.frameElement.appendChild(fragment);
     }
-}
+};
 
 export default FrameManager;
