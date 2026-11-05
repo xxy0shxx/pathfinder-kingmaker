@@ -1789,7 +1789,7 @@ body {
 
 .frame-style-ornament-heavy .diamond-row.row-top,
 .frame-style-ornament-heavy .diamond-row.row-bottom {
-    justify-content: flex-start;
+    justify-content: center !important; /* Центрируем непрерывный ряд ромбов */
     height: 34px;
     left: 26px;
     right: 26px;

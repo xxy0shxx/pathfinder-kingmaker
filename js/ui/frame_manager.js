@@ -288,7 +288,7 @@ const FrameManager = {
         const fragment = document.createDocumentFragment();
 
         const isHeavy = styleId === 'ornament-heavy';
-        const targetStep = isHeavy ? 38 : 35; const paddingOffset = isHeavy ? 44 : 56;
+        const targetStep = isHeavy ? 10 : 35; const paddingOffset = isHeavy ? 50 : 56;
 
         directions.forEach(dir => {
             const row = document.createElement('div'); row.className = `diamond-row row-${dir}`;
