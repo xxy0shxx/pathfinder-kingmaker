@@ -1131,15 +1131,15 @@ const TacticalMapManager = {
                 let hazardReport = '';
                 if (jumpCount > 0) {
                     let jumpDesc = `• <b>Прыжки:</b> совершено <b>${jumpCount}</b> прыжка(ов) с места (требуется 1 действие на каждый).`;
-                    if (webJumpCount > 0) jumpDesc += ` <span style="color: #9b59b6;">[Внимание: ${webJumpCount} вылет/посадка в паутине]</span>`;
-                    if (iceJumpCount > 0) jumpDesc += ` <span style="color: #00cec9;">[Внимание: ${iceJumpCount} вылет/посадка на льду]</span>`;
-                    if (waterJumpCount > 0) jumpDesc += ` <span style="color: #74b9ff;">[Внимание: ${waterJumpCount} вылет/посадка в воде]</span>`;
+                    if (webJumpCount > 0) jumpDesc += ` <span style="color: #9b59b6;">[Внимание: ${webJumpCount} прыжок/приземление в паутине]</span>`;
+                    if (iceJumpCount > 0) jumpDesc += ` <span style="color: #00cec9;">[Внимание: ${iceJumpCount} прыжок/приземление на льду]</span>`;
+                    if (waterJumpCount > 0) jumpDesc += ` <span style="color: #74b9ff;">[Внимание: ${waterJumpCount} прыжок/приземление в воде]</span>`;
                     hazardReport += `<div style="color: #ff9f43; margin-top: 4px;">${jumpDesc}</div>`;
                 }
                 if (bushesCount > 0) hazardReport += `<div style="color: #f1c40f; margin-top: 4px;">• <b>Густые кусты:</b> преодолено <b>${bushesCount}</b> клеток (Трудный ландшафт: двойная цена футов движения)</div>`;
-                if (waterCount > 0) hazardReport += `<div style="color: #74b9ff; margin-top: 4px;">• <b>Глубокая вода:</b> пройдено <b>${waterCount}</b> клеток (требуется проверка Атлетики d20 за каждую)</div>`;
-                if (iceCount > 0) hazardReport += `<div style="color: #00cec9; margin-top: 4px;">• <b>Скользкий лед:</b> пройдено <b>${iceCount}</b> клеток (требуется проверка Акробатики d20 за каждую)</div>`;
-                if (webCount > 0) hazardReport += `<div style="color: #9b59b6; margin-top: 4px;">• <b>Липкая паутина:</b> пройдено <b>${webCount}</b> клеток (требуется Спасбросок d20 против опутывания)</div>`;
+                if (waterCount > 0) hazardReport += `<div style="color: #74b9ff; margin-top: 4px;">• <b>Глубокая вода:</b> пройдено <b>${waterCount}</b> клеток (требуется проверка Атлетики 🎲D20 чтобы не утонуть)</div>`;
+                if (iceCount > 0) hazardReport += `<div style="color: #00cec9; margin-top: 4px;">• <b>Скользкий лед:</b> пройдено <b>${iceCount}</b> клеток (требуется проверка Акробатики 🎲D20 чтобы не упасть)</div>`;
+                if (webCount > 0) hazardReport += `<div style="color: #9b59b6; margin-top: 4px;">• <b>Липкая паутина:</b> пройдено <b>${webCount}</b> клеток (требуется проверка Акробатики 🎲D20 против опутывания)</div>`;
 
                 paramsBlock += `<div style="border-top: 2px solid #2ecc71; padding-top: 8px; margin-top: 8px;">`;
                 paramsBlock += `<span style="color: #2ecc71;">📐 <b>Итоговый маршрут:</b></span><br>`;
