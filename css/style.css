@@ -1817,7 +1817,7 @@ body {
     border: 1.5px solid #dfbc6f;
     transform: rotate(45deg);
     flex-shrink: 0;
-    /*box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);*/
+    box-shadow: none !important;
 }
 .frame-style-ornament-heavy .diamond-tooth::before {
     content: '' !important;
@@ -1839,7 +1839,7 @@ body {
     position: absolute;
     background: linear-gradient(135deg, #a68032, #543e0d);
 /*    border: 3px solid #dfbc6f;*/
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 8px #ffd875;
+    box-shadow: none !important;
     z-index: 10006 !important; /* Выше линеек ромбов и свечения */
     pointer-events: none;
 }
@@ -1885,7 +1885,7 @@ body {
     inset: 0;
     background: linear-gradient(135deg, #a68032, #543e0d);
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.85), 0 0 3px #ffd875;
-    z-index: 10007 !important; /* Выше подложки самого бастиона */
+    z-index: 10007 !important;
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
 }
 
