@@ -1789,6 +1789,8 @@ body {
     pointer-events: none;
     z-index: 10004 !important; /* Гарантированно выше ::after */
     overflow: hidden;
+    box-shadow: none !important;
+    filter: none !important;
 }
 
 .frame-style-ornament-heavy .diamond-row.row-top,
