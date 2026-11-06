@@ -78,6 +78,7 @@ const CampingManager = {
     },
 
 
+
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -112,7 +113,7 @@ const CampingManager = {
                 if (huntRow) huntRow.style.display = 'none';
                 ['res_camouflage', 'res_hunt'].forEach(name => {
                     const defRadio = document.querySelector(`input[name="${name}"][value="success"]`);
-                    if (defaultRadio) defaultRadio.checked = true;
+                    if (defRadio) defRadio.checked = true;
                 });
             } else {
                 if (camoRow) camoRow.style.display = 'flex';
@@ -138,7 +139,7 @@ const CampingManager = {
                 }
             });
 
-            // Расчет СЛ случайной сцены
+            // 2. РАСЧЕТ СЛ СЛУЧАЙНОЙ СЦЕНЫ (Чистый расчет бросков без штрафа Охоты)
             let finalEncounterDc = this.state.checkMod;
             if (!isCampHorrible) {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
@@ -148,48 +149,57 @@ const CampingManager = {
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
             this.state.encounterDc = finalEncounterDc;
 
-            // Расчет пула проверок
+            // 3. РАСЧЕТ ИТОГОВОГО ПУЛА ПРОВЕРОК ПРИВАЛА
             let calculatedChecks = this.state.baseChecks;
             if (prepareRes === 'crit_success') calculatedChecks -= 1;
             if (prepareRes === 'crit_failure') calculatedChecks += 1;
             if (!isCampHorrible && camoRes === 'crit_success') calculatedChecks -= 1;
+
+            // ИСПРАВЛЕНИЕ: При КП охоты — число проверок (а не СЛ сцены) увеличивается на +1
+            if (!isCampHorrible && huntRes === 'crit_failure') {
+                calculatedChecks += 1;
+            }
             this.state.totalChecks = Math.max(0, calculatedChecks);
 
-            // РАСЧЕТ РЕСУРСОВ С УЧЕТОМ НОВЫХ ПРАВИЛ УСПЕХА ОХОТЫ
+            // 4. РАСЧЕТ ДОБЫТЫХ РЕСУРСОВ
             let normalYield = 0;
-            let specialYieldText = "0"; // Текстовое поле для кубов
+            let specialYieldText = "0";
 
             if (!isCampHorrible) {
                 if (huntRes === 'success') {
-                    // ВАШЕ НОВОЕ ПРАВИЛО ДЛЯ ОБЫЧНОГО УСПЕХА:
-                    normalYield = baseRegionDc; // Обычные = СЛ региона
-
+                    normalYield = baseRegionDc;
                     if (currentRegionLevel < 7) specialYieldText = "1d4";
                     else if (currentRegionLevel >= 7 && currentRegionLevel <= 14) specialYieldText = "2d4";
                     else if (currentRegionLevel > 14) specialYieldText = "3d4";
                 }
                 else if (huntRes === 'crit_success') {
-                    // Старое правило для КУ (оставляем без изменений)
                     normalYield = baseRegionDc;
                     if (currentRegionLevel < 7) specialYieldText = "4";
                     else if (currentRegionLevel >= 7 && currentRegionLevel <= 14) specialYieldText = "8";
                     else if (currentRegionLevel > 14) specialYieldText = "12";
                 }
+                else if (huntRes === 'failure') {
+                    normalYield = baseRegionDc;
+                    specialYieldText = "0";
+                }
+                else if (huntRes === 'crit_failure') {
+                    normalYield = "1d4";
+                    specialYieldText = "0";
+                }
             }
 
             this.state.normalIngredients = normalYield;
-            this.state.specialIngredients = specialYieldText; // Сохраняем строку/число в стейт
+            this.state.specialIngredients = specialYieldText;
 
             this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, currentRegionLevel, specialYieldText);
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
-
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
-        document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
-        document.getElementById('calcTotalChecks').textContent = this.state.totalChecks;
         document.getElementById('campNormalIngredients').textContent = this.state.normalIngredients;
         document.getElementById('campSpecialIngredients').textContent = this.state.specialIngredients;
+        document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
+        document.getElementById('calcTotalChecks').textContent = this.state.totalChecks;
 
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
@@ -210,8 +220,10 @@ const CampingManager = {
                 this.addLogLine(effectsList, `Успех охоты (Уровень региона: ${lvl}): Получено пайков в размере СЛ региона (${this.state.normalIngredients}). Бросьте за столом ${specialYieldText} на особые специи.`, "good");
             } else if (huntRes === 'crit_success') {
                 this.addLogLine(effectsList, `КУ охоты (Уровень региона: ${lvl}): Получено пайков в размере СЛ региона (${this.state.normalIngredients}) + ${specialYieldText} особых специй.`, "good");
-            } else if (huntRes === 'failure' || huntRes === 'crit_failure') {
-                this.addLogLine(effectsList, "Охотники вернулись ни с чем.", "bad");
+            } else if (huntRes === 'failure') {
+                this.addLogLine(effectsList, `Провал охоты: Найдено лишь базовое пропитание в размере СЛ региона (${this.state.normalIngredients}). Особых специй нет.`, "generic");
+            } else if (huntRes === 'crit_failure') {
+                this.addLogLine(effectsList, `КП охоты: Охота обернулась катастрофой! Число проверок привала (дежурств) увеличено на +1. Бросьте за столом ${this.state.normalIngredients} на количество добытых пайков. Специй нет.`, "bad");
             }
         }
     },
