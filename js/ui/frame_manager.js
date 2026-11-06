@@ -311,7 +311,15 @@ const FrameManager = {
             }
 
             if (isHeavy) {
-                const bastion = document.createElement('div'); bastion.className = `center-bastion bastion-${dir}`; fragment.appendChild(bastion);
+                const bastion = document.createElement('div');
+                bastion.className = `center-bastion bastion-${dir}`;
+
+                // Создаем накладной декоративный ромб (такой же, как на углах)
+                const bastionDiamond = document.createElement('div');
+                bastionDiamond.className = 'bastion-diamond';
+                bastion.appendChild(bastionDiamond);
+
+                fragment.appendChild(bastion);
             }
         });
 
