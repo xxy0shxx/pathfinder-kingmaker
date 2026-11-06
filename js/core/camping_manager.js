@@ -264,6 +264,7 @@ const CampingManager = {
     },
 
 
+
     triggerDiceAndResultModal() {
         const overlay = document.getElementById('campDiceOverlay');
         const resultModal = document.getElementById('campResultModal');
@@ -272,16 +273,18 @@ const CampingManager = {
 
         if (!overlay || !resultModal || !modalBody || !effectsList) return;
 
+        // 1. Открываем темный оверлей
         overlay.classList.add('open');
 
+        // 2. Находим ядро d20 и принудительно запускаем 3D-вращение через JS
         const dodeca = overlay.querySelector('.dodecahedron');
-
         if (dodeca) {
             dodeca.style.animation = 'none';
-            dodeca.offsetHeight;
-            dodeca.style.animation = 'dodecaSpin 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards';
+            dodeca.offsetHeight; // Жесткий хак для принудительного сброса reflow в браузере
+            dodeca.style.animation = 'd20MonolithSpin 3.8s cubic-bezier(0.15, 0.85, 0.3, 1) forwards';
         }
 
+        // 3. Очищаем старые логи в модалке и рендерим свежие результаты
         modalBody.innerHTML = '';
 
         const summaryStats = document.createElement('div');
@@ -294,17 +297,22 @@ const CampingManager = {
         `;
         modalBody.appendChild(summaryStats);
 
+        // Копируем строчки красивого лога эффектов лагеря
         Array.from(effectsList.children).forEach(child => {
             const clone = child.cloneNode(true);
             clone.style.fontSize = '20px';
             modalBody.appendChild(clone);
         });
 
+        // 4. Ровно через 3.8 секунды (когда куб замедлится и растает) прячем оверлей и открываем свиток
         setTimeout(() => {
             overlay.classList.remove('open');
             resultModal.classList.add('open');
-        }, 13500);
+            if (dodeca) dodeca.style.animation = 'none'; // Зачищаем стили после окончания анимации
+        }, 3800);
     },
+
+
 
 
     saveFromUi() {
