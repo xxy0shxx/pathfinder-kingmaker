@@ -225,19 +225,20 @@
             </div>
         </div>
 
-        <!-- index.html — Идеальное двухколоночное разделение планшета привала -->
+
+        <!-- index.html — Сверхкомпактный ввод слева и огромные акцентные итоги справа -->
         <div id="campingTabletContainer" class="camping-tablet-content" style="display: none;">
 
-            <!-- ЛЕВАЯ КОЛОНКА: Ввод Ведущего (Компактная, слева) -->
+            <!-- ЛЕВАЯ КОЛОНКА: Сверхкомпактный ввод ГМа -->
             <div class="camping-left-col">
-                <div class="camping-section-title">🔮 Панель Ведущего: Итоги Привала</div>
+                <div class="camping-section-title">🔮 Итоги Привала</div>
 
                 <!-- Информационная плашка гекса отряда -->
                 <div class="camp-current-hex-banner font-tinos">
                     📍 <span id="campRegionDcText">СЛ -- (уровень региона: --)</span>
                 </div>
 
-                <!-- Утилитарные счетчики перенесены внутрь левой колонки -->
+                <!-- Компактная панель счетчиков ввода -->
                 <div class="camping-region-bar">
                     <div class="camp-param-box">
                         <span class="camp-param-label">⏱ Базовые проверки:</span>
@@ -273,7 +274,7 @@
                         <tbody>
                         <tr id="row_prepare">
                             <td class="camp-act-cell">
-                                <span class="act-name">⛺ Подготовка лагеря</span>
+                                <span class="act-name">⛺ Подготовка</span>
                                 <div id="label_dc_prepare" class="skill-name-large">Выживание (СЛ: 15)</div>
                             </td>
                             <td><input type="radio" name="res_prepare" value="crit_success" onchange="CampingManager.recalculateCamp()"></td>
@@ -283,7 +284,7 @@
                         </tr>
                         <tr id="row_camouflage">
                             <td class="camp-act-cell">
-                                <span class="act-name">🌿 Маскировка лагеря</span>
+                                <span class="act-name">🌿 Маскировка</span>
                                 <div id="label_dc_camouflage" class="skill-name-large">Скрытность (СЛ: 15)</div>
                             </td>
                             <td><input type="radio" name="res_camouflage" value="crit_success" onchange="CampingManager.recalculateCamp()"></td>
@@ -293,7 +294,7 @@
                         </tr>
                         <tr id="row_hunt">
                             <td class="camp-act-cell">
-                                <span class="act-name">🏹 Охота и собирательство</span>
+                                <span class="act-name">🏹 Охота</span>
                                 <div id="label_dc_hunt" class="skill-name-large">Выживание (СЛ: 15)</div>
                             </td>
                             <td><input type="radio" name="res_hunt" value="crit_success" onchange="CampingManager.recalculateCamp()"></td>
@@ -306,51 +307,44 @@
                 </div>
             </div>
 
-            <!-- ПРАВАЯ КОЛОНКА: Вычисления и Логи (Вместительная, справа) -->
+            <!-- ПРАВАЯ КОЛОНКА: Вычисления и Массивные Логи (Широкая, Крупная) -->
             <div class="camping-right-col">
                 <div class="camping-section-title">📊 Вычисляемые параметры</div>
 
                 <div class="camp-calculated-counters">
                     <div class="calc-counter-item status-danger">
-                        <span class="calc-label">🎲 Финальная СЛ сцены:</span>
-                        <span id="calcEncounterDc" class="calc-value-accent">12</span>
+                        <span class="calc-label-large">🎲 Финальная СЛ случайной сцены:</span>
+                        <span id="calcEncounterDc" class="calc-value-massive">12</span>
                     </div>
                     <div class="calc-counter-item">
-                        <span class="calc-label">⏱ Итоговое число проверок:</span>
-                        <span id="calcTotalChecks" class="calc-value-accent checks">2</span>
+                        <span class="calc-label-large">⏱ Итоговое число проверок лагеря:</span>
+                        <span id="calcTotalChecks" class="calc-value-massive checks">2</span>
                     </div>
                 </div>
 
-                <div class="camping-resources-panel">
+                <div class="camping-resources-panel-large">
                     <div class="c-resource-item">
-                        <span class="c-res-label">🥩 Обычные ингредиенты:</span>
-                        <span id="campNormalIngredients" class="resource-yield">0</span>
+                        <span class="c-res-label-large">🥩 Добыто обычных ингредиентов:</span>
+                        <span id="campNormalIngredients" class="resource-yield-massive">0</span>
                     </div>
                     <div class="c-resource-item">
-                        <span class="c-res-label">🌿 Особые специи:</span>
-                        <span id="campSpecialIngredients" class="resource-yield">0</span>
+                        <span class="c-res-label-large">🌿 Добыто особых кулинарных специй:</span>
+                        <span id="campSpecialIngredients" class="resource-yield-massive">0</span>
                     </div>
                 </div>
 
-                <div class="camp-effects-log">
-                    <div class="camp-log-title">📜 Активные эффекты привала:</div>
-                    <div id="campEffectsList" class="camp-effects-list"></div>
+                <div class="camp-effects-log-large">
+                    <div class="camp-log-title-large">📜 Активные игровые эффекты привала:</div>
+                    <div id="campEffectsList" class="camp-effects-list-large"></div>
                 </div>
 
-                <div class="kingdom-save-wrapper" style="width: 100%; display: flex; gap: 15px; margin-top: auto;">
-                    <button type="button" class="btn del k-btn-reset-small" onclick="CampingManager.resetToDefault()">🔄 Сбросить</button>
-                    <button type="button" class="btn ok k-btn-save-small" onclick="CampingManager.saveFromUi()">⚜ Применить</button>
+                <div class="kingdom-save-wrapper" style="width: 100%; display: flex; gap: 20px; margin-top: auto; padding-top: 10px;">
+                    <button type="button" class="btn del k-btn-reset-small" style="font-size: 16px !important; padding: 14px 20px !important;" onclick="CampingManager.resetToDefault()">🔄 Сбросить</button>
+                    <button type="button" class="btn ok k-btn-save-small" style="font-size: 16px !important; padding: 14px 20px !important;" onclick="CampingManager.saveFromUi()">⚜ Применить итоги</button>
                 </div>
             </div>
 
         </div>
-
-
-
-
-
-
-
 
     </div>
 

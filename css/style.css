@@ -2175,34 +2175,33 @@ body {
     display: none !important;
 }
 
-
 /* ============================================================================
-   16. ИНСТРУМЕНТАРИЙ ГМА: ДВУХКОЛОНОЧНЫЙ КАЛЬКУЛЯТОР ЛАГЕРЯ
+   16. ИНСТРУМЕНТАРИЙ ГМА: ДВУХКОЛОНОЧНЫЙ ПЛАНШЕТ С МАССИВНЫМИ ИТОГАМИ
    ============================================================================ */
 .camping-tablet-content {
-    display: none; /* Контролируется через JS (flex / none) */
+    display: none;
     gap: 40px;
     padding: 20px 30px;
     height: calc(100% - 100px);
     width: 100%;
     box-sizing: border-box;
-    font-family: "Tinos", serif;
     align-items: stretch;
 }
 
-/* Распределение колонок */
+/* Перераспределение пропорций: левая колонка узкая, правая — массивная и широкая */
 .camping-left-col {
+    flex: 0.8;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 380px;
+}
+.camping-right-col {
     flex: 1.2;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-}
-.camping-right-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     border-left: 2px dashed rgba(138, 100, 33, 0.25);
-    padding-left: 30px;
+    padding-left: 40px;
     gap: 15px;
 }
 
@@ -2217,61 +2216,70 @@ body {
     margin-bottom: 5px;
 }
 
-/* Баннер гекса */
+/* Компактный левый ввод */
 .camp-current-hex-banner {
     background: rgba(138, 100, 33, 0.1);
     border: 1px dashed #dfbc6f;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border-radius: 4px;
     color: #ffd875;
-    font-size: 17px;
+    font-size: 15px;
     font-weight: bold;
 }
-
-/* Компактная панель счетчиков ввода */
 .camping-region-bar {
     display: flex;
-    flex-direction: column; /* Выстраиваем счетчики друг под другом для экономии ширины */
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
     background: rgba(0, 0, 0, 0.4);
-    padding: 12px 14px;
+    padding: 10px 12px;
     border: 1px solid #543e0d;
     border-radius: 4px;
 }
-
 .camp-param-box {
     display: flex;
-    justify-content: space-between; /* Текст слева, кнопки справа */
+    justify-content: space-between;
     align-items: center;
     width: 100%;
 }
-.camp-param-label { color: #ebd291; font-size: 15px; }
-
+.camp-param-label { color: #ebd291; font-size: 14px; }
 .camp-count-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background: #090f0b;
     border: 1px solid #543e0d;
-    padding: 3px 10px;
+    padding: 2px 8px;
     border-radius: 3px;
 }
-.camp-count-controls button { background: transparent; border: none; color: #dfbc6f; cursor: pointer; font-weight: bold; font-size: 18px; }
-.camp-count-controls button:hover { color: #fff; }
-#campBaseChecksVal, #campCheckModVal { font-weight: bold; color: #fff; min-width: 20px; text-align: center; font-family: monospace; font-size: 15px; }
+.camp-count-controls button {
+    background: transparent;
+    border: none;
+    color: #dfbc6f;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+}
+#campBaseChecksVal, #campCheckModVal {
+    font-weight: bold;
+    color: #fff;
+    min-width: 18px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 14px;
+}
 
-/* Компактная невидимая таблица */
+/* Невидимая таблица ввода (Блок 17 интегрирован сюда и оптимизирован) */
 .camp-gm-inputs-grid {
     width: 100%;
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(84, 62, 13, 0.4);
     border-radius: 4px;
-    padding: 5px 15px;
+    padding: 4px 12px;
 }
 .camp-invisible-table { width: 100%; border-collapse: collapse; }
-.camp-invisible-table th { padding: 10px 5px; font-size: 13px; text-transform: uppercase; font-weight: bold; }
+.camp-invisible-table th { padding: 8px 2px; font-size: 12px; text-transform: uppercase; font-weight: bold; }
 .camp-invisible-table th.col-act-name { text-align: left; color: #dfbc6f; }
-.camp-invisible-table th.col-radio { text-align: center; width: 45px; } /* Сделали радио-колонки уже */
+.camp-invisible-table th.col-radio { text-align: center; width: 40px; }
 
 .camp-invisible-table th.crit-suc { color: #2ecc71; }
 .camp-invisible-table th.suc { color: #ebd291; }
@@ -2280,145 +2288,88 @@ body {
 
 .camp-invisible-table tr { border-bottom: 1px dashed rgba(138, 100, 33, 0.15); }
 .camp-invisible-table tr:last-child { border-bottom: none; }
-.camp-invisible-table td { padding: 10px 5px; vertical-align: middle; text-align: center; }
+.camp-invisible-table td { padding: 8px 2px; vertical-align: middle; text-align: center; }
 .camp-invisible-table td.camp-act-cell { text-align: left; }
 
-.camp-invisible-table .act-name { color: #fff; font-size: 15px; font-weight: bold; display: block; }
-.camp-invisible-table .skill-name-large { color: #ffd875; font-size: 16px; font-weight: 800; margin-top: 1px; }
+.camp-invisible-table .act-name { color: #fff; font-size: 14px; font-weight: bold; display: block; }
+.camp-invisible-table .skill-name-large { color: #ffd875; font-size: 14px; font-weight: 800; }
+.camp-invisible-table input[type="radio"] { accent-color: #dfbc6f; transform: scale(1.2); cursor: pointer; }
 
-.camp-invisible-table input[type="radio"] {
-    accent-color: #dfbc6f;
-    transform: scale(1.3);
-    cursor: pointer;
-    margin: 0 auto;
+/* УВЕЛИЧЕННЫЕ И МАССИВНЫЕ ИТОГИ СПРАВА */
+.camp-calculated-counters { display: flex; flex-direction: column; gap: 14px; }
+.calc-counter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(21, 46, 29, 0.15);
+    padding: 14px 22px;
+    border: 1px solid rgba(84, 62, 13, 0.4);
+    border-radius: 4px;
 }
+.calc-counter-item.status-danger { background: rgba(92, 30, 30, 0.15); border-color: rgba(130, 48, 48, 0.6); }
+.calc-label-large { color: #ebd291; font-size: 18px; font-weight: bold; }
 
-/* Акцентные вычисляемые счетчики справа */
-.camp-calculated-counters { display: flex; flex-direction: column; gap: 10px; }
-.calc-counter-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.3); padding: 10px 16px; border: 1px solid #543e0d; border-radius: 4px; }
-.calc-label { color: #ebd291; font-size: 15px; }
-
-.calc-value-accent {
+/* Сверхмассивные позолоченные числовые индикаторы */
+.calc-value-massive {
     font-family: monospace;
-    font-size: 24px;
+    font-size: 36px;
     font-weight: 900;
     color: #ffd875;
-    background: #090f0b;
-    border: 2px solid #b89445;
-    padding: 3px 12px;
-    border-radius: 4px;
-    min-width: 35px;
+    background: #040905;
+    border: 2px solid #dfbc6f;
+    padding: 4px 18px;
+    border-radius: 5px;
+    min-width: 50px;
     text-align: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    text-shadow: 0 0 10px rgba(255, 216, 117, 0.4);
 }
-.calc-counter-item.status-danger .calc-value-accent { color: #ff7675; border-color: #823030; }
-.calc-value-accent.checks { color: #2ecc71; border-color: #3e6349; }
+.calc-counter-item.status-danger .calc-value-massive { color: #ff7675; border-color: #e74c3c; text-shadow: 0 0 10px rgba(255, 118, 117, 0.4); }
+.calc-value-massive.checks { color: #2ecc71; border-color: #2ecc71; text-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
 
-/* Ресурсы и лог */
-.camping-resources-panel { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(84, 62, 13, 0.4); padding: 10px 14px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px; }
+/* Крупная панель ресурсов */
+.camping-resources-panel-large {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #543e0d;
+    padding: 16px 22px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 .c-resource-item { display: flex; justify-content: space-between; align-items: center; }
-.c-res-label { color: #dfbc6f; font-size: 15px; }
-.resource-yield { color: #2ecc71 !important; font-size: 18px; font-family: monospace; font-weight: bold; }
+.c-res-label-large { color: #dfbc6f; font-size: 17px; font-weight: bold; }
+.resource-yield-massive { color: #2ecc71 !important; font-size: 26px; font-family: monospace; font-weight: bold; }
 
-.camp-effects-log { flex-grow: 1; background: #040905; border: 1px solid #543e0d; border-radius: 4px; padding: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 110px; max-height: 140px; overflow-y: auto; }
-.camp-log-title { color: #dfbc6f; font-weight: bold; font-size: 13px; text-transform: uppercase; border-bottom: 1px dashed rgba(138, 100, 33, 0.25); padding-bottom: 4px; }
-.camp-effects-list { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
-.camp-effect-line { padding-left: 14px; position: relative; color: #ebd291; line-height: 1.2; }
-.camp-effect-line::before { content: '⚜'; position: absolute; left: 0; color: #b89445; font-size: 11px; }
+/* Крупный блок игрового лога */
+.camp-effects-log-large {
+    flex-grow: 1;
+    background: #030704;
+    border: 1px solid #543e0d;
+    border-radius: 4px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 120px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+.camp-log-title-large { color: #ffd875; font-weight: bold; font-size: 15px; text-transform: uppercase; border-bottom: 1px dashed rgba(138, 100, 33, 0.4); padding-bottom: 6px; }
+.camp-effects-list-large { display: flex; flex-direction: column; gap: 6px; font-size: 16px; font-family: "Tinos", serif; }
+.camp-effect-line { padding-left: 18px; position: relative; color: #ebd291; line-height: 1.3; }
+.camp-effect-line::before { content: '⚜'; position: absolute; left: 0; color: #b89445; font-size: 13px; top: 1px; }
 .camp-effect-line.bad { color: #ff7675; }
 .camp-effect-line.bad::before { color: #e74c3c; }
 .camp-effect-line.good { color: #2ecc71; }
 .camp-effect-line.good::before { color: #2ecc71; }
 
-/* Кнопки как в форме гекса */
+/* Кнопки действий как в форме гекса */
 #campingTabletContainer .kingdom-save-wrapper .btn {
     flex: 1 1 0% !important;
     width: 100% !important;
-    padding: 10px 14px !important;
+    padding: 12px 16px !important;
     font-size: 14px !important;
 }
 
 
-
-
-/* ============================================================================
-   17. ТАБЛИЧНАЯ СЕТКА ВВОДА ГМА (НЕВИДИМАЯ ТАБЛИЦА С КРУПНЫМИ СЛ)
-   ============================================================================ */
-.camp-gm-inputs-grid {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(84, 62, 13, 0.3);
-    border-radius: 4px;
-    padding: 10px 15px;
-    box-sizing: border-box;
-}
-
-.camp-invisible-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: none;
-}
-
-/* Шапка таблицы */
-.camp-invisible-table th {
-    padding: 8px 5px;
-    border: none;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: bold;
-}
-.camp-invisible-table th.col-act-name { text-align: left; color: #dfbc6f; }
-.camp-invisible-table th.col-radio { text-align: center; width: 60px; }
-
-/* Цвета заголовков степеней успеха */
-.camp-invisible-table th.crit-suc { color: #2ecc71; }
-.camp-invisible-table th.suc { color: #ebd291; }
-.camp-invisible-table th.fail { color: #ff7675; }
-.camp-invisible-table th.crit-fail { color: #e74c3c; }
-
-/* Строки и ячейки */
-.camp-invisible-table tr {
-    border-bottom: 1px dashed rgba(138, 100, 33, 0.2);
-}
-.camp-invisible-table tr:last-child {
-    border-bottom: none;
-}
-
-.camp-invisible-table td {
-    padding: 14px 5px;
-    border: none;
-    vertical-align: middle;
-    text-align: center;
-}
-.camp-invisible-table td.camp-act-cell {
-    text-align: left;
-}
-
-/* Названия активностей */
-.camp-invisible-table .act-name {
-    color: #fff;
-    font-size: 16px;
-    font-weight: bold;
-    display: block;
-    margin-bottom: 4px;
-}
-
-/* КРУПНЫЙ И ВАЖНЫЙ ВИЗУАЛЬНЫЙ АКЦЕНТ НА НАВЫКЕ И СЛ СЦЕНЫ */
-.camp-invisible-table .skill-name-large {
-    color: #ffd875;
-    font-size: 18px; /* Увеличенный крупный размер */
-    font-weight: 800; /* Очень жирный шрифт */
-    font-style: normal;
-    letter-spacing: 0.5px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-    margin-top: 2px;
-}
-
-/* Кастомизация самих круглых радио-кнопок */
-.camp-invisible-table input[type="radio"] {
-    accent-color: #dfbc6f;
-    transform: scale(1.4); /* Делаем сами кружочки крупнее и кликабельнее */
-    cursor: pointer;
-    margin: 0 auto;
-    display: block;
-}
