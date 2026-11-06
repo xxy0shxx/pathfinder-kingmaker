@@ -305,7 +305,8 @@ const CampingManager = {
 
         // Безопасный вызов через глобальную видимость window
         if (window.AnimationManager) {
-            window.AnimationManager.playCampDiceAnimation(() => {
+            // Передаем СЛ сцены первым аргументом, а колбэк — вторым
+            window.AnimationManager.playCampDiceAnimation(this.state.encounterDc, () => {
                 resultModal.classList.add('open');
             });
         } else {
