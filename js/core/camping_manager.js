@@ -1,10 +1,10 @@
 const CampingManager = {
     state: {
         baseChecks: 2,
-        checkMod: 12, // Сменили дефолтное значение с 0 на 12
+        checkMod: 12,
         normalIngredients: 0,
         specialIngredients: 0,
-        encounterDc: 12,
+        encounterDc: 0,
         totalChecks: 2
     },
     mapDataRef: null,
@@ -77,7 +77,6 @@ const CampingManager = {
         return checked ? checked.value : null;
     },
 
-
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -137,8 +136,7 @@ const CampingManager = {
                 }
             });
 
-            // 2. РАСЧЕТ СЛ СЛУЧАЙНОЙ СЦЕНЫ (ОБНОВЛЕНО: База 12 + Модификатор ГМа)
-            let finalEncounterDc = 12 + this.state.checkMod; // checkMod теперь крутит СЛ сцены
+            let finalEncounterDc = this.state.checkMod; // checkMod теперь крутит СЛ сцены
 
             if (!isCampHorrible) {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
@@ -181,7 +179,6 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
-
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl) {
         document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
         document.getElementById('calcTotalChecks').textContent = this.state.totalChecks;
@@ -216,7 +213,6 @@ const CampingManager = {
             }
         }
     },
-
 
     addLogLine(container, text, type) {
         const line = document.createElement('div');
@@ -255,7 +251,7 @@ const CampingManager = {
             if (huntRow) huntRow.style.display = 'flex';
 
             this.state.baseChecks = 2;
-            this.state.checkMod = 0;
+            this.state.checkMod = 12;
 
             document.querySelectorAll('input[type="radio"]').forEach(radio => { radio.checked = false; });
             this.syncCountersUi();
