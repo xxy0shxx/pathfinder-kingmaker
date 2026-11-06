@@ -2076,3 +2076,52 @@ body {
     background-color: rgba(0, 0, 0, 0.2) !important;
     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4) !important;
 }
+
+/* Дописываем новые объекты в защиту деревянных досок */
+.tactical-square.floor-planks.obstacle-water,
+.tactical-square.floor-planks.obstacle-forest,
+.tactical-square.floor-planks.obstacle-bushes {
+    background-color: #4a3329 !important;
+    background-image:
+            linear-gradient(90deg, rgba(0,0,0,0.4) 1px, transparent 1px),
+            linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;
+    border: none !important;
+}
+
+/* Дописываем в защиту брусчатки */
+.tactical-square.floor-cobble.obstacle-water,
+.tactical-square.floor-cobble.obstacle-forest,
+.tactical-square.floor-cobble.obstacle-bushes {
+    background-color: #383838 !important;
+    background-image:
+            linear-gradient(45deg, rgba(0,0,0,0.3) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0.3)),
+            linear-gradient(45deg, rgba(0,0,0,0.3) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0.3)) !important;
+    border: none !important;
+}
+
+/* Дописываем в защиту утоптанной земли */
+.tactical-square.floor-earth.obstacle-water,
+.tactical-square.floor-earth.obstacle-forest,
+.tactical-square.floor-earth.obstacle-bushes {
+    background-color: #2b1a17 !important;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.3) 15%, transparent 20%) !important;
+    border: none !important;
+}
+
+/* 🌊 Вода на пустой клетке: прозрачный лазурный оттенок, карта просвечивает */
+.tactical-square.obstacle-water:not(.floor-planks):not(.floor-cobble):not(.floor-earth) {
+    background-color: rgba(41, 128, 185, 0.2) !important; /* Прозрачность 20% */
+    box-shadow: inset 0 0 10px rgba(116, 185, 255, 0.4) !important;
+}
+
+/* 🌲 Чаща леса на пустой клетке: легкое темно-зеленое притемнение */
+.tactical-square.obstacle-forest:not(.floor-planks):not(.floor-cobble):not(.floor-earth) {
+    background-color: rgba(20, 40, 25, 0.25) !important; /* Прозрачность 25% */
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 🌿 Густые кусты на пустой клетке: мягкий травянистый налет */
+.tactical-square.obstacle-bushes:not(.floor-planks):not(.floor-cobble):not(.floor-earth) {
+    background-color: rgba(39, 174, 96, 0.15) !important; /* Прозрачность 15% */
+    box-shadow: inset 0 0 8px rgba(46, 204, 113, 0.2) !important;
+}
