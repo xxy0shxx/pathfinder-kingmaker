@@ -1,6 +1,7 @@
 import { MAP_CONFIG } from '../config/app_config.js';
 import { ColorConverter } from '../utils/helpers.js';
 import ViewportManager from '../services/viewport_manager.js';
+import DebugManager from '../utils/debug.js';
 
 const HexCanvasRender = {
     canvas: null,
@@ -8,11 +9,8 @@ const HexCanvasRender = {
     hexesData: {},
     hexCoords: {},
     hiddenSquadHexId: null,
-
-    // [ОПТИМИЗАЦИЯ] Справочник таймеров появления и кэш спарсенных цветов
     spawnTimers: {},
     colorCache: {},
-
     mouseX: -1000,
     mouseY: -1000,
     hoveredHexKey: null,
@@ -20,14 +18,8 @@ const HexCanvasRender = {
     focusAlpha: 0,
     focusTime: 0,
     showQuestTooltips: true,
-
-    // [ОПТИМИЗАЦИЯ] Флаги состояния для контроля отрисовки по требованию
     isAnimating: false,
     frameRequested: false,
-
-    // [ПРОФИЛИРОВАНИЕ] Внутренние переменные для замера FPS
-    _fpsLastTime: performance.now(),
-    _fpsFrames: 0,
 
     init(canvasElement, initialHexesData, coordinatesMap) {
         this.canvas = canvasElement;
@@ -39,7 +31,7 @@ const HexCanvasRender = {
 
         this.updateData(initialHexesData);
         this.attachMouseEvents();
-        this.requestFrame(); // Отрисовываем первый стартовый кадр
+        this.requestFrame();
     },
 
     /**
@@ -62,16 +54,11 @@ const HexCanvasRender = {
         this.isAnimating = true;
 
         const loop = () => {
-            if (MAP_CONFIG.ENABLE_FPS_MONITOR) {
-                this._profileFps();
-            }
+            DebugManager.profileFps();
 
             this.render();
 
-            // ЖЕСТКАЯ ПРОВЕРКА: Если выбраны руны, мы гарантированно продолжаем цикл,
-            // даже если на карте нет анимаций спавна или движения отряда
             const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
-
             if (this.isAnimating || isRuneStyleActive) {
                 requestAnimationFrame(loop);
             }
@@ -79,36 +66,11 @@ const HexCanvasRender = {
         requestAnimationFrame(loop);
     },
 
-
     /**
      * Перевод графического движка в режим энергосбережения
      */
     stopAnimationLoop() {
         this.isAnimating = false;
-    },
-
-    /**
-     * Внутренний метод калькуляции производительности кадра
-     */
-    _profileFps() {
-        this._fpsFrames++;
-        const now = performance.now();
-
-        if (now >= this._fpsLastTime + 1000) {
-            const fps = Math.round((this._fpsFrames * 1000) / (now - this._fpsLastTime));
-
-            let color = '#4aff4a';
-            if (fps < 30) color = '#ff4a4a';
-            else if (fps < 50) color = '#ffaa00';
-
-            console.log(
-                `%c FPS: ${fps}`,
-                `background: #1e1e24; color: ${color}; font-weight: bold; border-left: 4px solid ${color}; padding: 2px 4px;`
-            );
-
-            this._fpsFrames = 0;
-            this._fpsLastTime = now;
-        }
     },
 
     /**
@@ -165,9 +127,7 @@ const HexCanvasRender = {
     },
 
     render() {
-        if (MAP_CONFIG.ENABLE_FPS_MONITOR && !this.isAnimating) {
-            this._profileFps();
-        }
+        DebugManager.profileFps();
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
