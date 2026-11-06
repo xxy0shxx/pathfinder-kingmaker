@@ -303,7 +303,7 @@ const CampingManager = {
         setTimeout(() => {
             overlay.classList.remove('open');
             resultModal.classList.add('open');
-        }, 9500);
+        }, 13500);
     },
 
 

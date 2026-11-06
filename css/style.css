@@ -2485,12 +2485,12 @@ body {
     transition: opacity 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 /* ============================================================================
-   19. АНИМАЦИЯ 3D-ИКОСАЭДРА (D20) И ИТОГОВОЕ ОКНО ПРИВАЛА
+   19. АНИМАЦИЯ 3D-ИКОСАЭДРА (D20) И ИТОГОВОЕ ОКНО ПРИВАЛА (МАТЕМАТИЧЕСКИЙ МОНОЛИТ)
    ============================================================================ */
 .camp-dice-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(4, 9, 5, 0.92);
+    background: rgba(4, 9, 5, 0.94);
     z-index: 10200;
     display: flex;
     align-items: center;
@@ -2506,88 +2506,95 @@ body {
 }
 
 .dodecahedron-scene {
-    width: 400px;
-    height: 400px;
-    perspective: 1000px;
+    width: 450px;
+    height: 450px;
+    perspective: 1200px;
     perspective-origin: 50% 50%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Ядро d20 */
+/* Сингулярный центр d20 */
 .dodecahedron {
-    width: 150px;
-    height: 130px;
+    width: 0;
+    height: 0;
     position: relative;
     transform-style: preserve-3d;
 }
 
 .camp-dice-overlay.open .dodecahedron {
-    animation: d20MassiveSpin 3.5s cubic-bezier(0.2, 0.85, 0.35, 1) forwards;
+    animation: d20MassiveSpin 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Базовый класс грани d20 — Идеальный равносторонний треугольник */
+/* Базовая грань d20 — Идеальный монолитный треугольник */
 .d20-face {
     position: absolute;
     width: 150px;
-    height: 130px;
-    /* Центр масс правильного треугольника находится на 2/3 высоты снизу */
+    height: 129.9px;
+
+    /* Совмещаем геометрический центр масс (2/3 высоты сверху) строго в нуле координат */
+    left: 50%;
+    top: 50%;
+    margin-left: -75px;
+    margin-top: -86.6px;
+
+    /* Точка внутренней 3D-трансформации строго в центре масс */
     transform-origin: 50% 66.66%;
-    background: radial-gradient(circle at 50% 60%, #8a6421 0%, #1e3c27 75%, #09140d 100%);
-    border: 1px solid rgba(223, 188, 111, 0.5);
+
+    background: radial-gradient(circle at 50% 66%, #8a6421 0%, #1e3c27 75%, #09140d 100%);
+    border: 1px solid rgba(223, 188, 111, 0.75);
     color: #ffd875;
-    font: bold 26px/150px 'Times New Roman', serif; /* Выравнивание цифры строго по центру масс */
+    font: bold 26px/165px 'Times New Roman', serif;
     text-align: center;
     opacity: 0.98;
 
-    /* Обрезка под правильный треугольник */
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.85);
     backface-visibility: hidden;
     will-change: transform;
 }
 
 /*
-   МАТЕМАТИЧЕСКАЯ МАТРИЦА 3D СТЫКОВКИ ИКОСАЭДРА (d20)
-   Двугранный угол = 138.19°. Углы наклона: 37.38° и 79.19°. translateZ = 93px.
+   ИДЕАЛЬНАЯ СТЕРЕОМЕТРИЧЕСКАЯ КАРТА D20
+   Порядок: Шаг по кругу (Y) -> Наклон к полюсу (X) -> Точный вылет из центра наружу (Z)
+   Математический радиус вписанной сферы для ребра 150px равен ровно 113.13px
 */
 
-/* Верхняя шапка (5 граней, смотрят вверх) */
-.d20-face:nth-child(1)  { transform: rotateY(0deg)   rotateX(37.38deg) translateZ(93px); filter: brightness(1.1); }
-.d20-face:nth-child(2)  { transform: rotateY(72deg)  rotateX(37.38deg) translateZ(93px); filter: brightness(1.0); }
-.d20-face:nth-child(3)  { transform: rotateY(144deg) rotateX(37.38deg) translateZ(93px); filter: brightness(0.9); }
-.d20-face:nth-child(4)  { transform: rotateY(216deg) rotateX(37.38deg) translateZ(93px); filter: brightness(0.85); }
-.d20-face:nth-child(5)  { transform: rotateY(288deg) rotateX(37.38deg) translateZ(93px); filter: brightness(0.95); }
+/* --- ВЕРХНЯЯ ШАПКА (5 граней острием вверх, наклон 52.622°) --- */
+.d20-face:nth-child(1)  { transform: rotateY(0deg)   rotateX(52.622deg) translateZ(113.13px); filter: brightness(1.1); }
+.d20-face:nth-child(2)  { transform: rotateY(72deg)  rotateX(52.622deg) translateZ(113.13px); filter: brightness(1.0); }
+.d20-face:nth-child(3)  { transform: rotateY(144deg) rotateX(52.622deg) translateZ(113.13px); filter: brightness(0.9); }
+.d20-face:nth-child(4)  { transform: rotateY(216deg) rotateX(52.622deg) translateZ(113.13px); filter: brightness(0.85); }
+.d20-face:nth-child(5)  { transform: rotateY(288deg) rotateX(52.622deg) translateZ(113.13px); filter: brightness(0.95); }
 
-/* Верхний пояс (5 граней, перевернуты, смотрят вниз) */
-.d20-face:nth-child(6)  { transform: rotateY(36deg)  rotateX(79.19deg)  translateZ(93px) rotateZ(180deg); filter: brightness(0.8); }
-.d20-face:nth-child(7)  { transform: rotateY(108deg) rotateX(79.19deg)  translateZ(93px) rotateZ(180deg); filter: brightness(0.75); }
-.d20-face:nth-child(8)  { transform: rotateY(180deg) rotateX(79.19deg)  translateZ(93px) rotateZ(180deg); filter: brightness(0.85); }
-.d20-face:nth-child(9)  { transform: rotateY(252deg) rotateX(79.19deg)  translateZ(93px) rotateZ(180deg); filter: brightness(0.9); }
-.d20-face:nth-child(10) { transform: rotateY(324deg) rotateX(79.19deg)  translateZ(93px) rotateZ(180deg); filter: brightness(1.0); }
+/* --- ВЕРХНИЙ ПОЯС (5 граней острием вниз, наклон 10.812°, сдвиг фазы 36°) --- */
+.d20-face:nth-child(6)  { transform: rotateY(36deg)  rotateX(10.812deg)  rotateZ(180deg) translateZ(113.13px); filter: brightness(0.8); }
+.d20-face:nth-child(7)  { transform: rotateY(108deg) rotateX(10.812deg)  rotateZ(180deg) translateZ(113.13px); filter: brightness(0.75); }
+.d20-face:nth-child(8)  { transform: rotateY(180deg) rotateX(10.812deg)  rotateZ(180deg) translateZ(113.13px); filter: brightness(0.85); }
+.d20-face:nth-child(9)  { transform: rotateY(252deg) rotateX(10.812deg)  rotateZ(180deg) translateZ(113.13px); filter: brightness(0.9); }
+.d20-face:nth-child(10) { transform: rotateY(324deg) rotateX(10.812deg)  rotateZ(180deg) translateZ(113.13px); filter: brightness(1.0); }
 
-/* Нижний пояс (5 граней, смотрят вверх) */
-.d20-face:nth-child(11) { transform: rotateY(0deg)   rotateX(-79.19deg) translateZ(93px); filter: brightness(0.7); }
-.d20-face:nth-child(12) { transform: rotateY(72deg)  rotateX(-79.19deg) translateZ(93px); filter: brightness(0.65); }
-.d20-face:nth-child(13) { transform: rotateY(144deg) rotateX(-79.19deg) translateZ(93px); filter: brightness(0.75); }
-.d20-face:nth-child(14) { transform: rotateY(216deg) rotateX(-79.19deg) translateZ(93px); filter: brightness(0.8); }
-.d20-face:nth-child(15) { transform: rotateY(288deg) rotateX(-79.19deg) translateZ(93px); filter: brightness(0.85); }
+/* --- НИЖНИЙ ПОЯС (5 граней острием вверх, наклон -10.812°) --- */
+.d20-face:nth-child(11) { transform: rotateY(0deg)   rotateX(-10.812deg) translateZ(113.13px); filter: brightness(0.7); }
+.d20-face:nth-child(12) { transform: rotateY(72deg)  rotateX(-10.812deg) translateZ(113.13px); filter: brightness(0.65); }
+.d20-face:nth-child(13) { transform: rotateY(144deg) rotateX(-10.812deg) translateZ(113.13px); filter: brightness(0.75); }
+.d20-face:nth-child(14) { transform: rotateY(216deg) rotateX(-10.812deg) translateZ(113.13px); filter: brightness(0.8); }
+.d20-face:nth-child(15) { transform: rotateY(288deg) rotateX(-10.812deg) translateZ(113.13px); filter: brightness(0.85); }
 
-/* Нижняя шапка (5 граней, перевернуты, смотрят вниз) */
-.d20-face:nth-child(16) { transform: rotateY(36deg)  rotateX(-37.38deg) translateZ(93px) rotateZ(180deg); filter: brightness(0.6); }
-.d20-face:nth-child(17) { transform: rotateY(108deg) rotateX(-37.38deg) translateZ(93px) rotateZ(180deg); filter: brightness(0.55); }
-.d20-face:nth-child(18) { transform: rotateY(180deg) rotateX(-37.38deg) translateZ(93px) rotateZ(180deg); filter: brightness(0.65); }
-.d20-face:nth-child(19) { transform: rotateY(252deg) rotateX(-37.38deg) translateZ(93px) rotateZ(180deg); filter: brightness(0.7); }
-.d20-face:nth-child(20) { transform: rotateY(324deg) rotateX(-37.38deg) translateZ(93px) rotateZ(180deg); filter: brightness(0.75); }
+/* --- НИЖНЯЯ ШАПКА (5 граней острием вниз, наклон -52.622°, сдвиг фазы 36°) --- */
+.d20-face:nth-child(16) { transform: rotateY(36deg)  rotateX(-52.622deg) rotateZ(180deg) translateZ(113.13px); filter: brightness(0.6); }
+.d20-face:nth-child(17) { transform: rotateY(108deg) rotateX(-52.622deg) rotateZ(180deg) translateZ(113.13px); filter: brightness(0.55); }
+.d20-face:nth-child(18) { transform: rotateY(180deg) rotateX(-52.622deg) rotateZ(180deg) translateZ(113.13px); filter: brightness(0.65); }
+.d20-face:nth-child(19) { transform: rotateY(252deg) rotateX(-52.622deg) rotateZ(180deg) translateZ(113.13px); filter: brightness(0.7); }
+.d20-face:nth-child(20) { transform: rotateY(324deg) rotateX(-52.622deg) rotateZ(180deg) translateZ(113.13px); filter: brightness(0.75); }
 
-/* Плавная гироскопическая траектория вращения d20 */
+/* Плавная 3D-анимация вращения */
 @keyframes d20MassiveSpin {
     0% {
         transform: rotateX(20deg) rotateY(0deg) rotateZ(0deg) scale(0.1);
     }
     20% {
-        transform: rotateX(200deg) rotateY(360deg) rotateZ(90deg) scale(1.0);
+        transform: rotateX(220deg) rotateY(360deg) rotateZ(90deg) scale(1.0);
     }
     55% {
         transform: rotateX(580deg) rotateY(1080deg) rotateZ(200deg) scale(1.3);
