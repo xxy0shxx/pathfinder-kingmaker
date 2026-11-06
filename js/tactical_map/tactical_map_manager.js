@@ -903,22 +903,53 @@ const TacticalMapManager = {
 
             if (curr.r === target.r && curr.c === target.c) break;
             if (curr.actions > currState.actions) continue;
+            if (curr.r === target.r && curr.c === target.c) break;
+            if (curr.actions > currState.actions) continue;
 
-            const hasWallBetween = (r1, c1, r2, c2) => {
+            // ПРОВЕРКА ГРАНИЦ: Стены блокируют (Infinity), окна добавляют 10 футов стоимости
+            const checkBorderCrossing = (r1, c1, r2, c2) => {
                 const cData = self.state.campMapData[`square_${r1}_${c1}`];
                 const nData = self.state.campMapData[`square_${r2}_${c2}`];
                 const cBorders = (cData && cData.borders) ? cData.borders : [];
                 const nBorders = (nData && nData.borders) ? nData.borders : [];
 
-                if (r2 === r1 - 1 && c2 === c1) { if (cBorders.includes('top-wall') || nBorders.includes('bottom-wall')) return true; }
-                if (r2 === r1 + 1 && c2 === c1) { if (cBorders.includes('bottom-wall') || nBorders.includes('top-wall')) return true; }
-                if (r2 === r1 && c2 === c1 - 1) { if (cBorders.includes('left-wall') || nBorders.includes('right-wall')) return true; }
-                if (r2 === r1 && c2 === c1 + 1) { if (cBorders.includes('right-wall') || nBorders.includes('left-wall')) return true; }
-                if (r2 === r1 - 1 && c2 === c1 - 1) { if (cBorders.includes('top-wall') || cBorders.includes('left-wall') || nBorders.includes('bottom-wall') || nBorders.includes('right-wall')) return true; }
-                if (r2 === r1 - 1 && c2 === c1 + 1) { if (cBorders.includes('top-wall') || cBorders.includes('right-wall') || nBorders.includes('bottom-wall') || nBorders.includes('left-wall')) return true; }
-                if (r2 === r1 + 1 && c2 === c1 - 1) { if (cBorders.includes('bottom-wall') || cBorders.includes('left-wall') || nBorders.includes('top-wall') || nBorders.includes('right-wall')) return true; }
-                if (r2 === r1 + 1 && c2 === c1 + 1) { if (cBorders.includes('bottom-wall') || cBorders.includes('right-wall') || nBorders.includes('top-wall') || nBorders.includes('left-wall')) return true; }
-                return false;
+                let cost = 0;
+
+                // Функция-хелпер для анализа конкретного направления
+                const evaluateEdge = (cType, nType) => {
+                    if (cBorders.includes(cType) || nBorders.includes(nType)) {
+                        if (cType.endsWith('wall')) return Infinity; // Стена — непроходима
+                        if (cType.endsWith('window')) return 10;     // Окно — штраф 10 футов
+                    }
+                    return 0;
+                };
+
+                // Ортогональные перемещения (вверх, вниз, влево, вправо)
+                if (r2 === r1 - 1 && c2 === c1) cost = evaluateEdge('top-wall', 'bottom-wall') || evaluateEdge('top-window', 'bottom-window');
+                else if (r2 === r1 + 1 && c2 === c1) cost = evaluateEdge('bottom-wall', 'top-wall') || evaluateEdge('bottom-window', 'top-window');
+                else if (r2 === r1 && c2 === c1 - 1) cost = evaluateEdge('left-wall', 'right-wall') || evaluateEdge('left-window', 'right-window');
+                else if (r2 === r1 && c2 === c1 + 1) cost = evaluateEdge('right-wall', 'left-wall') || evaluateEdge('right-window', 'left-window');
+
+                // Диагональные перемещения (проверяем обе грани угла)
+                else {
+                    const dr = r2 - r1;
+                    const dc = c2 - c1;
+
+                    // Первая грань (по вертикали)
+                    const vCost = dr === -1 ?
+                        (evaluateEdge('top-wall', 'bottom-wall') || evaluateEdge('top-window', 'bottom-window')) :
+                        (evaluateEdge('bottom-wall', 'top-wall') || evaluateEdge('bottom-window', 'top-window'));
+
+                    // Вторая грань (по горизонтали)
+                    const hCost = dc === -1 ?
+                        (evaluateEdge('left-wall', 'right-wall') || evaluateEdge('left-window', 'right-window')) :
+                        (evaluateEdge('right-wall', 'left-wall') || evaluateEdge('right-window', 'left-window'));
+
+                    if (vCost === Infinity || hCost === Infinity) return Infinity;
+                    cost = vCost + hCost; // Суммируем штрафы, если прыгаем по углам окон
+                }
+
+                return cost;
             };
 
             // 1. НАПРАВЛЕНИЯ ДЛЯ ХОДЬБЫ (8 НАПРАВЛЕНИЙ)
@@ -934,7 +965,8 @@ const TacticalMapManager = {
                 const nc = curr.c + d.dc;
                 if (nr < 0 || nr >= self.campParams.rows || nc < 0 || nc >= self.campParams.cols) continue;
 
-                if (hasWallBetween(curr.r, curr.c, nr, nc)) continue;
+                const borderCost = self.checkBorderCrossing(curr.r, curr.c, nr, nc);
+                if (borderCost === Infinity) continue; // Наткнулись на стену — пропускаем ячейку
 
                 const nKey = `square_${nr}_${nc}`;
                 const nData = self.state.campMapData[nKey];
@@ -952,6 +984,13 @@ const TacticalMapManager = {
 
                 let stepCost = d.isDiag ? 10 : 5;
                 if (nData && nData.obstacle === 'bushes') stepCost *= 2;
+
+
+                // КОРРЕКЦИЯ СТОИМОСТИ:
+                // Если borderCost вернул 10 (окно), шаг по прямой становится равен ровно 10 фт
+                if (borderCost === 10) {
+                    stepCost = d.isDiag ? 15 : 10; // 10 фт по прямой, 15 фт по диагонали
+                }
 
                 let nextActions = currState.actions;
                 let nextSpentFeet = currState.currentActionSpentFeet + stepCost;
@@ -1094,9 +1133,9 @@ const TacticalMapManager = {
                 self.clearVisualPath();
                 let waterCount = 0, iceCount = 0, webCount = 0, jumpCount = 0, bushesCount = 0;
                 let webJumpCount = 0, iceJumpCount = 0, waterJumpCount = 0;
+                let windowCount = 0;
 
-
-                pathData.cells.forEach(cellKey => {
+                pathData.cells.forEach((cellKey, index)=> {
                     const cellEl = document.getElementById('visual_' + cellKey);
                     if (cellEl) {
                         const cellData = self.state.campMapData[cellKey];
@@ -1112,6 +1151,22 @@ const TacticalMapManager = {
                         if (cellData && cellData.obstacle === 'water') { waterCount++; if (isJumpAction) waterJumpCount++; }
                         if (cellData && cellData.obstacle === 'ice') { iceCount++; if (isJumpAction) iceJumpCount++; }
                         if (cellData && cellData.obstacle === 'web') { webCount++; if (isJumpAction) webJumpCount++; }
+
+                        if (index > 0) {
+                            const prevCellKey = pathData.cells[index - 1];
+                            const pParts = prevCellKey.split('_'); // ['square', 'r', 'c']
+                            const cParts = cellKey.split('_');     // ['square', 'r', 'c']
+
+                            // Извлекаем r (индекс 1) и c (индекс 2) для обеих ячеек
+                            const borderCost = self.checkBorderCrossing(
+                                parseInt(pParts[1], 10), parseInt(pParts[2], 10),
+                                parseInt(cParts[1], 10), parseInt(cParts[2], 10)
+                            );
+
+                            if (borderCost === 10) {
+                                windowCount++;
+                            }
+                        }
 
                         // СБРОС ИНЛАЙН СТИЛЕЙ: Переносим управление цветом в CSS классы ради плотности!
                         cellEl.style.removeProperty('background-color');
@@ -1140,14 +1195,14 @@ const TacticalMapManager = {
                     }
                 });
 
-
-
                 let hazardReport = '';
                 if (jumpCount > 0) {
                     let jumpDesc = `• <b>Прыжки:</b> совершено <b>${jumpCount}</b> прыжка(ов) с места (требуется 1 действие на каждый).`;
                     if (webJumpCount > 0) jumpDesc += ` <span style="color: #9b59b6;">[Внимание: ${webJumpCount} прыжок/приземление в паутине]</span>`;
                     if (iceJumpCount > 0) jumpDesc += ` <span style="color: #00cec9;">[Внимание: ${iceJumpCount} прыжок/приземление на льду]</span>`;
                     if (waterJumpCount > 0) jumpDesc += ` <span style="color: #74b9ff;">[Внимание: ${waterJumpCount} прыжок/приземление в воде]</span>`;
+                    if (windowCount > 0) hazardReport += `<div style="color: #74b9ff; margin-top: 4px;">• <b>Окна:</b> преодолено <b>${windowCount}</b> шт. (Стоимость шага через окно: 10 фт)</div>`;
+
                     hazardReport += `<div style="color: #ff9f43; margin-top: 4px;">${jumpDesc}</div>`;
                 }
                 if (bushesCount > 0) hazardReport += `<div style="color: #f1c40f; margin-top: 4px;">• <b>Густые кусты:</b> преодолено <b>${bushesCount}</b> клеток (Трудный ландшафт: двойная цена футов движения)</div>`;
@@ -1172,6 +1227,53 @@ const TacticalMapManager = {
         tooltip.innerHTML = content + paramsBlock + '';
         tooltip.style.display = 'block';
     },
+
+    // ============================================================================
+    // МЕТОДЫ ПРОВЕРКИ ГРАНИЦ И ТРАССИРОВКИ
+    // ============================================================================
+
+    /**
+     * Вычисляет стоимость преодоления границы между ячейками.
+     * Возвращает: 0 — свободно, 10 — окно, Infinity — стена.
+     */
+    checkBorderCrossing(r1, c1, r2, c2) {
+        const self = TacticalMapManager;
+        const cData = self.state.campMapData[`square_${r1}_${c1}`];
+        const nData = self.state.campMapData[`square_${r2}_${c2}`];
+        const cBorders = (cData && cData.borders) ? cData.borders : [];
+        const nBorders = (nData && nData.borders) ? nData.borders : [];
+
+        // Хелпер для анализа конкретного типа границы
+        const evaluateEdge = (cType, nType) => {
+            if (cBorders.includes(cType) || nBorders.includes(nType)) {
+                if (cType.endsWith('wall')) return Infinity;
+                if (cType.endsWith('window')) return 10;
+            }
+            return 0;
+        };
+
+        // Ортогональные шаги
+        if (r2 === r1 - 1 && c2 === c1) return evaluateEdge('top-wall', 'bottom-wall') || evaluateEdge('top-window', 'bottom-window');
+        if (r2 === r1 + 1 && c2 === c1) return evaluateEdge('bottom-wall', 'top-wall') || evaluateEdge('bottom-window', 'top-window');
+        if (r2 === r1 && c2 === c1 - 1) return evaluateEdge('left-wall', 'right-wall') || evaluateEdge('left-window', 'right-window');
+        if (r2 === r1 && c2 === c1 + 1) return evaluateEdge('right-wall', 'left-wall') || evaluateEdge('right-window', 'left-window');
+
+        // Диагональные шаги (проверка угловых стыков)
+        const dr = r2 - r1;
+        const dc = c2 - c1;
+
+        const vCost = dr === -1 ?
+            (evaluateEdge('top-wall', 'bottom-wall') || evaluateEdge('top-window', 'bottom-window')) :
+            (evaluateEdge('bottom-wall', 'top-wall') || evaluateEdge('bottom-window', 'top-window'));
+
+        const hCost = dc === -1 ?
+            (evaluateEdge('left-wall', 'right-wall') || evaluateEdge('left-window', 'right-window')) :
+            (evaluateEdge('right-wall', 'left-wall') || evaluateEdge('right-window', 'left-window'));
+
+        if (vCost === Infinity || hCost === Infinity) return Infinity;
+        return vCost + hCost;
+    },
+
     /**
      * Выделение существ на карте при одиночном клике
      */
