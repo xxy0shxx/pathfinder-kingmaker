@@ -261,23 +261,24 @@ const CampingManager = {
             const camoRow = document.getElementById('row_camouflage');
             const huntRow = document.getElementById('row_hunt');
 
-            if (isCampHorrible) {
-                if (camoRow) camoRow.style.display = 'none';
-                if (huntRow) huntRow.style.display = 'none';
-                // ... остальной код сброса радио-кнопок остается прежним ...
-            } else {
-                if (camoRow) camoRow.style.display = 'table-row';
-                if (huntRow) huntRow.style.display = 'table-row';
-            }
+            // Защита: возвращаем отображение строк обратно на экран при сбросе
+            if (camoRow) camoRow.style.display = 'table-row';
+            if (huntRow) huntRow.style.display = 'table-row';
 
+            // 1. Возвращаем дефолтные значения в стейт менеджера
             this.state.baseChecks = 2;
             this.state.checkMod = 12;
 
-            document.querySelectorAll('input[type="radio"]').forEach(radio => { radio.checked = false; });
+            // 2. Полностью снимаем выделение со всех радио-кнопок бросков игроков
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+
             this.syncCountersUi();
             this.recalculateCamp();
 
-            const resetBtn = document.querySelector('.camp-action-buttons .k-btn-reset-small');
+            // Геральдический эффект вспышки на кнопке сброса
+            const resetBtn = document.querySelector('.kingdom-save-wrapper .k-btn-reset-small');
             if (resetBtn) {
                 resetBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
                 const oldText = resetBtn.textContent;
