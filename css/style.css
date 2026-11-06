@@ -1866,7 +1866,7 @@ body {
     width: 68px;
     height: 68px;
     border: 0px solid #184024;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.85), 0 0 5px #ffd875;
+    box-shadow: none !important; /* Убирает тень и свечение с углов */
     z-index: 10006 !important;
 }
 .frame-style-ornament-heavy .frame-corner::before {

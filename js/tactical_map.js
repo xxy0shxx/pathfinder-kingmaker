@@ -358,7 +358,7 @@ function bindTacticalTooltip(square, squareId) {
             else if (data.obstacle === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
             else if (data.obstacle === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов</span>'; }
             else if (data.obstacle === 'water') { obstacleName = '🌊 Глубокая вода'; movementCostText = '<span style="color:#74b9ff;font-weight:bold;">Риск 🎲 d20 (Вилка хода)</span>'; }
-            else if (data.obstacle === 'stones') { obstacleName = '🪨 Камни / Валуны'; movementCostText = '<span style="color:#e67e22;font-weight:bold;">ТОЛЬКО ПРЫЖОК</span>'; }
+            else if (data.obstacle === 'stones') { obstacleName = '⛰️ Камни / Валуны'; movementCostText = '<span style="color:#e67e22;font-weight:bold;">ТОЛЬКО ПРЫЖОК</span>'; }
             else if (data.obstacle === 'ice') { obstacleName = '❄️ Скользкий лед'; movementCostText = '<span style="color:#74b9ff;font-weight:bold;">5 футов (Проверка d20)</span>'; }
             else if (data.obstacle === 'web') { obstacleName = '🕸️ Липкая паутина'; movementCostText = '<span style="color:#ffeaa7;font-weight:bold;">5 футов (Проверка d20)</span>'; }
         }
