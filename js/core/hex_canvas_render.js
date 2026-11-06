@@ -102,7 +102,7 @@ const HexCanvasRender = {
             else if (fps < 50) color = '#ffaa00';
 
             console.log(
-                `%c [Canvas Monitor] Текущий FPS: ${fps} | Рендер: 360 гексов `,
+                `%c FPS: ${fps}`,
                 `background: #1e1e24; color: ${color}; font-weight: bold; border-left: 4px solid ${color}; padding: 2px 4px;`
             );
 
