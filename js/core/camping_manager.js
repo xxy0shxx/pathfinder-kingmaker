@@ -50,34 +50,44 @@ const CampingManager = {
         this.recalculateCamp();
     },
 
+// CampingManager.js — Обновленное ядро расчетов ГМа
     recalculateCamp() {
         try {
             const terrainSelect = document.getElementById('campRegionTerrain');
             if (!terrainSelect) return;
 
-            const baseTerrainDc = parseInt(terrainSelect.value, 10);
+            // Изначально берем чистую СЛ региона из выпадающего списка
+            const baseRegionDc = parseInt(terrainSelect.value, 10);
             const prepareRes = document.getElementById('res_prepare').value;
             const camoRes = document.getElementById('res_camouflage').value;
             const huntRes = document.getElementById('res_hunt').value;
 
-            // 1. Расчет СЛ проверки на случайную сцену (базовый 11 по вашему чертежу)
-            // По правилам Крит.Успех маскировки усложняет засаду, а Провал — облегчает
-            let finalEncounterDc = 11;
-            if (camoRes === 'crit_success') finalEncounterDc = 15;
-            if (camoRes === 'failure') finalEncounterDc = 9;
-            if (camoRes === 'crit_failure') finalEncounterDc = 5;
+            // Динамически обновляем текстовые индикаторы сложности у каждого действия в интерфейсе
+            const lblPrepare = document.getElementById('label_dc_prepare');
+            const lblCamo = document.getElementById('label_dc_camouflage');
+            const lblHunt = document.getElementById('label_dc_hunt');
+
+            if (lblPrepare) lblPrepare.textContent = `(СЛ: ${baseRegionDc})`;
+            if (lblCamo) lblCamo.textContent = `(СЛ: ${baseRegionDc})`;
+            if (lblHunt) lblHunt.textContent = `(СЛ: ${baseRegionDc})`;
+
+            // Расчет СЛ ночной случайной сцены. База равна СЛ региона,
+            // модифицируется броском живой Скрытности (Маскировки лагеря) по правилам Pathfinder.
+            let finalEncounterDc = baseRegionDc;
+            if (camoRes === 'crit_success') finalEncounterDc += 4; // Усложняет засаду для монстров
+            if (camoRes === 'failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2); // Облегчает засаду
+            if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 5); // Лагерь полностью выдан
+
             this.state.encounterDc = finalEncounterDc;
 
-            // 2. Расчет количества проверок (базово 4, модифицируется ГМом с руки)
+            // Расчет числа проверок (базово 4)
             let checks = 4;
             if (prepareRes === 'crit_success') checks += 1;
             if (prepareRes === 'failure') checks -= 1;
             if (prepareRes === 'crit_failure') checks = Math.max(0, checks - 2);
-
-            // Применяем ручной модификатор ГМа (Больше / Меньше)
             this.state.totalChecks = Math.max(0, checks + this.state.checkMod);
 
-            // 3. Расчет добытых ресурсов (Правила Охоты со стр. 111)
+            // Расчет добытых ресурсов привала
             let normalYield = 0;
             let specialYield = 0;
             if (huntRes === 'success') normalYield = 2;
@@ -86,7 +96,7 @@ const CampingManager = {
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYield;
 
-            // 4. Формирование динамических логов для ГМа
+            // Вывод логов для ГМа
             this.renderCalculatedUi(camoRes, prepareRes, huntRes);
         } catch (e) {
             console.error("Ошибка при перерасчете параметров лагеря:", e);
