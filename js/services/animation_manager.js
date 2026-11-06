@@ -279,13 +279,12 @@ const AnimationManager = {
             HexCanvasRender.requestFrame();
         }
     },
-
 // ============================================================================
 // МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3
 // ============================================================================
 
     /**
-     * Запускает полноценный цикл 3D Canvas рендеринга d20 со звуковым сопровождением
+     * Запускает полноценный цикл 3D Canvas рендеринга d20 со случайным результатом
      */
     playCampDiceAnimation(onCompleteCallback) {
         const overlay = document.getElementById('campDiceOverlay');
@@ -317,9 +316,35 @@ const AnimationManager = {
             [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
         ];
 
-        let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
-        const targetX = 0.53, targetY = -0.62, targetZ = 0.55;
+        // Матрица точных 3D-поворотов для вывода каждой из 20 граней строго на экран (перпендикулярно оси Z)
+        const faceAngles = [
+            { x: 0.53,  y: -0.62, z: 0.55 },  // Грань 1: ⚜
+            { x: 0.53,  y: 0.62,  z: -0.55 }, // Грань 2: 2
+            { x: 1.25,  y: 1.62,  z: 0.15 },  // Грань 3: 3
+            { x: 1.85,  y: 0.0,   z: -0.85 }, // Грань 4: 4
+            { x: 1.25,  y: -1.62, z: -0.15 }, // Грань 5: 5
+            { x: -0.22, y: 1.25,  z: 0.35 },  // Грань 6: 6
+            { x: -0.22, y: -1.25, z: -0.35 }, // Грань 7: 7
+            { x: -1.15, y: -0.85, z: 0.85 },  // Грань 8: 8
+            { x: -1.85, y: 0.0,   z: 0.85 },  // Грань 9: 9
+            { x: -1.15, y: 0.85,  z: -0.85 }, // Грань 10: 10
+            { x: -0.53, y: 0.62,  z: 0.55 },  // Грань 11: 11
+            { x: -0.53, y: -0.62, z: -0.55 }, // Грань 12: 12
+            { x: -1.25, y: -1.62, z: 0.15 },  // Грань 13: 13
+            { x: -1.85, y: 0.0,   z: -0.85 }, // Грань 14: 14
+            { x: -1.25, y: 1.62,  z: -0.15 }, // Грань 15: 15
+            { x: 0.22,  y: -1.25, z: 0.35 },  // Грань 16: 16
+            { x: 0.22,  y: 1.25,  z: -0.35 }, // Грань 17: 17
+            { x: 1.15,  y: 0.85,  z: 0.85 },  // Грань 18: 18
+            { x: 1.85,  y: 0.0,   z: 0.85 },  // Грань 19: 19
+            { x: 1.15,  y: -0.85, z: -0.85 }  // Грань 20: 20
+        ];
 
+        // ГЕНЕРАЦИЯ РАНДОМА: выбираем случайный индекс грани от 0 до 19
+        const winningIndex = Math.floor(Math.random() * 20);
+        const target = faceAngles[winningIndex];
+
+        let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
         let scale = 0.1;
         const startTime = performance.now();
         let animationFrameId;
@@ -348,11 +373,11 @@ const AnimationManager = {
                 }
                 const progress = (elapsed - 2500) / 500;
                 const ease = progress * progress * (3 - 2 * progress);
-                curX = snapX + (targetX - snapX) * ease;
-                curY = snapY + (targetY - snapY) * ease;
-                curZ = snapZ + (targetZ - snapZ) * ease;
+                curX = snapX + (target.x - snapX) * ease;
+                curY = snapY + (target.y - snapY) * ease;
+                curZ = snapZ + (target.z - snapZ) * ease;
             } else {
-                curX = targetX; curY = targetY; curZ = targetZ;
+                curX = target.x; curY = target.y; curZ = target.z;
             }
 
             if (elapsed < 400) scale = 0.1 + 0.9 * (elapsed / 400);
@@ -375,7 +400,6 @@ const AnimationManager = {
                 return [x3 * scale + 200, y3 * scale + 200, z2];
             });
 
-            // ИСПРАВЛЕНО: Честный расчет среднего Z-индекса дляPainter's Algorithm
             const renderOrder = faces.map(f => {
                 const zAvg = (rotatedVertices[f[0]][2] + rotatedVertices[f[1]][2] + rotatedVertices[f[2]][2]) / 3;
                 return { face: f, z: zAvg };
@@ -383,9 +407,7 @@ const AnimationManager = {
 
             renderOrder.forEach(item => {
                 const f = item.face;
-                // ИСПРАВЛЕНО: Передача корректных 2D-координат вершин треугольника
                 const p0 = rotatedVertices[f[0]], p1 = rotatedVertices[f[1]], p2 = rotatedVertices[f[2]];
-
                 const ux = p1[0] - p0[0], uy = p1[1] - p0[1];
                 const vx = p2[0] - p0[0], vy = p2[1] - p0[1];
                 const nz = ux * vy - uy * vx;
