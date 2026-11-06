@@ -285,7 +285,7 @@ const AnimationManager = {
 // ============================================================================
 
     /**
-     * Запускает полноценный цикл 3D Canvas рендеринга d20 с точной привязкой к СЛ
+     * Запускает полноценный цикл 3D Canvas рендеринга d20 с динамическим выравниванием грани
      */
     playCampDiceAnimation(targetDc, onCompleteCallback) {
         const overlay = document.getElementById('campDiceOverlay');
@@ -317,30 +317,6 @@ const AnimationManager = {
             [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
         ];
 
-        const faceAngles = [
-            { x: 0.53,  y: -0.62, z: 0.55 },  // Индекс 0: ⚜
-            { x: 0.53,  y: 0.62,  z: -0.55 }, // Индекс 1: 2
-            { x: 1.25,  y: 1.62,  z: 0.15 },  // Индекс 2: 3
-            { x: 1.85,  y: 0.0,   z: -0.85 }, // Индекс 3: 4
-            { x: 1.25,  y: -1.62, z: -0.15 }, // Индекс 4: 5
-            { x: -0.22, y: 1.25,  z: 0.35 },  // Индекс 5: 6
-            { x: -0.22, y: -1.25, z: -0.35 }, // Индекс 6: 7
-            { x: -1.15, y: -0.85, z: 0.85 },  // Индекс 7: 8
-            { x: -1.85, y: 0.0,   z: 0.85 },  // Индекс 8: 9
-            { x: -1.15, y: 0.85,  z: -0.85 }, // Индекс 9: 10
-            { x: -0.53, y: 0.62,  z: 0.55 },  // Индекс 10: 11
-            { x: -0.53, y: -0.62, z: -0.55 }, // Индекс 11: 12
-            { x: -1.25, y: -1.62, z: 0.15 },  // Индекс 12: 13
-            { x: -1.85, y: 0.0,   z: -0.85 }, // Индекс 13: 14
-            { x: -1.25, y: 1.62,  z: -0.15 }, // Индекс 14: 15
-            { x: 0.22,  y: -1.25, z: 0.35 },  // Индекс 15: 16
-            { x: 0.22,  y: 1.25,  z: -0.35 }, // Индекс 16: 17
-            { x: 1.15,  y: 0.85,  z: 0.85 },  // Индекс 17: 18
-            { x: 1.85,  y: 0.0,   z: 0.85 },  // Индекс 18: 19
-            { x: 1.15,  y: -0.85, z: -0.85 }  // Индекс 19: 20
-        ];
-
-        // Карта жесткого приведения строковых ключей к индексам трехмерной матрицы
         const dcToFaceIndex = {
             "⚜": 0, "1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6, "8": 7, "9": 8, "10": 9,
             "11": 10, "12": 11, "13": 12, "14": 13, "15": 14, "16": 15, "17": 16, "18": 17, "19": 18, "20": 19
@@ -348,18 +324,15 @@ const AnimationManager = {
 
         let winningIndex = 0;
         if (targetDc !== undefined && targetDc !== null) {
-            // Принудительно чистим и превращаем в строку, чтобы сошлись типы данных
             const dcKey = String(targetDc).trim();
             if (dcToFaceIndex[dcKey] !== undefined) {
                 winningIndex = dcToFaceIndex[dcKey];
             } else {
                 const numericDc = parseInt(targetDc, 10);
                 if (!isNaN(numericDc)) {
-                    // ИСПРАВЛЕНО: Теперь, если СЛ в диапазоне 1-20, берется точный расчет, а не сброс в 0
                     if (numericDc > 20) winningIndex = 0;
-                    else if (numericDc < 1) winningIndex = 10; // Грань "11"
+                    else if (numericDc < 1) winningIndex = 10;
                     else {
-                        // Динамический поиск по массиву граней faces
                         const foundIdx = faces.findIndex(f => f[3] === dcKey);
                         if (foundIdx !== -1) winningIndex = foundIdx;
                     }
@@ -367,7 +340,25 @@ const AnimationManager = {
             }
         }
 
-        const target = faceAngles[winningIndex];
+        // ====================================================================
+        // МАТЕМАТИЧЕСКИЙ РАСЧЕТ ИДЕАЛЬНЫХ УГЛОВ ДЛЯ ВЫБРАННОЙ ГРАНИ
+        // ====================================================================
+        const winningFace = faces[winningIndex];
+        const v0 = vertices[winningFace[0]], v1 = vertices[winningFace[1]], v2 = vertices[winningFace[2]];
+
+        // Вычисляем центр масс (нормаль) целевой грани в исходном состоянии
+        let nx = (v0[0] + v1[0] + v2[0]) / 3;
+        let ny = (v0[1] + v1[1] + v2[1]) / 3;
+        let nz = (v0[2] + v1[2] + v2[2]) / 3;
+        const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
+        nx /= nLen; ny /= nLen; nz /= nLen;
+
+        // Рассчитываем точные углы поворота вокруг осей Y и X, чтобы нормаль совпала с осью Z [0, 0, 1]
+        const targetY = -Math.atan2(nx, nz);
+        const cosY = Math.cos(targetY), sinY = Math.sin(targetY);
+        const nzRotated = -nx * sinY + nz * cosY;
+        const targetX = Math.atan2(ny, nzRotated);
+        const targetZ = 0; // Нам не нужно крутить плоскость по Z, грань уже лежит лицом к игроку
 
         let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
         let scale = 0.1;
@@ -398,11 +389,11 @@ const AnimationManager = {
                 }
                 const progress = (elapsed - 2500) / 500;
                 const ease = progress * progress * (3 - 2 * progress);
-                curX = snapX + (target.x - snapX) * ease;
-                curY = snapY + (target.y - snapY) * ease;
-                curZ = snapZ + (target.z - snapZ) * ease;
+                curX = snapX + (targetX - snapX) * ease;
+                curY = snapY + (targetY - snapY) * ease;
+                curZ = snapZ + (targetZ - snapZ) * ease;
             } else {
-                curX = target.x; curY = target.y; curZ = target.z;
+                curX = targetX; curY = targetY; curZ = targetZ;
             }
 
             if (elapsed < 400) scale = 0.1 + 0.9 * (elapsed / 400);
