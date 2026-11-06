@@ -672,6 +672,31 @@
 
 <script src="js/app.js" type="module"></script>
 <!--script src="js/tactical_map.js"></script-->
+<!-- Оверлей для 3D куба -->
+<div id="campDiceOverlay" class="camp-dice-overlay">
+    <div class="dodecahedron-scene">
+        <div class="dodecahedron">
+            <div class="dodeca-face">⚜</div>
+            <div class="dodeca-face">20</div>
+            <div class="dodeca-face">12</div>
+            <div class="dodeca-face">7</div>
+            <div class="dodeca-face">15</div>
+            <div class="dodeca-face">1</div>
+            <div class="dodeca-face">18</div>
+            <div class="dodeca-face">9</div>
+            <div class="dodeca-face">3</div>
+            <div class="dodeca-face">14</div>
+        </div>
+    </div>
+</div>
 
+<!-- Модалка финальных итогов -->
+<div id="campResultModal" class="camp-result-modal">
+    <div class="camp-res-modal-title">⚔ Итоги ночного привала ⚔</div>
+    <div id="campResultModalBody" class="camp-res-modal-body"></div>
+    <div class="camp-res-modal-footer">
+        <button type="button" class="btn wa-pl-toggle active" style="padding: 8px 30px; cursor: pointer;" onclick="document.getElementById('campResultModal').classList.remove('open')">Принять</button>
+    </div>
+</div>
 </body>
 </html>

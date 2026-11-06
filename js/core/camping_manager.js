@@ -1,3 +1,7 @@
+// ============================================================================
+// МОДУЛЬ: МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 1 ИЗ 3
+// ============================================================================
+
 const CampingManager = {
     state: {
         baseChecks: 2,
@@ -17,13 +21,8 @@ const CampingManager = {
 
             if (this.mapDataRef.camping) {
                 this.state = this.mapDataRef.camping;
-                // ЗАЩИТА: Страхуем и фиксируем новые дефолтные параметры
-                if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) {
-                    this.state.baseChecks = 2;
-                }
-                if (this.state.checkMod === undefined || isNaN(this.state.checkMod) || this.state.checkMod === 0) {
-                    this.state.checkMod = 12; // Переключаем старые нулевые сейвы на 12
-                }
+                if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) this.state.baseChecks = 2;
+                if (this.state.checkMod === undefined || isNaN(this.state.checkMod) || this.state.checkMod === 0) this.state.checkMod = 12;
             } else {
                 this.mapDataRef.camping = this.state;
             }
@@ -31,6 +30,7 @@ const CampingManager = {
             window.CampingManager = this;
             this.syncCountersUi();
             this.recalculateCamp();
+            this.attachInputListeners();
         } catch (e) { console.error("Ошибка инициализации CampingManager:", e); }
     },
 
@@ -39,12 +39,8 @@ const CampingManager = {
             this.mapDataRef = newMapData || { hexes: {}, kingdom: null, camping: null };
             if (this.mapDataRef.camping) {
                 this.state = this.mapDataRef.camping;
-                if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) {
-                    this.state.baseChecks = 2;
-                }
-                if (this.state.checkMod === undefined || isNaN(this.state.checkMod) || this.state.checkMod === 0) {
-                    this.state.checkMod = 12;
-                }
+                if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) this.state.baseChecks = 2;
+                if (this.state.checkMod === undefined || isNaN(this.state.checkMod) || this.state.checkMod === 0) this.state.checkMod = 12;
             }
             this.syncCountersUi();
             this.recalculateCamp();
@@ -57,7 +53,6 @@ const CampingManager = {
         this.recalculateCamp();
     },
 
-    // Метод теперь напрямую шагает по СЛ случайной сцены (например, 12 -> 13 -> 14)
     changeCheckMod(amount) {
         this.state.checkMod = Math.max(1, Math.min(41, this.state.checkMod + amount));
         this.syncCountersUi();
@@ -68,7 +63,6 @@ const CampingManager = {
         const baseEl = document.getElementById('campBaseChecksVal');
         const modEl = document.getElementById('campCheckModVal');
         if (baseEl) baseEl.textContent = this.state.baseChecks;
-        // Больше не пишем знаки "+" или "-", выводим чистую СЛ (например, 12)
         if (modEl) modEl.textContent = this.state.checkMod;
     },
 
@@ -76,15 +70,14 @@ const CampingManager = {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
         return checked ? checked.value : null;
     },
-
-
-
+    // ============================================================================
+// МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
+// ============================================================================
 
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
 
-            // Находим гекс, на котором сейчас стоит отряд
             let squadHex = null;
             for (let id in this.mapDataRef.hexes) {
                 if (this.mapDataRef.hexes[id].squadHere === true) {
@@ -112,9 +105,9 @@ const CampingManager = {
             if (isCampHorrible) {
                 if (camoRow) camoRow.style.display = 'none';
                 if (huntRow) huntRow.style.display = 'none';
-                // ... остальной код сброса радио-кнопок остается прежним ...
+                document.querySelectorAll('input[name="res_camouflage"], input[name="res_hunt"]').forEach(r => r.checked = false);
             } else {
-                if (camoRow) camoRow.style.display = 'table-row'; // Для таблиц используем 'table-row' вместо 'flex'
+                if (camoRow) camoRow.style.display = 'table-row';
                 if (huntRow) huntRow.style.display = 'table-row';
             }
 
@@ -137,7 +130,6 @@ const CampingManager = {
                 }
             });
 
-            // 2. РАСЧЕТ СЛ СЛУЧАЙНОЙ СЦЕНЫ (Чистый расчет бросков без штрафа Охоты)
             let finalEncounterDc = this.state.checkMod;
             if (!isCampHorrible) {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
@@ -147,19 +139,14 @@ const CampingManager = {
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
             this.state.encounterDc = finalEncounterDc;
 
-            // 3. РАСЧЕТ ИТОГОВОГО ПУЛА ПРОВЕРОК ПРИВАЛА
             let calculatedChecks = this.state.baseChecks;
             if (prepareRes === 'crit_success') calculatedChecks -= 1;
             if (prepareRes === 'crit_failure') calculatedChecks += 1;
             if (!isCampHorrible && camoRes === 'crit_success') calculatedChecks -= 1;
+            if (!isCampHorrible && huntRes === 'crit_failure') calculatedChecks += 1;
 
-            // ИСПРАВЛЕНИЕ: При КП охоты — число проверок (а не СЛ сцены) увеличивается на +1
-            if (!isCampHorrible && huntRes === 'crit_failure') {
-                calculatedChecks += 1;
-            }
             this.state.totalChecks = Math.max(0, calculatedChecks);
 
-            // 4. РАСЧЕТ ДОБЫТЫХ РЕСУРСОВ
             let normalYield = 0;
             let specialYieldText = "0";
 
@@ -193,12 +180,16 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
-
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
-        document.getElementById('campNormalIngredients').textContent = this.state.normalIngredients;
-        document.getElementById('campSpecialIngredients').textContent = this.state.specialIngredients;
-        document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
-        document.getElementById('calcTotalChecks').textContent = this.state.totalChecks;
+        const normEl = document.getElementById('campNormalIngredients');
+        const specEl = document.getElementById('campSpecialIngredients');
+        const encEl = document.getElementById('calcEncounterDc');
+        const totEl = document.getElementById('calcTotalChecks');
+
+        if (normEl) normEl.textContent = this.state.normalIngredients;
+        if (specEl) specEl.textContent = this.state.specialIngredients;
+        if (encEl) encEl.textContent = this.state.encounterDc;
+        if (totEl) totEl.textContent = this.state.totalChecks;
 
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
@@ -233,7 +224,85 @@ const CampingManager = {
         line.textContent = text;
         container.appendChild(line);
     },
+// ============================================================================
+// МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 3 ИЗ 3
+// ============================================================================
 
+    attachInputListeners() {
+        const grid = document.querySelector('.camp-gm-inputs-grid');
+        if (!grid) return;
+
+        grid.removeEventListener('change', this._handleGridChange);
+
+        this._handleGridChange = () => {
+            this.recalculateCamp();
+            this.checkCampPhaseCompletion();
+        };
+
+        grid.addEventListener('change', this._handleGridChange);
+    },
+
+    checkCampPhaseCompletion() {
+        const prepareRes = this.getSelectedRadio('res_prepare');
+        const camoRes = this.getSelectedRadio('res_camouflage');
+        const huntRes = this.getSelectedRadio('res_hunt');
+
+        let isFinished = false;
+
+        // Если КП подготовки — это мгновенный финал лагеря (1 действие)
+        if (prepareRes === 'crit_failure') {
+            isFinished = true;
+        }
+        // В штатном режиме ждем заполнения всех трех строк (3 действия)
+        else if (prepareRes && camoRes && huntRes) {
+            isFinished = true;
+        }
+
+        if (isFinished) {
+            this.triggerDiceAndResultModal();
+        }
+    },
+
+    triggerDiceAndResultModal() {
+        const overlay = document.getElementById('campDiceOverlay');
+        const resultModal = document.getElementById('campResultModal');
+        const modalBody = document.getElementById('campResultModalBody');
+        const effectsList = document.getElementById('campEffectsList');
+
+        if (!overlay || !resultModal || !modalBody || !effectsList) return;
+
+        overlay.classList.add('open');
+
+        const dodeca = overlay.querySelector('.dodecahedron');
+        if (dodeca) {
+            dodeca.style.animation = 'none';
+            dodeca.offsetHeight; // Сброс reflow для перезапуска
+            dodeca.style.animation = 'dodecaSpin 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+        }
+
+        modalBody.innerHTML = '';
+
+        const summaryStats = document.createElement('div');
+        summaryStats.style.cssText = 'background: rgba(0,0,0,0.4); padding: 12px; border: 1px solid #543e0d; border-radius: 4px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; color: #ffd875; font-weight: bold;';
+        summaryStats.innerHTML = `
+            <div>🎲 СЛ Сцены: <span style="color:#fff;">${this.state.encounterDc}</span></div>
+            <div>⏱ Проверок: <span style="color:#2ecc71;">${this.state.totalChecks}</span></div>
+            <div>🥩 Пайки: <span style="color:#fff;">${this.state.normalIngredients}</span></div>
+            <div>🌿 Специи: <span style="color:#2ecc71;">${this.state.specialIngredients}</span></div>
+        `;
+        modalBody.appendChild(summaryStats);
+
+        Array.from(effectsList.children).forEach(child => {
+            const clone = child.cloneNode(true);
+            clone.style.fontSize = '20px';
+            modalBody.appendChild(clone);
+        });
+
+        setTimeout(() => {
+            overlay.classList.remove('open');
+            resultModal.classList.add('open');
+        }, 2200);
+    },
 
     saveFromUi() {
         try {
@@ -244,11 +313,9 @@ const CampingManager = {
             const questLogContainerEl = document.getElementById('questLogContainer');
             if (questLogContainerEl) questLogContainerEl.classList.add('ui-collapsed');
 
-
             const saveBtn = document.querySelector('.kingdom-save-wrapper .btn.ok');
             if (saveBtn) {
                 const oldText = saveBtn.textContent;
-
                 saveBtn.style.setProperty('transform', 'scale(0.96)', 'important');
                 saveBtn.textContent = '⚜ Итоги применены!';
 
@@ -258,7 +325,6 @@ const CampingManager = {
                 flash.style.top = saveBtn.offsetTop + 'px';
                 flash.style.width = saveBtn.offsetWidth + 'px';
                 flash.style.height = saveBtn.offsetHeight + 'px';
-
                 saveBtn.parentNode.appendChild(flash);
 
                 setTimeout(() => {
@@ -272,11 +338,8 @@ const CampingManager = {
                     if (window.QuestManager) window.QuestManager.currentFilter = 'active';
                 }, 450);
             }
-
         } catch (error) { console.error("Критическая ошибка при сохранении привала:", error); }
     },
-
-
 
     resetToDefault() {
         try {
@@ -299,7 +362,6 @@ const CampingManager = {
             const resetBtn = document.querySelector('.kingdom-save-wrapper .btn.del');
             if (resetBtn) {
                 const oldText = resetBtn.textContent;
-
                 resetBtn.style.setProperty('transform', 'scale(0.96)', 'important');
                 resetBtn.textContent = '🔄 Сброшено';
 
@@ -309,7 +371,6 @@ const CampingManager = {
                 flash.style.top = resetBtn.offsetTop + 'px';
                 flash.style.width = resetBtn.offsetWidth + 'px';
                 flash.style.height = resetBtn.offsetHeight + 'px';
-
                 resetBtn.parentNode.appendChild(flash);
 
                 setTimeout(() => {
@@ -322,7 +383,6 @@ const CampingManager = {
                     resetBtn.textContent = oldText;
                 }, 450);
             }
-
         } catch (e) { console.error("Ошибка при сбросе параметров привала:", e); }
     }
 };
