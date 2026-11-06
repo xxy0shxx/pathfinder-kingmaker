@@ -673,22 +673,39 @@
 <script src="js/app.js" type="module"></script>
 <!--script src="js/tactical_map.js"></script-->
 <!-- Оверлей для 3D куба -->
+
+<!-- Оверлей для полноценного 20-гранного икосаэдра (d20) -->
 <div id="campDiceOverlay" class="camp-dice-overlay">
     <div class="dodecahedron-scene">
         <div class="dodecahedron">
-            <div class="dodeca-face">⚜</div>
-            <div class="dodeca-face">20</div>
-            <div class="dodeca-face">12</div>
-            <div class="dodeca-face">7</div>
-            <div class="dodeca-face">15</div>
-            <div class="dodeca-face">1</div>
-            <div class="dodeca-face">18</div>
-            <div class="dodeca-face">9</div>
-            <div class="dodeca-face">3</div>
-            <div class="dodeca-face">14</div>
+            <!-- Верхняя шапка (5 граней) -->
+            <div class="d20-face">⚜</div>
+            <div class="d20-face">2</div>
+            <div class="d20-face">3</div>
+            <div class="d20-face">4</div>
+            <div class="d20-face">5</div>
+            <!-- Верхний пояс (5 граней) -->
+            <div class="d20-face">6</div>
+            <div class="d20-face">7</div>
+            <div class="d20-face">8</div>
+            <div class="d20-face">9</div>
+            <div class="d20-face">10</div>
+            <!-- Нижний пояс (5 граней) -->
+            <div class="d20-face">11</div>
+            <div class="d20-face">12</div>
+            <div class="d20-face">13</div>
+            <div class="d20-face">14</div>
+            <div class="d20-face">15</div>
+            <!-- Нижняя шапка (5 граней) -->
+            <div class="d20-face">16</div>
+            <div class="d20-face">17</div>
+            <div class="d20-face">18</div>
+            <div class="d20-face">19</div>
+            <div class="d20-face">20</div>
         </div>
     </div>
 </div>
+
 
 <!-- Модалка финальных итогов -->
 <div id="campResultModal" class="camp-result-modal">
