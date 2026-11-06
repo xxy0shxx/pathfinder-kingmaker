@@ -130,6 +130,8 @@
 
 <audio id="bg-music"></audio>
 
+
+
 <div class="music-controller ui-collapsed">
     <div id="questLogContainer" class="quest-log-container ui-collapsed">
         <div class="quest-log-header">⚜️ Журнал заданий</div>
@@ -137,6 +139,7 @@
             <button type="button" class="quest-tab-btn active" id="tabActiveQuests">⚠️ Активные</button>
             <button type="button" class="quest-tab-btn" id="tabCompletedQuests">✅ Завершенные</button>
             <button type="button" class="quest-tab-btn" id="tabRumors">👂Слухи</button>
+            <button type="button" id="tabCamping" class="quest-tab-btn">⛺ Привал</button>
             <button id="tabKingdom" class="quest-tab-btn">🏰 Королевство</button>
         </div>
         <div id="questLogList" class="quest-log-list"></div>
@@ -218,6 +221,65 @@
                     <button type="button" class="btn ok k-btn-save-small" onclick="KingdomManager.saveFromUi()">
                         ⚜ Сохранить
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="campingTabletContainer" class="camping-tablet-content" style="display: none;">
+            <!-- Левая колонка -->
+            <div class="camping-left-col">
+                <div class="camping-section-title">🔮 Панель Ведущего: Итоги Привала</div>
+                <div class="camping-region-bar">
+                    <div class="camp-param-box">
+                        <span class="camp-param-label">🗺 Тип ландшафта (СЛ):</span>
+                        <select id="campRegionTerrain" onchange="CampingManager.recalculateCamp()">
+                            <option value="12">Равнины (СЛ 12)</option>
+                            <option value="14" selected>Лес / Болото (СЛ 14)</option>
+                            <option value="16">Горы (СЛ 16)</option>
+                            <option value="17">Вода / Приполярье (СЛ 17)</option>
+                        </select>
+                    </div>
+                    <div class="camp-param-box">
+                        <span class="camp-param-label">🎰 Модификатор проверок:</span>
+                        <div class="camp-count-controls">
+                            <button type="button" onclick="CampingManager.changeCheckMod(-1)">-</button>
+                            <span id="campCheckModVal">0</span>
+                            <button type="button" onclick="CampingManager.changeCheckMod(1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="camp-gm-inputs-grid">
+                    <div class="camp-gm-row">
+                        <div class="camp-row-info"><span class="act-name">⛺ Подготовка лагеря</span><span class="skill-name">(Выживание)</span></div>
+                        <select id="res_prepare" onchange="CampingManager.recalculateCamp()"><option value="crit_success">Критический Успех</option><option value="success" selected>Успех</option><option value="failure">Провал</option><option value="crit_failure">Критический Провал</option></select>
+                    </div>
+                    <div class="camp-gm-row">
+                        <div class="camp-row-info"><span class="act-name">🌿 Маскировка лагеря</span><span class="skill-name">(Скрытность)</span></div>
+                        <select id="res_camouflage" onchange="CampingManager.recalculateCamp()"><option value="crit_success">Критический Успех</option><option value="success" selected>Успех</option><option value="failure">Провал</option><option value="crit_failure">Критический Провал</option></select>
+                    </div>
+                    <div class="camp-gm-row">
+                        <div class="camp-row-info"><span class="act-name">🏹 Охота и собирательство</span><span class="skill-name">(Выживание)</span></div>
+                        <select id="res_hunt" onchange="CampingManager.recalculateCamp()"><option value="crit_success">Критический Успех</option><option value="success" selected>Успех</option><option value="failure">Провал</option><option value="crit_failure">Критический Провал</option></select>
+                    </div>
+                </div>
+            </div>
+            <!-- Правая колонка -->
+            <div class="camping-right-col">
+                <div class="camping-section-title">📊 Вычисляемые параметры</div>
+                <div class="camp-calculated-counters">
+                    <div class="calc-counter-item status-danger"><span class="calc-label">🎲 СЛ случайной сцены:</span><span id="calcEncounterDc" class="calc-value">11</span></div>
+                    <div class="calc-counter-item"><span class="calc-label">⏱ Число проверок:</span><span id="calcTotalChecks" class="calc-value">4</span></div>
+                </div>
+                <div class="camping-resources-panel">
+                    <div class="c-resource-item"><span class="c-res-label">🥩 Обычные ингредиенты:</span><span id="campNormalIngredients" class="k-res-number resource-yield">0</span></div>
+                    <div class="c-resource-item"><span class="c-res-label">🌿 Особые специи:</span><span id="campSpecialIngredients" class="k-res-number resource-yield">0</span></div>
+                </div>
+                <div class="camp-effects-log">
+                    <div class="camp-log-title">📜 Активные эффекты привала:</div>
+                    <div id="campEffectsList" class="camp-effects-list"></div>
+                </div>
+                <div class="kingdom-save-wrapper">
+                    <button type="button" class="btn ok k-btn-save-small" onclick="CampingManager.saveFromUi()">⚜ Применить итоги</button>
                 </div>
             </div>
         </div>
@@ -531,6 +593,7 @@
 
 <div class="right-controls-panel ui-collapsed">
     <button type="button" id="btnToggleQuests" class="btn-ui-toggle quest-toggle-btn" title="Открыть журнал заданий">⚜️</button>
+    <button type="button" id="btnToggleCamping" class="btn-ui-toggle" title="Дневник Привала">⛺</button>
     <button type="button" id="btnToggleTooltips" class="btn-ui-toggle" title="Скрыть/Показать тултипы квестов">✨</button>
     <button type="button" id="btnToggleMapMode" class="btn-ui-toggle" title="Переключить на карту лагеря">🗺️</button>
     <button type="button" id="btnToggleFog" class="btn-ui-toggle" title="Включить/выключить туман">👁️</button>
@@ -538,6 +601,8 @@
     <button type="button" id="btnExport" class="btn-ui-toggle" title="Экспорт JSON">📥</button>
     <button type="button" id="btnFrameStyle" class="btn-frame-style" title="Рамка: Без рун">🔲</button>
     <button id="btnTogglePaths" title="Показать/скрыть маршрут">👣</button>
+    <button type="button" class="btn-ui-toggle quest-toggle-btn"></button>
+    <button type="button" class="btn-ui-toggle quest-toggle-btn"></button>
     <button type="button" id="btnMasterToggle" class="btn-ui-toggle master-toggle-btn" title="Показать/скрыть интерфейс управления">⚙️</button>
 </div>
 
@@ -545,5 +610,6 @@
 
 <script src="js/app.js" type="module"></script>
 <!--script src="js/tactical_map.js"></script-->
+
 </body>
 </html>

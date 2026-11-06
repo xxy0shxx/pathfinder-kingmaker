@@ -286,6 +286,9 @@ import UiPanelManager from './ui/ui_panel_manager.js';
 
 import TacticalMapManager from './tactical_map/tactical_map_manager.js';
 
+/*описать*/
+import CampingManager from './core/camping_manager.js';
+
 let hasMoved = false;
 // Делаем переменную mapData доступной глобально для всех слушателей в этом файле
 let mapData = { hexes: {}, kingdom: null, paths: [] };
@@ -383,6 +386,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         KingdomManager.updateMapData(mapData);
 
+        if (CampingManager && typeof CampingManager.updateMapData === 'function') {
+            CampingManager.updateMapData(mapData);
+        }
+
         // Передаем данные и принудительно запрашиваем один кадр перерисовки
         HexCanvasRender.updateData(mapData.hexes);
         HexCanvasRender.requestFrame();
@@ -437,8 +444,49 @@ document.addEventListener('DOMContentLoaded', () => {
             HexModal.close();
         }
     });
+
+    if (CampingManager && typeof CampingManager.init === 'function') {
+        CampingManager.init(mapData, () => {
+            StorageManager.saveData(mapData); // Используем твой штатный метод сохранения, как в Королевстве
+        });
+    }
+
     TacticalMapManager.init(); // Инициализация тактической сетки лагеря
 });
+
+// Пишем в корень главного файла, вне любых областей видимости
+window.forceOpenCampingGM = function() {
+    const campingWindow = document.getElementById('campingLogContainer');
+    const questWindow = document.getElementById('questLogContainer');
+    const btn = document.getElementById('btnToggleCamping');
+    if (!campingWindow) return;
+
+    const isCollapsed = campingWindow.classList.contains('ui-collapsed');
+
+    if (isCollapsed) {
+        // Гарантированно закрываем квесты
+        if (questWindow) questWindow.classList.add('ui-collapsed');
+
+        // Открываем привал
+        campingWindow.classList.remove('ui-collapsed');
+
+        // Считаем параметры ГМа
+        if (window.CampingManager) window.CampingManager.recalculateCamp();
+
+        // Подсвечиваем кнопку зеленым геральдическим стилем
+        if (btn) {
+            btn.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+            btn.style.setProperty('border-color', '#dfbc6f', 'important');
+            btn.style.setProperty('color', '#dfbc6f', 'important');
+        }
+    } else {
+        campingWindow.classList.add('ui-collapsed');
+        if (btn) btn.removeAttribute('style');
+    }
+};
+
+
+
 
 window.closeMenu = () => HexModal.close();
 

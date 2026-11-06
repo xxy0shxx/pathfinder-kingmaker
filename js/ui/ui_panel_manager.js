@@ -81,6 +81,47 @@ const UiPanelManager = {
                 }
             });
         }
+
+
+// Внутри UiPanelManager.js -> метод attachEvents()
+
+        // 5. Полностью изолированное управление окном привала ГМа
+        const btnToggleCamping = document.getElementById('btnToggleCamping');
+        const campingWindow = document.getElementById('campingLogContainer');
+        const questWindow = document.getElementById('questLogContainer');
+
+        if (btnToggleCamping && campingWindow) {
+            btnToggleCamping.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isCampCollapsed = campingWindow.classList.contains('ui-collapsed');
+
+                if (isCampCollapsed) {
+                    // Если окно квестов открыто — принудительно закрываем его, чтобы не перекрывало
+                    if (questWindow) questWindow.classList.add('ui-collapsed');
+
+                    // Открываем наше окно привала
+                    campingWindow.classList.remove('ui-collapsed');
+
+                    // Инициализируем перерасчет математики калькулятора
+                    if (window.CampingManager) window.CampingManager.recalculateCamp();
+
+                    // Красиво подсвечиваем кнопку привала зеленым
+                    btnToggleCamping.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+                    btnToggleCamping.style.setProperty('border-color', '#dfbc6f', 'important');
+                    btnToggleCamping.style.setProperty('color', '#dfbc6f', 'important');
+                } else {
+                    // Если окно уже было открыто — просто закрываем его
+                    campingWindow.classList.add('ui-collapsed');
+                    btnToggleCamping.removeAttribute('style');
+                }
+            });
+        }
+
+
+
+
     }
 };
 

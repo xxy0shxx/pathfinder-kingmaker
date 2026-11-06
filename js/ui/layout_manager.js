@@ -9,8 +9,47 @@ const LayoutManager = {
      */
     init() {
         this.initLegendAccordion();
+        this.initCampingToggle();
         this.attachResizeEvent();
         this.revealMapFrame();
+    },
+
+    initCampingToggle() {
+        // Запускаем через setTimeout, чтобы дождаться сборки DOM-дерева кнопками
+        setTimeout(() => {
+            const btnToggleCamping = document.getElementById('btnToggleCamping');
+            const campingWindow = document.getElementById('campingLogContainer');
+            const questWindow = document.getElementById('questLogContainer');
+
+            if (!btnToggleCamping || !campingWindow) return;
+
+            btnToggleCamping.addEventListener('click', (e) => {
+                e.preventDefault(); e.stopPropagation();
+
+                const isCampCollapsed = campingWindow.classList.contains('ui-collapsed');
+
+                if (isCampCollapsed) {
+                    // Закрываем окно квестов, если оно мешает
+                    if (questWindow) {
+                        questWindow.classList.add('ui-collapsed');
+                        const btnToggleQuests = document.getElementById('btnToggleQuests');
+                        if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
+                    }
+
+                    // Открываем привал
+                    campingWindow.classList.remove('ui-collapsed');
+                    if (window.CampingManager) window.CampingManager.recalculateCamp();
+
+                    // Зеленая подсветка геральдики Kingmaker
+                    btnToggleCamping.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+                    btnToggleCamping.style.setProperty('border-color', '#dfbc6f', 'important');
+                    btnToggleCamping.style.setProperty('color', '#dfbc6f', 'important');
+                } else {
+                    campingWindow.classList.add('ui-collapsed');
+                    btnToggleCamping.removeAttribute('style');
+                }
+            });
+        }, 300);
     },
 
     /**
