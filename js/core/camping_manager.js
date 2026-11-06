@@ -71,46 +71,82 @@ const CampingManager = {
         return checked ? checked.value : 'success';
     },
 
+
+// CampingManager.js — Обновленная тактическая математика Подготовки лагеря
     recalculateCamp() {
         try {
             const terrainSelect = document.getElementById('campRegionTerrain');
             if (!terrainSelect) return;
 
+            // Изначально берем чистую СЛ региона из выпадающего списка
             const baseRegionDc = parseInt(terrainSelect.value, 10);
+
+            // Считываем радио-кнопки исходов бросков со стола
             const prepareRes = this.getSelectedRadio('res_prepare');
             const camoRes = this.getSelectedRadio('res_camouflage');
             const huntRes = this.getSelectedRadio('res_hunt');
 
-            // Обновление СЛ-индикаторов строк
-            ['label_dc_prepare', 'label_dc_camouflage', 'label_dc_hunt'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = `(СЛ: ${baseRegionDc})`;
-            });
+            // 1. РАСЧЕТ ДИНАМИЧЕСКИХ МОДИФИКАТОРОВ СЛ ИЗ-ЗА ПОДГОТОВКИ ЛАГЕРЯ
+            // По вашему правилу: при Провале подготовки лагеря — СЛ для Маскировки и Охоты увеличивается на +2
+            let prepareDcModifier = 0;
+            if (prepareRes === 'failure') {
+                prepareDcModifier = 2;
+            }
 
-            // Расчет СЛ засады
+            const finalPrepareDc = baseRegionDc;
+            const finalCamoDc = baseRegionDc + prepareDcModifier;
+            const finalHuntDc = baseRegionDc + prepareDcModifier;
+
+            // Динамически обновляем текстовые индикаторы сложности в интерфейсе (СЛ: X)
+            const lblPrepare = document.getElementById('label_dc_prepare');
+            const lblCamo = document.getElementById('label_dc_camouflage');
+            const lblHunt = document.getElementById('label_dc_hunt');
+
+            if (lblPrepare) lblPrepare.textContent = `(СЛ: ${finalPrepareDc})`;
+            if (lblCamo) lblCamo.textContent = `(СЛ: ${finalCamoDc})`;
+            if (lblHunt) lblHunt.textContent = `(СЛ: ${finalHuntDc})`;
+
+            // 2. РАСЧЕТ СЛ СЛУЧАЙНОЙ СЦЕНЫ
+            // База равна СЛ региона. Модифицируется броском Маскировки (Скрытности)
             let finalEncounterDc = baseRegionDc;
             if (camoRes === 'crit_success') finalEncounterDc += 4;
             if (camoRes === 'failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
             if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 5);
+
+            // ВАШЕ НОВОЕ ПРАВИЛО: При КУ подготовки лагеря — СЛ случайной сцены дополнительно увеличивается на +2
+            if (prepareRes === 'crit_success') {
+                finalEncounterDc += 2;
+            }
             this.state.encounterDc = finalEncounterDc;
 
-            // Расчет итогового пула проверок привала на базе динамического baseChecks
+            // 3. РАСЧЕТ ИТОГОВОГО ПУЛА ПРОВЕРОК ПРИВАЛА
             let calculatedChecks = this.state.baseChecks;
-            if (prepareRes === 'crit_success') calculatedChecks += 1;
-            if (prepareRes === 'failure') calculatedChecks -= 1;
-            if (prepareRes === 'crit_failure') calculatedChecks = Math.max(0, calculatedChecks - 2);
+
+            // ВАШИ НОВЫЕ ПРАВИЛА:
+            // При КУ — число проверок уменьшается на 1 (минус 1)
+            // При Успехе и Провале — ничего не меняется (0)
+            // При КП — число проверок увеличивается на 1 (плюс 1)
+            if (prepareRes === 'crit_success') calculatedChecks -= 1;
+            if (prepareRes === 'crit_failure') calculatedChecks += 1;
+
             this.state.totalChecks = Math.max(0, calculatedChecks + this.state.checkMod);
 
-            // Расчет ингредиентов
-            let normalYield = 0, specialYield = 0;
-            if (huntRes === 'success') normalYield = 0;
+            // 4. РАСЧЕТ ДОБЫТЫХ РЕСУРСОВ ПРИВАЛА
+            let normalYield = 0;
+            let specialYield = 0;
+            if (huntRes === 'success') normalYield = 2;
             if (huntRes === 'crit_success') { normalYield = 4; specialYield = 1; }
+
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYield;
 
+            // Вывод логов для ГМа
             this.renderCalculatedUi(camoRes, prepareRes, huntRes);
-        } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
+        } catch (e) {
+            console.error("Ошибка при перерасчете параметров лагеря:", e);
+        }
     },
+
 
     renderCalculatedUi(camoRes, prepareRes, huntRes) {
         document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
@@ -122,17 +158,27 @@ const CampingManager = {
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
+        // 1. Логи маскировки лагеря
         if (camoRes === 'crit_success') this.addLogLine(effectsList, "Идеальная маскировка! СЛ случайной сцены поднят на +4.", "good");
         if (camoRes === 'failure') this.addLogLine(effectsList, "Плохая маскировка. СЛ снижен на -2 (шанс засады выше).", "bad");
         if (camoRes === 'crit_failure') this.addLogLine(effectsList, "Катастрофическая маскировка! СЛ снижен на -5. Лагерь полностью выдан.", "bad");
 
-        if (prepareRes === 'crit_success') this.addLogLine(effectsList, "Комфортный лагерь: доступна +1 дополнительная проверка.", "good");
-        if (prepareRes === 'failure') this.addLogLine(effectsList, "Ошибки обустройства: доступно на 1 проверку меньше.", "bad");
-        if (prepareRes === 'crit_failure') this.addLogLine(effectsList, "Ужасные условия отдыха! Штраф -2 к проверкам лагеря.", "bad");
+        // 2. Логи подготовки лагеря (ОБНОВЛЕНО ПОД НОВЫЕ ПРАВИЛА)
+        if (prepareRes === 'crit_success') {
+            this.addLogLine(effectsList, "КУ подготовки: Число проверок снижено на -1, но СЛ ночной сцены защищен на +2.", "good");
+        }
+        if (prepareRes === 'failure') {
+            this.addLogLine(effectsList, "Провал подготовки: Из-за плохой стоянки СЛ Маскировки и Охоты выросли на +2!", "bad");
+        }
+        if (prepareRes === 'crit_failure') {
+            this.addLogLine(effectsList, "КП подготовки: Лагерь разбит хаотично. Число проверок привала увеличено на +1.", "bad");
+        }
 
+        // 3. Логи охоты
         if (huntRes === 'crit_success') this.addLogLine(effectsList, "Блестящая охота! Найдено кулинарное сырье (+1 особый ингредиент).", "good");
         if (huntRes === 'failure' || huntRes === 'crit_failure') this.addLogLine(effectsList, "Охотники вернулись ни с чем.", "bad");
     },
+
 
     addLogLine(container, text, type) {
         const line = document.createElement('div');
