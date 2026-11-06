@@ -1110,7 +1110,7 @@ const TacticalMapManager = {
             else if (obs === 'bushes') { obstacleName = '🌿 Густые кусты'; movementCostText = '<span style="color:#f1c40f;font-weight:bold;">10 футов (20 фт. по диагонали)</span>'; }
             else if (obs === 'forest') { obstacleName = '🌲 Чаща леса'; movementCostText = '<span style="color:#ff7675;font-weight:bold;">НЕПРОХОДИМАЯ / БЛОК ОБЗОРА</span>'; }
             else if (obs === 'water') { obstacleName = '<span style="color:#74b9ff;font-weight:bold;">🌊 Глубокая вода</span>'; movementCostText = '<span style="color:#74b9ff;">5 футов (Проверка d20 Атлетика)</span>'; }
-            else if (obs === 'stones') { obstacleName = '🪨 Камни'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">Только прыжок</span>'; }
+            else if (obs === 'stones') { obstacleName = '⛰️ Камни'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">Только прыжок</span>'; }
             else if (obs === 'ice') { obstacleName = '<span style="color:#00cec9;font-weight:bold;">❄ Скользкий лед</span>'; movementCostText = '<span style="color:#00cec9;">5 футов (Проверка d20 Акробатика)</span>'; }
             else if (obs === 'web') { obstacleName = '<span style="color:#9b59b6;font-weight:bold;">🕸 Паутина</span>'; movementCostText = '<span style="color:#9b59b6;">5 футов (Проверка d20 Спасбросок)</span>'; }
             else if (obs === 'floor-planks') { obstacleName = '🪵 Пол: Деревянные доски'; movementCostText = '5 футов'; }
