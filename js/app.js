@@ -351,6 +351,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!ViewportManager.getHasMoved() && HexCanvasRender.hoveredHexKey) {
                 const hexId = HexCanvasRender.hoveredHexKey;
                 const hexData = mapData.hexes[hexId] || null;
+
+                if (window.CampingManager) {
+                    const lvl = (hexData && hexData.regionLevel) ? hexData.regionLevel : 1;
+                    window.CampingManager.state.currentHexRegionLevel = lvl;
+                }
                 HexModal.open(hexId, hexData);
             }
         });

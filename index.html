@@ -232,17 +232,10 @@
             <div class="camping-left-col">
                 <div class="camping-section-title">🔮 Панель Ведущего: Итоги Привала</div>
 
-                <!-- Верхняя панель: СЛ, Базовые Проверки и Ручной Модификатор -->
-                <div class="camping-region-bar">
+                <div class="camping-region-bar font-tinos">
                     <div class="camp-param-box">
-                        <span class="camp-param-label">🎲 СЛ региона:</span>
-                        <select id="campRegionTerrain" onchange="CampingManager.recalculateCamp()">
-                            <script>
-                                for(let dc = 1; dc <= 41; dc++) {
-                                    document.write(`<option value="${dc}" ${dc === 14 ? 'selected' : ''}>СЛ ${dc}</option>`);
-                                }
-                            </script>
-                        </select>
+                        <span class="camp-param-label">🗺️ Текущая СЛ региона (из гекса):</span>
+                        <span id="campRegionDcText" class="calc-value" style="color: #ffd875; font-size: 18px; font-weight: bold; margin-left: 4px;">СЛ --</span>
                     </div>
 
                     <div class="camp-param-box">
@@ -264,8 +257,6 @@
                     </div>
                 </div>
 
-
-                <!-- Сетка строк ГМа на Радио-кнопках -->
                 <div class="camp-gm-inputs-grid">
                     <!-- Подготовка лагеря -->
                     <div class="camp-gm-row font-tinos">
