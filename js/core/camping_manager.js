@@ -1,11 +1,12 @@
-// CampingManager.js — Часть 1: Структура и Инициализация
+// CampingManager.js — Финальная сборка с динамическим checks и радио-кнопками
 const CampingManager = {
     state: {
+        baseChecks: 2,
         checkMod: 0,
         normalIngredients: 0,
         specialIngredients: 0,
         encounterDc: 11,
-        totalChecks: 4
+        totalChecks: 2
     },
     mapDataRef: null,
     onSaveCallback: null,
@@ -17,16 +18,18 @@ const CampingManager = {
 
             if (this.mapDataRef.camping) {
                 this.state = this.mapDataRef.camping;
+                // ЗАЩИТА: Если в старом сейве не было этого поля, принудительно задаем 4
+                if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) {
+                    this.state.baseChecks = 2;
+                }
             } else {
                 this.mapDataRef.camping = this.state;
             }
 
             window.CampingManager = this;
-
+            this.syncCountersUi();
             this.recalculateCamp();
-        } catch (e) {
-            console.error("Ошибка инициализации CampingManager:", e);
-        }
+        } catch (e) { console.error("Ошибка инициализации CampingManager:", e); }
     },
 
     updateMapData(newMapData) {
@@ -34,73 +37,79 @@ const CampingManager = {
             this.mapDataRef = newMapData || { hexes: {}, kingdom: null, camping: null };
             if (this.mapDataRef.camping) {
                 this.state = this.mapDataRef.camping;
+                // ЗАЩИТА: Страхуем импортируемый файл от NaN
+                if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) {
+                    this.state.baseChecks = 2;
+                }
             }
+            this.syncCountersUi();
             this.recalculateCamp();
-        } catch (e) {
-            console.error("Ошибка обновления данных в CampingManager:", e);
-        }
+        } catch (e) { console.error("Ошибка обновления CampingManager:", e); }
+    },
+
+    changeBaseChecks(amount) {
+        this.state.baseChecks = Math.max(0, Math.min(20, this.state.baseChecks + amount));
+        this.syncCountersUi();
+        this.recalculateCamp();
     },
 
     changeCheckMod(amount) {
         this.state.checkMod = Math.max(-10, Math.min(10, this.state.checkMod + amount));
-        const modEl = document.getElementById('campCheckModVal');
-        if (modEl) {
-            modEl.textContent = this.state.checkMod >= 0 ? `+${this.state.checkMod}` : this.state.checkMod;
-        }
+        this.syncCountersUi();
         this.recalculateCamp();
     },
 
-// CampingManager.js — Обновленное ядро расчетов ГМа
+    syncCountersUi() {
+        const baseEl = document.getElementById('campBaseChecksVal');
+        const modEl = document.getElementById('campCheckModVal');
+        if (baseEl) baseEl.textContent = this.state.baseChecks;
+        if (modEl) modEl.textContent = this.state.checkMod >= 0 ? `+${this.state.checkMod}` : this.state.checkMod;
+    },
+
+    getSelectedRadio(name) {
+        const checked = document.querySelector(`input[name="${name}"]:checked`);
+        return checked ? checked.value : 'success';
+    },
+
     recalculateCamp() {
         try {
             const terrainSelect = document.getElementById('campRegionTerrain');
             if (!terrainSelect) return;
 
-            // Изначально берем чистую СЛ региона из выпадающего списка
             const baseRegionDc = parseInt(terrainSelect.value, 10);
-            const prepareRes = document.getElementById('res_prepare').value;
-            const camoRes = document.getElementById('res_camouflage').value;
-            const huntRes = document.getElementById('res_hunt').value;
+            const prepareRes = this.getSelectedRadio('res_prepare');
+            const camoRes = this.getSelectedRadio('res_camouflage');
+            const huntRes = this.getSelectedRadio('res_hunt');
 
-            // Динамически обновляем текстовые индикаторы сложности у каждого действия в интерфейсе
-            const lblPrepare = document.getElementById('label_dc_prepare');
-            const lblCamo = document.getElementById('label_dc_camouflage');
-            const lblHunt = document.getElementById('label_dc_hunt');
+            // Обновление СЛ-индикаторов строк
+            ['label_dc_prepare', 'label_dc_camouflage', 'label_dc_hunt'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = `(СЛ: ${baseRegionDc})`;
+            });
 
-            if (lblPrepare) lblPrepare.textContent = `(СЛ: ${baseRegionDc})`;
-            if (lblCamo) lblCamo.textContent = `(СЛ: ${baseRegionDc})`;
-            if (lblHunt) lblHunt.textContent = `(СЛ: ${baseRegionDc})`;
-
-            // Расчет СЛ ночной случайной сцены. База равна СЛ региона,
-            // модифицируется броском живой Скрытности (Маскировки лагеря) по правилам Pathfinder.
+            // Расчет СЛ засады
             let finalEncounterDc = baseRegionDc;
-            if (camoRes === 'crit_success') finalEncounterDc += 4; // Усложняет засаду для монстров
-            if (camoRes === 'failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2); // Облегчает засаду
-            if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 5); // Лагерь полностью выдан
-
+            if (camoRes === 'crit_success') finalEncounterDc += 4;
+            if (camoRes === 'failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
+            if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 5);
             this.state.encounterDc = finalEncounterDc;
 
-            // Расчет числа проверок (базово 4)
-            let checks = 4;
-            if (prepareRes === 'crit_success') checks += 1;
-            if (prepareRes === 'failure') checks -= 1;
-            if (prepareRes === 'crit_failure') checks = Math.max(0, checks - 2);
-            this.state.totalChecks = Math.max(0, checks + this.state.checkMod);
+            // Расчет итогового пула проверок привала на базе динамического baseChecks
+            let calculatedChecks = this.state.baseChecks;
+            if (prepareRes === 'crit_success') calculatedChecks += 1;
+            if (prepareRes === 'failure') calculatedChecks -= 1;
+            if (prepareRes === 'crit_failure') calculatedChecks = Math.max(0, calculatedChecks - 2);
+            this.state.totalChecks = Math.max(0, calculatedChecks + this.state.checkMod);
 
-            // Расчет добытых ресурсов привала
-            let normalYield = 0;
-            let specialYield = 0;
+            // Расчет ингредиентов
+            let normalYield = 0, specialYield = 0;
             if (huntRes === 'success') normalYield = 2;
             if (huntRes === 'crit_success') { normalYield = 4; specialYield = 1; }
-
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYield;
 
-            // Вывод логов для ГМа
             this.renderCalculatedUi(camoRes, prepareRes, huntRes);
-        } catch (e) {
-            console.error("Ошибка при перерасчете параметров лагеря:", e);
-        }
+        } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
     renderCalculatedUi(camoRes, prepareRes, huntRes) {
@@ -113,20 +122,16 @@ const CampingManager = {
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
-        // Логи маскировки
-        if (camoRes === 'crit_success') this.addLogLine(effectsList, "Идеальная маскировка! СЛ случайной сцены поднят до 15.", "good");
-        if (camoRes === 'success') this.addLogLine(effectsList, "Лагерь надежно скрыт от чужих глаз.", "generic");
-        if (camoRes === 'failure') this.addLogLine(effectsList, "Плохая маскировка. СЛ случайной сцены упал до 9 (шанс засады выше).", "bad");
-        if (camoRes === 'crit_failure') this.addLogLine(effectsList, "Катастрофическая маскировка! СЛ упал до 5. Лагерь сияет на весь регион.", "bad");
+        if (camoRes === 'crit_success') this.addLogLine(effectsList, "Идеальная маскировка! СЛ случайной сцены поднят на +4.", "good");
+        if (camoRes === 'failure') this.addLogLine(effectsList, "Плохая маскировка. СЛ снижен на -2 (шанс засады выше).", "bad");
+        if (camoRes === 'crit_failure') this.addLogLine(effectsList, "Катастрофическая маскировка! СЛ снижен на -5. Лагерь полностью выдан.", "bad");
 
-        // Логи подготовки лагеря
-        if (prepareRes === 'crit_success') this.addLogLine(effectsList, "Комфортный лагерь: персонажи получают +1 дополнительную активность привала.", "good");
-        if (prepareRes === 'failure') this.addLogLine(effectsList, "Ошибки обустройства: из-за суматохи доступно на 1 проверку меньше.", "bad");
-        if (prepareRes === 'crit_failure') this.addLogLine(effectsList, "Ужасные условия отдыха! Штраф -2 к проверкам лагеря, персонажи утомлены.", "bad");
+        if (prepareRes === 'crit_success') this.addLogLine(effectsList, "Комфортный лагерь: доступна +1 дополнительная проверка.", "good");
+        if (prepareRes === 'failure') this.addLogLine(effectsList, "Ошибки обустройства: доступно на 1 проверку меньше.", "bad");
+        if (prepareRes === 'crit_failure') this.addLogLine(effectsList, "Ужасные условия отдыха! Штраф -2 к проверкам лагеря.", "bad");
 
-        // Логи охоты
-        if (huntRes === 'crit_success') this.addLogLine(effectsList, "Блестящая охота! Найдено ценное кулинарное сырье и специи (+1 особый ингредиент).", "good");
-        if (huntRes === 'failure' || huntRes === 'crit_failure') this.addLogLine(effectsList, "Охотники вернулись ни с чем. Группа тратит собственные запасы пайков.", "bad");
+        if (huntRes === 'crit_success') this.addLogLine(effectsList, "Блестящая охота! Найдено кулинарное сырье (+1 особый ингредиент).", "good");
+        if (huntRes === 'failure' || huntRes === 'crit_failure') this.addLogLine(effectsList, "Охотники вернулись ни с чем.", "bad");
     },
 
     addLogLine(container, text, type) {
@@ -138,33 +143,13 @@ const CampingManager = {
 
     saveFromUi() {
         try {
-            const terrainSelect = document.getElementById('campRegionTerrain');
-            if (terrainSelect) {
-                this.state.currentTerrainDc = parseInt(terrainSelect.value, 10);
-            }
+            if (this.mapDataRef) this.mapDataRef.camping = this.state;
+            if (this.onSaveCallback) this.onSaveCallback();
+            else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
 
-            if (this.mapDataRef) {
-                this.mapDataRef.camping = this.state;
-            }
-
-            if (this.onSaveCallback) {
-                this.onSaveCallback();
-            } else {
-                localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
-            }
-
-            // Закрываем общее окно журнала квестов, в котором лежит вкладка привала
             const questLogContainerEl = document.getElementById('questLogContainer');
-            if (questLogContainerEl) {
-                questLogContainerEl.classList.add('ui-collapsed');
+            if (questLogContainerEl) questLogContainerEl.classList.add('ui-collapsed');
 
-                const btnToggleQuests = document.getElementById('btnToggleQuests');
-                if (btnToggleQuests) {
-                    btnToggleQuests.removeAttribute('style');
-                }
-            }
-
-            // Красивая вспышка на кнопке «Применить итоги»
             const saveBtn = document.querySelector('#campingTabletContainer .k-btn-save-small');
             if (saveBtn) {
                 saveBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
@@ -172,60 +157,11 @@ const CampingManager = {
                 setTimeout(() => {
                     saveBtn.style.removeProperty('filter');
                     saveBtn.textContent = '⚜ Применить итоги';
-
-                    // Необязательно, но удобно: после закрытия возвращаем фокус
-                    // фильтра квестов на "активные", чтобы при следующем открытии ГМ видел задачи
                     if (window.QuestManager) window.QuestManager.currentFilter = 'active';
                 }, 800);
             }
-        } catch (error) {
-            console.error("Критическая ошибка при сохранении привала:", error);
-        }
+        } catch (error) { console.error("Критическая ошибка при сохранении привала:", error); }
     }
-
-
 };
-
-document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('btnToggleCamping');
-    if (btn) {
-        // Радикальное решение: клонируем кнопку, чтобы полностью стереть
-        // любые скрытые или дублирующиеся слушатели событий из других менеджеров
-        const cleanBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(cleanBtn, btn);
-
-        // Вешаем чистый, изолированный клик на открытие нового окна-близнеца
-        cleanBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const campingWindow = document.getElementById('campingLogContainer');
-            const questWindow = document.getElementById('questLogContainer');
-            if (!campingWindow) return;
-
-            const isCollapsed = campingWindow.classList.contains('ui-collapsed');
-
-            if (isCollapsed) {
-                // Жестко закрываем квесты, чтобы они не лезли на экран
-                if (questWindow) questWindow.classList.add('ui-collapsed');
-
-                // Открываем наше окно привала
-                campingWindow.classList.remove('ui-collapsed');
-
-                // Пересчитываем математику
-                if (window.CampingManager) window.CampingManager.recalculateCamp();
-
-                // Красим кнопку в зеленый
-                cleanBtn.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
-                cleanBtn.style.setProperty('border-color', '#dfbc6f', 'important');
-                cleanBtn.style.setProperty('color', '#dfbc6f', 'important');
-            } else {
-                campingWindow.classList.add('ui-collapsed');
-                cleanBtn.removeAttribute('style');
-            }
-        });
-    }
-});
-
 
 export default CampingManager;

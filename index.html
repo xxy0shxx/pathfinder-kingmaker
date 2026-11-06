@@ -225,14 +225,17 @@
             </div>
         </div>
 
+
+        <!-- index.html — Новая утилитарная панель и радио-кнопки ГМа -->
         <div id="campingTabletContainer" class="camping-tablet-content" style="display: none;">
             <!-- Левая колонка -->
             <div class="camping-left-col">
                 <div class="camping-section-title">🔮 Панель Ведущего: Итоги Привала</div>
 
+                <!-- Верхняя панель: СЛ, Базовые Проверки и Ручной Модификатор -->
                 <div class="camping-region-bar">
                     <div class="camp-param-box">
-                        <span class="camp-param-label">🎲 СЛ (сложность) региона:</span>
+                        <span class="camp-param-label">🎲 СЛ региона:</span>
                         <select id="campRegionTerrain" onchange="CampingManager.recalculateCamp()">
                             <script>
                                 for(let dc = 1; dc <= 41; dc++) {
@@ -243,7 +246,16 @@
                     </div>
 
                     <div class="camp-param-box">
-                        <span class="camp-param-label">🎰 Модификатор проверок лагеря:</span>
+                        <span class="camp-param-label">⏱ Базовые проверки:</span>
+                        <div class="camp-count-controls">
+                            <button type="button" onclick="CampingManager.changeBaseChecks(-1)">-</button>
+                            <span id="campBaseChecksVal">2</span>
+                            <button type="button" onclick="CampingManager.changeBaseChecks(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="camp-param-box">
+                        <span class="camp-param-label">🎰 Модификатор:</span>
                         <div class="camp-count-controls">
                             <button type="button" onclick="CampingManager.changeCheckMod(-1)">-</button>
                             <span id="campCheckModVal">0</span>
@@ -252,51 +264,53 @@
                     </div>
                 </div>
 
-
+                <!-- Сетка строк ГМа на Радио-кнопках -->
                 <div class="camp-gm-inputs-grid">
                     <!-- Подготовка лагеря -->
-                    <div class="camp-gm-row">
+                    <div class="camp-gm-row font-tinos">
                         <div class="camp-row-info">
                             <span class="act-name">⛺ Подготовка лагеря</span>
                             <span class="skill-name">Выживание <span id="label_dc_prepare">(СЛ: 14)</span></span>
                         </div>
-                        <select id="res_prepare" onchange="CampingManager.recalculateCamp()">
-                            <option value="crit_success">Критический Успех</option>
-                            <option value="success" selected>Успех</option>
-                            <option value="failure">Провал</option>
-                            <option value="crit_failure">Критический Провал</option>
-                        </select>
+                        <div class="camp-radio-group">
+                            <label class="crit-suc"><input type="radio" name="res_prepare" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
+                            <label class="suc"><input type="radio" name="res_prepare" value="success" value="success" checked onchange="CampingManager.recalculateCamp()"> У</label>
+                            <label class="fail"><input type="radio" name="res_prepare" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
+                            <label class="crit-fail"><input type="radio" name="res_prepare" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
+                        </div>
                     </div>
+
                     <!-- Маскировка лагеря -->
-                    <div class="camp-gm-row">
+                    <div class="camp-gm-row font-tinos">
                         <div class="camp-row-info">
                             <span class="act-name">🌿 Маскировка лагеря</span>
                             <span class="skill-name">Скрытность <span id="label_dc_camouflage">(СЛ: 14)</span></span>
                         </div>
-                        <select id="res_camouflage" onchange="CampingManager.recalculateCamp()">
-                            <option value="crit_success">Критический Успех</option>
-                            <option value="success" selected>Успех</option>
-                            <option value="failure">Провал</option>
-                            <option value="crit_failure">Критический Провал</option>
-                        </select>
+                        <div class="camp-radio-group">
+                            <label class="crit-suc"><input type="radio" name="res_camouflage" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
+                            <label class="suc"><input type="radio" name="res_camouflage" value="success" value="success" checked onchange="CampingManager.recalculateCamp()"> У</label>
+                            <label class="fail"><input type="radio" name="res_camouflage" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
+                            <label class="crit-fail"><input type="radio" name="res_camouflage" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
+                        </div>
                     </div>
+
                     <!-- Охота и собирательство -->
-                    <div class="camp-gm-row">
+                    <div class="camp-gm-row font-tinos">
                         <div class="camp-row-info">
                             <span class="act-name">🏹 Охота и собирательство</span>
                             <span class="skill-name">Выживание <span id="label_dc_hunt">(СЛ: 14)</span></span>
                         </div>
-                        <select id="res_hunt" onchange="CampingManager.recalculateCamp()">
-                            <option value="crit_success">Критический Успех</option>
-                            <option value="success" selected>Успех</option>
-                            <option value="failure">Провал</option>
-                            <option value="crit_failure">Критический Провал</option>
-                        </select>
+                        <div class="camp-radio-group">
+                            <label class="crit-suc"><input type="radio" name="res_hunt" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
+                            <label class="suc"><input type="radio" name="res_hunt" value="success" value="success" checked onchange="CampingManager.recalculateCamp()"> У</label>
+                            <label class="fail"><input type="radio" name="res_hunt" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
+                            <label class="crit-fail"><input type="radio" name="res_hunt" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
+                        </div>
                     </div>
                 </div>
-
             </div>
-            <!-- Правая колонка -->
+
+            <!-- Правая колонка остается старой -->
             <div class="camping-right-col">
                 <div class="camping-section-title">📊 Вычисляемые параметры</div>
                 <div class="camp-calculated-counters">
@@ -316,6 +330,8 @@
                 </div>
             </div>
         </div>
+
+
 
     </div>
 

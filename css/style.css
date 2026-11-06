@@ -2359,3 +2359,41 @@ body {
 .camp-effect-line.bad::before { color: #e74c3c; }
 .camp-effect-line.good { color: #2ecc71; }
 .camp-effect-line.good::before { color: #2ecc71; }
+
+/* Оформление радио-групп на панели привала */
+.camp-radio-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.camp-radio-group label {
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(84, 62, 13, 0.4);
+    user-select: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.camp-radio-group input[type="radio"] {
+    accent-color: #dfbc6f;
+    cursor: pointer;
+}
+
+.camp-radio-group label:hover {
+    border-color: #dfbc6f;
+    background: rgba(138, 100, 33, 0.15);
+}
+
+/* Цветовые акценты степеней успеха для ГМа */
+.camp-radio-group label.crit-suc { color: #2ecc71; }
+.camp-radio-group label.suc { color: #ebd291; }
+.camp-radio-group label.fail { color: #ff7675; }
+.camp-radio-group label.crit-fail { color: #e74c3c; }
