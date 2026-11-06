@@ -2410,29 +2410,26 @@ body {
     padding: 16px 24px !important; /* Укрупненные кнопки */
     font-size: 18px !important; /* Большой текст кнопок */
     font-weight: bold !important;
+    will-change: filter, transform;
+    transition: filter 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.2s ease !important;
 }
 
 /* ============================================================================
    18. МОНОЛИТНАЯ УПАКОВКА ПРИВАЛА: СКРЫТИЕ ШАПКИ И ИНТЕГРАЦИЯ ТАБ-КРЕСТИКА
    ============================================================================ */
 
-/* Если QuestManager переключил фильтр, мы вешаем класс на контейнер (сделаем это в JS),
-   либо завязываемся на состояние отображения самого планшета привала */
 #questLogContainer:has(#campingTabletContainer[style*="display: flex"]) .quest-log-header,
 #questLogContainer:has(#campingTabletContainer[style*="display: flex"]) .btn-close-quest-log {
     display: none !important; /* Намертво убираем верхнюю плашку "Журнал заданий" */
 }
 
-/* Перестраиваем высоту внутреннего контента лагеря, чтобы он занимал ВСЁ освободившееся место */
 #questLogContainer:has(#campingTabletContainer[style*="display: flex"]) .camping-tablet-content {
     /* Растягиваем внутренности на всю доступную высоту окна */
     height: calc(100% - 75px) !important;
 
-    /* Сбалансированные падинги: даем контенту чуть больше пространства снизу */
     padding: 25px 30px 35px 30px !important;
 }
 
-/* Стилизация шестого элемента-крестика в строке вкладок */
 .quest-tab-btn.tab-close-action {
     background: linear-gradient(180deg, rgba(92, 30, 30, 0.2) 0%, rgba(58, 17, 17, 0.4) 100%) !important;
     border-left: 1px solid rgba(130, 48, 48, 0.4) !important;
@@ -2443,4 +2440,43 @@ body {
     background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
     color: #fff !important;
     text-shadow: 0 0 8px rgba(255, 118, 117, 0.6) !important;
+}
+
+@keyframes goldFlashBurst {
+    0% {
+        background: linear-gradient(180deg, #ffea9f 0%, #dfbc6f 100%) !important;
+        border-color: #ffd875 !important;
+        color: #fff !important;
+        box-shadow: 0 0 15px #ffd875, inset 0 0 8px #fff !important;
+        transform: scale(0.96);
+    }
+    15% {
+        background: linear-gradient(180deg, #ffd875 0%, #b89445 100%) !important;
+        border-color: #dfbc6f !important;
+        box-shadow: 0 0 8px rgba(184, 148, 69, 0.6) !important;
+        transform: scale(0.96);
+    }
+    100% {
+        background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
+        border-color: #823030 !important;
+        color: #f7baba !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+        transform: scale(1);
+    }
+}
+
+.kingdom-save-wrapper {
+    position: relative;
+}
+
+.button-flash-overlay {
+    position: absolute;
+    pointer-events: none;
+    z-index: 99999;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #ffffff 0%, #ffd875 50%, #b89445 100%);
+    box-shadow: 0 0 25px #ffd875, inset 0 0 10px #fff;
+    opacity: 1;
+    will-change: opacity, transform;
+    transition: opacity 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
 }

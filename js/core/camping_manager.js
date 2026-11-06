@@ -256,20 +256,18 @@ const CampingManager = {
         } catch (error) { console.error("Критическая ошибка при сохранении привала:", error); }
     },
 
+
     resetToDefault() {
         try {
             const camoRow = document.getElementById('row_camouflage');
             const huntRow = document.getElementById('row_hunt');
 
-            // Защита: возвращаем отображение строк обратно на экран при сбросе
             if (camoRow) camoRow.style.display = 'table-row';
             if (huntRow) huntRow.style.display = 'table-row';
 
-            // 1. Возвращаем дефолтные значения в стейт менеджера
             this.state.baseChecks = 2;
             this.state.checkMod = 12;
 
-            // 2. Полностью снимаем выделение со всех радио-кнопок бросков игроков
             document.querySelectorAll('input[type="radio"]').forEach(radio => {
                 radio.checked = false;
             });
@@ -279,24 +277,33 @@ const CampingManager = {
 
             const resetBtn = document.querySelector('.kingdom-save-wrapper .btn.del');
             if (resetBtn) {
-                // Запоминаем старый стиль бэкграунда и текст
-                const oldBg = resetBtn.style.background;
                 const oldText = resetBtn.textContent;
 
-                // Переключаем
-                resetBtn.style.setProperty('background', 'linear-gradient(180deg, #b89445 0%, #6e4e14 100%)', 'important');
-                resetBtn.style.setProperty('color', '#fff', 'important');
-                resetBtn.style.setProperty('border-color', '#ffd875', 'important');
+                resetBtn.style.setProperty('transform', 'scale(0.95)', 'important');
                 resetBtn.textContent = '🔄 Сброшено';
 
-                // Через полсекунды возвращаем
+                const flash = document.createElement('div');
+                flash.className = 'button-flash-overlay';
+
+                flash.style.left = resetBtn.offsetLeft + 'px';
+                flash.style.top = resetBtn.offsetTop + 'px';
+                flash.style.width = resetBtn.offsetWidth + 'px';
+                flash.style.height = resetBtn.offsetHeight + 'px';
+
+                resetBtn.parentNode.appendChild(flash);
+
+
                 setTimeout(() => {
-                    resetBtn.style.background = oldBg;
-                    resetBtn.style.removeProperty('color');
-                    resetBtn.style.removeProperty('border-color');
+                    resetBtn.style.removeProperty('transform');
+                    flash.style.opacity = '0';
+                }, 200);
+
+                setTimeout(() => {
+                    flash.remove();
                     resetBtn.textContent = oldText;
-                }, 500);
+                }, 800);
             }
+
         } catch (e) { console.error("Ошибка при сбросе параметров привала:", e); }
     }
 };
