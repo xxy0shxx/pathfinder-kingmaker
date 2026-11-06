@@ -71,82 +71,80 @@ const CampingManager = {
         return checked ? checked.value : 'success';
     },
 
-
-// CampingManager.js — Обновленная тактическая математика Подготовки лагеря
     recalculateCamp() {
         try {
             const terrainSelect = document.getElementById('campRegionTerrain');
             if (!terrainSelect) return;
 
-            // Изначально берем чистую СЛ региона из выпадающего списка
             const baseRegionDc = parseInt(terrainSelect.value, 10);
-
-            // Считываем радио-кнопки исходов бросков со стола
             const prepareRes = this.getSelectedRadio('res_prepare');
+
+            // Находим строки Маскировки и Охоты для управления их видимостью
+            const camoRow = document.querySelector('input[name="res_camouflage"]').closest('.camp-gm-row');
+            const huntRow = document.querySelector('input[name="res_hunt"]').closest('.camp-gm-row');
+
+            // ПРОВЕРКА КРИТИЧЕСКОГО ПРОВАЛА ПОДГОТОВКИ ЛАГЕРЯ
+            if (prepareRes === 'crit_failure') {
+                // Прячем блоки с экрана ГМа
+                if (camoRow) camoRow.style.display = 'none';
+                if (huntRow) huntRow.style.display = 'none';
+
+                // Сбрасываем их значения на "success" (Успех), чтобы старые маркеры КУ или КП не влияли на расчет
+                ['res_camouflage', 'res_hunt'].forEach(name => {
+                    const defaultRadio = document.querySelector(`input[name="${name}"][value="success"]`);
+                    if (defaultRadio) defaultRadio.checked = true;
+                });
+            } else {
+                // Если статус изменился — возвращаем блоки обратно на экран
+                if (camoRow) camoRow.style.display = 'flex';
+                if (huntRow) huntRow.style.display = 'flex';
+            }
+
+            // Считываем актуальные радио-кнопки бросков
             const camoRes = this.getSelectedRadio('res_camouflage');
             const huntRes = this.getSelectedRadio('res_hunt');
 
-            // 1. РАСЧЕТ ДИНАМИЧЕСКИХ МОДИФИКАТОРОВ СЛ ИЗ-ЗА ПОДГОТОВКИ ЛАГЕРЯ
-            // По вашему правилу: при Провале подготовки лагеря — СЛ для Маскировки и Охоты увеличивается на +2
+            // 1. Расчет модификаторов СЛ
             let prepareDcModifier = 0;
-            if (prepareRes === 'failure') {
-                prepareDcModifier = 2;
-            }
+            if (prepareRes === 'failure') prepareDcModifier = 2;
 
             const finalPrepareDc = baseRegionDc;
             const finalCamoDc = baseRegionDc + prepareDcModifier;
             const finalHuntDc = baseRegionDc + prepareDcModifier;
 
-            // Динамически обновляем текстовые индикаторы сложности в интерфейсе (СЛ: X)
-            const lblPrepare = document.getElementById('label_dc_prepare');
-            const lblCamo = document.getElementById('label_dc_camouflage');
-            const lblHunt = document.getElementById('label_dc_hunt');
+            ['label_dc_prepare', 'label_dc_camouflage', 'label_dc_hunt'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === 'label_dc_prepare') el.textContent = `(СЛ: ${finalPrepareDc})`;
+                    if (id === 'label_dc_camouflage') el.textContent = `(СЛ: ${finalCamoDc})`;
+                    if (id === 'label_dc_hunt') el.textContent = `(СЛ: ${finalHuntDc})`;
+                }
+            });
 
-            if (lblPrepare) lblPrepare.textContent = `(СЛ: ${finalPrepareDc})`;
-            if (lblCamo) lblCamo.textContent = `(СЛ: ${finalCamoDc})`;
-            if (lblHunt) lblHunt.textContent = `(СЛ: ${finalHuntDc})`;
-
-            // 2. РАСЧЕТ СЛ СЛУЧАЙНОЙ СЦЕНЫ
-            // База равна СЛ региона. Модифицируется броском Маскировки (Скрытности)
+            // 2. Расчет СЛ засады
             let finalEncounterDc = baseRegionDc;
             if (camoRes === 'crit_success') finalEncounterDc += 4;
             if (camoRes === 'failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
             if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 5);
-
-            // ВАШЕ НОВОЕ ПРАВИЛО: При КУ подготовки лагеря — СЛ случайной сцены дополнительно увеличивается на +2
-            if (prepareRes === 'crit_success') {
-                finalEncounterDc += 2;
-            }
+            if (prepareRes === 'crit_success') finalEncounterDc += 2;
             this.state.encounterDc = finalEncounterDc;
 
-            // 3. РАСЧЕТ ИТОГОВОГО ПУЛА ПРОВЕРОК ПРИВАЛА
+            // 3. Расчет пула проверок привала
             let calculatedChecks = this.state.baseChecks;
-
-            // ВАШИ НОВЫЕ ПРАВИЛА:
-            // При КУ — число проверок уменьшается на 1 (минус 1)
-            // При Успехе и Провале — ничего не меняется (0)
-            // При КП — число проверок увеличивается на 1 (плюс 1)
             if (prepareRes === 'crit_success') calculatedChecks -= 1;
             if (prepareRes === 'crit_failure') calculatedChecks += 1;
-
             this.state.totalChecks = Math.max(0, calculatedChecks + this.state.checkMod);
 
-            // 4. РАСЧЕТ ДОБЫТЫХ РЕСУРСОВ ПРИВАЛА
-            let normalYield = 0;
-            let specialYield = 0;
+            // 4. Расчет ресурсов
+            let normalYield = 0, specialYield = 0;
             if (huntRes === 'success') normalYield = 2;
             if (huntRes === 'crit_success') { normalYield = 4; specialYield = 1; }
-
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYield;
 
-            // Вывод логов для ГМа
             this.renderCalculatedUi(camoRes, prepareRes, huntRes);
-        } catch (e) {
-            console.error("Ошибка при перерасчете параметров лагеря:", e);
-        }
+        } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
-
 
     renderCalculatedUi(camoRes, prepareRes, huntRes) {
         document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
