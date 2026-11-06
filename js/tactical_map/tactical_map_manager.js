@@ -1113,7 +1113,7 @@ const TacticalMapManager = {
             else if (obs === 'stones') { obstacleName = '⛰️ Камни'; movementCostText = '<span style="color:#ff9f43;font-weight:bold;">Только прыжок</span>'; }
             else if (obs === 'ice') { obstacleName = '<span style="color:#00cec9;font-weight:bold;">❄ Скользкий лед</span>'; movementCostText = '<span style="color:#00cec9;">5 футов (Проверка d20 Акробатика)</span>'; }
             else if (obs === 'web') { obstacleName = '<span style="color:#9b59b6;font-weight:bold;">🕸 Паутина</span>'; movementCostText = '<span style="color:#9b59b6;">5 футов (Проверка d20 Спасбросок)</span>'; }
-            else if (obs === 'floor-planks') { obstacleName = '🪵 Пол: Деревянные доски'; movementCostText = '5 футов'; }
+            else if (obs === 'floor-planks') { obstacleName = '🟫 Пол: Деревянные доски'; movementCostText = '5 футов'; }
             else if (obs === 'floor-cobble') { obstacleName = '🧱 Пол: Брусчатка'; movementCostText = '5 футов'; }
             else if (obs === 'floor-earth') { obstacleName = '🌱 Пол: Утоптанная земля'; movementCostText = '5 футов'; }
         }
