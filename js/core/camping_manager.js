@@ -277,14 +277,23 @@ const CampingManager = {
             this.syncCountersUi();
             this.recalculateCamp();
 
-            // Геральдический эффект вспышки на кнопке сброса
-            const resetBtn = document.querySelector('.kingdom-save-wrapper .k-btn-reset-small');
+            const resetBtn = document.querySelector('.kingdom-save-wrapper .btn.del');
             if (resetBtn) {
-                resetBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
+                // Запоминаем старый стиль бэкграунда и текст
+                const oldBg = resetBtn.style.background;
                 const oldText = resetBtn.textContent;
+
+                // Переключаем
+                resetBtn.style.setProperty('background', 'linear-gradient(180deg, #b89445 0%, #6e4e14 100%)', 'important');
+                resetBtn.style.setProperty('color', '#fff', 'important');
+                resetBtn.style.setProperty('border-color', '#ffd875', 'important');
                 resetBtn.textContent = '🔄 Сброшено';
+
+                // Через полсекунды возвращаем
                 setTimeout(() => {
-                    resetBtn.style.removeProperty('filter');
+                    resetBtn.style.background = oldBg;
+                    resetBtn.style.removeProperty('color');
+                    resetBtn.style.removeProperty('border-color');
                     resetBtn.textContent = oldText;
                 }, 500);
             }
