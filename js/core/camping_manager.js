@@ -68,7 +68,7 @@ const CampingManager = {
 
     getSelectedRadio(name) {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
-        return checked ? checked.value : 'success';
+        return checked ? checked.value : null; // Заменили 'success' на null
     },
 
     recalculateCamp() {
@@ -79,32 +79,27 @@ const CampingManager = {
             const baseRegionDc = parseInt(terrainSelect.value, 10);
             const prepareRes = this.getSelectedRadio('res_prepare');
 
-            // Находим строки Маскировки и Охоты для управления их видимостью
             const camoRow = document.querySelector('input[name="res_camouflage"]').closest('.camp-gm-row');
             const huntRow = document.querySelector('input[name="res_hunt"]').closest('.camp-gm-row');
 
-            // ПРОВЕРКА КРИТИЧЕСКОГО ПРОВАЛА ПОДГОТОВКИ ЛАГЕРЯ
-            if (prepareRes === 'crit_failure') {
-                // Прячем блоки с экрана ГМа
+            const isCampHorrible = (prepareRes === 'crit_failure');
+
+            if (isCampHorrible) {
                 if (camoRow) camoRow.style.display = 'none';
                 if (huntRow) huntRow.style.display = 'none';
-
-                // Сбрасываем их значения на "success" (Успех), чтобы старые маркеры КУ или КП не влияли на расчет
                 ['res_camouflage', 'res_hunt'].forEach(name => {
-                    const defaultRadio = document.querySelector(`input[name="${name}"][value="success"]`);
-                    if (defaultRadio) defaultRadio.checked = true;
+                    const defRadio = document.querySelector(`input[name="${name}"][value="success"]`);
+                    if (defRadio) defRadio.checked = true;
                 });
             } else {
-                // Если статус изменился — возвращаем блоки обратно на экран
                 if (camoRow) camoRow.style.display = 'flex';
                 if (huntRow) huntRow.style.display = 'flex';
             }
 
-            // Считываем актуальные радио-кнопки бросков
             const camoRes = this.getSelectedRadio('res_camouflage');
             const huntRes = this.getSelectedRadio('res_hunt');
 
-            // 1. Расчет модификаторов СЛ
+            // 1. Расчет динамических СЛ лагеря
             let prepareDcModifier = 0;
             if (prepareRes === 'failure') prepareDcModifier = 2;
 
@@ -121,32 +116,49 @@ const CampingManager = {
                 }
             });
 
-            // 2. Расчет СЛ засады
+            // 2. РАСЧЕТ СЛ СЛУЧАЙНОЙ СЦЕНЫ (ОБНОВЛЕННЫЕ ПРАВИЛА МАСКИРОВКИ)
             let finalEncounterDc = baseRegionDc;
-            if (camoRes === 'crit_success') finalEncounterDc += 4;
-            if (camoRes === 'failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
-            if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 5);
+
+            if (!isCampHorrible) {
+                // Новые правила маскировки применяются только если она была возможна
+                if (camoRes === 'crit_success') finalEncounterDc += 2;
+                if (camoRes === 'success') finalEncounterDc += 1;
+                if (camoRes === 'failure') finalEncounterDc += 0;
+                if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
+            }
+
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
             this.state.encounterDc = finalEncounterDc;
 
-            // 3. Расчет пула проверок привала
+            // 3. РАСЧЕТ ИТОГОВОГО ПУЛА ПРОВЕРОК ПРИВАЛА
             let calculatedChecks = this.state.baseChecks;
+
+            // Модификатор проверок от Подготовки лагеря
             if (prepareRes === 'crit_success') calculatedChecks -= 1;
             if (prepareRes === 'crit_failure') calculatedChecks += 1;
+
+            // Новое правило Маскировки: при КУ число проверок дополнительно снижается на 1
+            if (!isCampHorrible && camoRes === 'crit_success') calculatedChecks -= 1;
+
             this.state.totalChecks = Math.max(0, calculatedChecks + this.state.checkMod);
 
             // 4. Расчет ресурсов
             let normalYield = 0, specialYield = 0;
-            if (huntRes === 'success') normalYield = 2;
-            if (huntRes === 'crit_success') { normalYield = 4; specialYield = 1; }
+            if (isCampHorrible) {
+                normalYield = 0; specialYield = 0;
+            } else {
+                if (huntRes === 'success') normalYield = 2;
+                if (huntRes === 'crit_success') { normalYield = 4; specialYield = 1; }
+            }
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYield;
 
-            this.renderCalculatedUi(camoRes, prepareRes, huntRes);
+            this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible);
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
-    renderCalculatedUi(camoRes, prepareRes, huntRes) {
+
+    renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible) {
         document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
         document.getElementById('calcTotalChecks').textContent = this.state.totalChecks;
         document.getElementById('campNormalIngredients').textContent = this.state.normalIngredients;
@@ -156,27 +168,29 @@ const CampingManager = {
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
-        // 1. Логи маскировки лагеря
-        if (camoRes === 'crit_success') this.addLogLine(effectsList, "Идеальная маскировка! СЛ случайной сцены поднят на +4.", "good");
-        if (camoRes === 'failure') this.addLogLine(effectsList, "Плохая маскировка. СЛ снижен на -2 (шанс засады выше).", "bad");
-        if (camoRes === 'crit_failure') this.addLogLine(effectsList, "Катастрофическая маскировка! СЛ снижен на -5. Лагерь полностью выдан.", "bad");
-
-        // 2. Логи подготовки лагеря (ОБНОВЛЕНО ПОД НОВЫЕ ПРАВИЛА)
+        // Логи подготовки лагеря
         if (prepareRes === 'crit_success') {
-            this.addLogLine(effectsList, "КУ подготовки: Число проверок снижено на -1, но СЛ ночной сцены защищен на +2.", "good");
-        }
-        if (prepareRes === 'failure') {
-            this.addLogLine(effectsList, "Провал подготовки: Из-за плохой стоянки СЛ Маскировки и Охоты выросли на +2!", "bad");
-        }
-        if (prepareRes === 'crit_failure') {
-            this.addLogLine(effectsList, "КП подготовки: Лагерь разбит хаотично. Число проверок привала увеличено на +1.", "bad");
+            this.addLogLine(effectsList, "КУ подготовки: Число проверок снижено на -1, СЛ ночной сцены защищен на +2.", "good");
+        } else if (prepareRes === 'failure') {
+            this.addLogLine(effectsList, "Провал подготовки: СЛ Маскировки и Охоты увеличены на +2 из-за плохой стоянки.", "bad");
+        } else if (isCampHorrible) {
+            this.addLogLine(effectsList, "Это ужасное место для лагеря! Маскировка и Охота невозможны. Число проверок увеличено на +1.", "bad");
         }
 
-        // 3. Логи охоты
-        if (huntRes === 'crit_success') this.addLogLine(effectsList, "Блестящая охота! Найдено кулинарное сырье (+1 особый ингредиент).", "good");
-        if (huntRes === 'failure' || huntRes === 'crit_failure') this.addLogLine(effectsList, "Охотники вернулись ни с чем.", "bad");
+        // Логи маскировки лагеря (выводятся только если она была возможна)
+        if (!isCampHorrible) {
+            if (camoRes === 'crit_success') this.addLogLine(effectsList, "КУ маскировки: Число проверок снижено на -1, СЛ сцены увеличен на +2.", "good");
+            if (camoRes === 'success') this.addLogLine(effectsList, "Успех маскировки: СЛ случайной сцены увеличен на +1.", "good");
+            if (camoRes === 'failure') this.addLogLine(effectsList, "Провал маскировки: Никаких эффектов на скрытность лагеря.", "generic");
+            if (camoRes === 'crit_failure') this.addLogLine(effectsList, "КП маскировки: СЛ случайной сцены уменьшен на -2. Критический успех проверки случайной сцены: 19 или 20.", "bad");
+        }
+
+        // Логи охоты
+        if (!isCampHorrible) {
+            if (huntRes === 'crit_success') this.addLogLine(effectsList, "Блестящая охота! Найдено ценное кулинарное сырье (+1 особый ингредиент).", "good");
+            if (huntRes === 'failure' || huntRes === 'crit_failure') this.addLogLine(effectsList, "Охотники вернулись ни с чем.", "bad");
+        }
     },
-
 
     addLogLine(container, text, type) {
         const line = document.createElement('div');
@@ -207,27 +221,28 @@ const CampingManager = {
         } catch (error) { console.error("Критическая ошибка при сохранении привала:", error); }
     },
 
+
     resetToDefault() {
         try {
-            // 1. Возвращаем дефолтные значения в стейт менеджера
+            const camoRow = document.querySelector('input[name="res_camouflage"]').closest('.camp-gm-row');
+            const huntRow = document.querySelector('input[name="res_hunt"]').closest('.camp-gm-row');
+            if (camoRow) camoRow.style.display = 'flex';
+            if (huntRow) huntRow.style.display = 'flex';
+
             this.state.baseChecks = 2;
             this.state.checkMod = 0;
 
-            // 2. Сбрасываем верхние селекторы в интерфейсе
             const terrainSelect = document.getElementById('campRegionTerrain');
-            if (terrainSelect) terrainSelect.value = "14"; // Лес / Болото по умолчанию
+            if (terrainSelect) terrainSelect.value = "14";
 
-            // 3. Сбрасываем радио-кнопки бросков обратно на значение "success" (Успех)
-            ['res_prepare', 'res_camouflage', 'res_hunt'].forEach(name => {
-                const radioToCheck = document.querySelector(`input[name="${name}"][value="success"]`);
-                if (radioToCheck) radioToCheck.checked = true;
+            // ОБНОВЛЕНО: Вместо включения "success" мы полностью снимаем выделение со всех радио-кнопок
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
             });
 
-            // 4. Синхронизируем счетчики на панели и перезапускаем математику
             this.syncCountersUi();
             this.recalculateCamp();
 
-            // Эффект кратковременной вспышки на кнопке сброса для отклика интерфейса
             const resetBtn = document.querySelector('.camp-action-buttons .k-btn-reset-small');
             if (resetBtn) {
                 resetBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
@@ -238,10 +253,10 @@ const CampingManager = {
                     resetBtn.textContent = oldText;
                 }, 500);
             }
-        } catch (e) {
-            console.error("Ошибка при сбросе параметров привала:", e);
-        }
+        } catch (e) { console.error("Ошибка при сбросе параметров привала:", e); }
     },
+
+
 
 };
 
