@@ -131,7 +131,7 @@ const QuestManager = {
             });
         }
 
-        // 2. Единый перехватчик для кнопки Привала ГМа (Контроль переходит сюда!)
+        // 2. Единый перехватчик для кнопки Привала
         if (btnToggleCamping && questLog) {
             btnToggleCamping.addEventListener('click', (e) => {
                 e.preventDefault(); e.stopPropagation();
@@ -149,21 +149,26 @@ const QuestManager = {
                     return;
                 }
 
-                // Жестко блокируем фильтр квестов
+                // Жестко блокируем фильтр квестов на значении привала
                 this.currentFilter = 'camping';
 
-                // Сбрасываем подсветку с кнопки квестов
+                // Сбрасываем подсветку с кнопки квестов на правой панели
                 if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
 
-                // Перерисовываем контейнеры
+                // === НОВЫЙ КОД: Переключаем визуальную подсветку табов ЖУРНАЛА ===
+                document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
+                const tabCamping = document.getElementById('tabCamping');
+                if (tabCamping) {
+                    tabCamping.classList.add('active'); // Намертво включаем подсветку вкладки "Привал ГМа"
+                }
+
                 this.render();
 
-                // Принудительно вызываем математический перерасчет калькулятора ГМа
                 if (window.CampingManager) {
                     window.CampingManager.recalculateCamp();
                 }
 
-                // Включаем зеленую подсветку кнопке привала
+                // Включаем зеленую подсветку быстрой кнопке привала на панели 3х4
                 btnToggleCamping.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
                 btnToggleCamping.style.setProperty('border-color', '#dfbc6f', 'important');
                 btnToggleCamping.style.setProperty('color', '#dfbc6f', 'important');
