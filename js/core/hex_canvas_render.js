@@ -54,8 +54,6 @@ const HexCanvasRender = {
         this.isAnimating = true;
 
         const loop = () => {
-            DebugManager.profileFps();
-
             this.render();
 
             const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
