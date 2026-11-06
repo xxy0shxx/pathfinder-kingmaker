@@ -103,7 +103,7 @@ const CampingManager = {
 
             // Расчет ингредиентов
             let normalYield = 0, specialYield = 0;
-            if (huntRes === 'success') normalYield = 2;
+            if (huntRes === 'success') normalYield = 0;
             if (huntRes === 'crit_success') { normalYield = 4; specialYield = 1; }
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYield;
@@ -161,7 +161,44 @@ const CampingManager = {
                 }, 800);
             }
         } catch (error) { console.error("Критическая ошибка при сохранении привала:", error); }
-    }
+    },
+
+    resetToDefault() {
+        try {
+            // 1. Возвращаем дефолтные значения в стейт менеджера
+            this.state.baseChecks = 2;
+            this.state.checkMod = 0;
+
+            // 2. Сбрасываем верхние селекторы в интерфейсе
+            const terrainSelect = document.getElementById('campRegionTerrain');
+            if (terrainSelect) terrainSelect.value = "14"; // Лес / Болото по умолчанию
+
+            // 3. Сбрасываем радио-кнопки бросков обратно на значение "success" (Успех)
+            ['res_prepare', 'res_camouflage', 'res_hunt'].forEach(name => {
+                const radioToCheck = document.querySelector(`input[name="${name}"][value="success"]`);
+                if (radioToCheck) radioToCheck.checked = true;
+            });
+
+            // 4. Синхронизируем счетчики на панели и перезапускаем математику
+            this.syncCountersUi();
+            this.recalculateCamp();
+
+            // Эффект кратковременной вспышки на кнопке сброса для отклика интерфейса
+            const resetBtn = document.querySelector('.camp-action-buttons .k-btn-reset-small');
+            if (resetBtn) {
+                resetBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
+                const oldText = resetBtn.textContent;
+                resetBtn.textContent = '🔄 Сброшено';
+                setTimeout(() => {
+                    resetBtn.style.removeProperty('filter');
+                    resetBtn.textContent = oldText;
+                }, 500);
+            }
+        } catch (e) {
+            console.error("Ошибка при сбросе параметров привала:", e);
+        }
+    },
+
 };
 
 export default CampingManager;

@@ -2397,3 +2397,9 @@ body {
 .camp-radio-group label.suc { color: #ebd291; }
 .camp-radio-group label.fail { color: #ff7675; }
 .camp-radio-group label.crit-fail { color: #e74c3c; }
+
+.camp-action-buttons {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}

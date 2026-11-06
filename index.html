@@ -274,7 +274,7 @@
                         </div>
                         <div class="camp-radio-group">
                             <label class="crit-suc"><input type="radio" name="res_prepare" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
-                            <label class="suc"><input type="radio" name="res_prepare" value="success" value="success" checked onchange="CampingManager.recalculateCamp()"> У</label>
+                            <label class="suc"><input type="radio" name="res_prepare" value="success" value="success" onchange="CampingManager.recalculateCamp()"> У</label>
                             <label class="fail"><input type="radio" name="res_prepare" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
                             <label class="crit-fail"><input type="radio" name="res_prepare" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
                         </div>
@@ -288,7 +288,7 @@
                         </div>
                         <div class="camp-radio-group">
                             <label class="crit-suc"><input type="radio" name="res_camouflage" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
-                            <label class="suc"><input type="radio" name="res_camouflage" value="success" value="success" checked onchange="CampingManager.recalculateCamp()"> У</label>
+                            <label class="suc"><input type="radio" name="res_camouflage" value="success" value="success" onchange="CampingManager.recalculateCamp()"> У</label>
                             <label class="fail"><input type="radio" name="res_camouflage" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
                             <label class="crit-fail"><input type="radio" name="res_camouflage" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
                         </div>
@@ -302,7 +302,7 @@
                         </div>
                         <div class="camp-radio-group">
                             <label class="crit-suc"><input type="radio" name="res_hunt" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
-                            <label class="suc"><input type="radio" name="res_hunt" value="success" value="success" checked onchange="CampingManager.recalculateCamp()"> У</label>
+                            <label class="suc"><input type="radio" name="res_hunt" value="success" value="success" onchange="CampingManager.recalculateCamp()"> У</label>
                             <label class="fail"><input type="radio" name="res_hunt" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
                             <label class="crit-fail"><input type="radio" name="res_hunt" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
                         </div>
@@ -325,7 +325,8 @@
                     <div class="camp-log-title">📜 Активные эффекты привала:</div>
                     <div id="campEffectsList" class="camp-effects-list"></div>
                 </div>
-                <div class="kingdom-save-wrapper">
+                <div class="kingdom-save-wrapper camp-action-buttons">
+                    <button type="button" class="btn del k-btn-reset-small" onclick="CampingManager.resetToDefault()">🔄 Сбросить</button>
                     <button type="button" class="btn ok k-btn-save-small" onclick="CampingManager.saveFromUi()">⚜ Применить итоги</button>
                 </div>
             </div>
