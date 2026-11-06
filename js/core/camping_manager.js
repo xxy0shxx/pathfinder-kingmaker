@@ -266,6 +266,8 @@ const CampingManager = {
 
 
 
+
+
     triggerDiceAndResultModal() {
         const overlay = document.getElementById('campDiceOverlay');
         const resultModal = document.getElementById('campResultModal');
@@ -277,21 +279,18 @@ const CampingManager = {
 
         overlay.classList.add('open');
 
-        // Инициализация честного 3D Рендерера на Canvas
         const ctx = canvas.getContext('2d');
-        const t = (1.0 + Math.sqrt(5.0)) / 2.0; // Золотое сечение
+        const t = (1.0 + Math.sqrt(5.0)) / 2.0;
 
-        // Вершины икосаэдра в пространстве (X, Y, Z)
         let vertices = [
             [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
             [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
             [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
         ].map(v => {
             const length = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-            return [v[0]/length * 120, v[1]/length * 120, v[2]/length * 120]; // Масштабируем куб
+            return [v[0]/length * 120, v[1]/length * 120, v[2]/length * 120];
         });
 
-        // Индексы вершин для всех 20 граней d20
         const faces = [
             [0, 11, 5, "⚜"], [0, 5, 1, "2"], [0, 1, 7, "3"], [0, 7, 10, "4"], [0, 10, 11, "5"],
             [1, 5, 9, "6"], [5, 11, 4, "7"], [11, 10, 2, "8"], [10, 7, 6, "9"], [7, 1, 8, "10"],
@@ -299,97 +298,105 @@ const CampingManager = {
             [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
         ];
 
-        let angleX = 0.05, angleY = 0.07, angleZ = 0.03;
+        let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
+        const targetX = 0.53, targetY = -0.62, targetZ = 0.55;
+
         let scale = 0.1;
         let startTime = performance.now();
         let animationFrameId;
+
+        let snapX = null, snapY = null, snapZ = null;
 
         const draw3D = () => {
             const now = performance.now();
             const elapsed = now - startTime;
 
-            if (elapsed >= 3500) {
+            if (elapsed >= 5000) {
                 cancelAnimationFrame(animationFrameId);
                 overlay.classList.remove('open');
                 resultModal.classList.add('open');
                 return;
             }
 
-            // Кинематика: бешеное вращение в начале с плавным замедлением
-            const speedFactor = Math.max(0, (3500 - elapsed) / 3500);
-            angleX += 0.08 * speedFactor;
-            angleY += 0.12 * speedFactor;
-            angleZ += 0.04 * speedFactor;
+            let curX, curY, curZ;
 
-            // Масштабирование: вылет куба из центра
-            if (elapsed < 600) scale = 0.1 + 0.9 * (elapsed / 600);
-            else if (elapsed > 2800) scale = 1.0 - 0.7 * ((elapsed - 2800) / 700);
+            if (elapsed < 2500) {
+                angleX += 0.06;
+                angleY += 0.09;
+                angleZ += 0.03;
+                curX = angleX; curY = angleY; curZ = angleZ;
+            }
+            else if (elapsed < 3000) {
+                if (snapX === null) {
+                    snapX = angleX % (Math.PI * 2);
+                    snapY = angleY % (Math.PI * 2);
+                    snapZ = angleZ % (Math.PI * 2);
+                }
+                const progress = (elapsed - 2500) / 500;
+                const ease = progress * progress * (3 - 2 * progress);
+
+                curX = snapX + (targetX - snapX) * ease;
+                curY = snapY + (targetY - snapY) * ease;
+                curZ = snapZ + (targetZ - snapZ) * ease;
+            }
+            else {
+                curX = targetX; curY = targetY; curZ = targetZ;
+            }
+
+            if (elapsed < 400) scale = 0.1 + 0.9 * (elapsed / 400);
+            else if (elapsed > 4600) scale = 1.0 - 0.8 * ((elapsed - 4600) / 400);
             else scale = 1.0;
 
             ctx.clearRect(0, 0, 400, 400);
 
-            // Вектор направленного света (светит из верхнего левого угла на игрока)
-            const lightDir = [0.5, 0.5, 1];
+            const lightDir = [0.3, 0.3, 1];
             const lLen = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
             const light = [lightDir[0]/lLen, lightDir[1]/lLen, lightDir[2]/lLen];
 
-            // Просчитываем вращение вершин матрицы
             const rotatedVertices = vertices.map(v => {
                 let x = v[0], y = v[1], z = v[2];
-                // Вращение по X
-                let cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+                let cosX = Math.cos(curX), sinX = Math.sin(curX);
                 let y1 = y * cosX - z * sinX, z1 = y * sinX + z * cosX;
-                // Вращение по Y
-                let cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+                let cosY = Math.cos(curY), sinY = Math.sin(curY);
                 let x2 = x * cosY + z1 * sinY, z2 = -x * sinY + z1 * cosY;
-                // Вращение по Z
-                let cosZ = Math.cos(angleZ), sinZ = Math.sin(angleZ);
+                let cosZ = Math.cos(curZ), sinZ = Math.sin(curZ);
                 let x3 = x2 * cosZ - y1 * sinZ, y3 = x2 * sinZ + y1 * cosZ;
 
-                return [x3 * scale + 200, y3 * scale + 200, z2]; // Центрируем на холсте
+                return [x3 * scale + 200, y3 * scale + 200, z2];
             });
 
-            // Сортировка граней по глубине Z-index (Painter's Algorithm), чтобы дальние грани не перекрывали ближние
             const renderOrder = faces.map((f, idx) => {
                 const zAvg = (rotatedVertices[f[0]][2] + rotatedVertices[f[1]][2] + rotatedVertices[f[2]][2]) / 3;
                 return { face: f, z: zAvg };
             }).sort((a, b) => a.z - b.z);
 
-            // Отрисовка геометрии
             renderOrder.forEach(item => {
                 const f = item.face;
                 const p0 = rotatedVertices[f[0]], p1 = rotatedVertices[f[1]], p2 = rotatedVertices[f[2]];
 
-                // Вычисление нормали грани для честного Backface Culling и затенения
                 const ux = p1[0] - p0[0], uy = p1[1] - p0[1];
                 const vx = p2[0] - p0[0], vy = p2[1] - p0[1];
-                const nx = uy * item.face, ny = item.face, nz = ux * vy - uy * vx; // Z-компонента нормали
+                const nz = ux * vy - uy * vx;
 
-                if (nz > 0) { // Честный отсекатель задних граней
-                    // Векторное произведение для расчета падения света
+                if (nz > 0) {
                     const ax = vertices[f[1]][0] - vertices[f[0]][0], ay = vertices[f[1]][1] - vertices[f[0]][1], az = vertices[f[1]][2] - vertices[f[0]][2];
                     const bx = vertices[f[2]][0] - vertices[f[0]][0], by = vertices[f[2]][1] - vertices[f[0]][1], bz = vertices[f[2]][2] - vertices[f[0]][2];
                     let crossX = ay*bz - az*by, crossY = az*bx - ax*bz, crossZ = ax*by - ay*bx;
                     let cLen = Math.sqrt(crossX*crossX + crossY*crossY + crossZ*crossZ);
 
-                    // Нормализуем нормаль
                     crossX /= cLen; crossY /= cLen; crossZ /= cLen;
 
-                    // Пересчитываем вращение нормали под текущий угол куба
-                    let ny1 = crossY*Math.cos(angleX) - crossZ*Math.sin(angleX), nz1 = crossY*Math.sin(angleX) + crossZ*Math.cos(angleX);
-                    let nx2 = crossX*Math.cos(angleY) + nz1*Math.sin(angleY);
-                    let nx3 = nx2*Math.cos(angleZ) - ny1*Math.sin(angleZ), ny3 = nx2*Math.sin(angleZ) + ny1*Math.cos(angleZ);
+                    let ny1 = crossY*Math.cos(curX) - crossZ*Math.sin(curX), nz1 = crossY*Math.sin(curX) + crossZ*Math.cos(curX);
+                    let nx2 = crossX*Math.cos(curY) + nz1*Math.sin(curY);
+                    let nx3 = nx2*Math.cos(curZ) - ny1*Math.sin(curZ), ny3 = nx2*Math.sin(curZ) + ny1*Math.cos(curZ);
 
-                    // Косинус угла между светом и гранью (Честное затенение по Ламберту)
                     const dot = nx3*light[0] + ny3*light[1] + nz1*light[2];
                     const brightness = Math.max(0.2, dot);
 
-                    // Считаем динамические цвета граней
                     const r = Math.floor(23 + 115 * brightness);
                     const g = Math.floor(45 + 150 * brightness);
-                    const b = Math.floor(28 + 80 * brightness);
+                    const b = Math.floor(28 + 80 * brightness); // ФИКС: Исправили опечатку '=' на '+'
 
-                    // Рисуем треугольник
                     ctx.beginPath();
                     ctx.moveTo(p0[0], p0[1]);
                     ctx.lineTo(p1[0], p1[1]);
@@ -401,7 +408,6 @@ const CampingManager = {
                     ctx.lineWidth = 1;
                     ctx.stroke();
 
-                    // Рисуем цифру строго в 3D-центре тяжести грани
                     ctx.save();
                     ctx.fillStyle = "#ffd875";
                     ctx.font = `bold ${Math.floor(22 * scale)}px 'Times New Roman', serif`;
@@ -417,7 +423,6 @@ const CampingManager = {
             animationFrameId = requestAnimationFrame(draw3D);
         };
 
-        // Запуск логов модалки результатов
         modalBody.innerHTML = '';
         const summaryStats = document.createElement('div');
         summaryStats.style.cssText = 'background: rgba(0,0,0,0.4); padding: 12px; border: 1px solid #543e0d; border-radius: 4px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; color: #ffd875; font-weight: bold;';
@@ -435,7 +440,6 @@ const CampingManager = {
             modalBody.appendChild(clone);
         });
 
-        // Запускаем рендер цикла
         draw3D();
     },
 
