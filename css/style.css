@@ -1821,8 +1821,6 @@ body {
     border: 1.5px solid #dfbc6f;
     transform: rotate(45deg);
     flex-shrink: 0;
-
-    /* Полная блокировка любых теней и фильтров размытия */
     box-shadow: none !important;
     filter: none !important;
 }
@@ -1832,8 +1830,16 @@ body {
     position: absolute !important;
     inset: 2px !important;
     background: linear-gradient(135deg, #184024, #0b2112) !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
 
-    /* Гарантируем отсутствие внутреннего объема */
+.frame-style-ornament-heavy .diamond-tooth::after {
+    content: '' !important;
+    position: absolute !important;
+    inset: 5px !important;
+    background: linear-gradient(135deg, #ffd875, #b89445) !important;
+    border: 0.5px solid #3a2a0a !important;
     box-shadow: none !important;
     filter: none !important;
 }
@@ -1847,9 +1853,8 @@ body {
 .center-bastion {
     position: absolute;
     background: linear-gradient(135deg, #a68032, #543e0d);
-/*    border: 3px solid #dfbc6f;*/
     box-shadow: none !important;
-    z-index: 10006 !important; /* Выше линеек ромбов и свечения */
+    z-index: 10006 !important;
     pointer-events: none;
 }
 .center-bastion::before {
