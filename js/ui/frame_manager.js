@@ -319,7 +319,21 @@ const FrameManager = {
                 bastionDiamond.className = 'bastion-diamond';
                 bastion.appendChild(bastionDiamond);
 
+                const bastionSubDiamond = document.createElement('div');
+                bastionSubDiamond.className = 'bastion-sub-diamond';
+                bastion.appendChild(bastionSubDiamond);
+
                 fragment.appendChild(bastion);
+
+                // Находим угловые элементы и добавляем в них вложенный мини-ромб
+                this.frameElement.querySelectorAll('.frame-corner').forEach(corner => {
+                    // Если его еще нет, создаем
+                    if (!corner.querySelector('.corner-sub-diamond')) {
+                        const subDiamond = document.createElement('div');
+                        subDiamond.className = 'corner-sub-diamond';
+                        corner.appendChild(subDiamond);
+                    }
+                });
             }
         });
 

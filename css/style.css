@@ -2132,3 +2132,40 @@ body {
     background-color: rgba(39, 174, 96, 0.15) !important; /* Прозрачность 15% */
     box-shadow: inset 0 0 8px rgba(46, 204, 113, 0.2) !important;
 }
+
+/* ============================================================================
+   ДОПОЛНИТЕЛЬНЫЕ ВЛОЖЕННЫЕ РОМБЫ ДЛЯ УГЛОВ И БАСТИОНОВ (HEAVY FRAME)
+   ============================================================================ */
+
+/* 1. Маленький ромб внутрь гигантских угловых ромбов */
+.frame-style-ornament-heavy .frame-corner .corner-sub-diamond {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    z-index: 10009 !important;
+    background: linear-gradient(135deg, #ffd875, #b89445) !important;
+    border: 1px solid #543e0d !important;
+    box-shadow: none !important;
+}
+
+/* 2. Маленький ромб внутрь центральных бастионов */
+.frame-style-ornament-heavy .center-bastion .bastion-sub-diamond {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10008 !important;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%) !important;
+    background: linear-gradient(135deg, #ffd875, #b89445) !important;
+    box-shadow: none !important;
+}
+
+/* Полностью очищаем псевдоэлемент у бастионного мини-ромба, так как подложка больше не нужна */
+.frame-style-ornament-heavy .center-bastion .bastion-sub-diamond::before {
+    display: none !important;
+}
