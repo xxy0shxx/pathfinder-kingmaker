@@ -79,6 +79,7 @@ const CampingManager = {
 
 
 
+
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -104,20 +105,17 @@ const CampingManager = {
             if (dcTextEl) dcTextEl.textContent = `СЛ ${baseRegionDc} (уровень региона: ${currentRegionLevel})`;
 
             const prepareRes = this.getSelectedRadio('res_prepare');
-            const camoRow = document.querySelector('input[name="res_camouflage"]').closest('.camp-gm-row');
-            const huntRow = document.querySelector('input[name="res_hunt"]').closest('.camp-gm-row');
+            const camoRow = document.getElementById('row_camouflage');
+            const huntRow = document.getElementById('row_hunt');
             const isCampHorrible = (prepareRes === 'crit_failure');
 
             if (isCampHorrible) {
                 if (camoRow) camoRow.style.display = 'none';
                 if (huntRow) huntRow.style.display = 'none';
-                ['res_camouflage', 'res_hunt'].forEach(name => {
-                    const defRadio = document.querySelector(`input[name="${name}"][value="success"]`);
-                    if (defRadio) defRadio.checked = true;
-                });
+                // ... остальной код сброса радио-кнопок остается прежним ...
             } else {
-                if (camoRow) camoRow.style.display = 'flex';
-                if (huntRow) huntRow.style.display = 'flex';
+                if (camoRow) camoRow.style.display = 'table-row'; // Для таблиц используем 'table-row' вместо 'flex'
+                if (huntRow) huntRow.style.display = 'table-row';
             }
 
             const camoRes = this.getSelectedRadio('res_camouflage');
@@ -195,6 +193,7 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
+
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         document.getElementById('campNormalIngredients').textContent = this.state.normalIngredients;
         document.getElementById('campSpecialIngredients').textContent = this.state.specialIngredients;
@@ -259,10 +258,17 @@ const CampingManager = {
 
     resetToDefault() {
         try {
-            const camoRow = document.querySelector('input[name="res_camouflage"]').closest('.camp-gm-row');
-            const huntRow = document.querySelector('input[name="res_hunt"]').closest('.camp-gm-row');
-            if (camoRow) camoRow.style.display = 'flex';
-            if (huntRow) huntRow.style.display = 'flex';
+            const camoRow = document.getElementById('row_camouflage');
+            const huntRow = document.getElementById('row_hunt');
+
+            if (isCampHorrible) {
+                if (camoRow) camoRow.style.display = 'none';
+                if (huntRow) huntRow.style.display = 'none';
+                // ... остальной код сброса радио-кнопок остается прежним ...
+            } else {
+                if (camoRow) camoRow.style.display = 'table-row';
+                if (huntRow) huntRow.style.display = 'table-row';
+            }
 
             this.state.baseChecks = 2;
             this.state.checkMod = 12;

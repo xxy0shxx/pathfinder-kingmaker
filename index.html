@@ -225,20 +225,19 @@
             </div>
         </div>
 
-
-
-        <!-- index.html — Чистая и просторная верстка лагеря ГМа -->
+        <!-- index.html — Идеальное двухколоночное разделение планшета привала -->
         <div id="campingTabletContainer" class="camping-tablet-content" style="display: none;">
-            <!-- Левая колонка (Увеличена) -->
+
+            <!-- ЛЕВАЯ КОЛОНКА: Ввод Ведущего (Компактная, слева) -->
             <div class="camping-left-col">
                 <div class="camping-section-title">🔮 Панель Ведущего: Итоги Привала</div>
 
-                <!-- Информационная плашка гекса (Теперь сверху, на всю ширину) -->
+                <!-- Информационная плашка гекса отряда -->
                 <div class="camp-current-hex-banner font-tinos">
                     📍 <span id="campRegionDcText">СЛ -- (уровень региона: --)</span>
                 </div>
 
-                <!-- Панель управления счетчиками (Теперь только два чистых контрола) -->
+                <!-- Утилитарные счетчики перенесены внутрь левой колонки -->
                 <div class="camping-region-bar">
                     <div class="camp-param-box">
                         <span class="camp-param-label">⏱ Базовые проверки:</span>
@@ -259,60 +258,65 @@
                     </div>
                 </div>
 
-                <!-- Сетка строк ГМа на Радио-кнопках -->
+                <!-- Невидимая таблица проверок лагеря -->
                 <div class="camp-gm-inputs-grid">
-                    <div class="camp-gm-row font-tinos">
-                        <div class="camp-row-info">
-                            <span class="act-name">⛺ Подготовка лагеря</span>
-                            <span class="skill-name">Выживание <span id="label_dc_prepare">(СЛ: 14)</span></span>
-                        </div>
-                        <div class="camp-radio-group">
-                            <label class="crit-suc"><input type="radio" name="res_prepare" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
-                            <label class="suc"><input type="radio" name="res_prepare" value="success" onchange="CampingManager.recalculateCamp()"> У</label>
-                            <label class="fail"><input type="radio" name="res_prepare" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
-                            <label class="crit-fail"><input type="radio" name="res_prepare" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
-                        </div>
-                    </div>
-
-                    <div class="camp-gm-row font-tinos">
-                        <div class="camp-row-info">
-                            <span class="act-name">🌿 Маскировка лагеря</span>
-                            <span class="skill-name">Скрытность <span id="label_dc_camouflage">(СЛ: 14)</span></span>
-                        </div>
-                        <div class="camp-radio-group">
-                            <label class="crit-suc"><input type="radio" name="res_camouflage" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
-                            <label class="suc"><input type="radio" name="res_camouflage" value="success" onchange="CampingManager.recalculateCamp()"> У</label>
-                            <label class="fail"><input type="radio" name="res_camouflage" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
-                            <label class="crit-fail"><input type="radio" name="res_camouflage" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
-                        </div>
-                    </div>
-
-                    <div class="camp-gm-row font-tinos">
-                        <div class="camp-row-info">
-                            <span class="act-name">🏹 Охота и собирательство</span>
-                            <span class="skill-name">Выживание <span id="label_dc_hunt">(СЛ: 14)</span></span>
-                        </div>
-                        <div class="camp-radio-group">
-                            <label class="crit-suc"><input type="radio" name="res_hunt" value="crit_success" onchange="CampingManager.recalculateCamp()"> КУ</label>
-                            <label class="suc"><input type="radio" name="res_hunt" value="success" onchange="CampingManager.recalculateCamp()"> У</label>
-                            <label class="fail"><input type="radio" name="res_hunt" value="failure" onchange="CampingManager.recalculateCamp()"> П</label>
-                            <label class="crit-fail"><input type="radio" name="res_hunt" value="crit_failure" onchange="CampingManager.recalculateCamp()"> КП</label>
-                        </div>
-                    </div>
+                    <table class="camp-invisible-table font-tinos">
+                        <thead>
+                        <tr>
+                            <th class="col-act-name">Действие</th>
+                            <th class="col-radio crit-suc">КУ</th>
+                            <th class="col-radio suc">У</th>
+                            <th class="col-radio fail">П</th>
+                            <th class="col-radio crit-fail">КП</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr id="row_prepare">
+                            <td class="camp-act-cell">
+                                <span class="act-name">⛺ Подготовка лагеря</span>
+                                <div id="label_dc_prepare" class="skill-name-large">Выживание (СЛ: 15)</div>
+                            </td>
+                            <td><input type="radio" name="res_prepare" value="crit_success" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_prepare" value="success" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_prepare" value="failure" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_prepare" value="crit_failure" onchange="CampingManager.recalculateCamp()"></td>
+                        </tr>
+                        <tr id="row_camouflage">
+                            <td class="camp-act-cell">
+                                <span class="act-name">🌿 Маскировка лагеря</span>
+                                <div id="label_dc_camouflage" class="skill-name-large">Скрытность (СЛ: 15)</div>
+                            </td>
+                            <td><input type="radio" name="res_camouflage" value="crit_success" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_camouflage" value="success" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_camouflage" value="failure" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_camouflage" value="crit_failure" onchange="CampingManager.recalculateCamp()"></td>
+                        </tr>
+                        <tr id="row_hunt">
+                            <td class="camp-act-cell">
+                                <span class="act-name">🏹 Охота и собирательство</span>
+                                <div id="label_dc_hunt" class="skill-name-large">Выживание (СЛ: 15)</div>
+                            </td>
+                            <td><input type="radio" name="res_hunt" value="crit_success" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_hunt" value="success" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_hunt" value="failure" onchange="CampingManager.recalculateCamp()"></td>
+                            <td><input type="radio" name="res_hunt" value="crit_failure" onchange="CampingManager.recalculateCamp()"></td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Правая колонка (Сужена для баланса) -->
+            <!-- ПРАВАЯ КОЛОНКА: Вычисления и Логи (Вместительная, справа) -->
             <div class="camping-right-col">
                 <div class="camping-section-title">📊 Вычисляемые параметры</div>
 
                 <div class="camp-calculated-counters">
                     <div class="calc-counter-item status-danger">
-                        <span class="calc-label">🎲 СЛ случайной сцены:</span>
+                        <span class="calc-label">🎲 Финальная СЛ сцены:</span>
                         <span id="calcEncounterDc" class="calc-value-accent">12</span>
                     </div>
                     <div class="calc-counter-item">
-                        <span class="calc-label">⏱ Число проверок:</span>
+                        <span class="calc-label">⏱ Итоговое число проверок:</span>
                         <span id="calcTotalChecks" class="calc-value-accent checks">2</span>
                     </div>
                 </div>
@@ -333,12 +337,16 @@
                     <div id="campEffectsList" class="camp-effects-list"></div>
                 </div>
 
-                <div class="kingdom-save-wrapper" style="width: 100%; display: flex; gap: 15px; margin-top: auto; padding-top: 25px;">
+                <div class="kingdom-save-wrapper" style="width: 100%; display: flex; gap: 15px; margin-top: auto;">
                     <button type="button" class="btn del k-btn-reset-small" onclick="CampingManager.resetToDefault()">🔄 Сбросить</button>
                     <button type="button" class="btn ok k-btn-save-small" onclick="CampingManager.saveFromUi()">⚜ Применить</button>
                 </div>
             </div>
+
         </div>
+
+
+
 
 
 
