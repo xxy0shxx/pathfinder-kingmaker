@@ -1981,35 +1981,98 @@ body {
     box-shadow: inset 0 0 0 3px #ffd875, 0 0 12px #ffd875 !important;
 }
 
-/* 🪵 Деревянные доски */
+/* ============================================================================
+   МОДИФИКАЦИЯ ТАКТИЧЕСКОЙ СЕТКИ: ЖЕСТКОЕ СОХРАНЕНИЕ ПОЛА ПОД ОБЪЕКТАМИ
+   ============================================================================ */
+
+/* 🪵 Деревянные доски (Базовое состояние) */
 .tactical-square.floor-planks {
-    background-color: #5c4033 !important; /* Насыщенное дерево */
+    background-color: #4a3329 !important;
     background-image:
-            linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px),
-            linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px) !important;
+            linear-gradient(90deg, rgba(0,0,0,0.4) 1px, transparent 1px),
+            linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;
     background-size: 10px 100%, 100% 20px !important;
-    box-shadow: inset 0 0 6px rgba(0,0,0,0.5) !important;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.6) !important;
 }
 
-/* 🧱 Брусчатка */
+/* 🧱 Брусчатка (Базовое состояние) */
 .tactical-square.floor-cobble {
-    background-color: #4b4b4b !important; /* Камень */
+    background-color: #383838 !important;
     background-image:
-            linear-gradient(45deg, rgba(0,0,0,0.2) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.2) 75%, rgba(0,0,0,0.2)),
-            linear-gradient(45deg, rgba(0,0,0,0.2) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.2) 75%, rgba(0,0,0,0.2)) !important;
+            linear-gradient(45deg, rgba(0,0,0,0.3) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0.3)),
+            linear-gradient(45deg, rgba(0,0,0,0.3) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0.3)) !important;
     background-size: 14px 14px !important;
     background-position: 0 0, 7px 7px !important;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.6) !important;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.7) !important;
 }
 
-/* 🌱 Утоптанная земля */
+/* 🌱 Утоптанная земля (Базовое состояние) */
 .tactical-square.floor-earth {
-    background-color: #3e2723 !important;
-    background-image: radial-gradient(rgba(0, 0, 0, 0.25) 15%, transparent 20%) !important;
+    background-color: #2b1a17 !important;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.3) 15%, transparent 20%) !important;
     background-size: 6px 6px !important;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.4) !important;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5) !important;
 }
 
-.tactical-square[style*="border"] {
+/* ----------------------------------------------------------------------------
+   ЗАЩИТА СТРУКТУРЫ ПОЛА:
+   Когда поверх пола ставится ЛЮБОЙ объект (obstacle-*), мы принудительно
+   ПОВТОРЯЕМ исходные текстурные параметры этого пола, блокируя их затирание.
+   При этом рамки и цветные фоны объектов полностью отключаются.
+   ---------------------------------------------------------------------------- */
 
+/* Сохраняем Доски, если поверх них стоит объект */
+.tactical-square.floor-planks[class*="obstacle-"] {
+    background-color: #4a3329 !important;
+    background-image:
+            linear-gradient(90deg, rgba(0,0,0,0.4) 1px, transparent 1px),
+            linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;
+    border: none !important;
+}
+
+/* Сохраняем Брусчатку, если поверх неё стоит объект */
+.tactical-square.floor-cobble[class*="obstacle-"] {
+    background-color: #383838 !important;
+    background-image:
+            linear-gradient(45deg, rgba(0,0,0,0.3) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0.3)),
+            linear-gradient(45deg, rgba(0,0,0,0.3) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.3) 75%, rgba(0,0,0,0.3)) !important;
+    border: none !important;
+}
+
+/* Сохраняем Утоптанную землю, если поверх неё стоит объект */
+.tactical-square.floor-earth[class*="obstacle-"] {
+    background-color: #2b1a17 !important;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.3) 15%, transparent 20%) !important;
+    border: none !important;
+}
+
+/* ----------------------------------------------------------------------------
+   ПОВЕДЕНИЕ ОБЪЕКТОВ НА ДЕФОЛТНОЙ ЗЕМЛЕ (КОГДА ПОЛ НЕ ВЫБРАН):
+   ---------------------------------------------------------------------------- */
+
+/* Если пола нет вообще, задаем сплошной темный цвет фона, чтобы скрыть карту под сеткой */
+.tactical-square[class*="obstacle-"]:not(.floor-planks):not(.floor-cobble):not(.floor-earth) {
+    background-color: #16291b !important;
+}
+
+/* ❄️ Лед на пустой клетке: легкий полупрозрачный морозный блеск, карта видна */
+.tactical-square.obstacle-ice:not(.floor-planks):not(.floor-cobble):not(.floor-earth) {
+    background-color: rgba(0, 206, 201, 0.15) !important; /* Прозрачность 15% */
+    border: 1px solid rgba(0, 206, 201, 0.5) !important;
+    box-shadow: inset 0 0 10px rgba(0, 206, 201, 0.3) !important;
+}
+
+/* 🕸 Паутина на пустой клетке: мягкий фиолетовый туман, карта видна */
+.tactical-square.obstacle-web:not(.floor-planks):not(.floor-cobble):not(.floor-earth) {
+    background-color: rgba(155, 89, 182, 0.15) !important; /* Прозрачность 15% */
+    box-shadow: inset 0 0 12px rgba(155, 89, 182, 0.25) !important;
+}
+
+/* 🪨🧱📦 Камни, стены и ящики на пустой клетке: легкая полупрозрачная тень под иконкой */
+.tactical-square.obstacle-wall:not(.floor-planks):not(.floor-cobble):not(.floor-earth),
+.tactical-square.obstacle-destructible:not(.floor-planks):not(.floor-cobble):not(.floor-earth),
+.tactical-square.obstacle-stones:not(.floor-planks):not(.floor-cobble):not(.floor-earth) {
+    /* Даем аккуратную полупрозрачную тень (20%), чтобы эмодзи объекта считывался объемно на любой части арта карты */
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4) !important;
 }

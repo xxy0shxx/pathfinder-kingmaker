@@ -1095,6 +1095,7 @@ const TacticalMapManager = {
                 let waterCount = 0, iceCount = 0, webCount = 0, jumpCount = 0, bushesCount = 0;
                 let webJumpCount = 0, iceJumpCount = 0, waterJumpCount = 0;
 
+
                 pathData.cells.forEach(cellKey => {
                     const cellEl = document.getElementById('visual_' + cellKey);
                     if (cellEl) {
@@ -1112,29 +1113,34 @@ const TacticalMapManager = {
                         if (cellData && cellData.obstacle === 'ice') { iceCount++; if (isJumpAction) iceJumpCount++; }
                         if (cellData && cellData.obstacle === 'web') { webCount++; if (isJumpAction) webJumpCount++; }
 
+                        // СБРОС ИНЛАЙН СТИЛЕЙ: Переносим управление цветом в CSS классы ради плотности!
+                        cellEl.style.removeProperty('background-color');
+
                         if (isJumpStart) {
-                            cellEl.classList.add('path-cell-jump-start'); cellEl.style.setProperty('background-color', 'rgba(255, 159, 67, 0.4)', 'important');
+                            cellEl.classList.add('path-cell-jump-start');
                             costLabel.textContent = 'JUMP 🦘'; costLabel.style.color = '#ff9f43';
                         } else if (isJumpLand) {
-                            cellEl.classList.add('path-cell-jump-land'); cellEl.style.setProperty('background-color', 'rgba(16, 172, 132, 0.4)', 'important');
+                            cellEl.classList.add('path-cell-jump-land');
                             costLabel.textContent = 'LAND 🎯'; costLabel.style.color = '#10ac84';
                         } else if (cellData && cellData.obstacle === 'water') {
-                            cellEl.classList.add('path-cell-water'); cellEl.style.setProperty('background-color', 'rgba(116, 185, 255, 0.4)', 'important');
+                            cellEl.classList.add('path-cell-water');
                             costLabel.textContent = 'WATER 🌊'; costLabel.style.color = '#74b9ff';
                         } else if (cellData && cellData.obstacle === 'ice') {
-                            cellEl.classList.add('path-cell-ice'); cellEl.style.setProperty('background-color', 'rgba(0, 206, 201, 0.4)', 'important');
+                            cellEl.classList.add('path-cell-ice');
                             costLabel.textContent = 'ICE ❄️'; costLabel.style.color = '#00cec9';
                         } else if (cellData && cellData.obstacle === 'web') {
-                            cellEl.classList.add('path-cell-web'); cellEl.style.setProperty('background-color', 'rgba(155, 89, 182, 0.4)', 'important');
+                            cellEl.classList.add('path-cell-web');
                             costLabel.textContent = 'WEB 🕸️'; costLabel.style.color = '#9b59b6';
                         } else if (cellData && cellData.obstacle === 'bushes') {
-                            cellEl.classList.add('path-cell-bushes'); cellEl.style.setProperty('background-color', 'rgba(241, 196, 15, 0.35)', 'important');
+                            cellEl.classList.add('path-cell-bushes');
                             costLabel.textContent = 'BUSH 🌿'; costLabel.style.color = '#f1c40f';
                         } else {
                             cellEl.classList.add('path-cell');
                         }
                     }
                 });
+
+
 
                 let hazardReport = '';
                 if (jumpCount > 0) {
