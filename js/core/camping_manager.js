@@ -263,6 +263,7 @@ const CampingManager = {
         }
     },
 
+
     triggerDiceAndResultModal() {
         const overlay = document.getElementById('campDiceOverlay');
         const resultModal = document.getElementById('campResultModal');
@@ -274,10 +275,11 @@ const CampingManager = {
         overlay.classList.add('open');
 
         const dodeca = overlay.querySelector('.dodecahedron');
+
         if (dodeca) {
             dodeca.style.animation = 'none';
-            dodeca.offsetHeight; // Сброс reflow для перезапуска
-            dodeca.style.animation = 'dodecaSpin 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+            dodeca.offsetHeight;
+            dodeca.style.animation = 'dodecaSpin 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards';
         }
 
         modalBody.innerHTML = '';
@@ -301,8 +303,9 @@ const CampingManager = {
         setTimeout(() => {
             overlay.classList.remove('open');
             resultModal.classList.add('open');
-        }, 2200);
+        }, 3500);
     },
+
 
     saveFromUi() {
         try {
