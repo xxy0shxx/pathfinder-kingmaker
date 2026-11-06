@@ -69,6 +69,7 @@ const CampingManager = {
     },
 
 
+
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -128,7 +129,9 @@ const CampingManager = {
                 }
             });
 
-            let finalEncounterDc = baseRegionDc;
+            // 2. РАСЧЕТ СЛ СЛУЧАЙНОЙ СЦЕНЫ (ОБНОВЛЕНО: База 12 + Модификатор ГМа)
+            let finalEncounterDc = 12 + this.state.checkMod; // checkMod теперь крутит СЛ сцены
+
             if (!isCampHorrible) {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
                 if (camoRes === 'success') finalEncounterDc += 1;
@@ -137,12 +140,14 @@ const CampingManager = {
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
             this.state.encounterDc = finalEncounterDc;
 
+            // 3. РАСЧЕТ ИТОГОВОГО ПУЛА ПРОВЕРОК ПРИВАЛА (Чистый расчет без checkMod)
             let calculatedChecks = this.state.baseChecks;
             if (prepareRes === 'crit_success') calculatedChecks -= 1;
             if (prepareRes === 'crit_failure') calculatedChecks += 1;
             if (!isCampHorrible && camoRes === 'crit_success') calculatedChecks -= 1;
-            this.state.totalChecks = Math.max(0, calculatedChecks + this.state.checkMod);
+            this.state.totalChecks = Math.max(0, calculatedChecks); // Чистый результат бросков кубов
 
+            // 4. Расчет ресурсов
             let normalYield = 0, specialYield = 0;
             if (!isCampHorrible) {
                 if (huntRes === 'success') {
@@ -168,6 +173,7 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
+
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl) {
         document.getElementById('calcEncounterDc').textContent = this.state.encounterDc;
         document.getElementById('calcTotalChecks').textContent = this.state.totalChecks;
@@ -192,7 +198,7 @@ const CampingManager = {
             if (huntRes === 'success') {
                 this.addLogLine(effectsList, "Успех охоты: Добыто базовое количество еды (2 пайка).", "good");
             } else if (huntRes === 'crit_success') {
-                let msg = `Блестаящая охота (Уровень региона: ${lvl})! `;
+                let msg = `Блестящая охота (Уровень региона: ${lvl})! `;
                 if (lvl < 7) msg += `Добыто обычных ингредиентов в размере СЛ региона + 4 особых специй.`;
                 else if (lvl >= 7 && lvl <= 14) msg += `Добыто обычных ингредиентов в размере СЛ региона + 8 особых специй.`;
                 else msg += `Добыто обычных ингредиентов в размере СЛ региона + 12 особых специй.`;
@@ -202,6 +208,7 @@ const CampingManager = {
             }
         }
     },
+
 
     addLogLine(container, text, type) {
         const line = document.createElement('div');
