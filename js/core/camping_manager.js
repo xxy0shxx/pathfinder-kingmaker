@@ -1,3 +1,5 @@
+import AnimationManager from '../services/animation_manager.js';
+
 // ============================================================================
 // МОДУЛЬ: МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 1 ИЗ 3
 // ============================================================================
@@ -232,14 +234,26 @@ const CampingManager = {
         const grid = document.querySelector('.camp-gm-inputs-grid');
         if (!grid) return;
 
+        // На всякий случай удаляем старые слушатели, чтобы не дублировать их в памяти
         grid.removeEventListener('change', this._handleGridChange);
+        grid.removeEventListener('mousedown', this._handleGridMouseDown);
 
+        // 1. Слушатель изменения состояния (радиокнопки)
         this._handleGridChange = () => {
             this.recalculateCamp();
             this.checkCampPhaseCompletion();
         };
 
+        // 2. ИСПРАВЛЕНО: Объявляем метод для прогрева звука прямо здесь!
+        this._handleGridMouseDown = () => {
+            if (window.AnimationManager) {
+                window.AnimationManager.warmUpAudioContext();
+            }
+        };
+
+        // Навешиваем оба события на сетку таблицы привала
         grid.addEventListener('change', this._handleGridChange);
+        grid.addEventListener('mousedown', this._handleGridMouseDown);
     },
 
     checkCampPhaseCompletion() {
@@ -265,194 +279,12 @@ const CampingManager = {
 
 
 
-
     triggerDiceAndResultModal() {
-        const overlay = document.getElementById('campDiceOverlay');
         const resultModal = document.getElementById('campResultModal');
         const modalBody = document.getElementById('campResultModalBody');
         const effectsList = document.getElementById('campEffectsList');
-        const canvas = document.getElementById('d20Canvas');
 
-        if (!overlay || !resultModal || !modalBody || !effectsList || !canvas) return;
-
-        overlay.classList.add('open');
-
-
-
-        // ВСТРОЕННЫЙ СИНТЕЗАТОР ЗВУКА БРОСКА КОСТЕЙ (Web Audio API) с авто-пробуждением
-        const playDiceSoundEffects = () => {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const audioCtx = new AudioContext();
-
-                // ЖЕСТКИЙ ФИКС: Принудительно будим контекст, если браузер усыпил его
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-
-                const playClick = (time, intensity) => {
-                    const osc = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    const filter = audioCtx.createBiquadFilter();
-
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(130 + Math.random() * 70, time);
-                    osc.frequency.exponentialRampToValueAtTime(30, time + 0.08);
-
-                    filter.type = 'bandpass';
-                    filter.frequency.setValueAtTime(800, time);
-                    filter.Q.setValueAtTime(3, time);
-
-                    // Сделали базовый звук чуть сочнее и громче (0.35 вместо 0.2)
-                    gainNode.gain.setValueAtTime(0.35 * intensity, time);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
-
-                    osc.connect(filter);
-                    filter.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-
-                    osc.start(time);
-                    osc.stop(time + 0.08);
-                };
-
-                let scheduleTime = audioCtx.currentTime + 0.02;
-                let delay = 0.06; // Немного ускорили начальный темп стука
-
-                for (let i = 0; i < 20; i++) { // Увеличили до 20 ударов для плотности
-                    const intensity = Math.max(0.15, (20 - i) / 20);
-                    playClick(scheduleTime, intensity);
-                    delay += 0.014;
-                    scheduleTime += delay;
-                }
-            } catch (e) { console.warn("Audio Context заблокирован политикой браузера:", e); }
-        };
-
-
-        playDiceSoundEffects();
-
-        const ctx = canvas.getContext('2d');
-        const t = (1.0 + Math.sqrt(5.0)) / 2.0;
-
-        let vertices = [
-            [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
-            [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-            [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
-        ].map(v => {
-            const length = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-            return [v[0]/length * 120, v[1]/length * 120, v[2]/length * 120];
-        });
-
-        const faces = [
-            [0, 11, 5, "⚜"], [0, 5, 1, "2"], [0, 1, 7, "3"], [0, 7, 10, "4"], [0, 10, 11, "5"],
-            [1, 5, 9, "6"], [5, 11, 4, "7"], [11, 10, 2, "8"], [10, 7, 6, "9"], [7, 1, 8, "10"],
-            [3, 9, 4, "11"], [3, 4, 2, "12"], [3, 2, 6, "13"], [3, 6, 8, "14"], [3, 8, 9, "15"],
-            [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
-        ];
-        let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
-        const targetX = 0.53, targetY = -0.62, targetZ = 0.55;
-
-        let scale = 0.1;
-        let startTime = performance.now();
-        let animationFrameId;
-        let snapX = null, snapY = null, snapZ = null;
-
-        const draw3D = () => {
-            const now = performance.now();
-            const elapsed = now - startTime;
-
-            if (elapsed >= 5000) {
-                cancelAnimationFrame(animationFrameId);
-                overlay.classList.remove('open');
-                resultModal.classList.add('open');
-                return;
-            }
-
-            let curX, curY, curZ;
-
-            if (elapsed < 2500) {
-                angleX += 0.06; angleY += 0.09; angleZ += 0.03;
-                curX = angleX; curY = angleY; curZ = angleZ;
-            }
-            else if (elapsed < 3000) {
-                if (snapX === null) {
-                    snapX = angleX % (Math.PI * 2);
-                    snapY = angleY % (Math.PI * 2);
-                    snapZ = angleZ % (Math.PI * 2);
-                }
-                const progress = (elapsed - 2500) / 500;
-                const ease = progress * progress * (3 - 2 * progress);
-                curX = snapX + (targetX - snapX) * ease;
-                curY = snapY + (targetY - snapY) * ease;
-                curZ = snapZ + (targetZ - snapZ) * ease;
-            }
-            else {
-                curX = targetX; curY = targetY; curZ = targetZ;
-            }
-
-            if (elapsed < 400) scale = 0.1 + 0.9 * (elapsed / 400);
-            else if (elapsed > 4600) scale = 1.0 - 0.8 * ((elapsed - 4600) / 400);
-            else scale = 1.0;
-
-            ctx.clearRect(0, 0, 400, 400);
-            const lightDir = [0.3, 0.3, 1];
-            const lLen = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
-            const light = [lightDir[0]/lLen, lightDir[1]/lLen, lightDir[2]/lLen];
-
-            const rotatedVertices = vertices.map(v => {
-                let x = v[0], y = v[1], z = v[2];
-                let cosX = Math.cos(curX), sinX = Math.sin(curX);
-                let y1 = y * cosX - z * sinX, z1 = y * sinX + z * cosX;
-                let cosY = Math.cos(curY), sinY = Math.sin(curY);
-                let x2 = x * cosY + z1 * sinY, z2 = -x * sinY + z1 * cosY;
-                let cosZ = Math.cos(curZ), sinZ = Math.sin(curZ);
-                let x3 = x2 * cosZ - y1 * sinZ, y3 = x2 * sinZ + y1 * cosZ;
-                return [x3 * scale + 200, y3 * scale + 200, z2];
-            });
-
-            const renderOrder = faces.map(f => {
-                const zAvg = (rotatedVertices[f[0]][2] + rotatedVertices[f[1]][2] + rotatedVertices[f[2]][2]) / 3;
-                return { face: f, z: zAvg };
-            }).sort((a, b) => a.z - b.z);
-
-            renderOrder.forEach(item => {
-                const f = item.face;
-                const p0 = rotatedVertices[f[0]], p1 = rotatedVertices[f[1]], p2 = rotatedVertices[f[2]];
-                const ux = p1[0] - p0[0], uy = p1[1] - p0[1];
-                const vx = p2[0] - p0[0], vy = p2[1] - p0[1];
-                const nz = ux * vy - uy * vx;
-
-                if (nz > 0) {
-                    const ax = vertices[f[1]][0] - vertices[f[0]][0], ay = vertices[f[1]][1] - vertices[f[0]][1], az = vertices[f[1]][2] - vertices[f[0]][2];
-                    const bx = vertices[f[2]][0] - vertices[f[0]][0], by = vertices[f[2]][1] - vertices[f[0]][1], bz = vertices[f[2]][2] - vertices[f[0]][2];
-                    let crossX = ay*bz - az*by, crossY = az*bx - ax*bz, crossZ = ax*by - ay*bx;
-                    let cLen = Math.sqrt(crossX*crossX + crossY*crossY + crossZ*crossZ);
-                    crossX /= cLen; crossY /= cLen; crossZ /= cLen;
-
-                    let ny1 = crossY*Math.cos(curX) - crossZ*Math.sin(curX), nz1 = crossY*Math.sin(curX) + crossZ*Math.cos(curX);
-                    let nx2 = crossX*Math.cos(curY) + nz1*Math.sin(curY);
-                    let nx3 = nx2*Math.cos(curZ) - ny1*Math.sin(curZ), ny3 = nx2*Math.sin(curZ) + ny1*Math.cos(curZ);
-
-                    const dot = nx3*light[0] + ny3*light[1] + nz1*light[2];
-                    const brightness = Math.max(0.2, dot);
-                    const r = Math.floor(23 + 115 * brightness), g = Math.floor(45 + 150 * brightness), b = Math.floor(28 + 80 * brightness);
-
-                    ctx.beginPath();
-                    ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]);
-                    ctx.closePath();
-                    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
-                    ctx.strokeStyle = "rgba(223, 188, 111, 0.75)"; ctx.lineWidth = 1; ctx.stroke();
-
-                    ctx.save();
-                    ctx.fillStyle = "#ffd875";
-                    ctx.font = `bold ${Math.floor(22 * scale)}px 'Times New Roman', serif`;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                    ctx.fillText(f[3], (p0[0] + p1[0] + p2[0]) / 3, (p0[1] + p1[1] + p2[1]) / 3);
-                    ctx.restore();
-                }
-            });
-            animationFrameId = requestAnimationFrame(draw3D);
-        };
+        if (!resultModal || !modalBody || !effectsList) return;
 
         modalBody.innerHTML = '';
         const summaryStats = document.createElement('div');
@@ -471,8 +303,16 @@ const CampingManager = {
             modalBody.appendChild(clone);
         });
 
-        draw3D();
+        // Безопасный вызов через глобальную видимость window
+        if (window.AnimationManager) {
+            window.AnimationManager.playCampDiceAnimation(() => {
+                resultModal.classList.add('open');
+            });
+        } else {
+            resultModal.classList.add('open');
+        }
     },
+
 
     saveFromUi() {
         try {

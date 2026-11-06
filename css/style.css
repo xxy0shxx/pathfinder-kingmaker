@@ -2510,6 +2510,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    /* Убираем perspective, так как Canvas сам считает 3D-проекцию математически */
+}
+
+#d20Canvas {
+    width: 400px;
+    height: 400px;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
 }
 .camp-result-modal {
     position: fixed;
