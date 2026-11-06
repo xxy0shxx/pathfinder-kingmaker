@@ -57,6 +57,7 @@ const QuestManager = {
         }
     },
 
+
     /**
      * Инициализация вкладок (Активные / Завершенные / Слухи / Королевство)
      */
@@ -81,7 +82,30 @@ const QuestManager = {
         if (tabCamping) {
             tabCamping.addEventListener('click', () => this.setActiveTab(tabCamping, 'camping'));
         }
+
+        const tabCloseJournal = document.getElementById('tabCloseJournal');
+        if (tabCloseJournal) {
+            tabCloseJournal.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Закрываем модальное окно журнала
+                const questLogContainerEl = document.getElementById('questLogContainer');
+                if (questLogContainerEl) {
+                    questLogContainerEl.classList.add('ui-collapsed');
+                }
+
+                // Сбрасываем зеленую подсветку утилит на боковой панели 3х4
+                const btnToggleQuests = document.getElementById('btnToggleQuests');
+                if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
+
+                const btnToggleCamping = document.getElementById('btnToggleCamping');
+                if (btnToggleCamping) btnToggleCamping.removeAttribute('style');
+            });
+        }
+
     },
+
 
     /**
      * Переключение активной вкладки
