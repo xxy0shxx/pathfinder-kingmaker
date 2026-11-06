@@ -1,10 +1,10 @@
 const CampingManager = {
     state: {
         baseChecks: 2,
-        checkMod: 0,
+        checkMod: 12, // Сменили дефолтное значение с 0 на 12
         normalIngredients: 0,
         specialIngredients: 0,
-        encounterDc: 11,
+        encounterDc: 12,
         totalChecks: 2
     },
     mapDataRef: null,
@@ -17,8 +17,12 @@ const CampingManager = {
 
             if (this.mapDataRef.camping) {
                 this.state = this.mapDataRef.camping;
+                // ЗАЩИТА: Страхуем и фиксируем новые дефолтные параметры
                 if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) {
                     this.state.baseChecks = 2;
+                }
+                if (this.state.checkMod === undefined || isNaN(this.state.checkMod) || this.state.checkMod === 0) {
+                    this.state.checkMod = 12; // Переключаем старые нулевые сейвы на 12
                 }
             } else {
                 this.mapDataRef.camping = this.state;
@@ -38,6 +42,9 @@ const CampingManager = {
                 if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) {
                     this.state.baseChecks = 2;
                 }
+                if (this.state.checkMod === undefined || isNaN(this.state.checkMod) || this.state.checkMod === 0) {
+                    this.state.checkMod = 12;
+                }
             }
             this.syncCountersUi();
             this.recalculateCamp();
@@ -50,8 +57,9 @@ const CampingManager = {
         this.recalculateCamp();
     },
 
+    // Метод теперь напрямую шагает по СЛ случайной сцены (например, 12 -> 13 -> 14)
     changeCheckMod(amount) {
-        this.state.checkMod = Math.max(-10, Math.min(10, this.state.checkMod + amount));
+        this.state.checkMod = Math.max(1, Math.min(41, this.state.checkMod + amount));
         this.syncCountersUi();
         this.recalculateCamp();
     },
@@ -60,14 +68,14 @@ const CampingManager = {
         const baseEl = document.getElementById('campBaseChecksVal');
         const modEl = document.getElementById('campCheckModVal');
         if (baseEl) baseEl.textContent = this.state.baseChecks;
-        if (modEl) modEl.textContent = this.state.checkMod >= 0 ? `+${this.state.checkMod}` : this.state.checkMod;
+        // Больше не пишем знаки "+" или "-", выводим чистую СЛ (например, 12)
+        if (modEl) modEl.textContent = this.state.checkMod;
     },
 
     getSelectedRadio(name) {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
         return checked ? checked.value : null;
     },
-
 
 
     recalculateCamp() {
