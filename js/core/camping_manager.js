@@ -234,6 +234,7 @@ const CampingManager = {
         container.appendChild(line);
     },
 
+
     saveFromUi() {
         try {
             if (this.mapDataRef) this.mapDataRef.camping = this.state;
@@ -243,18 +244,38 @@ const CampingManager = {
             const questLogContainerEl = document.getElementById('questLogContainer');
             if (questLogContainerEl) questLogContainerEl.classList.add('ui-collapsed');
 
-            const saveBtn = document.querySelector('#campingTabletContainer .k-btn-save-small');
+
+            const saveBtn = document.querySelector('.kingdom-save-wrapper .btn.ok');
             if (saveBtn) {
-                saveBtn.style.setProperty('filter', 'brightness(1.5)', 'important');
+                const oldText = saveBtn.textContent;
+
+                saveBtn.style.setProperty('transform', 'scale(0.96)', 'important');
                 saveBtn.textContent = '⚜ Итоги применены!';
+
+                const flash = document.createElement('div');
+                flash.className = 'button-flash-overlay';
+                flash.style.left = saveBtn.offsetLeft + 'px';
+                flash.style.top = saveBtn.offsetTop + 'px';
+                flash.style.width = saveBtn.offsetWidth + 'px';
+                flash.style.height = saveBtn.offsetHeight + 'px';
+
+                saveBtn.parentNode.appendChild(flash);
+
                 setTimeout(() => {
-                    saveBtn.style.removeProperty('filter');
-                    saveBtn.textContent = '⚜ Применить итоги';
+                    saveBtn.style.removeProperty('transform');
+                    flash.style.opacity = '0';
+                }, 40);
+
+                setTimeout(() => {
+                    flash.remove();
+                    saveBtn.textContent = oldText;
                     if (window.QuestManager) window.QuestManager.currentFilter = 'active';
-                }, 800);
+                }, 450);
             }
+
         } catch (error) { console.error("Критическая ошибка при сохранении привала:", error); }
     },
+
 
 
     resetToDefault() {
@@ -279,12 +300,11 @@ const CampingManager = {
             if (resetBtn) {
                 const oldText = resetBtn.textContent;
 
-                resetBtn.style.setProperty('transform', 'scale(0.95)', 'important');
+                resetBtn.style.setProperty('transform', 'scale(0.96)', 'important');
                 resetBtn.textContent = '🔄 Сброшено';
 
                 const flash = document.createElement('div');
                 flash.className = 'button-flash-overlay';
-
                 flash.style.left = resetBtn.offsetLeft + 'px';
                 flash.style.top = resetBtn.offsetTop + 'px';
                 flash.style.width = resetBtn.offsetWidth + 'px';
@@ -292,16 +312,15 @@ const CampingManager = {
 
                 resetBtn.parentNode.appendChild(flash);
 
-
                 setTimeout(() => {
                     resetBtn.style.removeProperty('transform');
                     flash.style.opacity = '0';
-                }, 200);
+                }, 40);
 
                 setTimeout(() => {
                     flash.remove();
                     resetBtn.textContent = oldText;
-                }, 800);
+                }, 450);
             }
 
         } catch (e) { console.error("Ошибка при сбросе параметров привала:", e); }

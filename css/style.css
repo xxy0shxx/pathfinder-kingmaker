@@ -1667,11 +1667,13 @@ body {
     box-shadow: 0 0 5px rgba(255, 216, 117, 0.4);
 }
 .kingdom-save-wrapper {
+    position: relative; /* Необходим для позиционирования оверлей-вспышки */
+    width: 100%;
     display: flex;
-    justify-content: flex-end;
+    gap: 15px;
+    box-sizing: border-box;
     margin-top: auto;
-    padding-top: 25px;
-    padding-bottom: 10px;
+    padding-top: 10px;
 }
 .btn.ok.k-btn-save-small {
     flex: none;
@@ -2407,11 +2409,16 @@ body {
 #campingTabletContainer .kingdom-save-wrapper .btn {
     flex: 1 1 0% !important;
     width: 100% !important;
-    padding: 16px 24px !important; /* Укрупненные кнопки */
-    font-size: 18px !important; /* Большой текст кнопок */
+    padding: 12px 16px !important; /* Эталонный падинг из секции 6 */
+    font-size: 14px !important;    /* Эталонный размер шрифта */
     font-weight: bold !important;
-    will-change: filter, transform;
-    transition: filter 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.2s ease !important;
+    font-family: sans-serif !important; /* Переключаем с Tinos обратно на системный интерфейсный */
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 3px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+    transition: transform 0.1s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.2s ease !important;
+    cursor: pointer;
 }
 
 /* ============================================================================
@@ -2465,9 +2472,6 @@ body {
     }
 }
 
-.kingdom-save-wrapper {
-    position: relative;
-}
 
 .button-flash-overlay {
     position: absolute;
@@ -2477,6 +2481,6 @@ body {
     background: linear-gradient(180deg, #ffffff 0%, #ffd875 50%, #b89445 100%);
     box-shadow: 0 0 25px #ffd875, inset 0 0 10px #fff;
     opacity: 1;
-    will-change: opacity, transform;
+    will-change: opacity;
     transition: opacity 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
