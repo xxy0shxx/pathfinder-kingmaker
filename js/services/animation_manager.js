@@ -340,19 +340,33 @@ const AnimationManager = {
             }
         }
 
+
         const winningFace = faces[winningIndex];
         const v0 = vertices[winningFace[0]], v1 = vertices[winningFace[1]], v2 = vertices[winningFace[2]];
 
+        // Находим точные виртуальные координаты центра выбранной грани
         let nx = (v0[0] + v1[0] + v2[0]) / 3;
         let ny = (v0[1] + v1[1] + v2[1]) / 3;
         let nz = (v0[2] + v1[2] + v2[2]) / 3;
+
+        // Нормализуем вектор центра грани
         const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
         nx /= nLen; ny /= nLen; nz /= nLen;
 
+        // ИСПРАВЛЕНО: Матрица обратного разворота вектора нормали к экрану (вдоль оси Z)
+        // Чтобы грань легла идеально плоско, её нормаль должна смотреть строго на нас: [0, 0, 1]
         const targetY = -Math.atan2(nx, nz);
-        const cosY = Math.cos(targetY), sinY = Math.sin(targetY);
+
+        const cosY = Math.cos(targetY);
+        const sinY = Math.sin(targetY);
+
+        // Рассчитываем промежуточную координату после поворота по Y
         const nzRotated = -nx * sinY + nz * cosY;
+
+        // Находим угол наклона по X с учетом измененного базиса
         const targetX = Math.atan2(ny, nzRotated);
+
+        // Корректируем вращение по Z, чтобы цифра не была перевернута боком на экране
         const targetZ = 0;
 
         let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
@@ -361,7 +375,6 @@ const AnimationManager = {
         let animationFrameId;
         let snapX = null, snapY = null, snapZ = null;
 
-        // ЖЕСТКИЙ ФЛАГ ОДНОКРАТНОЙ ВСПЫШКИ
         let hasFlashed = false;
 
         const draw3D = () => {
@@ -382,17 +395,21 @@ const AnimationManager = {
             }
             else if (elapsed < 1400) {
                 if (snapX === null) {
+                    // Принудительно нормализуем текущие углы в пределах 2 * PI перед интерполяцией
                     snapX = angleX % (Math.PI * 2);
                     snapY = angleY % (Math.PI * 2);
                     snapZ = angleZ % (Math.PI * 2);
                 }
                 const progress = (elapsed - 1000) / 400;
                 const ease = progress * progress * (3 - 2 * progress);
+
+                // Плавно докручиваем куб до рассчитанной плоской проекции
                 curX = snapX + (targetX - snapX) * ease;
                 curY = snapY + (targetY - snapY) * ease;
                 curZ = snapZ + (targetZ - snapZ) * ease;
             }
             else {
+                // Финальная стадия: куб замер мертвой хваткой на нужной грани
                 curX = targetX; curY = targetY; curZ = targetZ;
 
                 if (!hasFlashed) {
@@ -400,7 +417,9 @@ const AnimationManager = {
                     if (rect.width > 0) {
                         const cx = rect.left + rect.width / 2;
                         const cy = rect.top + rect.height / 2;
-                        this.spawnBeamsBurst(cx, cy, 1.4);
+                        if (window.AnimationManager && typeof window.AnimationManager.spawnBeamsBurst === 'function') {
+                            window.AnimationManager.spawnBeamsBurst(cx, cy, 1.4);
+                        }
                         hasFlashed = true;
                     }
                 }
@@ -411,10 +430,13 @@ const AnimationManager = {
             else scale = 1.0;
 
             ctx.clearRect(0, 0, 400, 400);
-            const lightDir = [0.3, 0.3, 1];
+
+            // Направление источника света (для красивых золотых градиентов)
+            const lightDir = [0.2, 0.2, 1.0];
             const lLen = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
             const light = [lightDir[0]/lLen, lightDir[1]/lLen, lightDir[2]/lLen];
 
+            // Матрица трансформации вершин 3D пространства под текущие углы
             const rotatedVertices = vertices.map(v => {
                 let x = v[0], y = v[1], z = v[2];
                 let cosX = Math.cos(curX), sinX = Math.sin(curX);
@@ -426,6 +448,7 @@ const AnimationManager = {
                 return [x3 * scale + 200, y3 * scale + 200, z2];
             });
 
+            // Сортировка граней по глубине (Z-буфер)
             const renderOrder = faces.map(f => {
                 const zAvg = (rotatedVertices[f[0]][2] + rotatedVertices[f[1]][2] + rotatedVertices[f[2]][2]) / 3;
                 return { face: f, z: zAvg };
@@ -434,6 +457,8 @@ const AnimationManager = {
             renderOrder.forEach(item => {
                 const f = item.face;
                 const p0 = rotatedVertices[f[0]], p1 = rotatedVertices[f[1]], p2 = rotatedVertices[f[2]];
+
+                // Проверка обратной стороны грани (Backface Culling)
                 const ux = p1[0] - p0[0], uy = p1[1] - p0[1];
                 const vx = p2[0] - p0[0], vy = p2[1] - p0[1];
                 const nz = ux * vy - uy * vx;
@@ -462,18 +487,16 @@ const AnimationManager = {
                     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
-                    // Отображаем крупный символ СТРОГО на лицевой грани d20
+                    // Отрисовка символа СТРОГО на лицевой грани d20
                     if (elapsed >= 1400 && f[0] === winningFace[0] && f[1] === winningFace[1] && f[2] === winningFace[2]) {
                         ctx.save();
-
                         const textOpacity = Math.min(1, (elapsed - 1400) / 150);
                         ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity})`;
-                        ctx.font = `bold ${Math.floor(42 * scale)}px 'Times New Roman', serif`;
-
+                        ctx.font = `bold ${Math.floor(44 * scale)}px 'Times New Roman', serif`;
                         ctx.shadowColor = `rgba(255, 162, 0, ${textOpacity})`;
                         ctx.shadowBlur = 10;
-
                         ctx.textAlign = "center"; ctx.textBaseline = "middle";
+
                         const cx = (p0[0] + p1[0] + p2[0]) / 3;
                         const cy = (p0[1] + p1[1] + p2[1]) / 3;
                         ctx.fillText(f[3], cx, cy);
@@ -484,6 +507,8 @@ const AnimationManager = {
             animationFrameId = requestAnimationFrame(draw3D);
         };
         draw3D();
+
+
     }
 
 };
