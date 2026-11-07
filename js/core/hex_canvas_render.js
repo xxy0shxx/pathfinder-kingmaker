@@ -304,7 +304,7 @@ const HexCanvasRender = {
     },
 
     /**
-     * Анатомически точный 3D low-poly токен шахматного коня из граней
+     * Математически точный и защищенный 3D low-poly движок шахматного Ферзя из граней
      */
     draw3DKnightToken(cx, cy) {
         const ctx = this.ctx;
@@ -313,10 +313,10 @@ const HexCanvasRender = {
         // Центрируем фигуру в гексе отряда и приподнимаем ее для идеального баланса
         ctx.translate(cx, cy - 6);
 
-        // 1. АНИМАЦИЯ: Живое вертикальное дыхание и плавное вращение вокруг оси Y
+        // 1. АНИМАЦИЯ: Живое вертикальное покачивание (дыхание) и непрерывное плавное вращение
         const time = Date.now() / 1000;
         const bounceY = Math.sin(time * 2.2) * 1.8;
-        const angleY = time * 0.45; // Скорость вращения коня
+        const angleY = time * 0.45; // Скорость вращения фигуры
 
         ctx.translate(0, bounceY);
 
@@ -325,63 +325,69 @@ const HexCanvasRender = {
         const lLength = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
         const lNorm = [lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength];
 
-        // 2. ГЕОМЕТРИЯ: Намертво выверенный массив 3D-вершин [X, Y, Z] (20 уникальных точек)
+        // 2. ГЕОМЕТРИЯ: Процедурно генерируем 3D-вершины слоями [X, Y, Z]
         const vertices = [];
+        const segments = 10; // Количество граней по окружности (Low-Poly рельеф)
 
-        // Квадратное основание пьедестала (низ: 0 - 3)
-        vertices.push([-14, 25, -14]); vertices.push([14, 25, -14]);
-        vertices.push([14, 25, 14]);   vertices.push([-14, 25, 14]);
+        // Чистый массив профиля Ферзя по вертикали: [радиус, высота Y]
+        // Пьедестал -> Юбка -> Корсет -> Воротник -> Шея -> Корона -> Навершие
+        const profile = [
+            [16, 25],  // 0: Широкое основание (низ)
+            [16, 21],  // 1: Основание (верх)
+            [13, 16],  // 2: Начало конуса юбки
+            [7, 2],    // 3: Сужение талии
+            [6, -6],   // 4: Корсет
+            [8, -11],  // 5: Воротник расширение
+            [5, -14],  // 6: Шея сужение
+            [8, -20],  // 7: Основание короны
+            [11, -26], // 8: Зубцы короны (пик расширения)
+            [0, -32]   // 9: Магическое навершие/шарик на макушке
+        ];
 
-        // Сужение пьедестала (верх: 4 - 7)
-        vertices.push([-10, 17, -10]); vertices.push([10, 17, -10]);
-        vertices.push([10, 17, 10]);   vertices.push([-10, 17, 10]);
+        // Генерируем 3D-вершины для каждого радиального слоя
+        for (let j = 0; j < profile.length; j++) {
+            const radius = profile[j][0];
+            const h = profile[j][1];
 
-        // Мощная грудь, изгиб шеи и загривок (8 - 12)
-        vertices.push([-6, 5, -8]);    vertices.push([6, 5, -8]);    // 8-9: Задняя часть шеи
-        vertices.push([0, 4, 13]);     // 10: Выпуклая грудь спереди
-        vertices.push([-7, -1, 2]);    // 11: Левый бок шеи
-        vertices.push([7, -1, 2]);     // 12: Правый бок шеи
+            for (let i = 0; i < segments; i++) {
+                const ang = (Math.PI * 2 / segments) * i;
 
-        // Объемная вытянутая морда и переносица коня (13 - 17)
-        vertices.push([0, -11, 10]);   // 13: Лоб / Начало переносицы
-        vertices.push([-4, -6, 22]);   // 14: Левая часть кончика носа
-        vertices.push([4, -6, 22]);    // 15: Правая часть кончика носа
-        vertices.push([0, -2, 20]);    // 16: Нижняя челюсть / подбородок
-        vertices.push([0, -12, -4]);   // 17: Затылок верхний
+                // Для макушки (навершия) стягиваем все точки в одну координату
+                if (j === profile.length - 1) {
+                    vertices.push([0, h, 0]);
+                } else {
+                    vertices.push([Math.cos(ang) * radius, h, Math.sin(ang) * radius]);
+                }
+            }
+        }
 
-        // Два раздельных острых шахматных ушка на макушке (18 - 19)
-        vertices.push([-3, -22, -3]);  // 18: Левое ухо
-        vertices.push([3, -22, -3]);   // 19: Правое ухо
-
-        // 3. ТОПОЛОГИЯ: Жестко замкнутая сетка полигональных граней (Faces) без дыр и заломов
+        // 3. ТОПОЛОГИЯ: Автоматически собираем замкнутые полигоны (Faces) без ручных ошибок
         const faces = [];
 
-        // Четыре боковые стенки нижнего пьедестала
-        faces.push([0, 1, 5, 4]); faces.push([1, 2, 6, 5]);
-        faces.push([2, 3, 7, 6]); faces.push([3, 0, 4, 7]);
+        // Строим боковые Low-Poly пояса между слоями профиля
+        for (let j = 0; j < profile.length - 1; j++) {
+            const layerOffset = j * segments;
+            const nextLayerOffset = (j + 1) * segments;
 
-        // Переход от пьедестала к мощной груди и шее
-        faces.push([4, 5, 9, 8]);   faces.push([5, 6, 12, 9]);
-        faces.push([6, 7, 10, 12]); faces.push([7, 4, 8, 11]);
-        faces.push([11, 8, 9, 12]); // Закрываем внутреннюю полость шеи сзади
+            for (let i = 0; i < segments; i++) {
+                const next = (i + 1) % segments;
 
-        // Сборка гордой S-образной шеи и объемного загривка
-        faces.push([8, 17, 11]);    faces.push([9, 12, 17]);
-        faces.push([11, 17, 13]);   faces.push([12, 13, 17]);
-        faces.push([11, 13, 14]);   faces.push([12, 15, 13]);
-        faces.push([10, 11, 14]);   faces.push([10, 14, 16]);
-        faces.push([10, 15, 12]);   faces.push([10, 16, 15]);
-
-        // Сборка граненой клиновидной морды (нос, челюсть и щеки)
-        faces.push([13, 15, 14]); // Фронтальный скат переносицы
-        faces.push([14, 15, 16]); // Кончик вытянутого носа вперед
-
-        // Отрисовка ушей и затылочной короны
-        faces.push([13, 18, 17]); // Левое ухо спереди
-        faces.push([13, 17, 19]); // Правое ухо спереди
-        faces.push([18, 19, 13]); // Перемычка между ушами спереди
-        faces.push([18, 17, 8]);  // Левое ухо сзади к затылку
-        faces.push([19, 9, 17]);  // Правое ухо сзади к затылку
+                // Слой 8 — это зубцы короны. Делаем прорези, пропуская каждый второй полигон через один!
+                if (j === 8) {
+                    if (i % 2 === 0) {
+                        faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + next]);
+                    }
+                }
+                // Верхний купол навершия закрываем треугольниками
+                else if (j === profile.length - 2) {
+                    faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + i]);
+                }
+                // Стандартные четырехугольные Low-Poly плашки для тела фигуры
+                else {
+                    faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + next, nextLayerOffset + i]);
+                }
+            }
+        }
 
         // 4. ТРАНСФОРМАЦИЯ: Поворачиваем 3D-вершины в пространстве вокруг вертикальной оси Y
         const projected = vertices.map(v => {
@@ -391,13 +397,16 @@ const HexCanvasRender = {
             return [rotX, y, rotZ];
         });
 
-        // 5. АЛГОРИТМ ХУДОЖНИКА (Z-Sorting): Корректно перекрываем грани по глубине Z
+        // 5. Z-SORTING (Алгоритм художника): Корректно перекрываем грани по глубине Z для исключения артефактов
         const renderOrder = faces.map((f, idx) => {
-            const zSum = f.reduce((sum, vIdx) => sum + projected[vIdx][2], 0);
+            let zSum = 0;
+            for (let vIdx of f) {
+                zSum += projected[vIdx][2];
+            }
             return { face: f, z: zSum / f.length, origIdx: idx };
-        }).sort((a, b) => a.z - b.z); // Сначала рисуем задние полигоны
+        }).sort((a, b) => a.z - b.z); // Сначала рисуем дальние полигоны
 
-        // 6. ПОСЛОЙНЫЙ РЕНДЕРИНГ И Flat Shading ОСВЕЩЕНИЕ
+        // 6. ПОСЛОЙНЫЙ 3D-РЕНДЕРИНГ И Flat Shading ОСВЕЩЕНИЕ ЛАМБЕРТА
         renderOrder.forEach(item => {
             const f = item.face;
 
@@ -414,13 +423,13 @@ const HexCanvasRender = {
             if (nLen > 0) {
                 nx /= nLen; ny /= nLen; nz /= nLen;
 
-                // Поворачиваем вектор нормали вслед за вращением фигуры
+                // Поворачиваем вектор нормали вслед за вращением фигуры вокруг оси Y
                 const rNx = nx * Math.cos(angleY) + nz * Math.sin(angleY);
                 const rNz = -nx * Math.sin(angleY) + nz * Math.cos(angleY);
 
                 // Скалярное произведение нормали и солнца (Закон Ламберта)
                 const dot = rNx * lNorm[0] + ny * lNorm[1] + rNz * lNorm[2];
-                const intensity = Math.max(0.24, dot); // Базовый фоновый свет (Ambient)
+                const intensity = Math.max(0.24, dot); // Фоновый Ambient свет для мягких теней
 
                 // Отрисовываем контур полигона на Canvas
                 ctx.beginPath();
@@ -430,7 +439,7 @@ const HexCanvasRender = {
                 }
                 ctx.closePath();
 
-                // Благородный королевский золотой цвет, зависящий от угла падения света
+                // Яркий королевский золотой градиент, переливающийся на свету
                 const r = Math.floor(195 + 60 * intensity);
                 const g = Math.floor(152 + 55 * intensity);
                 const b = Math.floor(45 + 30 * intensity);
@@ -438,8 +447,8 @@ const HexCanvasRender = {
                 ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
                 ctx.fill();
 
-                // Тонкая золоченая обводка ребер для подчеркивания граней low-poly модели
-                ctx.strokeStyle = "rgba(255, 240, 180, 0.35)";
+                // Тонкая золоченая обводка ребер для красивого подчеркивания объема Low-Poly граней
+                ctx.strokeStyle = "rgba(255, 240, 180, 0.32)";
                 ctx.lineWidth = 0.8;
                 ctx.stroke();
             }
@@ -447,9 +456,10 @@ const HexCanvasRender = {
 
         ctx.restore();
 
-        // Включаем цикл анимации для непрерывного 3D-вращения коня
+        // Удерживаем цикл анимации активным для непрерывной перерисовки кадров вращения
         this.isAnimating = true;
     },
+
 
 
     drawQuestPlate(ctx, text, x, y) {
