@@ -146,17 +146,54 @@ const AnimationManager = {
             // Находим реальный HTML-элемент вьюпорта для симуляции встряски экрана
             const viewportView = document.getElementById('viewport');
 
-            // --- ВАРИАНТ 1: ПУЛЬСИРУЮЩАЯ ВОЛНА РУН ---
+
+            // --- ВАРИАНТ 1: ПУЛЬСИРУЮЩАЯ ВОЛНА РУН (МАТЕМАТИЧЕСКИЙ РАСЧЕТ КОЛЬЦА В JS) ---
             if (mode === 'wave') {
                 this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
 
-                const ripple = document.createElement('div');
-                ripple.className = 'squad-impact-ripple';
-                ripple.style.left = `${targetScreen.x}px`;
-                ripple.style.top = `${targetScreen.y}px`;
-                document.body.appendChild(ripple);
-                setTimeout(() => ripple.remove(), 1000);
+                // Создаем невидимый контейнер-эпицентр взрыва в точке приземления флага
+                const container = document.createElement('div');
+                container.style.cssText = `position:absolute; left:${targetScreen.x}px; top:${targetScreen.y}px; pointer-events:none; z-index:9999;`;
+                document.body.appendChild(container);
+
+                const runesPool = (window.FrameManager && window.FrameManager.RUNE_POOL) ||
+                    ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ", "ᛁ", "ᛃ", "ᛇ", "ᛈ", "ᛉ", "ᛊ", "ᛏ", "ᛒ", "ᛗ", "ᛚ", "ᛜ", "ᛟ", "ᛞ"];
+
+                const numRunes = 12; // Количество рун в идеальной окружности
+
+                for (let i = 0; i < numRunes; i++) {
+                    const runeEl = document.createElement('div');
+                    runeEl.className = 'squad-rune-particle';
+                    runeEl.textContent = runesPool[Math.floor(Math.random() * runesPool.length)];
+
+                    // Шаг 1: Вычисляем угол для текущей руны (в радианах и градусах)
+                    const angleRad = (Math.PI * 2 / numRunes) * i;
+                    const angleDeg = (360 / numRunes) * i;
+
+                    // Шаг 2: Рассчитываем точные стартовые и финальные координаты смещения по окружности в JS
+                    const startRadius = 15;   // Исходный радиус появления рун (близко к центру)
+                    const targetRadius = 130; // Финальный радиус разлета волны рун
+
+                    const startX = Math.cos(angleRad) * startRadius;
+                    const startY = Math.sin(angleRad) * startRadius;
+                    const targetX = Math.cos(angleRad) * targetRadius;
+                    const targetY = Math.sin(angleRad) * targetRadius;
+
+                    // Передаем точные числовые координаты и углы поворота в CSS переменные
+                    // Смещение angleDeg - 90 разворачивает руны верхней (головной) частью точно к центру взрыва
+                    runeEl.style.setProperty('--start-x', `${startX}px`);
+                    runeEl.style.setProperty('--start-y', `${startY}px`);
+                    runeEl.style.setProperty('--target-x', `${targetX}px`);
+                    runeEl.style.setProperty('--target-y', `${targetY}px`);
+                    runeEl.style.setProperty('--rotate-deg', `${angleDeg - 90}deg`);
+
+                    container.appendChild(runeEl);
+                }
+
+                // Безопасно вычищаем контейнер из DOM по завершении анимации разлета
+                setTimeout(() => container.remove(), 1000);
             }
+
 
             // --- ВАРИАНТ 2: ПРИЗРАЧНОЕ ПРОЯВЛЕНИЕ ИЗ ТУМАНА ---
             else if (mode === 'ghost') {

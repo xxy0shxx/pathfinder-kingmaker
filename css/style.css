@@ -2771,3 +2771,35 @@ body {
     animation: squadShakeAnim 0.35s cubic-bezier(.36,.07,.19,.97) both !important;
     transform: translate3d(0, 0, 0) !important;
 }
+
+/* Базовое состояние светящейся руны */
+.squad-rune-particle {
+    position: absolute;
+    color: #ebd291;
+    font-family: 'Times New Roman', serif;
+    font-size: 30px;
+    font-weight: 900;
+    /* Яркое изумрудное неоновое свечение рун */
+    text-shadow: 0 0 10px #2ecc71, 0 0 4px #2ecc71;
+    pointer-events: none;
+    opacity: 0;
+    /* Стартовая точка по окружности вокруг флага */
+    transform: translate(var(--start-x), var(--start-y)) rotate(var(--rotate-deg)) scale(0.6);
+    animation: squadRuneWaveAnim 0.85s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+
+/* Плавный и сочный разлет рун верхней частью строго к эпицентру */
+@keyframes squadRuneWaveAnim {
+    0% {
+        opacity: 0;
+        transform: translate(var(--start-x), var(--start-y)) rotate(var(--rotate-deg)) scale(0.6);
+    }
+    15% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        /* Руны идеально разлетаются радиально наружу, расширяясь и растворяясь в воздухе */
+        transform: translate(var(--target-x), var(--target-y)) rotate(var(--rotate-deg)) scale(1.3);
+    }
+}
