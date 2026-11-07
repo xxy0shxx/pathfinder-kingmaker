@@ -281,10 +281,6 @@ const CampingManager = {
         }
     },
 
-
-
-
-
     triggerDiceAndResultModal() {
         const resultModal = document.getElementById('campResultModal');
         const modalBody = document.getElementById('campResultModalBody');
@@ -294,9 +290,8 @@ const CampingManager = {
 
         modalBody.innerHTML = '';
 
-        // Крупная плашка характеристик для ТВ-экрана
         const summaryStats = document.createElement('div');
-        summaryStats.style.cssText = 'background: rgba(0,0,0,0.5); padding: 20px; border: 2px solid #543e0d; border-radius: 6px; margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center; color: #ffd875; font-weight: bold; font-size: 32px;';
+        summaryStats.style.cssText = 'background: rgba(0,0,0,0.5); padding: 24px; border: 2px solid #543e0d; border-radius: 6px; margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; text-align: center; color: #ffd875; font-weight: 900; font-size: 42px; text-transform: uppercase; letter-spacing: 1px;';
         summaryStats.innerHTML = `
             <div>🎲 СЛ Сцены: <span style="color:#fff;">${this.state.encounterDc}</span></div>
             <div>⏱ Проверок: <span style="color:#2ecc71;">${this.state.totalChecks}</span></div>
@@ -305,15 +300,11 @@ const CampingManager = {
         `;
         modalBody.appendChild(summaryStats);
 
-        // Клонируем строки эффектов с увеличенным размером для ТВ
         Array.from(effectsList.children).forEach(child => {
             const clone = child.cloneNode(true);
-            clone.style.fontSize = '26px';
-            clone.style.marginBottom = '10px';
             modalBody.appendChild(clone);
         });
 
-        // Запуск 3D-анимации
         if (window.AnimationManager) {
             window.AnimationManager.playCampDiceAnimation(this.state.encounterDc, () => {
                 resultModal.classList.add('open');
@@ -323,19 +314,14 @@ const CampingManager = {
         }
     },
 
-
-
     saveFromUi() {
         try {
-            // ДВОЙНОЙ КОНТРОЛЬ: Если мастер принудительно жмет «Сохранить», а модалка еще не открыта
-            // (например, при частичном заполнении или для ручного переброса) — выводим бросок и итоги!
             const resultModal = document.getElementById('campResultModal');
             if (resultModal && !resultModal.classList.contains('open')) {
                 this.triggerDiceAndResultModal();
-                return; // Сначала крутим d20, полноценная фиксация в БД/LocalStorage произойдет по клику «Принять» внутри модалки
+                return;
             }
 
-            // Полноценная запись и закрытие планшета привала
             if (this.mapDataRef) this.mapDataRef.camping = this.state;
             if (this.onSaveCallback) this.onSaveCallback();
             else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
