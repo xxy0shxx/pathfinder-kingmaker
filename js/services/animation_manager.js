@@ -280,12 +280,13 @@ const AnimationManager = {
         }
     },
 
+
 // ============================================================================
-// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3
+// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3 (GOLD D20 EDIT)
 // ============================================================================
 
     /**
-     * Запускает полноценный цикл 3D Canvas рендеринга d20 с динамическим выравниванием грани
+     * Запускает полноценный цикл 3D Canvas рендеринга золотого d20 с динамическим выравниванием грани
      */
     playCampDiceAnimation(targetDc, onCompleteCallback) {
         const overlay = document.getElementById('campDiceOverlay');
@@ -346,19 +347,17 @@ const AnimationManager = {
         const winningFace = faces[winningIndex];
         const v0 = vertices[winningFace[0]], v1 = vertices[winningFace[1]], v2 = vertices[winningFace[2]];
 
-        // Вычисляем центр масс (нормаль) целевой грани в исходном состоянии
         let nx = (v0[0] + v1[0] + v2[0]) / 3;
         let ny = (v0[1] + v1[1] + v2[1]) / 3;
         let nz = (v0[2] + v1[2] + v2[2]) / 3;
         const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
         nx /= nLen; ny /= nLen; nz /= nLen;
 
-        // Рассчитываем точные углы поворота вокруг осей Y и X, чтобы нормаль совпала с осью Z [0, 0, 1]
         const targetY = -Math.atan2(nx, nz);
         const cosY = Math.cos(targetY), sinY = Math.sin(targetY);
         const nzRotated = -nx * sinY + nz * cosY;
         const targetX = Math.atan2(ny, nzRotated);
-        const targetZ = 0; // Нам не нужно крутить плоскость по Z, грань уже лежит лицом к игроку
+        const targetZ = 0;
 
         let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
         let scale = 0.1;
@@ -370,7 +369,8 @@ const AnimationManager = {
             const now = performance.now();
             const elapsed = now - startTime;
 
-            if (elapsed >= 5000) {
+            // Ускорили общую анимацию до 2000мс
+            if (elapsed >= 2000) {
                 cancelAnimationFrame(animationFrameId);
                 overlay.classList.remove('open');
                 if (typeof onCompleteCallback === 'function') onCompleteCallback();
@@ -378,26 +378,31 @@ const AnimationManager = {
             }
 
             let curX, curY, curZ;
-            if (elapsed < 2500) {
-                angleX += 0.06; angleY += 0.09; angleZ += 0.03;
+            // 0 - 1000мс: быстрое вращение
+            if (elapsed < 1000) {
+                angleX += 0.12; angleY += 0.18; angleZ += 0.06;
                 curX = angleX; curY = angleY; curZ = angleZ;
-            } else if (elapsed < 3000) {
+            }
+            // 1000мс - 1400мс: плавный доворот кубика к лицу игрока
+            else if (elapsed < 1400) {
                 if (snapX === null) {
                     snapX = angleX % (Math.PI * 2);
                     snapY = angleY % (Math.PI * 2);
                     snapZ = angleZ % (Math.PI * 2);
                 }
-                const progress = (elapsed - 2500) / 500;
+                const progress = (elapsed - 1000) / 400;
                 const ease = progress * progress * (3 - 2 * progress);
                 curX = snapX + (targetX - snapX) * ease;
                 curY = snapY + (targetY - snapY) * ease;
                 curZ = snapZ + (targetZ - snapZ) * ease;
-            } else {
+            }
+            // 1400мс - 2000мс: кубик замер на выпавшем значении
+            else {
                 curX = targetX; curY = targetY; curZ = targetZ;
             }
 
-            if (elapsed < 400) scale = 0.1 + 0.9 * (elapsed / 400);
-            else if (elapsed > 4600) scale = 1.0 - 0.8 * ((elapsed - 4600) / 400);
+            if (elapsed < 200) scale = 0.1 + 0.9 * (elapsed / 200);
+            else if (elapsed > 1800) scale = 1.0 - 0.8 * ((elapsed - 1800) / 200);
             else scale = 1.0;
 
             ctx.clearRect(0, 0, 400, 400);
@@ -441,17 +446,26 @@ const AnimationManager = {
 
                     const dot = nx3*light[0] + ny3*light[1] + nz1*light[2];
                     const brightness = Math.max(0.2, dot);
-                    const r = Math.floor(23 + 115 * brightness), g = Math.floor(45 + 150 * brightness), b = Math.floor(28 + 80 * brightness);
+
+                    // ЗОЛОТАЯ ПАЛИТРА ОРИГИНАЛЬНОГО ХОЛСТА (RGB Gold Metal)
+                    const r = Math.floor(180 + 75 * brightness);
+                    const g = Math.floor(135 + 80 * brightness);
+                    const b = Math.floor(35 + 40 * brightness);
 
                     ctx.beginPath();
                     ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]);
                     ctx.closePath();
                     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
-                    ctx.strokeStyle = "rgba(223, 188, 111, 0.75)"; ctx.lineWidth = 1; ctx.stroke();
+
+                    // Ребра: полированное светлое золото поверх теней граней
+                    ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
                     ctx.save();
-                    ctx.fillStyle = "#ffd875";
-                    ctx.font = `bold ${Math.floor(22 * scale)}px 'Times New Roman', serif`;
+                    // Цифры: белые, контрастные, со светящейся золотой обводкой-тенью
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = `bold ${Math.floor(24 * scale)}px 'Times New Roman', serif`;
+                    ctx.shadowColor = "#ffa200";
+                    ctx.shadowBlur = 6;
                     ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     const cx = (p0[0] + p1[0] + p2[0]) / 3;
                     const cy = (p0[1] + p1[1] + p2[1]) / 3;
@@ -463,6 +477,8 @@ const AnimationManager = {
         };
         draw3D();
     }
+
+
 };
 
 window.AnimationManager = AnimationManager;
