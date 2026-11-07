@@ -9,7 +9,8 @@ const SettingsManager = {
         enableFpsMonitor: true,
         fogOpacity: 70,
         disableAutocenter: false, // Наш новый флаг (по умолчанию выключен)
-        squadAnimMode: 'classic'
+        squadAnimMode: 'classic',
+        squadTokenSkin: 'flag'
     },
 
     init() {
@@ -34,6 +35,15 @@ const SettingsManager = {
         const sldFog = document.getElementById('settingFogOpacity');
         const lblFog = document.getElementById('settingFogOpacityVal');
         const selAnim = document.getElementById('settingSquadSpawnAnim');
+        const selSkin = document.getElementById('settingSquadTokenSkin');
+
+        if (selSkin) {
+            selSkin.value = this.state.squadTokenSkin;
+            selSkin.addEventListener('change', () => {
+                this.state.squadTokenSkin = selSkin.value;
+                this.saveAndApply();
+            });
+        }
 
         if (selAnim) {
             selAnim.value = this.state.squadAnimMode;
@@ -88,6 +98,7 @@ const SettingsManager = {
 
         // Передаем сквозную переменную в окно window для ViewportManager
         window.DISABLE_CAMERA_AUTOCENTER = this.state.disableAutocenter;
+        window.CURRENT_SQUAD_TOKEN_SKIN = this.state.squadTokenSkin;
 
         const fpsCounter = document.getElementById('fpsCounter') || document.querySelector('.fps-monitor');
         if (fpsCounter) {

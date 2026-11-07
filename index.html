@@ -153,14 +153,27 @@
             <div class="camping-section-title">⚙️ Настройки интерфейса системы</div>
 
             <div class="camping-region-bar" style="gap: 20px;">
+                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; width: 100%;">
+                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 18px; color: #dfbc6f;">🎨 Визуальный токен отряда на карте:</span>
+                    <select id="settingSquadTokenSkin" style="width: 100%; background: #020503; color: #ffd875; border: 2px solid #b89445; padding: 10px 14px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
+                        <option value="flag">🚩 Классическое развевающееся знамя</option>
+                        <option value="3dknight">🐴 Объемная 3D-фигура: Шахматный Конь</option>
+                    </select>
+                </div>
+
                 <div class="checkbox-row" style="padding: 10px 14px;">
                     <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">✈️ Баллистический полет флага из столицы (hex_0_0)</label>
                     <input type="checkbox" id="settingFlightMode" style="transform: scale(1.5);" checked>
                 </div>
 
-                <div class="checkbox-row" style="padding: 10px 14px;">
-                    <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">🖥️ Включить мониторинг производительности и FPS</label>
-                    <input type="checkbox" id="settingFpsMonitor" style="transform: scale(1.5);" checked>
+                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; width: 100%;">
+                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 18px; color: #dfbc6f;">✨ Эффект прибытия отряда в гекс:</span>
+                    <select id="settingSquadSpawnAnim" style="width: 100%; background: #020503; color: #ffd875; border: 2px solid #b89445; padding: 10px 14px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
+                        <option value="classic">⚜️ Классический взрыв</option>
+                        <option value="wave">🟢 Пульсирующая волна рун</option>
+                        <option value="ghost">🌫️ Призрачное проявление из тумана</option>
+                        <option value="shake">💥 Ударная сейсмическая встряска</option>
+                    </select>
                 </div>
 
                 <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
@@ -176,14 +189,9 @@
                     <input type="checkbox" id="settingDisableAutocenter" style="transform: scale(1.5);">
                 </div>
 
-                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; width: 100%;">
-                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 18px; color: #dfbc6f;">✨ Эффект прибытия отряда в гекс:</span>
-                    <select id="settingSquadSpawnAnim" style="width: 100%; background: #020503; color: #ffd875; border: 2px solid #b89445; padding: 10px 14px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
-                        <option value="classic">⚜️ Классический взрыв</option>
-                        <option value="wave">🟢 Пульсирующая волна рун</option>
-                        <option value="ghost">🌫️ Призрачное проявление из тумана</option>
-                        <option value="shake">💥 Ударная сейсмическая встряска</option>
-                    </select>
+                <div class="checkbox-row" style="padding: 10px 14px;">
+                    <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">🖥️ Включить мониторинг производительности и FPS</label>
+                    <input type="checkbox" id="settingFpsMonitor" style="transform: scale(1.5);" checked>
                 </div>
 
             </div>
