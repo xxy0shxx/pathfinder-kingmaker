@@ -77,8 +77,8 @@ const CampingManager = {
     },
 
     // ============================================================================
-// МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER)
-// ============================================================================
+    // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
+    // ============================================================================
 
     recalculateCamp() {
         try {
@@ -94,11 +94,10 @@ const CampingManager = {
 
             let baseRegionDc = 14;
             let currentRegionLevel = 1;
-            let terrainBaseDc = 12; // Базовая СЛ по умолчанию (Равнины)
+            let terrainBaseDc = 12;
             let terrainLabel = "Равнины";
             let terrainIcon = "🌾";
 
-            // Считываем местность гекса, на котором стоит отряд
             if (squadHex) {
                 if (squadHex.difficulty) baseRegionDc = parseInt(squadHex.difficulty, 10);
                 if (squadHex.regionLevel) currentRegionLevel = parseInt(squadHex.regionLevel, 10);
@@ -114,10 +113,8 @@ const CampingManager = {
             const dcTextEl = document.getElementById('campRegionDcText');
             if (dcTextEl) dcTextEl.textContent = `СЛ ${baseRegionDc} (уровень региона: ${currentRegionLevel})`;
 
-            // Записываем статичную СЛ из местности в состояние checkMod
             this.state.checkMod = terrainBaseDc;
 
-            // Обновляем текстовое поле ландшафта в блоке параметров
             const customTerrainLabelEl = document.getElementById('campEncounterTerrainLabel');
             if (customTerrainLabelEl) {
                 customTerrainLabelEl.textContent = `${terrainIcon} ${terrainLabel} (СЛ ${terrainBaseDc})`;
@@ -147,12 +144,10 @@ const CampingManager = {
             const finalCamoDc = baseRegionDc + prepareDcModifier;
             const finalHuntDc = baseRegionDc + prepareDcModifier;
 
-            // ВЕРНУЛИ НАЗАД: Вывод навыков в нижнем регистре внутри рамок действий
             const updateSkillDcLabel = (id, skillName, dcValue) => {
                 const el = document.getElementById(id);
                 if (el) {
                     const lowerSkill = skillName.toLowerCase();
-                    // Оборачиваем в класс .skill-name-large для создания единой рамки действия
                     el.innerHTML = `<span class="skill-name-large" style="margin-top: 4px; display: inline-block;">${lowerSkill} СЛ ${dcValue}</span>`;
                 }
             };
@@ -161,7 +156,6 @@ const CampingManager = {
             updateSkillDcLabel('label_dc_camouflage', 'Скрытность', finalCamoDc);
             updateSkillDcLabel('label_dc_hunt', 'Выживание', finalHuntDc);
 
-            // Итоговый расчет СЛ сцены
             let finalEncounterDc = this.state.checkMod;
             if (!isCampHorrible) {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
@@ -208,65 +202,22 @@ const CampingManager = {
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYieldText;
 
-            // Синхронизация правых итоговых счетчиков на панели
-            const normEl = document.getElementById('campNormalIngredients');
-            const specEl = document.getElementById('campSpecialIngredients');
-            const encEl = document.getElementById('calcEncounterDc');
-            const totEl = document.getElementById('calcTotalChecks');
-            const modEl = document.getElementById('campCheckModVal');
-
-            if (normEl) normEl.textContent = this.state.normalIngredients;
-            if (specEl) specEl.textContent = this.state.specialIngredients;
-            if (encEl) encEl.textContent = this.state.encounterDc;
-            if (totEl) totEl.textContent = this.state.totalChecks;
-            if (modEl) modEl.textContent = this.state.checkMod;
-
-            const effectsList = document.getElementById('campEffectsList');
-            if (!effectsList) return;
-            effectsList.innerHTML = '';
-
-            if (prepareRes === 'crit_success') this.addLogLine(effectsList, "КУ подготовки: Число проверок снижено на -1, СЛ ночной сцены защищен на +2.", "good");
-            else if (prepareRes === 'failure') this.addLogLine(effectsList, "Провал подготовки: СЛ Маскировки и Охоты увеличены на +2 из-за плохой стоянки.", "bad");
-            else if (isCampHorrible) this.addLogLine(effectsList, "Это ужасное место для лагеря! Маскировка и Охота невозможны. Число проверок увеличено на +1.", "bad");
-
-            if (!isCampHorrible) {
-                if (camoRes === 'crit_success') this.addLogLine(effectsList, "КУ маскировки: Число проверок снижено на -1, СЛ сцены увеличен на +2.", "good");
-                if (camoRes === 'success') this.addLogLine(effectsList, "Успех маскировки: СЛ случайной сцены увеличен на +1.", "good");
-                if (camoRes === 'crit_failure') this.addLogLine(effectsList, "КП маскировки: СЛ случайной сцены уменьшен на -2. Критический успех проверки случайной сцены: 19 или 20.", "bad");
-            }
+            this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, currentRegionLevel, specialYieldText);
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
-
 
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
         const specEl = document.getElementById('campSpecialIngredients');
         const encEl = document.getElementById('calcEncounterDc');
         const totEl = document.getElementById('calcTotalChecks');
+        const modEl = document.getElementById('campCheckModVal');
 
         if (normEl) normEl.textContent = this.state.normalIngredients;
         if (specEl) specEl.textContent = this.state.specialIngredients;
         if (encEl) encEl.textContent = this.state.encounterDc;
         if (totEl) totEl.textContent = this.state.totalChecks;
-
-        // --- НОВЫЙ БЛОК: Динамическое добавление крупных надписей навыков ---
-        const appendSkillLabel = (rowId, skillText) => {
-            const row = document.getElementById(rowId);
-            if (!row) return;
-            const nameCell = row.querySelector('.camp-act-cell') || row.querySelector('td');
-            if (nameCell && !nameCell.querySelector('.skill-name-large')) {
-                const skillLabel = document.createElement('span');
-                skillLabel.className = 'skill-name-large';
-                skillLabel.textContent = skillText;
-                nameCell.appendChild(skillLabel);
-            }
-        };
-
-        // Добавляем крупные надписи навыков в соответствующие строки
-        appendSkillLabel('row_prepare', 'Выживание');
-        appendSkillLabel('row_camouflage', 'Скрытность');
-        appendSkillLabel('row_hunt', 'Выживание');
-        // ------------------------------------------------------------------
+        if (modEl) modEl.textContent = this.state.checkMod;
 
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
@@ -295,6 +246,9 @@ const CampingManager = {
         }
     },
 
+    // ============================================================================
+    // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 3 ИЗ 3
+    // ============================================================================
 
     addLogLine(container, text, type) {
         const line = document.createElement('div');
@@ -302,36 +256,28 @@ const CampingManager = {
         line.textContent = text;
         container.appendChild(line);
     },
-// ============================================================================
-// МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER)
-// ============================================================================
 
     attachInputListeners() {
         const grid = document.querySelector('.camp-gm-inputs-grid');
         if (!grid) return;
 
-        // На всякий случай удаляем старые слушатели, чтобы не дублировать их в памяти
         grid.removeEventListener('change', this._handleGridChange);
         grid.removeEventListener('mousedown', this._handleGridMouseDown);
 
-        // 1. Слушатель изменения состояния (радиокнопки)
         this._handleGridChange = () => {
             this.recalculateCamp();
             this.checkCampPhaseCompletion();
         };
 
-        // 2. ИСПРАВЛЕНО: Объявляем метод для прогрева звука прямо здесь!
         this._handleGridMouseDown = () => {
             if (window.AnimationManager) {
                 window.AnimationManager.warmUpAudioContext();
             }
         };
 
-        // Навешиваем оба события на сетку таблицы привала
         grid.addEventListener('change', this._handleGridChange);
         grid.addEventListener('mousedown', this._handleGridMouseDown);
     },
-
 
     checkCampPhaseCompletion() {
         this.recalculateCamp();
@@ -342,16 +288,13 @@ const CampingManager = {
 
         let isFinished = false;
 
-        // Вариант А: Если КП подготовки — это мгновенный финал лагеря (доступна только 1 строка)
         if (prepareRes === 'crit_failure') {
             isFinished = true;
         }
-        // Вариант Б: В штатном режиме ждем заполнения всех трех строк (3 действия)
         else if (prepareRes && camoRes && huntRes) {
             isFinished = true;
         }
 
-        // Если все радиокнопки прожаты — мгновенно крутим куб на ТВ
         if (isFinished) {
             this.triggerDiceAndResultModal();
         }
@@ -480,3 +423,4 @@ const CampingManager = {
 };
 
 export default CampingManager;
+

@@ -181,6 +181,7 @@ const AnimationManager = {
         if (typeof HexCanvasRender.requestFrame === 'function') HexCanvasRender.requestFrame();
     },
 
+
     playCampDiceAnimation(targetDc, onCompleteCallback) {
         const overlay = document.getElementById('campDiceOverlay');
         const canvas = document.getElementById('d20Canvas');
@@ -200,36 +201,27 @@ const AnimationManager = {
             [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
         ];
 
-
-        // 2. ДИНАМИЧЕСКИ ПЕРЕЗАПИСЫВАЕМ СИМВОЛ НА ЭТОЙ ФРОНТАЛЬНОЙ ГРАНИ
-        // Находим, какой символ хочет отобразить ГМ (targetDc)
-        const dcMap = { "⚜":0, "1":0, "2":1, "3":2, "4":3, "5":4, "6":5, "7":6, "8":7, "9":8, "10":9, "11":10, "12":11, "13":12, "14":13, "15":14, "16":15, "17":16, "18":17, "19":18, "20":19 };
-        let realWinIdx = 11; // Если что-то пойдет не так, покажем 12
-        if (targetDc !== undefined && targetDc !== null) {
-            const k = String(targetDc).trim();
-            if (dcMap[k] !== undefined) realWinIdx = dcMap[k];
-        }
-
-        // Подменяем текст на главной фронтальной грани (индекс 11) на тот, который выпал!
-        const finalSymbolToDisplay = faces[realWinIdx][3];
-        faces[11][3] = finalSymbolToDisplay;
-
-        // Запоминаем индекс нашей "магической" грани, чтобы отрисовать на ней спецэффекты текста
-        let winIdx = 11;
-        const fWin = faces[winIdx];
-
-        // Точное вычисление вектора нормали К ЛЮБОЙ выбранной грани треугольника
+        // 1. НАМЕРТВО БЕРЕМ ИДЕАЛЬНЫЕ УГЛЫ ПОВОРОТА ОТ ГРАНИ "12" (Индекс 11 в массиве faces)
         const fWinBase = faces[11];
         let nx = (vertices[fWinBase[0]][0] + vertices[fWinBase[1]][0] + vertices[fWinBase[2]][0]) / 3;
         let ny = (vertices[fWinBase[0]][1] + vertices[fWinBase[1]][1] + vertices[fWinBase[2]][1]) / 3;
         let nz = (vertices[fWinBase[0]][2] + vertices[fWinBase[1]][2] + vertices[fWinBase[2]][2]) / 3;
         const nl = Math.sqrt(nx*nx + ny*ny + nz*nz); nx /= nl; ny /= nl; nz /= nl;
 
-
-        // Поворот вокруг Y, затем вокруг X, чтобы нормаль смотрела строго в экран (0, 0, 1)
         const rotY = -Math.atan2(nx, nz);
         const nzR = -nx * Math.sin(rotY) + nz * Math.cos(rotY);
         const rotX = Math.atan2(ny, nzR);
+
+        // 2. ОПРЕДЕЛЯЕМ ВЫПАВШЕЕ ДЛЯ ГМА ЗНАЧЕНИЕ (НАПРИМЕР, ИТОГОВОЕ СЛ)
+        const dcMap = { "⚜":0, "1":0, "2":1, "3":2, "4":3, "5":4, "6":5, "7":6, "8":7, "9":8, "10":9, "11":10, "12":11, "13":12, "14":13, "15":14, "16":15, "17":16, "18":17, "19":18, "20":19 };
+        let realWinIdx = 11;
+        if (targetDc !== undefined && targetDc !== null) {
+            const k = String(targetDc).trim();
+            if (dcMap[k] !== undefined) realWinIdx = dcMap[k];
+        }
+
+        // Запоминаем строковый символ, который нужно вывести во фронт (например "20", "14" или "⚜")
+        const dynamicTextValue = faces[realWinIdx][3];
 
         let aX = Math.random() * 5, aY = Math.random() * 5, aZ = Math.random() * 5;
         let sc = 0.1, sTime = performance.now(), frameId, snapX = null, snapY = null, snapZ = null, flashed = false;
@@ -248,7 +240,6 @@ const AnimationManager = {
             sc = elapsed < 200 ? 0.1 + 0.9 * (elapsed / 200) : (elapsed > 2700 ? 1.0 - 0.9 * ((elapsed - 2700) / 300) : 1.0);
             ctx.clearRect(0, 0, 400, 400);
 
-            // Четкое проецирование вершин без сплющивания (масштаб накладывается строго в конце)
             const rotated = vertices.map(v => {
                 let x = v[0], y = v[1], z = v[2];
                 let y1 = y * Math.cos(cX) - z * Math.sin(cX), z1 = y * Math.sin(cX) + z * Math.cos(cX);
@@ -274,16 +265,18 @@ const AnimationManager = {
                     ctx.fillStyle = `rgb(${Math.floor(180 + 75 * brightness)}, ${Math.floor(135 + 80 * brightness)}, ${Math.floor(35 + 40 * brightness)})`; ctx.fill();
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
-                    if (elapsed >= 1400 && f[0] === fWin[0] && f[1] === fWin[1] && f[2] === fWin[2]) {
+                    // Если это финальная фронтальная грань (Индекс 11) — рисуем на ней динамический текст
+                    if (elapsed >= 1400 && f[0] === faces[11][0] && f[1] === faces[11][1] && f[2] === faces[11][2]) {
                         ctx.save(); if (!flashed) { this.spawnBeamsBurst(canvas.getBoundingClientRect().left + 200, canvas.getBoundingClientRect().top + 200, 1.4); flashed = true; }
-                        const txt = String(f[3]).trim(), opacity = Math.min(1, (elapsed - 1400) / 150);
+
+                        const opacity = Math.min(1, (elapsed - 1400) / 150);
                         let size = Math.floor(54 * sc), sCol = `rgba(255,162,0,${opacity})`, tCol = `rgba(255,255,255,${opacity})`;
 
-                        if (txt === "20") { size = Math.floor(68 * sc); sCol = `rgba(46,204,113,${opacity})`; tCol = `rgba(235,255,240,${opacity})`; }
-                        else if (txt === "1" || txt === "⚜") { size = Math.floor(68 * sc); sCol = `rgba(231,76,60,${opacity})`; tCol = `rgba(255,210,210,${opacity})`; }
+                        if (dynamicTextValue === "20") { size = Math.floor(68 * sc); sCol = `rgba(46,204,113,${opacity})`; tCol = `rgba(235,255,240,${opacity})`; }
+                        else if (dynamicTextValue === "1" || dynamicTextValue === "⚜") { size = Math.floor(68 * sc); sCol = `rgba(231,76,60,${opacity})`; tCol = `rgba(255,210,210,${opacity})`; }
 
                         ctx.fillStyle = tCol; ctx.font = `900 ${size}px 'Times New Roman', serif`; ctx.shadowColor = sCol; ctx.shadowBlur = 18; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                        ctx.fillText(f[3], (p0[0] + p1[0] + p2[0]) / 3, (p0[1] + p1[1] + p2[1]) / 3); ctx.restore();
+                        ctx.fillText(dynamicTextValue, (p0[0] + p1[0] + p2[0]) / 3, (p0[1] + p1[1] + p2[1]) / 3); ctx.restore();
                     }
                 }
             });
@@ -291,6 +284,8 @@ const AnimationManager = {
         };
         draw3D();
     }
+
+
 };
 
 window.AnimationManager = AnimationManager;
