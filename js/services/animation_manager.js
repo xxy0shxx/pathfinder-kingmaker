@@ -459,6 +459,18 @@ const AnimationManager = {
                     if (elapsed >= 1400 && f[3] === winningFace[3]) {
                         ctx.save();
 
+                        ctx.restore();
+
+                        // Добавим разовый триггер эффекта вспышки лучей из ядра AnimationManager в момент стопа!
+                        if (!this._hasFlashed) {
+                            // Запускаем твои штатные золотые лучи точно по центру холста
+                            const rect = canvas.getBoundingClientRect();
+                            const cx = rect.left + rect.width / 2;
+                            const cy = rect.top + rect.height / 2;
+                            this.spawnBeamsBurst(cx, cy, 1.3); // Масштаб 1.3 для массивности
+                            this._hasFlashed = true;
+                        }
+
                         const textOpacity = Math.min(1, (elapsed - 1400) / 150);
                         ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity})`;
 
