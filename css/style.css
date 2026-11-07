@@ -2699,3 +2699,19 @@ body {
     color: #dfbc6f !important;
     text-transform: none !important;
 }
+
+/* Полностью скрываем старую текстовую шапку журнала заданий */
+.quest-log-header {
+    display: none !important;
+}
+
+/* Компенсируем отступы сверху для контейнеров планшетов, чтобы они красиво прилегали к табам */
+.quest-log-container {
+    padding-top: 0 !important;
+}
+
+.kingdom-tablet-content,
+.camping-tablet-content,
+#settingsTabletContainer {
+    height: calc(100% - 60px) !important; /* Корректируем высоту под обновленный размер табов */
+}
