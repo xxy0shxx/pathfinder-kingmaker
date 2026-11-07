@@ -2772,23 +2772,29 @@ body {
     transform: translate3d(0, 0, 0) !important;
 }
 
-/* Базовое состояние светящейся руны */
 .squad-rune-particle {
     position: absolute;
-    color: #ebd291;
+    color: #ffffff !important;
     font-family: 'Times New Roman', serif;
-    font-size: 30px;
+    font-size: 36px;
     font-weight: 900;
-    /* Яркое изумрудное неоновое свечение рун */
-    text-shadow: 0 0 10px #2ecc71, 0 0 4px #2ecc71;
+    mix-blend-mode: screen !important;
+    text-shadow:
+            0 0 6px #ffffff,
+            0 0 12px #ffffff,
+            0 0 20px #ffd875,
+            0 0 35px #ffd875,
+            0 0 55px #d4af37,
+            0 0 80px #e67e22,
+            0 0 110px #ff3300 !important;
+    filter: contrast(1.4) saturate(1.5) drop-shadow(0 0 15px rgba(255, 216, 117, 0.9)) !important;
+
     pointer-events: none;
     opacity: 0;
-    /* Стартовая точка по окружности вокруг флага */
     transform: translate(var(--start-x), var(--start-y)) rotate(var(--rotate-deg)) scale(0.6);
-    animation: squadRuneWaveAnim 0.85s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+    animation: squadRuneWaveAnim 1.45s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
 }
 
-/* Плавный и сочный разлет рун верхней частью строго к эпицентру */
 @keyframes squadRuneWaveAnim {
     0% {
         opacity: 0;
@@ -2799,7 +2805,6 @@ body {
     }
     100% {
         opacity: 0;
-        /* Руны идеально разлетаются радиально наружу, расширяясь и растворяясь в воздухе */
-        transform: translate(var(--target-x), var(--target-y)) rotate(var(--rotate-deg)) scale(1.3);
+        transform: translate(var(--target-x), var(--target-y)) rotate(var(--rotate-deg)) scale(1.4);
     }
 }
