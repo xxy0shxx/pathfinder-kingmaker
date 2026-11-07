@@ -374,8 +374,217 @@ const AnimationManager = {
             frameId = requestAnimationFrame(draw3D);
         };
         draw3D();
-    }
+    },
 
+    /**
+     * [ПЕРЕНЕСЕНО] Математически точный 3D low-poly движок шахматного Ферзя из граней
+     */
+    draw3DQueenToken(ctx, cx, cy) {
+        ctx.save();
+        ctx.translate(cx, cy - 6);
+
+        const time = Date.now() / 1000;
+        const bounceY = Math.sin(time * 2.2) * 1.8;
+        const angleY = time * 0.45;
+        ctx.translate(0, bounceY);
+
+        const lightDir = [0.5, -0.8, 0.4];
+        const lLength = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
+        const lNorm = [lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength];
+
+        const vertices = [];
+        const segments = 10;
+
+        // ЖЕСТКАЯ ЗАЩИТА: Пошаговый push профиля Ферзя без пустых ячеек
+        const profile = [];
+        profile.push([14, 25]);
+        profile.push([13, 20]);
+        profile.push([11, 14]);
+        profile.push([7, 0]);
+        profile.push([6, -6]);
+        profile.push([8, -11]);
+        profile.push([5, -14]);
+        profile.push([8, -20]);
+        profile.push([11, -26]);
+        profile.push([0, -32]);
+
+        for (let j = 0; j < profile.length; j++) {
+            const radius = profile[j][0];
+            const h = profile[j][1];
+            for (let i = 0; i < segments; i++) {
+                const ang = (Math.PI * 2 / segments) * i;
+                if (j === profile.length - 1) vertices.push([0, h, 0]);
+                else vertices.push([Math.cos(ang) * radius, h, Math.sin(ang) * radius]);
+            }
+        }
+
+        const faces = [];
+        for (let j = 0; j < profile.length - 1; j++) {
+            const layerOffset = j * segments;
+            const nextLayerOffset = (j + 1) * segments;
+            for (let i = 0; i < segments; i++) {
+                const next = (i + 1) % segments;
+                if (j === 8) {
+                    if (i % 2 === 0) faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + next]);
+                } else if (j === profile.length - 2) {
+                    faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + i]);
+                } else {
+                    faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + next, nextLayerOffset + i]);
+                }
+            }
+        }
+
+        const projected = vertices.map(v => {
+            const rotX = v[0] * Math.cos(angleY) + v[2] * Math.sin(angleY);
+            const rotZ = -v[0] * Math.sin(angleY) + v[2] * Math.cos(angleY);
+            return [rotX, v[1], rotZ];
+        });
+
+        const renderOrder = faces.map((f, idx) => {
+            let zSum = 0;
+            for (let vIdx of f) zSum += projected[vIdx][2];
+            return { face: f, z: zSum / f.length, origIdx: idx };
+        }).sort((a, b) => a.z - b.z);
+
+        renderOrder.forEach(item => {
+            const f = item.face;
+            const p0 = vertices[f[0]], p1 = vertices[f[1]], p2 = vertices[f[2]];
+            const ax = p1[0] - p0[0], ay = p1[1] - p0[1], az = p1[2] - p0[2];
+            const bx = p2[0] - p0[0], by = p2[1] - p0[1], bz = p2[2] - p0[2];
+
+            let nx = ay * bz - az * by;
+            let ny = az * bx - ax * bz;
+            let nz = ax * by - ay * bx;
+            const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
+
+            if (nLen > 0) {
+                nx /= nLen; ny /= nLen; nz /= nLen;
+                const rNx = nx * Math.cos(angleY) + nz * Math.sin(angleY);
+                const rNz = -nx * Math.sin(angleY) + nz * Math.cos(angleY);
+                const dot = rNx * lNorm[0] + ny * lNorm[1] + rNz * lNorm[2];
+                const intensity = Math.max(0.24, dot);
+
+                ctx.beginPath();
+                ctx.moveTo(projected[f[0]][0], projected[f[0]][1]);
+                for (let i = 1; i < f.length; i++) {
+                    ctx.lineTo(projected[f[i]][0], projected[f[i]][1]);
+                }
+                ctx.closePath();
+
+                ctx.fillStyle = `rgb(${Math.floor(195 + 60 * intensity)}, ${Math.floor(152 + 55 * intensity)}, ${Math.floor(45 + 30 * intensity)})`;
+                ctx.fill();
+                ctx.strokeStyle = "rgba(255, 240, 180, 0.32)";
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+            }
+        });
+        ctx.restore();
+    },
+
+    /**
+     * [ПЕРЕНЕСЕНО] Монументальная 3D low-poly Ладья с уширенной подошвой из граней
+     */
+    draw3DRookToken(ctx, cx, cy) {
+        ctx.save();
+        ctx.translate(cx, cy - 6);
+
+        const time = Date.now() / 1000;
+        const bounceY = Math.sin(time * 2.2) * 1.8;
+        const angleY = time * 0.45;
+        ctx.translate(0, bounceY);
+
+        const lightDir = [0.5, -0.8, 0.4];
+        const lLength = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
+        const lNorm = [lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength];
+
+        const vertices = [];
+        const segments = 12;
+
+        // ЖЕСТКАЯ ЗАЩИТА: Пошаговый push профиля Ладьи без пустых ячеек
+        const profile = [];
+        profile.push([17, 25]);
+        profile.push([16, 21]);
+        profile.push([12, 16]);
+        profile.push([8, -2]);
+        profile.push([9, -12]);
+        profile.push([12, -16]);
+        profile.push([15, -24]);
+        profile.push([15, -24]);
+        profile.push([16, -34]);
+        profile.push([11, -24]);
+
+        for (let j = 0; j < profile.length; j++) {
+            const radius = profile[j][0];
+            const h = profile[j][1];
+            for (let i = 0; i < segments; i++) {
+                const ang = (Math.PI * 2 / segments) * i;
+                vertices.push([Math.cos(ang) * radius, h, Math.sin(ang) * radius]);
+            }
+        }
+
+        const faces = [];
+        for (let j = 0; j < profile.length - 1; j++) {
+            const layerOffset = j * segments;
+            const nextLayerOffset = (j + 1) * segments;
+            for (let i = 0; i < segments; i++) {
+                const next = (i + 1) % segments;
+                if (j === 7) {
+                    if (i % 3 === 0 || i % 3 === 1) faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + next, nextLayerOffset + i]);
+                } else if (j === 8) {
+                    if (i % 3 === 0 || i % 3 === 1) faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + next, nextLayerOffset + i]);
+                } else {
+                    faces.push([layerOffset + i, layerOffset + next, nextLayerOffset + next, nextLayerOffset + i]);
+                }
+            }
+        }
+
+        const projected = vertices.map(v => {
+            const rotX = v[0] * Math.cos(angleY) + v[2] * Math.sin(angleY);
+            const rotZ = -v[0] * Math.sin(angleY) + v[2] * Math.cos(angleY);
+            return [rotX, v[1], rotZ];
+        });
+
+        const renderOrder = faces.map((f, idx) => {
+            let zSum = 0;
+            for (let vIdx of f) zSum += projected[vIdx][2];
+            return { face: f, z: zSum / f.length, origIdx: idx };
+        }).sort((a, b) => a.z - b.z);
+
+        renderOrder.forEach(item => {
+            const f = item.face;
+            const p0 = vertices[f[0]], p1 = vertices[f[1]], p2 = vertices[f[2]];
+            const ax = p1[0] - p0[0], ay = p1[1] - p0[1], az = p1[2] - p0[2];
+            const bx = p2[0] - p0[0], by = p2[1] - p0[1], bz = p2[2] - p0[2];
+
+            let nx = ay * bz - az * by;
+            let ny = az * bx - ax * bz;
+            let nz = ax * by - ay * bx;
+            const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
+
+            if (nLen > 0) {
+                nx /= nLen; ny /= nLen; nz /= nLen;
+                const rNx = nx * Math.cos(angleY) + nz * Math.sin(angleY);
+                const rNz = -nx * Math.sin(angleY) + nz * Math.cos(angleY);
+                const dot = rNx * lNorm[0] + ny * lNorm[1] + rNz * lNorm[2];
+                const intensity = Math.max(0.24, dot);
+
+                ctx.beginPath();
+                ctx.moveTo(projected[f[0]][0], projected[f[0]][1]);
+                for (let i = 1; i < f.length; i++) {
+                    ctx.lineTo(projected[f[i]][0], projected[f[i]][1]);
+                }
+                ctx.closePath();
+
+                // Насыщенная королевская золотая заливка с благородными тенями
+                ctx.fillStyle = `rgb(${Math.floor(205 + 50 * intensity)}, ${Math.floor(160 + 45 * intensity)}, ${Math.floor(55 + 25 * intensity)})`;
+                ctx.fill();
+                ctx.strokeStyle = "rgba(255, 240, 180, 0.35)";
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+            }
+        });
+        ctx.restore();
+    },
 
 };
 
