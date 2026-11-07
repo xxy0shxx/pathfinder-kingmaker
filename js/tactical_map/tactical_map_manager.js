@@ -119,9 +119,12 @@ const TacticalMapManager = {
             if (hexLayer) hexLayer.style.display = 'block';
             if (gridLayer) gridLayer.style.display = 'none';
             if (clickableMap) clickableMap.style.display = 'block';
-            if (btnToggleFog) btnToggleFog.style.display = 'none';
+
+            // Кнопка глаза должна оставаться видимой на глобальной карте!
+            if (btnToggleFog) btnToggleFog.style.display = 'flex';
 
             if (window.HexCanvasRender) window.HexCanvasRender.requestFrame();
+
 
         } else if (mode === 'camp') {
             mapImg.src = self.campParams.src;
@@ -387,7 +390,7 @@ const TacticalMapManager = {
     },
 
     /**
-     * Инициализация кнопки глобального переключения Тумана Войны для тактической карты
+     * Инициализация кнопки глобального переключения Тумана Войны для обеих карт
      */
     initFogToggleButton() {
         const self = TacticalMapManager;
@@ -396,15 +399,21 @@ const TacticalMapManager = {
 
         btnToggleFog.addEventListener('click', () => {
             self.state.isCampFogEnabled = !self.state.isCampFogEnabled;
+
+            MAP_CONFIG.isGlobalFogEnabled = self.state.isCampFogEnabled;
+
             btnToggleFog.classList.toggle('fog-disabled', !self.state.isCampFogEnabled);
             btnToggleFog.classList.toggle('active', self.state.isCampFogEnabled);
             btnToggleFog.textContent = self.state.isCampFogEnabled ? '👁️' : '👓';
 
             if (self.state.currentMapMode === 'camp') {
                 self.recalculateCampFogOfWar();
+            } else if (self.state.currentMapMode === 'global' && window.HexCanvasRender) {
+                window.HexCanvasRender.requestFrame();
             }
         });
     },
+
     // ============================================================================
     // ЧАСТЬ 6 ИЗ 10: КРУД-МЕТОДЫ МОДАЛЬНОГО ОКНА (OPEN, CLOSE, SAVE, DELETE)
     // ============================================================================

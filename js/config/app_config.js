@@ -4,6 +4,7 @@
 export const MAP_CONFIG = {
     ENABLE_FPS_MONITOR: true,  // Включение/выключение счетчика кадров и логов нагрузки
     // Геометрия сетки гексов (соответствует вашим вычислениям на базе радиуса)
+    isGlobalFogEnabled: true,
     grid: {
         radius: 77.96,
         rows: 12,

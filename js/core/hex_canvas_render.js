@@ -202,6 +202,8 @@ const HexCanvasRender = {
     },
 
 
+
+
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 
@@ -212,12 +214,16 @@ const HexCanvasRender = {
             ctx.fill();
         }
 
-        // 2. Туман войны
-        const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
-        if (!isRevealed) {
-            this.drawHexPath(cx, cy, r);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fill();
+        // 2. ИСПРАВЛЕНО: Туман войны с абсолютным отключением по кнопке ГМа
+        // Если флаг отключен (isGlobalFogEnabled === false), этот блок просто пропускается,
+        // и неразведанные гексы становятся на 100% прозрачными без черной маски!
+        if (MAP_CONFIG.isGlobalFogEnabled) {
+            const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
+            if (!isRevealed) {
+                this.drawHexPath(cx, cy, r);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fill();
+            }
         }
 
         // 3. Свечение под домашней клеткой отряда
@@ -289,6 +295,7 @@ const HexCanvasRender = {
             }
         }
     },
+
 
     drawQuestPlate(ctx, text, x, y) {
         ctx.save();
@@ -434,7 +441,15 @@ const HexCanvasRender = {
 
         const [_, row, col] = hexKey.split('_');
         const data = this.hexesData[hexKey] || null;
+
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
+
+        // Если туман глобально ВКЛЮЧЕН и гекс не разведан — рисуем черную маску
+        if (MAP_CONFIG.isGlobalFogEnabled && !isRevealed) {
+            this.drawHexPath(cx, cy, r);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fill();
+        }
 
         if (!data || (!data.title && !data.text)) {
             tooltip.innerHTML = `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [${row};${col}]</div>
