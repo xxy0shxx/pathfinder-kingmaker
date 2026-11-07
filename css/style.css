@@ -2485,7 +2485,7 @@ body {
     transition: opacity 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 /* ============================================================================
-   19. АНИМАЦИЯ 3D-ИКОСАЭДРА (CANVAS) И ИТОГОВОЕ ОКНО ПРИВАЛА
+   19. АНИМАЦИЯ 3D-ИКОСАЭДРА (CANVAS) И ИТОГОВОЕ ОКНО ПРИВАЛА (МАСШТАБ ДЛЯ ТВ)
    ============================================================================ */
 .camp-dice-overlay {
     position: fixed;
@@ -2543,19 +2543,21 @@ body {
     max-height: 100%;
     display: block;
 }
+
+/* Экстремально увеличенное модальное окно итогов для телевизора */
 .camp-result-modal {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
     background: linear-gradient(135deg, #0f2215 0%, #050b07 100%);
-    border: 3px solid #dfbc6f;
-    border-radius: 6px;
-    padding: 25px;
-    width: 600px;
-    max-width: 90vw;
+    border: 4px solid #dfbc6f; /* Рамка сделана толще */
+    border-radius: 8px;
+    padding: 40px !important; /* Увеличено с 25px для объема */
+    width: 900px !important;   /* Расширено с 600px под ТВ форматы */
+    max-width: 95vw;
     z-index: 10250;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(223, 188, 111, 0.4);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 40px rgba(223, 188, 111, 0.5);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
@@ -2566,26 +2568,51 @@ body {
     visibility: visible;
     transform: translate(-50%, -50%) scale(1);
 }
+
+/* Огромный заголовок «Итоги ночного привала» для удобного чтения издалека */
 .camp-res-modal-title {
-    font-size: 28px;
+    font-size: 56px !important; /* Увеличено х2 (было 28px) */
     color: #ffd875;
     text-transform: uppercase;
     text-align: center;
-    border-bottom: 2px solid #543e0d;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    border-bottom: 3px solid #543e0d;
+    padding-bottom: 20px !important;
+    margin-bottom: 30px !important;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px #ffd875, 0 4px 8px rgba(0, 0, 0, 0.95);
 }
+
+/* Крупный считываемый лог результатов */
 .camp-res-modal-body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    font-size: 18px;
-    max-height: 50vh;
+    gap: 20px !important; /* Больше пространства между строками */
+    font-size: 28px !important; /* Увеличено с 18px */
+    max-height: 55vh;
     overflow-y: auto;
-    padding-right: 5px;
+    padding-right: 10px;
 }
+
+/* Адаптация внутренних строк эффектов привала под ТВ масштаб */
+.camp-res-modal-body .camp-effect-line {
+    font-size: 26px !important;
+    line-height: 1.5 !important;
+    padding-left: 36px !important;
+}
+.camp-res-modal-body .camp-effect-line::before {
+    font-size: 24px !important;
+    top: 4px !important;
+}
+
+/* Массивная нижняя кнопка «Принять» */
 .camp-res-modal-footer {
-    margin-top: 20px;
+    margin-top: 30px;
     display: flex;
     justify-content: center;
+    width: 100%;
+}
+.camp-res-modal-footer .btn {
+    padding: 16px 45px !important;
+    font-size: 22px !important;
+    min-width: 220px;
 }
