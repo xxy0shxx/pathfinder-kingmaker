@@ -136,13 +136,67 @@ const AnimationManager = {
         document.body.appendChild(flyingFlag);
 
         setTimeout(() => {
-            this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
+            // ИСПРАВЛЕНО: Безопасно считываем стейт напрямую из менеджера настроек,
+            // страхуясь на случай, если модуль еще не успел записать данные в window
+            let mode = 'classic';
+            if (window.SettingsManager && window.SettingsManager.state && window.SettingsManager.state.squadAnimMode) {
+                mode = window.SettingsManager.state.squadAnimMode;
+            }
+
+            // Находим реальный HTML-элемент вьюпорта для симуляции встряски экрана
+            const viewportView = document.getElementById('viewport');
+
+            // --- ВАРИАНТ 1: ПУЛЬСИРУЮЩАЯ ВОЛНА РУН ---
+            if (mode === 'wave') {
+                this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
+
+                const ripple = document.createElement('div');
+                ripple.className = 'squad-impact-ripple';
+                ripple.style.left = `${targetScreen.x}px`;
+                ripple.style.top = `${targetScreen.y}px`;
+                document.body.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 1000);
+            }
+
+            // --- ВАРИАНТ 2: ПРИЗРАЧНОЕ ПРОЯВЛЕНИЕ ИЗ ТУМАНА ---
+            else if (mode === 'ghost') {
+                const cloud = document.createElement('div');
+                cloud.className = 'squad-impact-cloud';
+                cloud.style.left = `${targetScreen.x}px`;
+                cloud.style.top = `${targetScreen.y}px`;
+                document.body.appendChild(cloud);
+                setTimeout(() => cloud.remove(), 1200);
+            }
+
+            // --- ВАРИАНТ 3: УДАРНАЯ СЕЙСМИЧЕСКАЯ ВСТРЯСКА КАРТЫ ---
+            else if (mode === 'shake') {
+                this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
+
+                // Встряхиваем само окно просмотра (viewport), чтобы эффект
+                // выглядел одинаково сочно при любом уровне приближения (Zoom)
+                if (viewportView) {
+                    viewportView.classList.add('squad-screen-shake');
+                    setTimeout(() => viewportView.classList.remove('squad-screen-shake'), 400);
+                }
+            }
+
+            // --- ВАРИАНТ CLASSIC: СТАНДАРТНЫЙ ГЕРАЛЬДИЧЕСКИЙ ВЗРЫВ ---
+            else {
+                this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
+                setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 130);
+                setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 310);
+            }
+
             if (typeof onImpactCallback === 'function') onImpactCallback();
         }, 1300);
 
+
         setTimeout(() => { flyingFlag.remove(); }, 1300);
+        /*
         setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 1430);
         setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 1610);
+
+         */
     },
 
     focusOnHex(hexId) {

@@ -8,7 +8,8 @@ const SettingsManager = {
         flightFromCapital: true,
         enableFpsMonitor: true,
         fogOpacity: 70,
-        disableAutocenter: false // Наш новый флаг (по умолчанию выключен)
+        disableAutocenter: false, // Наш новый флаг (по умолчанию выключен)
+        squadAnimMode: 'classic'
     },
 
     init() {
@@ -25,12 +26,22 @@ const SettingsManager = {
         }
     },
 
+
     bindUiElements() {
         const chkFlight = document.getElementById('settingFlightMode');
         const chkFps = document.getElementById('settingFpsMonitor');
         const chkAutocenter = document.getElementById('settingDisableAutocenter');
         const sldFog = document.getElementById('settingFogOpacity');
         const lblFog = document.getElementById('settingFogOpacityVal');
+        const selAnim = document.getElementById('settingSquadSpawnAnim');
+
+        if (selAnim) {
+            selAnim.value = this.state.squadAnimMode;
+            selAnim.addEventListener('change', () => {
+                this.state.squadAnimMode = selAnim.value;
+                this.saveAndApply();
+            });
+        }
 
         if (chkFlight) {
             chkFlight.checked = this.state.flightFromCapital;
@@ -68,6 +79,7 @@ const SettingsManager = {
             });
         }
     },
+
 
     applySettingsToEngine() {
         window.FLIGHT_FROM_CAPITAL_MODE = this.state.flightFromCapital;
