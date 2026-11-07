@@ -162,6 +162,14 @@
                     <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">🖥️ Включить мониторинг производительности и FPS</label>
                     <input type="checkbox" id="settingFpsMonitor" style="transform: scale(1.5);" checked>
                 </div>
+
+                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
+                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 18px;">🕶️ Плотность Тумана Войны (Глобальная карта):</span>
+                    <div style="display: flex; align-items: center; gap: 15px; width: 100%; background: rgba(0, 0, 0, 0.2); padding: 10px 14px; border-radius: 4px; border: 1px solid rgba(84, 62, 13, 0.3);">
+                        <input type="range" id="settingFogOpacity" min="0" max="100" value="70" style="flex-grow: 1; -webkit-appearance: none; appearance: none; height: 8px; background: linear-gradient(to right, #112417, #dfbc6f); border-radius: 4px; outline: none; cursor: pointer;">
+                        <span id="settingFogOpacityVal" style="font-weight: bold; color: #ffd875; font-family: monospace; font-size: 20px; min-width: 45px; text-align: right;">70%</span>
+                    </div>
+                </div>
             </div>
         </div>
 

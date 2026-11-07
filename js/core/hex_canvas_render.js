@@ -214,14 +214,15 @@ const HexCanvasRender = {
             ctx.fill();
         }
 
-        // 2. ИСПРАВЛЕНО: Туман войны с абсолютным отключением по кнопке ГМа
-        // Если флаг отключен (isGlobalFogEnabled === false), этот блок просто пропускается,
-        // и неразведанные гексы становятся на 100% прозрачными без черной маски!
+        // 2. Туман войны (с динамической регулировкой плотности из настроек ГМа)
         if (MAP_CONFIG.isGlobalFogEnabled) {
             const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
             if (!isRevealed) {
                 this.drawHexPath(cx, cy, r);
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+
+                // Используем сохраненный коэффициент window.GLOBAL_FOG_OPACITY (по дефолту 0.7)
+                const currentAlpha = window.GLOBAL_FOG_OPACITY !== undefined ? window.GLOBAL_FOG_OPACITY : 0.7;
+                ctx.fillStyle = `rgba(0, 0, 0, ${currentAlpha})`;
                 ctx.fill();
             }
         }
