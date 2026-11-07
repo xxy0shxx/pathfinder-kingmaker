@@ -1,7 +1,3 @@
-// ============================================================================
-// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 1 ИЗ 3
-// ============================================================================
-
 import { MAP_CONFIG } from '../config/app_config.js';
 import HexCanvasRender from '../core/hex_canvas_render.js';
 import ViewportManager from '../services/viewport_manager.js';
@@ -9,9 +5,6 @@ import ViewportManager from '../services/viewport_manager.js';
 const AnimationManager = {
     _sharedAudioCtx: null,
 
-    /**
-     * Создает радиальный взрыв искр в указанных координатах
-     */
     createBurst(bx, by) {
         const burstContainer = document.createElement('div');
         burstContainer.className = 'flag-impact-burst';
@@ -26,14 +19,10 @@ const AnimationManager = {
             spark.style.setProperty('--angle', `${currentAngle}deg`);
             burstContainer.appendChild(spark);
         }
-
         document.body.appendChild(burstContainer);
         setTimeout(() => { burstContainer.remove(); }, 250);
     },
 
-    /**
-     * Генерирует вспышку шести золотых лучей с возможностью изменения масштаба
-     */
     spawnBeamsBurst(cx, cy, scale = 1.0) {
         const beamsContainer = document.createElement('div');
         beamsContainer.className = 'hex-beams-burst';
@@ -49,17 +38,12 @@ const AnimationManager = {
             beam.className = 'focus-beam';
             const currentAngle = 60 * i - 30;
             beam.style.setProperty('--angle', `${currentAngle}deg`);
-            beam.style.setProperty('--radius', `0px`);
             beamsContainer.appendChild(beam);
         }
-
         document.body.appendChild(beamsContainer);
         setTimeout(() => { beamsContainer.remove(); }, 1200);
     },
 
-    /**
-     * Инициализирует и будит глобальный аудиоконтекст для обхода автоплея
-     */
     warmUpAudioContext() {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -72,18 +56,10 @@ const AnimationManager = {
         } catch (e) {}
     },
 
-    /**
-     * Синтезирует реалистичный процедурный перестук костей на лету
-     */
     _playDiceSoundEffects() {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AnimationManager._sharedAudioCtx && AudioContext) {
-                AnimationManager._sharedAudioCtx = new AudioContext();
-            }
-            const audioCtx = AnimationManager._sharedAudioCtx;
+            const audioCtx = AnimationManager._sharedAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
             if (!audioCtx) return;
-
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
             const playClick = (time, intensity) => {
@@ -112,127 +88,73 @@ const AnimationManager = {
 
             let scheduleTime = audioCtx.currentTime + 0.02;
             let delay = 0.05;
-
             for (let i = 0; i < 22; i++) {
-                const intensity = Math.max(0.15, (22 - i) / 22);
-                playClick(scheduleTime, intensity);
+                playClick(scheduleTime, Math.max(0.15, (22 - i) / 22));
                 delay += 0.015;
                 scheduleTime += delay;
             }
-        } catch (e) { console.warn("Не удалось воспроизвести процедурный звук:", e); }
+        } catch (e) {}
     },
-// ============================================================================
-// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 2 ИЗ 3
-// ============================================================================
 
-    /**
-     * Запускает баллистический полет флага отряда с динамическим определением стороны вылета
-     */
     playFlagFlight(oldHexId, currentHexId, onImpactCallback) {
         if (oldHexId === currentHexId) {
             if (typeof onImpactCallback === 'function') onImpactCallback();
             return;
         }
-
         const targetCoords = HexCanvasRender.hexCoords[currentHexId];
         if (!targetCoords) return;
 
         let startCoords = HexCanvasRender.hexCoords[oldHexId];
-
         if (!startCoords || oldHexId === 'hex_0_0') {
-            const mapWidth = 3840;
-
-            if (targetCoords.cx > mapWidth / 2) {
-                startCoords = { cx: 100, cy: targetCoords.cy };
-            } else {
-                startCoords = { cx: mapWidth - 100, cy: targetCoords.cy };
-            }
+            startCoords = { cx: targetCoords.cx > 1920 ? 100 : 3740, cy: targetCoords.cy };
         }
 
         const zoom = ViewportManager.currentZoom || 1.0;
         const panX = ViewportManager.x || 0;
         const panY = ViewportManager.y || 0;
-
         const viewportElement = document.getElementById('viewport');
         const viewRect = viewportElement ? viewportElement.getBoundingClientRect() : { left: 0, top: 0 };
         const viewWidth = viewportElement ? viewportElement.clientWidth : 0;
 
-        const calculateScreenCoords = (coords) => {
-            const virtualXFromRight = 3840 - coords.cx;
-            const screenX = viewRect.left + panX + viewWidth - (virtualXFromRight * zoom);
-            const screenY = viewRect.top + panY + (coords.cy * zoom);
-            return { x: screenX, y: screenY };
-        };
+        const calcScreen = (coords) => ({
+            x: viewRect.left + panX + viewWidth - ((3840 - coords.cx) * zoom),
+            y: viewRect.top + panY + (coords.cy * zoom)
+        });
 
-        const startScreen = calculateScreenCoords(startCoords);
-        const targetScreen = calculateScreenCoords(targetCoords);
-
-        if (isNaN(startScreen.x) || isNaN(startScreen.y) || isNaN(targetScreen.x) || isNaN(targetScreen.y)) {
-            console.error("Ошибка калькуляции анимации флага.");
-            if (typeof onImpactCallback === 'function') onImpactCallback();
-            return;
-        }
+        const startScreen = calcScreen(startCoords);
+        const targetScreen = calcScreen(targetCoords);
 
         const flyingFlag = document.createElement('div');
         flyingFlag.className = 'global-flying-flag';
-        flyingFlag.innerHTML = `
-            <div class="squad-pole" style="height: 50px; width: 6px; background: #333; margin-left: 6px; border-radius: 2px; border: 1px solid #000;">
-                <div class="squad-flag" style="width: 30px; height: 20px; background: #c0392b; clip-path: polygon(0 0, 100% 50%, 0 100%); border: 2px solid #ffffff; box-shadow: 2px 2px 4px rgba(0,0,0,0.4);"></div>
-            </div>
-        `;
+        flyingFlag.innerHTML = `<div class="squad-pole"><div class="squad-flag"></div></div>`;
 
-        const sX = startScreen.x - 9;
-        const sY = startScreen.y - 50;
-        const tX = targetScreen.x - 9;
-        const tY = targetScreen.y - 50;
-
-        flyingFlag.style.setProperty('--start-x', `${sX}px`);
-        flyingFlag.style.setProperty('--start-y', `${sY}px`);
-        flyingFlag.style.setProperty('--target-x', `${tX}px`);
-        flyingFlag.style.setProperty('--target-y', `${tY}px`);
+        flyingFlag.style.setProperty('--start-x', `${startScreen.x - 9}px`);
+        flyingFlag.style.setProperty('--start-y', `${startScreen.y - 50}px`);
+        flyingFlag.style.setProperty('--target-x', `${targetScreen.x - 9}px`);
+        flyingFlag.style.setProperty('--target-y', `${targetScreen.y - 50}px`);
 
         document.body.appendChild(flyingFlag);
 
         setTimeout(() => {
-            flyingFlag.style.animation = 'none';
-            flyingFlag.style.transition = 'transform 0.05s ease-out';
-            flyingFlag.style.transform = `translate3d(${tX}px, ${tY}px, 0) scale(1) rotate(-5deg)`;
-
             this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
-
-            if (typeof onImpactCallback === 'function') {
-                onImpactCallback();
-            }
+            if (typeof onImpactCallback === 'function') onImpactCallback();
         }, 1300);
 
         setTimeout(() => { flyingFlag.remove(); }, 1300);
-
         setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 1430);
         setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 1610);
     },
 
-    /**
-     * Быстрый каскад из вспышек лучей света с удержанием фокуса на квесте
-     */
     focusOnHex(hexId) {
         const coords = HexCanvasRender.hexCoords[hexId];
         if (!coords) return;
-
         const zoom = ViewportManager.currentZoom || 1.0;
         const viewportElement = document.getElementById('viewport');
 
         if (viewportElement) {
             ViewportManager.lockFocusUntil = Date.now() + 1800;
-
-            const viewWidth = viewportElement.clientWidth;
-            const viewHeight = viewportElement.clientHeight;
-
-            const virtualXFromRight = 3840 - coords.cx;
-            const virtualYFromTop = coords.cy;
-
-            let targetPanX = (virtualXFromRight * zoom) - viewWidth / 2;
-            let targetPanY = (viewHeight / 2) - (virtualYFromTop * zoom);
-
+            let targetPanX = ((3840 - coords.cx) * zoom) - viewportElement.clientWidth / 2;
+            let targetPanY = (viewportElement.clientHeight / 2) - (coords.cy * zoom);
             const { minX, maxX, minY, maxY } = MAP_CONFIG.viewport.limits;
 
             ViewportManager.x = Math.max(minX, Math.min(maxX, targetPanX));
@@ -241,74 +163,35 @@ const AnimationManager = {
         }
 
         setTimeout(() => {
-            const currentPanX = ViewportManager.x || 0;
-            const currentPanY = ViewportManager.y || 0;
-            const viewRect = viewportElement ? viewportElement.getBoundingClientRect() : { left: 0, top: 0 };
-            const viewWidth = viewportElement ? viewportElement.clientWidth : 0;
-
             HexCanvasRender.triggerFocus(hexId);
-
-            const virtualXFromRight = 3840 - coords.cx;
-            const cx = viewRect.left + currentPanX + viewWidth - (virtualXFromRight * zoom);
-            const cy = viewRect.top + currentPanY + (coords.cy * zoom);
-
+            const viewRect = viewportElement ? viewportElement.getBoundingClientRect() : { left: 0, top: 0 };
+            const cx = viewRect.left + ViewportManager.x + (viewportElement ? viewportElement.clientWidth : 0) - ((3840 - coords.cx) * zoom);
+            const cy = viewRect.top + ViewportManager.y + (coords.cy * zoom);
             this.spawnBeamsBurst(cx, cy);
-            setTimeout(() => { this.spawnBeamsBurst(cx, cy); }, 100);
-
         }, 100);
-
-        setTimeout(() => {
-            ViewportManager.updateMapTransform();
-        }, 1800);
     },
 
-    /**
-     * Переключение видимости мини-тултипов квестов на Canvas-карте
-     */
     toggleQuestTooltips(btnElement) {
         if (!HexCanvasRender) return;
-
         HexCanvasRender.showQuestTooltips = !HexCanvasRender.showQuestTooltips;
-
         if (btnElement) {
             btnElement.title = HexCanvasRender.showQuestTooltips ? "Скрыть маркеры заданий" : "Показать маркеры заданий";
             btnElement.classList.toggle('ui-active', !HexCanvasRender.showQuestTooltips);
         }
-
-        if (HexCanvasRender && typeof HexCanvasRender.requestFrame === 'function') {
-            HexCanvasRender.requestFrame();
-        }
+        if (typeof HexCanvasRender.requestFrame === 'function') HexCanvasRender.requestFrame();
     },
 
-// ============================================================================
-// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3 (D20 SYNC FLASH)
-// ============================================================================
-
-    /**
-     * Запускает полноценный цикл 3D Canvas рендеринга золотого d20 с динамическим выравниванием грани
-     */
     playCampDiceAnimation(targetDc, onCompleteCallback) {
         const overlay = document.getElementById('campDiceOverlay');
         const canvas = document.getElementById('d20Canvas');
-        if (!overlay || !canvas) {
-            if (typeof onCompleteCallback === 'function') onCompleteCallback();
-            return;
-        }
-
-        overlay.classList.add('open');
-        AnimationManager._playDiceSoundEffects();
-
-        const ctx = canvas.getContext('2d');
-        const t = (1.0 + Math.sqrt(5.0)) / 2.0;
+        if (!overlay || !canvas) { if (typeof onCompleteCallback === 'function') onCompleteCallback(); return; }
+        overlay.classList.add('open'); this._playDiceSoundEffects();
+        const ctx = canvas.getContext('2d'), t = (1.0 + Math.sqrt(5.0)) / 2.0;
 
         const vertices = [
-            [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
-            [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-            [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
-        ].map(v => {
-            const length = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-            return [v[0]/length * 120, v[1]/length * 120, v[2]/length * 120];
-        });
+            [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t],
+            [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
+        ].map(v => { const l = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); return [v[0]/l * 120, v[1]/l * 120, v[2]/l * 120]; });
 
         const faces = [
             [0, 11, 5, "⚜"], [0, 5, 1, "2"], [0, 1, 7, "3"], [0, 7, 10, "4"], [0, 10, 11, "5"],
@@ -317,228 +200,82 @@ const AnimationManager = {
             [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
         ];
 
-        const dcToFaceIndex = {
-            "⚜": 0, "1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6, "8": 7, "9": 8, "10": 9,
-            "11": 10, "12": 11, "13": 12, "14": 13, "15": 14, "16": 15, "17": 16, "18": 17, "19": 18, "20": 19
-        };
+        const dcMap = { "⚜":0, "1":0, "2":1, "3":2, "4":3, "5":4, "6":5, "7":6, "8":7, "9":8, "10":9, "11":10, "12":11, "13":12, "14":13, "15":14, "16":15, "17":16, "18":17, "19":18, "20":19 };
+        let winIdx = 11;
+        if (targetDc !== undefined && targetDc !== null) { const k = String(targetDc).trim(); if (dcMap[k] !== undefined) winIdx = dcMap[k]; }
 
-        let winningIndex = 0;
-        if (targetDc !== undefined && targetDc !== null) {
-            const dcKey = String(targetDc).trim();
-            if (dcToFaceIndex[dcKey] !== undefined) {
-                winningIndex = dcToFaceIndex[dcKey];
-            } else {
-                const numericDc = parseInt(targetDc, 10);
-                if (!isNaN(numericDc)) {
-                    if (numericDc > 20) winningIndex = 0;
-                    else if (numericDc < 1) winningIndex = 10;
-                    else {
-                        const foundIdx = faces.findIndex(f => f[3] === dcKey);
-                        if (foundIdx !== -1) winningIndex = foundIdx;
-                    }
-                }
-            }
-        }
+        // Точное вычисление вектора нормали К ЛЮБОЙ выбранной грани треугольника
+        const fWin = faces[winIdx];
+        let nx = (vertices[fWin[0]][0] + vertices[fWin[1]][0] + vertices[fWin[2]][0]) / 3;
+        let ny = (vertices[fWin[0]][1] + vertices[fWin[1]][1] + vertices[fWin[2]][1]) / 3;
+        let nz = (vertices[fWin[0]][2] + vertices[fWin[1]][2] + vertices[fWin[2]][2]) / 3;
+        const nl = Math.sqrt(nx*nx + ny*ny + nz*nz); nx /= nl; ny /= nl; nz /= nl;
 
+        // Поворот вокруг Y, затем вокруг X, чтобы нормаль смотрела строго в экран (0, 0, 1)
+        const rotY = -Math.atan2(nx, nz);
+        const nzR = -nx * Math.sin(rotY) + nz * Math.cos(rotY);
+        const rotX = Math.atan2(ny, nzR);
 
-        const winningFace = faces[winningIndex];
-        const v0 = vertices[winningFace[0]], v1 = vertices[winningFace[1]], v2 = vertices[winningFace[2]];
-
-        // Находим точные виртуальные координаты центра выбранной грани
-        let nx = (v0[0] + v1[0] + v2[0]) / 3;
-        let ny = (v0[1] + v1[1] + v2[1]) / 3;
-        let nz = (v0[2] + v1[2] + v2[2]) / 3;
-
-        // Нормализуем вектор центра грани
-        const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
-        nx /= nLen; ny /= nLen; nz /= nLen;
-
-        // ИСПРАВЛЕНО: Матрица обратного разворота вектора нормали к экрану (вдоль оси Z)
-        // Чтобы грань легла идеально плоско, её нормаль должна смотреть строго на нас: [0, 0, 1]
-        const targetY = -Math.atan2(nx, nz);
-
-        const cosY = Math.cos(targetY);
-        const sinY = Math.sin(targetY);
-
-        // Рассчитываем промежуточную координату после поворота по Y
-        const nzRotated = -nx * sinY + nz * cosY;
-
-        // Находим угол наклона по X с учетом измененного базиса
-        const targetX = Math.atan2(ny, nzRotated);
-
-        // Корректируем вращение по Z, чтобы цифра не была перевернута боком на экране
-        const targetZ = 0;
-
-        let angleX = Math.random() * 5, angleY = Math.random() * 5, angleZ = Math.random() * 5;
-        let scale = 0.1;
-        const startTime = performance.now();
-        let animationFrameId;
-        let snapX = null, snapY = null, snapZ = null;
-
-        let hasFlashed = false;
+        let aX = Math.random() * 5, aY = Math.random() * 5, aZ = Math.random() * 5;
+        let sc = 0.1, sTime = performance.now(), frameId, snapX = null, snapY = null, snapZ = null, flashed = false;
 
         const draw3D = () => {
-            const now = performance.now();
-            const elapsed = now - startTime;
+            const elapsed = performance.now() - sTime;
+            if (elapsed >= 3000) { cancelAnimationFrame(frameId); overlay.classList.remove('open'); if (onCompleteCallback) onCompleteCallback(); return; }
 
-            if (elapsed >= 3000) {
-                cancelAnimationFrame(animationFrameId);
-                overlay.classList.remove('open');
-                if (typeof onCompleteCallback === 'function') onCompleteCallback();
-                return;
-            }
+            let cX = aX += 0.12, cY = aY += 0.18, cZ = aZ += 0.06;
+            if (elapsed >= 1000 && elapsed < 1400) {
+                if (snapX === null) { snapX = (aX - 0.12) % (Math.PI * 2); snapY = (aY - 0.18) % (Math.PI * 2); snapZ = (aZ - 0.06) % (Math.PI * 2); }
+                const p = (elapsed - 1000) / 400, ease = p * p * (3 - 2 * p);
+                cX = snapX + (rotX - snapX) * ease; cY = snapY + (rotY - snapY) * ease; cZ = snapZ + (0 - snapZ) * ease;
+            } else if (elapsed >= 1400) { cX = rotX; cY = rotY; cZ = 0; }
 
-            let curX, curY, curZ;
-            if (elapsed < 1000) {
-                angleX += 0.12; angleY += 0.18; angleZ += 0.06;
-                curX = angleX; curY = angleY; curZ = angleZ;
-            }
-            else if (elapsed < 1400) {
-                if (snapX === null) {
-                    // Принудительно нормализуем текущие углы в пределах 2 * PI перед интерполяцией
-                    snapX = angleX % (Math.PI * 2);
-                    snapY = angleY % (Math.PI * 2);
-                    snapZ = angleZ % (Math.PI * 2);
-                }
-                const progress = (elapsed - 1000) / 400;
-                const ease = progress * progress * (3 - 2 * progress);
-
-                // Плавно докручиваем куб до рассчитанной плоской проекции
-                curX = snapX + (targetX - snapX) * ease;
-                curY = snapY + (targetY - snapY) * ease;
-                curZ = snapZ + (targetZ - snapZ) * ease;
-            }
-            else {
-                // Финальная стадия: куб замер мертвой хваткой на нужной грани
-                curX = targetX; curY = targetY; curZ = targetZ;
-
-                if (!hasFlashed) {
-                    const rect = canvas.getBoundingClientRect();
-                    if (rect.width > 0) {
-                        const cx = rect.left + rect.width / 2;
-                        const cy = rect.top + rect.height / 2;
-                        if (window.AnimationManager && typeof window.AnimationManager.spawnBeamsBurst === 'function') {
-                            window.AnimationManager.spawnBeamsBurst(cx, cy, 1.4);
-                        }
-                        hasFlashed = true;
-                    }
-                }
-            }
-
-            if (elapsed < 200) scale = 0.1 + 0.9 * (elapsed / 200);
-            else if (elapsed > 2700) scale = 1.0 - 0.9 * ((elapsed - 2700) / 300);
-            else scale = 1.0;
-
+            sc = elapsed < 200 ? 0.1 + 0.9 * (elapsed / 200) : (elapsed > 2700 ? 1.0 - 0.9 * ((elapsed - 2700) / 300) : 1.0);
             ctx.clearRect(0, 0, 400, 400);
 
-            // Направление источника света (для красивых золотых градиентов)
-            const lightDir = [0.2, 0.2, 1.0];
-            const lLen = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
-            const light = [lightDir[0]/lLen, lightDir[1]/lLen, lightDir[2]/lLen];
-
-            // Матрица трансформации вершин 3D пространства под текущие углы
-            const rotatedVertices = vertices.map(v => {
+            // Четкое проецирование вершин без сплющивания (масштаб накладывается строго в конце)
+            const rotated = vertices.map(v => {
                 let x = v[0], y = v[1], z = v[2];
-                let cosX = Math.cos(curX), sinX = Math.sin(curX);
-                let y1 = y * cosX - z * sinX, z1 = y * sinX + z * cosX;
-                let cosY = Math.cos(curY), sinY = Math.sin(curY);
-                let x2 = x * cosY + z1 * sinY, z2 = -x * sinY + z1 * cosY;
-                let cosZ = Math.cos(curZ), sinZ = Math.sin(curZ);
-                let x3 = x2 * cosZ - y1 * sinZ, y3 = x2 * sinZ + y1 * cosZ;
-                return [x3 * scale + 200, y3 * scale + 200, z2];
+                let y1 = y * Math.cos(cX) - z * Math.sin(cX), z1 = y * Math.sin(cX) + z * Math.cos(cX);
+                let x2 = x * Math.cos(cY) + z1 * Math.sin(cY), z2 = -x * Math.sin(cY) + z1 * Math.cos(cY);
+                let x3 = x2 * Math.cos(cZ) - y1 * Math.sin(cZ), y3 = x2 * Math.sin(cZ) + y1 * Math.cos(cZ);
+                return [x3 * sc + 200, y3 * sc + 200, z2];
             });
 
-            // Сортировка граней по глубине (Z-буфер)
-            const renderOrder = faces.map(f => {
-                const zAvg = (rotatedVertices[f[0]][2] + rotatedVertices[f[1]][2] + rotatedVertices[f[2]][2]) / 3;
-                return { face: f, z: zAvg };
-            }).sort((a, b) => a.z - b.z);
-
+            const renderOrder = faces.map(f => ({ face: f, z: (rotated[f[0]][2] + rotated[f[1]][2] + rotated[f[2]][2]) / 3 })).sort((a, b) => a.z - b.z);
 
             renderOrder.forEach(item => {
-                const f = item.face; // Здесь f — это массив текущей грани: [v0, v1, v2, "символ"]
-                const p0 = rotatedVertices[f[0]], p1 = rotatedVertices[f[1]], p2 = rotatedVertices[f[2]];
-
-                const ux = p1[0] - p0[0], uy = p1[1] - p0[1];
-                const vx = p2[0] - p0[0], vy = p2[1] - p0[1];
-                const nz = ux * vy - uy * vx;
-
-                if (nz > 0) {
+                const f = item.face, p0 = rotated[f[0]], p1 = rotated[f[1]], p2 = rotated[f[2]];
+                if ((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]) > 0) {
                     const ax = vertices[f[1]][0] - vertices[f[0]][0], ay = vertices[f[1]][1] - vertices[f[0]][1], az = vertices[f[1]][2] - vertices[f[0]][2];
                     const bx = vertices[f[2]][0] - vertices[f[0]][0], by = vertices[f[2]][1] - vertices[f[0]][1], bz = vertices[f[2]][2] - vertices[f[0]][2];
-                    let crossX = ay*bz - az*by, crossY = az*bx - ax*bz, crossZ = ax*by - ay*bx;
-                    let cLen = Math.sqrt(crossX*crossX + crossY*crossY + crossZ*crossZ);
-                    crossX /= cLen; crossY /= cLen; crossZ /= cLen;
+                    let cx = ay*bz - az*by, cy = az*bx - ax*bz, cz = ax*by - ay*bx, cl = Math.sqrt(cx*cx + cy*cy + cz*cz); cx /= cl; cy /= cl; cz /= cl;
 
-                    let ny1 = crossY*Math.cos(curX) - crossZ*Math.sin(curX), nz1 = crossY*Math.sin(curX) + crossZ*Math.cos(curX);
-                    let nx2 = crossX*Math.cos(curY) + nz1*Math.sin(curY);
-                    let nx3 = nx2*Math.cos(curZ) - ny1*Math.sin(curZ), ny3 = nx2*Math.sin(curZ) + ny1*Math.cos(curZ);
+                    let ny1 = cy*Math.cos(cX) - cz*Math.sin(cX), nz1 = cy*Math.sin(cX) + cz*Math.cos(cX), nx2 = cx*Math.cos(cY) + nz1*Math.sin(cY);
+                    let nx3 = nx2*Math.cos(cZ) - ny1*Math.sin(cZ), ny3 = nx2*Math.sin(cZ) + ny1*Math.cos(cZ);
 
-                    const dot = nx3*light[0] + ny3*light[1] + nz1*light[2];
-                    const brightness = Math.max(0.2, dot);
-
-                    const r = Math.floor(180 + 75 * brightness);
-                    const g = Math.floor(135 + 80 * brightness);
-                    const b = Math.floor(35 + 40 * brightness);
-
-                    ctx.beginPath();
-                    ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]);
-                    ctx.closePath();
-                    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
+                    const brightness = Math.max(0.2, nx3*0.3 + ny3*0.3 + nz1*0.9);
+                    ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.closePath();
+                    ctx.fillStyle = `rgb(${Math.floor(180 + 75 * brightness)}, ${Math.floor(135 + 80 * brightness)}, ${Math.floor(35 + 40 * brightness)})`; ctx.fill();
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
-                    // Отрисовка символа СТРОГО на лицевой грани d20
-                    if (elapsed >= 1400 && f[0] === winningFace[0] && f[1] === winningFace[1] && f[2] === winningFace[2]) {
-                        ctx.save();
+                    if (elapsed >= 1400 && f[0] === fWin[0] && f[1] === fWin[1] && f[2] === fWin[2]) {
+                        ctx.save(); if (!flashed) { this.spawnBeamsBurst(canvas.getBoundingClientRect().left + 200, canvas.getBoundingClientRect().top + 200, 1.4); flashed = true; }
+                        const txt = String(f[3]).trim(), opacity = Math.min(1, (elapsed - 1400) / 150);
+                        let size = Math.floor(54 * sc), sCol = `rgba(255,162,0,${opacity})`, tCol = `rgba(255,255,255,${opacity})`;
 
-                        const textOpacity = Math.min(1, (elapsed - 1400) / 150);
-                        // ИСПРАВЛЕНО: Читаем текст строго из четвертого элемента массива грани f[3]
-                        const diceValueText = String(f[3]).trim();
+                        if (txt === "20") { size = Math.floor(68 * sc); sCol = `rgba(46,204,113,${opacity})`; tCol = `rgba(235,255,240,${opacity})`; }
+                        else if (txt === "1" || txt === "⚜") { size = Math.floor(68 * sc); sCol = `rgba(231,76,60,${opacity})`; tCol = `rgba(255,210,210,${opacity})`; }
 
-                        let baseFontSize = Math.floor(54 * scale);
-                        let shadowColor = `rgba(255, 162, 0, ${textOpacity})`; // Золото по умолчанию
-                        let textColor = `rgba(255, 255, 255, ${textOpacity})`;
-
-                        // ЖЁСТКОЕ И НАДЁЖНОЕ РАЗДЕЛЕНИЕ ЦВЕТОВ ПО ТЕКСТУ ЗНАЧЕНИЯ ГРАНИ
-                        if (diceValueText === "20") {
-                            baseFontSize = Math.floor(68 * scale);
-                            shadowColor = `rgba(46, 204, 113, ${textOpacity})`; // Изумрудно-зелёный успех
-                            textColor = `rgba(235, 255, 240, ${textOpacity})`;
-                        }
-                        else if (diceValueText === "1" || diceValueText === "⚜") {
-                            baseFontSize = Math.floor(68 * scale);
-                            shadowColor = `rgba(231, 76, 60, ${textOpacity})`; // Багрово-красный провал
-                            textColor = `rgba(255, 210, 210, ${textOpacity})`;
-                        }
-
-                        ctx.fillStyle = textColor;
-                        ctx.font = `900 ${baseFontSize}px 'Times New Roman', serif`;
-
-                        ctx.shadowColor = shadowColor;
-                        ctx.shadowBlur = 18;
-
-                        ctx.textAlign = "center";
-                        ctx.textBaseline = "middle";
-
-                        const cx = (p0[0] + p1[0] + p2[0]) / 3;
-                        const cy = (p0[1] + p1[1] + p2[1]) / 3;
-
-                        // Выводим конкретный символ грани на экран
-                        ctx.fillText(f[3], cx, cy);
-                        ctx.restore();
+                        ctx.fillStyle = tCol; ctx.font = `900 ${size}px 'Times New Roman', serif`; ctx.shadowColor = sCol; ctx.shadowBlur = 18; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        ctx.fillText(f[3], (p0[0] + p1[0] + p2[0]) / 3, (p0[1] + p1[1] + p2[1]) / 3); ctx.restore();
                     }
                 }
             });
-
-
-
-            animationFrameId = requestAnimationFrame(draw3D);
+            frameId = requestAnimationFrame(draw3D);
         };
         draw3D();
-
-
     }
-
 };
 
 window.AnimationManager = AnimationManager;
