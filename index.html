@@ -136,14 +136,35 @@
 
     <div id="questLogContainer" class="quest-log-container ui-collapsed">
         <div class="quest-log-header">⚜️ Журнал заданий</div>
+
         <div class="quest-log-tabs">
-            <button type="button" class="quest-tab-btn active" id="tabActiveQuests">⚠️ Активные</button>
-            <button type="button" class="quest-tab-btn" id="tabCompletedQuests">✅ Завершенные</button>
-            <button type="button" class="quest-tab-btn" id="tabRumors">👂Слухи</button>
-            <button type="button" id="tabCamping" class="quest-tab-btn">⛺ Привал</button>
-            <button id="tabKingdom" class="quest-tab-btn">🏰 Королевство</button>
-            <button type="button" id="tabCloseJournal" class="quest-tab-btn tab-close-action" style="color: #ff7675 !important;">❌ Выйти</button>
+            <button type="button" id="tabActiveQuests" class="quest-tab-btn active" title="Активные задания">📜</button>
+            <button type="button" id="tabCompletedQuests" class="quest-tab-btn" title="Завершенные подвиги">🏆</button>
+            <button type="button" id="tabRumors" class="quest-tab-btn" title="Слухи и наводки">👂</button>
+            <button type="button" id="tabKingdom" class="quest-tab-btn" title="Планшет Королевства">👑</button>
+            <button type="button" id="tabCamping" class="quest-tab-btn" title="Привал">⛺</button>
+            <button type="button" id="tabSettings" class="quest-tab-btn" title="Настройки интерфейса">⚙️</button>
+            <!-- Кнопка закрытия журнала, оформленная как вкладка-крестик -->
+            <button type="button" id="tabCloseJournal" class="quest-tab-btn tab-close-action" title="Закрыть окно">×</button>
         </div>
+
+        <!-- Новый невидимый контейнер для содержимого настроек внутри общего окна -->
+        <div id="settingsTabletContainer" style="display: none; flex-direction: column; padding: 30px; gap: 20px; overflow-y: auto; height: calc(100% - 75px);">
+            <div class="camping-section-title">⚙️ Настройки интерфейса системы</div>
+
+            <div class="camping-region-bar" style="gap: 20px;">
+                <div class="checkbox-row" style="padding: 10px 14px;">
+                    <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">✈️ Баллистический полет флага из столицы (hex_0_0)</label>
+                    <input type="checkbox" id="settingFlightMode" style="transform: scale(1.5);" checked>
+                </div>
+
+                <div class="checkbox-row" style="padding: 10px 14px;">
+                    <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">🖥️ Включить мониторинг производительности и FPS</label>
+                    <input type="checkbox" id="settingFpsMonitor" style="transform: scale(1.5);" checked>
+                </div>
+            </div>
+        </div>
+
         <div id="questLogList" class="quest-log-list"></div>
         <div id="kingdomTabletContainer" class="kingdom-tablet-content" style="display: none;">
             <div class="kingdom-left-col">
@@ -671,8 +692,8 @@
     <button type="button" id="btnFrameStyle" class="btn-frame-style" title="Рамка: Без рун">🔲</button>
     <button type="button" id="btnImport" class="btn-ui-toggle" title="Импорт JSON">📤</button>
     <button type="button" id="btnExport" class="btn-ui-toggle" title="Экспорт JSON">📥</button>
-    <button type="button" class="btn-ui-toggle quest-toggle-btn"></button>
     <button type="button" id="btnTogglePlayer" class="btn-ui-toggle" title="Открыть музыкальный плеер Winamp">🎵</button>
+    <button type="button" id="btnToggleSettings" class="btn-ui-toggle" title="Открыть настройки интерфейса">🎛️</button>
     <button type="button" id="btnMasterToggle" class="btn-ui-toggle master-toggle-btn" title="Показать/скрыть интерфейс управления">⚙️</button>
 </div>
 

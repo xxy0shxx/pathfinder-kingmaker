@@ -209,6 +209,7 @@ const QuestManager = {
     },
 
 
+
     /**
      * Генерация списка заданий и слухов в дневнике / Отрисовка планшетов ГМа и Королевства
      */
@@ -216,9 +217,15 @@ const QuestManager = {
         const listContainer = document.getElementById('questLogList');
         const kingdomTabletEl = document.getElementById('kingdomTabletContainer');
         const campingTabletEl = document.getElementById('campingTabletContainer');
+        const settingsTabletEl = document.getElementById('settingsTabletContainer');
         if (!this.mapDataRef) return;
 
-        // 1. РЕЖИМ ПРИВАЛА ГМА
+        if (listContainer) listContainer.style.display = 'none';
+        if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
+        if (campingTabletEl) campingTabletEl.style.display = 'none';
+        if (settingsTabletEl) settingsTabletEl.style.display = 'none';
+
+        // 1. РЕЖИМ ПРИВАЛА
         if (this.currentFilter === 'camping') {
             if (listContainer) listContainer.style.display = 'none';
             if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
@@ -243,7 +250,7 @@ const QuestManager = {
             return; // Прерываем выполнение стандартного рендера квестов
         }
 
-        // 3. СТАНДАРТНЫЙ РЕЖИМ КВЕСТОВ И СЛУХОВ
+        // 3. РЕЖИМ КВЕСТОВ И СЛУХОВ
         else {
             if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
             if (campingTabletEl) campingTabletEl.style.display = 'none';

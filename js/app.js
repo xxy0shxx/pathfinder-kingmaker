@@ -301,14 +301,26 @@ import UiPanelManager from './ui/ui_panel_manager.js';
  */
 import TacticalMapManager from './tactical_map/tactical_map_manager.js';
 
+
+/**
+ * SettingsManager (из ./core/settings_manager.js)
+ * [НОВОЕ] Изолированный модуль управления конфигурацией и системными настройками интерфейса:
+ * - .init(): точка входа; считывает слепок настроек из локальной базы данных и запускает каскад применения параметров к движкам.
+ * - .bindUiElements(): привязывает реактивные слушатели событий к HTML-чекбоксам на новой вкладке настроек общего журнала.
+ * - .applySettingsToEngine(): проталкивает стейт флагов (flightFromCapital, enableFpsMonitor) в глобальные системные переменные и управляет видимостью счетчика FPS.
+ * - .saveAndApply(): сериализует текущую конфигурацию ГМа, записывает её в LocalStorage под ключом 'kingmakerSystemSettings' и триггерит апдейт систем.
+ */
+import SettingsManager from './core/settings_manager.js';
+
 let hasMoved = false;
 // Делаем переменную mapData доступной глобально для всех слушателей в этом файле
 let mapData = { hexes: {}, kingdom: null, paths: [] };
 // true  — флаг ВСЕГДА прилетает из нулевого гекса (hex_0_0)
 // false — флаг летит из своей реальной предыдущей позиции
-let FLIGHT_FROM_CAPITAL_MODE = true;
+window.FLIGHT_FROM_CAPITAL_MODE = true;
 
 document.addEventListener('DOMContentLoaded', () => {
+    SettingsManager.init();
     // 1. Загрузка данных
     mapData = StorageManager.loadData();
 
