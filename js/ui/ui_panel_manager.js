@@ -143,6 +143,7 @@ const UiPanelManager = {
             });
         }
 
+
         // 7. Изолированное управление быстрой кнопкой Настроек на панели 3х4
         const btnToggleSettings = document.getElementById('btnToggleSettings');
         if (btnToggleSettings && questWindow) {
@@ -152,7 +153,6 @@ const UiPanelManager = {
                 const isLogCollapsed = questWindow.classList.contains('ui-collapsed');
                 const isSettingsActive = window.QuestManager && window.QuestManager.currentFilter === 'settings';
 
-                // ИСПРАВЛЕНО: Если окно было закрыто — намертво снимаем скрывающий класс
                 if (isLogCollapsed) {
                     questWindow.classList.remove('ui-collapsed');
                 } else if (isSettingsActive) {
@@ -161,16 +161,16 @@ const UiPanelManager = {
                     return;
                 }
 
-                // Переключаем фильтр квест-лога на вкладку настроек
                 if (window.QuestManager) {
                     window.QuestManager.currentFilter = 'settings';
+
                     document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
                     const tabSettings = document.getElementById('tabSettings');
                     if (tabSettings) tabSettings.classList.add('active');
+
                     window.QuestManager.render();
                 }
 
-                // Гарантированно тушим подсветку у соседних кнопок на панели 3х4
                 const btnToggleQuests = document.getElementById('btnToggleQuests');
                 const btnToggleCamping = document.getElementById('btnToggleCamping');
                 const btnTogglePlayer = document.getElementById('btnTogglePlayer');
@@ -178,13 +178,11 @@ const UiPanelManager = {
                 if (btnToggleCamping) btnToggleCamping.removeAttribute('style');
                 if (btnTogglePlayer) btnTogglePlayer.removeAttribute('style');
 
-                // Включаем зеленую геральдическую подсветку кнопке настроек
                 btnToggleSettings.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
                 btnToggleSettings.style.setProperty('border-color', '#dfbc6f', 'important');
                 btnToggleSettings.style.setProperty('color', '#dfbc6f', 'important');
             });
         }
-
 
     }
 };

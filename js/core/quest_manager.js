@@ -59,7 +59,7 @@ const QuestManager = {
 
 
     /**
-     * Инициализация вкладок (Активные / Завершенные / Слухи / Королевство)
+     * Инициализация вкладок (Активные / Завершенные / Слухи / Королевство / Привал / Настройки)
      */
     initTabs() {
         const tabActive = document.getElementById('tabActiveQuests');
@@ -67,6 +67,7 @@ const QuestManager = {
         const tabRumors = document.getElementById('tabRumors');
         const tabKingdom = document.getElementById('tabKingdom');
         const tabCamping = document.getElementById('tabCamping');
+        const tabSettings = document.getElementById('tabSettings'); // НАШ ТАБ
 
         if (tabActive && tabCompleted && tabRumors) {
             tabActive.addEventListener('click', () => this.setActiveTab(tabActive, 'active'));
@@ -74,7 +75,6 @@ const QuestManager = {
             tabRumors.addEventListener('click', () => this.setActiveTab(tabRumors, 'rumors'));
         }
 
-        // Подключаем слушатель для вкладки королевства, если она добавлена в HTML
         if (tabKingdom) {
             tabKingdom.addEventListener('click', () => this.setActiveTab(tabKingdom, 'kingdom'));
         }
@@ -83,27 +83,32 @@ const QuestManager = {
             tabCamping.addEventListener('click', () => this.setActiveTab(tabCamping, 'camping'));
         }
 
+        // ИСПРАВЛЕНО: Добавлен обязательный слушатель клика для вкладки настроек в шапке!
+        if (tabSettings) {
+            tabSettings.addEventListener('click', () => this.setActiveTab(tabSettings, 'settings'));
+        }
+
         const tabCloseJournal = document.getElementById('tabCloseJournal');
         if (tabCloseJournal) {
             tabCloseJournal.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // Закрываем модальное окно журнала
                 const questLogContainerEl = document.getElementById('questLogContainer');
                 if (questLogContainerEl) {
                     questLogContainerEl.classList.add('ui-collapsed');
                 }
 
-                // Сбрасываем зеленую подсветку утилит на боковой панели 3х4
                 const btnToggleQuests = document.getElementById('btnToggleQuests');
                 if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
 
                 const btnToggleCamping = document.getElementById('btnToggleCamping');
                 if (btnToggleCamping) btnToggleCamping.removeAttribute('style');
+
+                const btnToggleSettings = document.getElementById('btnToggleSettings');
+                if (btnToggleSettings) btnToggleSettings.removeAttribute('style');
             });
         }
-
     },
 
 
@@ -211,7 +216,7 @@ const QuestManager = {
 
 
     /**
-     * Генерация списка заданий и слухов в дневнике / Отрисовка планшетов ГМа и Королевства
+     * Генерация контента и управление переключением вкладок/планшетов
      */
     render() {
         const listContainer = document.getElementById('questLogList');
@@ -220,40 +225,34 @@ const QuestManager = {
         const settingsTabletEl = document.getElementById('settingsTabletContainer');
         if (!this.mapDataRef) return;
 
+        // ЖЕСТКИЙ СБРОС СТИЛЕЙ ОТОБРАЖЕНИЯ ПЕРЕД РЕНДЕРОМ
         if (listContainer) listContainer.style.display = 'none';
         if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
         if (campingTabletEl) campingTabletEl.style.display = 'none';
         if (settingsTabletEl) settingsTabletEl.style.display = 'none';
 
-        // 1. РЕЖИМ ПРИВАЛА
+        // 1. РЕЖИМ ПРИВАЛА ГМА
         if (this.currentFilter === 'camping') {
-            if (listContainer) listContainer.style.display = 'none';
-            if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
-            if (campingTabletEl) {
-                campingTabletEl.style.display = 'flex';
-                // Автоматически запускаем перерасчет параметров при переходе на вкладку
-                if (window.CampingManager) {
-                    window.CampingManager.recalculateCamp();
-                }
-            }
-            return; // Прерываем выполнение стандартного рендера квестов
+            if (campingTabletEl) campingTabletEl.style.display = 'flex';
+            if (window.CampingManager) window.CampingManager.recalculateCamp();
+            return;
         }
 
         // 2. РЕЖИМ ПЛАНШЕТА КОРОЛЕВСТВА
         else if (this.currentFilter === 'kingdom') {
-            if (listContainer) listContainer.style.display = 'none';
-            if (campingTabletEl) campingTabletEl.style.display = 'none';
-            if (kingdomTabletEl) {
-                kingdomTabletEl.style.display = 'flex';
-                KingdomManager.renderUi(); // Обновляем и выводим интерфейс планшета
-            }
-            return; // Прерываем выполнение стандартного рендера квестов
+            if (kingdomTabletEl) kingdomTabletEl.style.display = 'flex';
+            KingdomManager.renderUi();
+            return;
         }
 
-        // 3. РЕЖИМ КВЕСТОВ И СЛУХОВ
+        // 3. ИСПРАВЛЕНО: РЕЖИМ СИСТЕМНЫХ НАСТРОЕК (Мгновенный переход по табу в шапке)
+        else if (this.currentFilter === 'settings') {
+            if (settingsTabletEl) settingsTabletEl.style.display = 'flex';
+            return;
+        }
+
+        // 4. СТАНДАРТНЫЙ РЕЖИМ КВЕСТОВ И СЛУХОВ
         else {
-            if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
-            if (campingTabletEl) campingTabletEl.style.display = 'none';
             if (listContainer) listContainer.style.display = 'flex';
         }
 
