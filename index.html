@@ -240,23 +240,37 @@
 
                 <!-- Компактная панель счетчиков ввода -->
                 <div class="camping-region-bar">
+
+
+
+                    <!-- Первая строка: Базовые проверки -->
                     <div class="camp-param-box">
                         <span class="camp-param-label">⏱ Базовые проверки:</span>
                         <div class="camp-count-controls">
-                            <button type="button" onclick="CampingManager.changeBaseChecks(-1)">-</button>
+                            <button type="button" onclick="window.CampingManager.changeBaseChecks(-1)">-</button>
                             <span id="campBaseChecksVal">2</span>
-                            <button type="button" onclick="CampingManager.changeBaseChecks(1)">+</button>
+                            <button type="button" onclick="window.CampingManager.changeBaseChecks(1)">+</button>
                         </div>
                     </div>
 
+                    <!-- Вторая строка: СЛ Случайной сцены с кнопками и динамическим названием местности -->
                     <div class="camp-param-box">
-                        <span class="camp-param-label">🎰 СЛ случайной сцены:</span>
+                        <span class="camp-param-label">🎲 СЛ случайной сцены:</span>
                         <div class="camp-count-controls">
-                            <button type="button" onclick="CampingManager.changeCheckMod(-1)">-</button>
+                            <button type="button" onclick="window.CampingManager.changeCheckMod(-1)">-</button>
                             <span id="campCheckModVal">12</span>
-                            <button type="button" onclick="CampingManager.changeCheckMod(1)">+</button>
+                            <button type="button" onclick="window.CampingManager.changeCheckMod(1)">+</button>
                         </div>
                     </div>
+
+                    <!-- Компактная подпись текущей местности под счетчиком -->
+                    <div class="camp-param-box" style="margin-top: -6px; justify-content: flex-start; gap: 8px;">
+                        <span style="font-size: 14px; color: #ebd291; opacity: 0.85;">Текущий ландшафт:</span>
+                        <span id="campEncounterTerrainLabel" style="font-size: 16px; font-weight: bold; color: #dfbc6f;">🌾 Равнины</span>
+                    </div>
+
+
+
                 </div>
 
                 <!-- Невидимая таблица проверок лагеря -->

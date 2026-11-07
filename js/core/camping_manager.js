@@ -1,4 +1,5 @@
 import AnimationManager from '../services/animation_manager.js';
+import { MAP_CONFIG } from '../config/app_config.js';
 
 // ============================================================================
 // МОДУЛЬ: МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 1 ИЗ 3
@@ -11,7 +12,8 @@ const CampingManager = {
         normalIngredients: 0,
         specialIngredients: 0,
         encounterDc: 0,
-        totalChecks: 2
+        totalChecks: 2,
+        currentHexRegionLevel: 1
     },
     mapDataRef: null,
     onSaveCallback: null,
@@ -55,6 +57,7 @@ const CampingManager = {
         this.recalculateCamp();
     },
 
+    // Возвращаем ручное изменение СЛ случайной сцены кнопками - и +
     changeCheckMod(amount) {
         this.state.checkMod = Math.max(1, Math.min(41, this.state.checkMod + amount));
         this.syncCountersUi();
@@ -72,6 +75,7 @@ const CampingManager = {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
         return checked ? checked.value : null;
     },
+
     // ============================================================================
 // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
 // ============================================================================
@@ -91,14 +95,26 @@ const CampingManager = {
 
             let baseRegionDc = 14;
             let currentRegionLevel = 1;
+            let terrainLabel = "Равнины";
+            let terrainIcon = "🌾";
 
             if (squadHex) {
                 if (squadHex.difficulty) baseRegionDc = parseInt(squadHex.difficulty, 10);
                 if (squadHex.regionLevel) currentRegionLevel = parseInt(squadHex.regionLevel, 10);
+
+                if (squadHex.terrain && MAP_CONFIG.terrains[squadHex.terrain]) {
+                    const terrainConfig = MAP_CONFIG.terrains[squadHex.terrain];
+                    terrainLabel = terrainConfig.label;
+                    terrainIcon = terrainConfig.icon;
+                }
             }
 
             const dcTextEl = document.getElementById('campRegionDcText');
             if (dcTextEl) dcTextEl.textContent = `СЛ ${baseRegionDc} (уровень региона: ${currentRegionLevel})`;
+
+            // Выводим иконку и название местности в баннер региона или отдельной строкой
+            const customTerrainLabelEl = document.getElementById('campEncounterTerrainLabel');
+            if (customTerrainLabelEl) customTerrainLabelEl.textContent = `${terrainIcon} ${terrainLabel}`;
 
             const prepareRes = this.getSelectedRadio('res_prepare');
             const camoRow = document.getElementById('row_camouflage');
@@ -124,21 +140,16 @@ const CampingManager = {
             const finalCamoDc = baseRegionDc + prepareDcModifier;
             const finalHuntDc = baseRegionDc + prepareDcModifier;
 
-            // Хелпер для раздельного форматирования регистров
-            const updateSkillDcLabel = (id, skillName, dcValue) => {
+            ['label_dc_prepare', 'label_dc_camouflage', 'label_dc_hunt'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    // Навык переводим в нижний регистр, СЛ оставляем как есть
-                    const lowerSkill = skillName.toLowerCase();
-                    el.textContent = `${lowerSkill} СЛ ${dcValue}`;
+                    if (id === 'label_dc_prepare') el.textContent = `(СЛ: ${finalPrepareDc})`;
+                    if (id === 'label_dc_camouflage') el.textContent = `(СЛ: ${finalCamoDc})`;
+                    if (id === 'label_dc_hunt') el.textContent = `(СЛ: ${finalHuntDc})`;
                 }
-            };
+            });
 
-            updateSkillDcLabel('label_dc_prepare', 'Выживание', finalPrepareDc);
-            updateSkillDcLabel('label_dc_camouflage', 'Скрытность', finalCamoDc);
-            updateSkillDcLabel('label_dc_hunt', 'Выживание', finalHuntDc);
-
-
+            // Итоговый расчет СЛ сцены отталкивается от регулируемого значения checkMod
             let finalEncounterDc = this.state.checkMod;
             if (!isCampHorrible) {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
@@ -185,9 +196,11 @@ const CampingManager = {
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYieldText;
 
-            this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, currentRegionLevel, specialYieldText);
+            this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, currentRegionLevel, specialYieldText, terrainLabel);
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
+
+
 
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
