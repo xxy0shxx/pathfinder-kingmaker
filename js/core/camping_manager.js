@@ -206,6 +206,7 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
+
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
         const specEl = document.getElementById('campSpecialIngredients');
@@ -219,29 +220,59 @@ const CampingManager = {
         if (totEl) totEl.textContent = this.state.totalChecks;
         if (modEl) modEl.textContent = this.state.checkMod;
 
+        const appendSkillLabel = (rowId, skillText) => {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            const nameCell = row.querySelector('.camp-act-cell') || row.querySelector('td');
+            if (nameCell && !nameCell.querySelector('.skill-name-large')) {
+                const skillLabel = document.createElement('span');
+                skillLabel.className = 'skill-name-large';
+                skillLabel.textContent = skillText;
+                nameCell.appendChild(skillLabel);
+            }
+        };
+
+        appendSkillLabel('row_prepare', 'Выживание');
+        appendSkillLabel('row_camouflage', 'Скрытность');
+        appendSkillLabel('row_hunt', 'Выживание');
+
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
-        if (prepareRes === 'crit_success') this.addLogLine(effectsList, "КУ подготовки: Число проверок снижено на -1, СЛ ночной сцены защищен на +2.", "good");
-        else if (prepareRes === 'failure') this.addLogLine(effectsList, "Провал подготовки: СЛ Маскировки и Охоты увеличены на +2 из-за плохой стоянки.", "bad");
-        else if (isCampHorrible) this.addLogLine(effectsList, "Это ужасное место для лагеря! Маскировка и Охота невозможны. Число проверок увеличено на +1.", "bad");
-
-        if (!isCampHorrible) {
-            if (camoRes === 'crit_success') this.addLogLine(effectsList, "КУ маскировки: Число проверок снижено на -1, СЛ сцены увеличен на +2.", "good");
-            if (camoRes === 'success') this.addLogLine(effectsList, "Успех маскировки: СЛ случайной сцены увеличен на +1.", "good");
-            if (camoRes === 'crit_failure') this.addLogLine(effectsList, "КП маскировки: СЛ случайной сцены уменьшен на -2. Критический успех проверки случайной сцены: 19 или 20.", "bad");
+        // ПОДГОТОВКА ЛАГЕРЯ
+        if (prepareRes === 'crit_success') {
+            this.addLogLine(effectsList, "Критический успех в подготовке: Лагерь обустроен безупречно. Общее число проверок привала снижено на 1, а сложность ночной сцены защищена и увеличена на +2.", "good");
+        } else if (prepareRes === 'success') {
+            // ВОССТАНОВЛЕНО: Добавлен развернутый текст для обычного успеха подготовки лагеря
+            this.addLogLine(effectsList, "Успех в подготовке: Укрытие организовано надежно и по правилам, стоянка безопасна для отдыха.", "good");
+        } else if (prepareRes === 'failure') {
+            this.addLogLine(effectsList, "Провал в подготовке: Место для стоянки выбрано неудачно. Сложность проверок Маскировки и Охоты принудительно увеличена на +2.", "bad");
+        } else if (isCampHorrible) {
+            this.addLogLine(effectsList, "Критический провал в подготовке: Это ужасное место для лагеря! Маскировка лагеря и Охота физически невозможны. Общее число ночных проверок привала увеличено на +1.", "bad");
         }
 
+        // МАСКИРОВКА ЛАГЕРЯ
+        if (!isCampHorrible) {
+            if (camoRes === 'crit_success') {
+                this.addLogLine(effectsList, "Критический успех в маскировке: Лагерь скрыт гениально. Общее число проверок привала снижено на 1, а сложность обнаружения лагеря случайной ночной сценой увеличена на +2.", "good");
+            } else if (camoRes === 'success') {
+                this.addLogLine(effectsList, "Успешная маскировка: Следы стоянки тщательно запутаны. Сложность обнаружения лагеря случайной ночной сценой увеличена на +1.", "good");
+            } else if (camoRes === 'crit_failure') {
+                this.addLogLine(effectsList, "Критический провал в маскировке: Вы оставили лагерь на виду у всех чудовищ. Сложность обнаружения лагеря снижена на -2. Любой критический успех проверки случайной ночной сцены теперь наступает при значении девятнадцать или двадцать.", "bad");
+            }
+        }
+
+        // ОХОТА И ПРОПИТАНИЕ
         if (!isCampHorrible) {
             if (huntRes === 'success') {
-                this.addLogLine(effectsList, `Успех охоты (Уровень региона: ${lvl}): Получено пайков в размере СЛ региона (${this.state.normalIngredients}). Бросьте за столом ${specialYieldText} на особые специи.`, "good");
+                this.addLogLine(effectsList, `Успешная охота (Уровень региона: ${lvl}): Егеря добыли базовое пропитание. Получено походных пайков в количестве, равном сложности региона (${this.state.normalIngredients} шт.). Бросьте кубики за столом на ${specialYieldText} для сбора особых специй.`, "good");
             } else if (huntRes === 'crit_success') {
-                this.addLogLine(effectsList, `КУ охоты (Уровень региона: ${lvl}): Получено пайков в размере СЛ региона (${this.state.normalIngredients}) + ${specialYieldText} особых специй.`, "good");
+                this.addLogLine(effectsList, `Критический успех в охоте (Уровень региона: ${lvl}): Потрясающая добыча! Получено походных пайков в количестве, равном сложности региона (${this.state.normalIngredients} шт.), а также гарантированно найдено ${specialYieldText} редких специй и ингредиентов.`, "good");
             } else if (huntRes === 'failure') {
-                this.addLogLine(effectsList, `Провал охоты: Найдено лишь базовое пропитание в размере СЛ региона (${this.state.normalIngredients}). Особых специй нет.`, "generic");
+                this.addLogLine(effectsList, `Провал на охоте: Дичь упущена. Найдено лишь скромное базовое пропитание в размере сложности региона (${this.state.normalIngredients} шт.). Редкие специи отсутствуют.`, "generic");
             } else if (huntRes === 'crit_failure') {
-                this.addLogLine(effectsList, `КП охоты: Охота обернулась катастрофой! Число проверок привала (дежурств) увеличено на +1. Бросьте за столом ${this.state.normalIngredients} на количество добытых пайков. Специй нет.`, "bad");
+                this.addLogLine(effectsList, `Критический провал на охоте: Экспедиция обернулась катастрофой! Группа привлекла внимание хищников, общее число проверок привала (дежурств) увеличено на +1. Бросьте кубики за столом на ${this.state.normalIngredients} для определения случайного количества уцелевших пайков. Специй нет.`, "bad");
             }
         }
     },
