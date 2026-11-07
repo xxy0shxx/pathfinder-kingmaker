@@ -280,9 +280,8 @@ const AnimationManager = {
         }
     },
 
-
 // ============================================================================
-// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3 (GOLD D20 ONLY ONE TEXT)
+// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3 (D20 SYNC FLASH)
 // ============================================================================
 
     /**
@@ -341,9 +340,6 @@ const AnimationManager = {
             }
         }
 
-        // ====================================================================
-        // МАТЕМАТИЧЕСКИЙ РАСЧЕТ ИДЕАЛЬНЫХ УГЛОВ ДЛЯ ВЫБРАННОЙ ГРАНИ
-        // ====================================================================
         const winningFace = faces[winningIndex];
         const v0 = vertices[winningFace[0]], v1 = vertices[winningFace[1]], v2 = vertices[winningFace[2]];
 
@@ -365,11 +361,13 @@ const AnimationManager = {
         let animationFrameId;
         let snapX = null, snapY = null, snapZ = null;
 
+        // ЖЕСТКИЙ ФЛАГ ОДНОКРАТНОЙ ВСПЫШКИ
+        let hasFlashed = false;
+
         const draw3D = () => {
             const now = performance.now();
             const elapsed = now - startTime;
 
-            // Общий хронометраж увеличен до 3000мс для долгой красивой задержки финала
             if (elapsed >= 3000) {
                 cancelAnimationFrame(animationFrameId);
                 overlay.classList.remove('open');
@@ -396,9 +394,20 @@ const AnimationManager = {
             }
             else {
                 curX = targetX; curY = targetY; curZ = targetZ;
+
+                // ГАРАНТИРОВАННЫЙ ВЫЗОВ ВСПЫШКИ: Срабатывает строго один раз в момент остановки куба
+                if (!hasFlashed) {
+                    const rect = canvas.getBoundingClientRect();
+                    // Вычисляем экранный центр сцены, проверяя, что окно уже добавлено в DOM дерево
+                    if (rect.width > 0) {
+                        const cx = rect.left + rect.width / 2;
+                        const cy = rect.top + rect.height / 2;
+                        this.spawnBeamsBurst(cx, cy, 1.4); // Сочные крупные золотые лучи
+                        hasFlashed = true;
+                    }
+                }
             }
 
-            // Плавный Fade In (200мс) и Fade Out сдвинут на самый конец (на отметку 2700мс)
             if (elapsed < 200) scale = 0.1 + 0.9 * (elapsed / 200);
             else if (elapsed > 2700) scale = 1.0 - 0.9 * ((elapsed - 2700) / 300);
             else scale = 1.0;
@@ -455,26 +464,12 @@ const AnimationManager = {
                     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
-                    // ИСПРАВЛЕНО: Текст проявляется только на ОДНОЙ выигрышной грани
-                    if (elapsed >= 1400 && f[3] === winningFace[3]) {
+                    // Отображаем крупный символ СТРОГО на лицевой грани d20
+                    if (elapsed >= 1400 && f[0] === winningFace[0] && f[1] === winningFace[1] && f[2] === winningFace[2]) {
                         ctx.save();
-
-                        ctx.restore();
-
-                        // Добавим разовый триггер эффекта вспышки лучей из ядра AnimationManager в момент стопа!
-                        if (!this._hasFlashed) {
-                            // Запускаем твои штатные золотые лучи точно по центру холста
-                            const rect = canvas.getBoundingClientRect();
-                            const cx = rect.left + rect.width / 2;
-                            const cy = rect.top + rect.height / 2;
-                            this.spawnBeamsBurst(cx, cy, 1.3); // Масштаб 1.3 для массивности
-                            this._hasFlashed = true;
-                        }
 
                         const textOpacity = Math.min(1, (elapsed - 1400) / 150);
                         ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity})`;
-
-                        // Шрифт увеличен до крупного 42px для отличной читаемости на d20
                         ctx.font = `bold ${Math.floor(42 * scale)}px 'Times New Roman', serif`;
 
                         ctx.shadowColor = `rgba(255, 162, 0, ${textOpacity})`;
@@ -492,7 +487,6 @@ const AnimationManager = {
         };
         draw3D();
     }
-
 
 };
 
