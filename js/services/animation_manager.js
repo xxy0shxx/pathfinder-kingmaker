@@ -395,14 +395,12 @@ const AnimationManager = {
             else {
                 curX = targetX; curY = targetY; curZ = targetZ;
 
-                // ГАРАНТИРОВАННЫЙ ВЫЗОВ ВСПЫШКИ: Срабатывает строго один раз в момент остановки куба
                 if (!hasFlashed) {
                     const rect = canvas.getBoundingClientRect();
-                    // Вычисляем экранный центр сцены, проверяя, что окно уже добавлено в DOM дерево
                     if (rect.width > 0) {
                         const cx = rect.left + rect.width / 2;
                         const cy = rect.top + rect.height / 2;
-                        this.spawnBeamsBurst(cx, cy, 1.4); // Сочные крупные золотые лучи
+                        this.spawnBeamsBurst(cx, cy, 1.4);
                         hasFlashed = true;
                     }
                 }
