@@ -241,9 +241,7 @@
                 <!-- Компактная панель счетчиков ввода -->
                 <div class="camping-region-bar">
 
-
-
-                    <!-- Первая строка: Базовые проверки -->
+                    <!-- Базовые проверки остаются интерактивными -->
                     <div class="camp-param-box">
                         <span class="camp-param-label">⏱ Базовые проверки:</span>
                         <div class="camp-count-controls">
@@ -253,23 +251,19 @@
                         </div>
                     </div>
 
-                    <!-- Вторая строка: СЛ Случайной сцены с кнопками и динамическим названием местности -->
+                    <!-- СЛ Случайной сцены становится статичной -->
                     <div class="camp-param-box">
                         <span class="camp-param-label">🎲 СЛ случайной сцены:</span>
-                        <div class="camp-count-controls">
-                            <button type="button" onclick="window.CampingManager.changeCheckMod(-1)">-</button>
-                            <span id="campCheckModVal">12</span>
-                            <button type="button" onclick="window.CampingManager.changeCheckMod(1)">+</button>
+                        <div class="camp-count-controls" style="border: none; background: #020503; padding: 4px 14px; border: 2px solid #b89445;">
+                            <span id="campCheckModVal" style="font-weight: bold; color: #ffd875; font-family: monospace; font-size: 26px;">12</span>
                         </div>
                     </div>
 
-                    <!-- Компактная подпись текущей местности под счетчиком -->
-                    <div class="camp-param-box" style="margin-top: -6px; justify-content: flex-start; gap: 8px;">
-                        <span style="font-size: 14px; color: #ebd291; opacity: 0.85;">Текущий ландшафт:</span>
-                        <span id="campEncounterTerrainLabel" style="font-size: 16px; font-weight: bold; color: #dfbc6f;">🌾 Равнины</span>
+                    <!-- Строка с иконкой и типом местности гекса -->
+                    <div class="camp-param-box" style="margin-top: -2px; justify-content: flex-start; gap: 8px;">
+                        <span style="font-size: 14px; color: #ebd291; opacity: 0.85;">Тип местности:</span>
+                        <span id="campEncounterTerrainLabel" style="font-size: 16px; font-weight: bold; color: #dfbc6f;">🌾 Равнины (СЛ 12)</span>
                     </div>
-
-
 
                 </div>
 

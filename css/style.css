@@ -2649,7 +2649,7 @@ body {
 
 /* Стилизация новой единой строки навыка и сложности */
 .camp-invisible-table .skill-name-large {
-    font-size: 20px !important; /* Чуть аккуратнее размер, чтобы встало в один ряд */
+    font-size: 18px !important;
     font-weight: 900 !important;
     background: #020503;
     border: 2px solid #b89445;
