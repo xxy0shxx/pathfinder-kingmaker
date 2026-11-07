@@ -23,9 +23,15 @@ const FileManager = {
         const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
         const dataStr = URL.createObjectURL(blob);
 
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const filename = `pf_save_${year}_${month}_${day}.json`;
+
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "map_data.json");
+        downloadAnchor.setAttribute("download", filename);
         document.body.appendChild(downloadAnchor);
 
         downloadAnchor.click();
