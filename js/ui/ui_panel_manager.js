@@ -32,6 +32,7 @@ const UiPanelManager = {
             });
         }
 
+
         // 2. Клик по главной шестеренке (мастер-кнопке) в углу экрана
         if (this.masterToggleBtn && this.rightPanel) {
             this.masterToggleBtn.addEventListener('click', (e) => {
@@ -41,15 +42,19 @@ const UiPanelManager = {
                 this.masterToggleBtn.classList.toggle('ui-active');
                 const isMenuExpanded = this.rightPanel.classList.toggle('ui-expanded');
 
+                // ИСПРАВЛЕНО: Если панель открыта ГМом — принудительно СКРЫВАЕМ плеер
                 if (this.playerWrapper) {
                     if (isMenuExpanded) {
-                        this.playerWrapper.classList.add('ui-expanded');
-                    } else {
                         this.playerWrapper.classList.remove('ui-expanded');
+
+                        // Сбрасываем подсветку кнопки вызова плеера, если панель распахнулась
+                        const btnTogglePlayer = document.getElementById('btnTogglePlayer');
+                        if (btnTogglePlayer) btnTogglePlayer.removeAttribute('style');
                     }
                 }
             });
         }
+
 
         // 3. Переключение мини-тултипов квестов
         const btnToggleTooltips = document.getElementById('btnToggleTooltips');
@@ -119,8 +124,24 @@ const UiPanelManager = {
             });
         }
 
+        // БЛОК 6: Выделенная кнопка вызова музыкального плеера на панели 3х4
+        const btnTogglePlayer = document.getElementById('btnTogglePlayer');
+        if (btnTogglePlayer && this.playerWrapper) {
+            btnTogglePlayer.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
 
+                const isPlayerVisible = this.playerWrapper.classList.toggle('ui-expanded');
 
+                if (isPlayerVisible) {
+                    btnTogglePlayer.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
+                    btnTogglePlayer.style.setProperty('border-color', '#dfbc6f', 'important');
+                    btnTogglePlayer.style.setProperty('color', '#dfbc6f', 'important');
+                } else {
+                    btnTogglePlayer.removeAttribute('style');
+                }
+            });
+        }
 
     }
 };
