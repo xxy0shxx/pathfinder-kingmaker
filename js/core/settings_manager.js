@@ -7,7 +7,8 @@ const SettingsManager = {
     state: {
         flightFromCapital: true,
         enableFpsMonitor: true,
-        fogOpacity: 70 // Дефолтное значение плотности тумана (0.7)
+        fogOpacity: 70,
+        disableAutocenter: false // Наш новый флаг (по умолчанию выключен)
     },
 
     init() {
@@ -27,6 +28,7 @@ const SettingsManager = {
     bindUiElements() {
         const chkFlight = document.getElementById('settingFlightMode');
         const chkFps = document.getElementById('settingFpsMonitor');
+        const chkAutocenter = document.getElementById('settingDisableAutocenter');
         const sldFog = document.getElementById('settingFogOpacity');
         const lblFog = document.getElementById('settingFogOpacityVal');
 
@@ -46,14 +48,22 @@ const SettingsManager = {
             });
         }
 
-        // Привязка нового ползунка плотности тумана
+        // Привязка нового чекбокса автоцентрирования камеры
+        if (chkAutocenter) {
+            chkAutocenter.checked = this.state.disableAutocenter;
+            chkAutocenter.addEventListener('change', () => {
+                this.state.disableAutocenter = chkAutocenter.checked;
+                this.saveAndApply();
+            });
+        }
+
         if (sldFog) {
             sldFog.value = this.state.fogOpacity;
             if (lblFog) lblFog.textContent = `${this.state.fogOpacity}%`;
 
             sldFog.addEventListener('input', () => {
                 this.state.fogOpacity = parseInt(sldFog.value, 10);
-                if (lblFog) lblFog.textContent = `${this.state.fogOpacity}%`;
+                if (lblFog) lblFog.textContent = `${sldFog.value}%`;
                 this.saveAndApply();
             });
         }
@@ -62,16 +72,16 @@ const SettingsManager = {
     applySettingsToEngine() {
         window.FLIGHT_FROM_CAPITAL_MODE = this.state.flightFromCapital;
         MAP_CONFIG.ENABLE_FPS_MONITOR = this.state.enableFpsMonitor;
-
-        // Переводим проценты (0-100) в коэффициент альфа-канала для Canvas (0.0 - 1.0)
         window.GLOBAL_FOG_OPACITY = this.state.fogOpacity / 100;
+
+        // Передаем сквозную переменную в окно window для ViewportManager
+        window.DISABLE_CAMERA_AUTOCENTER = this.state.disableAutocenter;
 
         const fpsCounter = document.getElementById('fpsCounter') || document.querySelector('.fps-monitor');
         if (fpsCounter) {
             fpsCounter.style.display = this.state.enableFpsMonitor ? 'block' : 'none';
         }
 
-        // Запрашиваем мгновенную перерисовку холста Canvas, чтобы увидеть изменения тумана «на лету»
         if (window.HexCanvasRender && typeof window.HexCanvasRender.requestFrame === 'function') {
             window.HexCanvasRender.requestFrame();
         }
