@@ -454,11 +454,11 @@ const AnimationManager = {
                 return { face: f, z: zAvg };
             }).sort((a, b) => a.z - b.z);
 
+
             renderOrder.forEach(item => {
-                const f = item.face;
+                const f = item.face; // Здесь f — это массив текущей грани: [v0, v1, v2, "символ"]
                 const p0 = rotatedVertices[f[0]], p1 = rotatedVertices[f[1]], p2 = rotatedVertices[f[2]];
 
-                // Проверка обратной стороны грани (Backface Culling)
                 const ux = p1[0] - p0[0], uy = p1[1] - p0[1];
                 const vx = p2[0] - p0[0], vy = p2[1] - p0[1];
                 const nz = ux * vy - uy * vx;
@@ -487,32 +487,33 @@ const AnimationManager = {
                     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
+                    // Отрисовка символа СТРОГО на лицевой грани d20
                     if (elapsed >= 1400 && f[0] === winningFace[0] && f[1] === winningFace[1] && f[2] === winningFace[2]) {
                         ctx.save();
 
                         const textOpacity = Math.min(1, (elapsed - 1400) / 150);
+                        // ИСПРАВЛЕНО: Читаем текст строго из четвертого элемента массива грани f[3]
                         const diceValueText = String(f[3]).trim();
 
-                        // ИСПРАВЛЕНО: Экстремально увеличиваем базовый шрифт на кубе (было 42 * scale / 44 * scale)
                         let baseFontSize = Math.floor(54 * scale);
-                        let shadowColor = `rgba(255, 162, 0, ${textOpacity})`; // Стандартное золотое свечение
+                        let shadowColor = `rgba(255, 162, 0, ${textOpacity})`; // Золото по умолчанию
                         let textColor = `rgba(255, 255, 255, ${textOpacity})`;
 
-                        // АКЦЕНТ НА КРИТИЧЕСКИЕ ЗНАЧЕНИЯ (1 и 20)
-                        if (diceValueText === "20" || diceValueText === "⚜") {
-                            baseFontSize = Math.floor(68 * scale); // Делаем 20-ку гигантской
-                            shadowColor = `rgba(46, 204, 113, ${textOpacity})`; // Сочное неоновое изумрудное свечение
+                        // ЖЁСТКОЕ И НАДЁЖНОЕ РАЗДЕЛЕНИЕ ЦВЕТОВ ПО ТЕКСТУ ЗНАЧЕНИЯ ГРАНИ
+                        if (diceValueText === "20") {
+                            baseFontSize = Math.floor(68 * scale);
+                            shadowColor = `rgba(46, 204, 113, ${textOpacity})`; // Изумрудно-зелёный успех
                             textColor = `rgba(235, 255, 240, ${textOpacity})`;
-                        } else if (diceValueText === "1") {
-                            baseFontSize = Math.floor(68 * scale); // Делаем 1-цу гигантской
-                            shadowColor = `rgba(231, 76, 60, ${textOpacity})`; // Угрожающее багрово-красное свечение
-                            textColor = `rgba(255, 230, 230, ${textOpacity})`;
+                        }
+                        else if (diceValueText === "1" || diceValueText === "⚜") {
+                            baseFontSize = Math.floor(68 * scale);
+                            shadowColor = `rgba(231, 76, 60, ${textOpacity})`; // Багрово-красный провал
+                            textColor = `rgba(255, 210, 210, ${textOpacity})`;
                         }
 
                         ctx.fillStyle = textColor;
                         ctx.font = `900 ${baseFontSize}px 'Times New Roman', serif`;
 
-                        // Выкручиваем blur тени на максимум для эффекта свечения на ТВ
                         ctx.shadowColor = shadowColor;
                         ctx.shadowBlur = 18;
 
@@ -522,12 +523,15 @@ const AnimationManager = {
                         const cx = (p0[0] + p1[0] + p2[0]) / 3;
                         const cy = (p0[1] + p1[1] + p2[1]) / 3;
 
+                        // Выводим конкретный символ грани на экран
                         ctx.fillText(f[3], cx, cy);
                         ctx.restore();
                     }
-
                 }
             });
+
+
+
             animationFrameId = requestAnimationFrame(draw3D);
         };
         draw3D();
