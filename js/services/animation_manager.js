@@ -282,7 +282,7 @@ const AnimationManager = {
 
 
 // ============================================================================
-// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3 (GOLD D20 EDIT)
+// МОДУЛЬ: МЕНЕДЖЕР АНИМАЦИЙ И ЭФФЕКТОВ (ANIMATION MANAGER) — ЧАСТЬ 3 ИЗ 3 (GOLD D20 ONLY ONE TEXT)
 // ============================================================================
 
     /**
@@ -369,8 +369,8 @@ const AnimationManager = {
             const now = performance.now();
             const elapsed = now - startTime;
 
-            // Ускорили общую анимацию до 2000мс
-            if (elapsed >= 2000) {
+            // Общий хронометраж увеличен до 3000мс для долгой красивой задержки финала
+            if (elapsed >= 3000) {
                 cancelAnimationFrame(animationFrameId);
                 overlay.classList.remove('open');
                 if (typeof onCompleteCallback === 'function') onCompleteCallback();
@@ -378,12 +378,10 @@ const AnimationManager = {
             }
 
             let curX, curY, curZ;
-            // 0 - 1000мс: быстрое вращение
             if (elapsed < 1000) {
                 angleX += 0.12; angleY += 0.18; angleZ += 0.06;
                 curX = angleX; curY = angleY; curZ = angleZ;
             }
-            // 1000мс - 1400мс: плавный доворот кубика к лицу игрока
             else if (elapsed < 1400) {
                 if (snapX === null) {
                     snapX = angleX % (Math.PI * 2);
@@ -396,13 +394,13 @@ const AnimationManager = {
                 curY = snapY + (targetY - snapY) * ease;
                 curZ = snapZ + (targetZ - snapZ) * ease;
             }
-            // 1400мс - 2000мс: кубик замер на выпавшем значении
             else {
                 curX = targetX; curY = targetY; curZ = targetZ;
             }
 
+            // Плавный Fade In (200мс) и Fade Out сдвинут на самый конец (на отметку 2700мс)
             if (elapsed < 200) scale = 0.1 + 0.9 * (elapsed / 200);
-            else if (elapsed > 1800) scale = 1.0 - 0.8 * ((elapsed - 1800) / 200);
+            else if (elapsed > 2700) scale = 1.0 - 0.9 * ((elapsed - 2700) / 300);
             else scale = 1.0;
 
             ctx.clearRect(0, 0, 400, 400);
@@ -447,7 +445,6 @@ const AnimationManager = {
                     const dot = nx3*light[0] + ny3*light[1] + nz1*light[2];
                     const brightness = Math.max(0.2, dot);
 
-                    // ЗОЛОТАЯ ПАЛИТРА ОРИГИНАЛЬНОГО ХОЛСТА (RGB Gold Metal)
                     const r = Math.floor(180 + 75 * brightness);
                     const g = Math.floor(135 + 80 * brightness);
                     const b = Math.floor(35 + 40 * brightness);
@@ -456,21 +453,27 @@ const AnimationManager = {
                     ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]);
                     ctx.closePath();
                     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
-
-                    // Ребра: полированное светлое золото поверх теней граней
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
-                    ctx.save();
-                    // Цифры: белые, контрастные, со светящейся золотой обводкой-тенью
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = `bold ${Math.floor(24 * scale)}px 'Times New Roman', serif`;
-                    ctx.shadowColor = "#ffa200";
-                    ctx.shadowBlur = 6;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                    const cx = (p0[0] + p1[0] + p2[0]) / 3;
-                    const cy = (p0[1] + p1[1] + p2[1]) / 3;
-                    ctx.fillText(f[3], cx, cy);
-                    ctx.restore();
+                    // ИСПРАВЛЕНО: Текст проявляется только на ОДНОЙ выигрышной грани
+                    if (elapsed >= 1400 && f[3] === winningFace[3]) {
+                        ctx.save();
+
+                        const textOpacity = Math.min(1, (elapsed - 1400) / 150);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity})`;
+
+                        // Шрифт увеличен до крупного 42px для отличной читаемости на d20
+                        ctx.font = `bold ${Math.floor(42 * scale)}px 'Times New Roman', serif`;
+
+                        ctx.shadowColor = `rgba(255, 162, 0, ${textOpacity})`;
+                        ctx.shadowBlur = 10;
+
+                        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        const cx = (p0[0] + p1[0] + p2[0]) / 3;
+                        const cy = (p0[1] + p1[1] + p2[1]) / 3;
+                        ctx.fillText(f[3], cx, cy);
+                        ctx.restore();
+                    }
                 }
             });
             animationFrameId = requestAnimationFrame(draw3D);
