@@ -487,21 +487,45 @@ const AnimationManager = {
                     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
-                    // Отрисовка символа СТРОГО на лицевой грани d20
                     if (elapsed >= 1400 && f[0] === winningFace[0] && f[1] === winningFace[1] && f[2] === winningFace[2]) {
                         ctx.save();
+
                         const textOpacity = Math.min(1, (elapsed - 1400) / 150);
-                        ctx.fillStyle = `rgba(255, 255, 255, ${textOpacity})`;
-                        ctx.font = `bold ${Math.floor(44 * scale)}px 'Times New Roman', serif`;
-                        ctx.shadowColor = `rgba(255, 162, 0, ${textOpacity})`;
-                        ctx.shadowBlur = 10;
-                        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        const diceValueText = String(f[3]).trim();
+
+                        // ИСПРАВЛЕНО: Экстремально увеличиваем базовый шрифт на кубе (было 42 * scale / 44 * scale)
+                        let baseFontSize = Math.floor(54 * scale);
+                        let shadowColor = `rgba(255, 162, 0, ${textOpacity})`; // Стандартное золотое свечение
+                        let textColor = `rgba(255, 255, 255, ${textOpacity})`;
+
+                        // АКЦЕНТ НА КРИТИЧЕСКИЕ ЗНАЧЕНИЯ (1 и 20)
+                        if (diceValueText === "20" || diceValueText === "⚜") {
+                            baseFontSize = Math.floor(68 * scale); // Делаем 20-ку гигантской
+                            shadowColor = `rgba(46, 204, 113, ${textOpacity})`; // Сочное неоновое изумрудное свечение
+                            textColor = `rgba(235, 255, 240, ${textOpacity})`;
+                        } else if (diceValueText === "1") {
+                            baseFontSize = Math.floor(68 * scale); // Делаем 1-цу гигантской
+                            shadowColor = `rgba(231, 76, 60, ${textOpacity})`; // Угрожающее багрово-красное свечение
+                            textColor = `rgba(255, 230, 230, ${textOpacity})`;
+                        }
+
+                        ctx.fillStyle = textColor;
+                        ctx.font = `900 ${baseFontSize}px 'Times New Roman', serif`;
+
+                        // Выкручиваем blur тени на максимум для эффекта свечения на ТВ
+                        ctx.shadowColor = shadowColor;
+                        ctx.shadowBlur = 18;
+
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
 
                         const cx = (p0[0] + p1[0] + p2[0]) / 3;
                         const cy = (p0[1] + p1[1] + p2[1]) / 3;
+
                         ctx.fillText(f[3], cx, cy);
                         ctx.restore();
                     }
+
                 }
             });
             animationFrameId = requestAnimationFrame(draw3D);
