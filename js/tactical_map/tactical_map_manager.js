@@ -69,7 +69,7 @@ const TacticalMapManager = {
             if (self.state.currentMapMode === 'global') {
                 self.switchMapMode('camp');
 
-                btnToggleMapMode.innerHTML = '⛺';
+                btnToggleMapMode.innerHTML = '⚔️';
                 btnToggleMapMode.title = 'Переключить на глобальную карту';
                 btnToggleMapMode.style.background = 'linear-gradient(180deg, #42351f 0%, #292011 100%)';
                 btnToggleMapMode.style.borderColor = '#543e0d';

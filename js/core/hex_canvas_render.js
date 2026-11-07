@@ -441,15 +441,7 @@ const HexCanvasRender = {
 
         const [_, row, col] = hexKey.split('_');
         const data = this.hexesData[hexKey] || null;
-
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
-
-        // Если туман глобально ВКЛЮЧЕН и гекс не разведан — рисуем черную маску
-        if (MAP_CONFIG.isGlobalFogEnabled && !isRevealed) {
-            this.drawHexPath(cx, cy, r);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fill();
-        }
 
         if (!data || (!data.title && !data.text)) {
             tooltip.innerHTML = `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [${row};${col}]</div>
