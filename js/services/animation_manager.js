@@ -200,16 +200,31 @@ const AnimationManager = {
             [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
         ];
 
+
+        // 2. ДИНАМИЧЕСКИ ПЕРЕЗАПИСЫВАЕМ СИМВОЛ НА ЭТОЙ ФРОНТАЛЬНОЙ ГРАНИ
+        // Находим, какой символ хочет отобразить ГМ (targetDc)
         const dcMap = { "⚜":0, "1":0, "2":1, "3":2, "4":3, "5":4, "6":5, "7":6, "8":7, "9":8, "10":9, "11":10, "12":11, "13":12, "14":13, "15":14, "16":15, "17":16, "18":17, "19":18, "20":19 };
+        let realWinIdx = 11; // Если что-то пойдет не так, покажем 12
+        if (targetDc !== undefined && targetDc !== null) {
+            const k = String(targetDc).trim();
+            if (dcMap[k] !== undefined) realWinIdx = dcMap[k];
+        }
+
+        // Подменяем текст на главной фронтальной грани (индекс 11) на тот, который выпал!
+        const finalSymbolToDisplay = faces[realWinIdx][3];
+        faces[11][3] = finalSymbolToDisplay;
+
+        // Запоминаем индекс нашей "магической" грани, чтобы отрисовать на ней спецэффекты текста
         let winIdx = 11;
-        if (targetDc !== undefined && targetDc !== null) { const k = String(targetDc).trim(); if (dcMap[k] !== undefined) winIdx = dcMap[k]; }
+        const fWin = faces[winIdx];
 
         // Точное вычисление вектора нормали К ЛЮБОЙ выбранной грани треугольника
-        const fWin = faces[winIdx];
-        let nx = (vertices[fWin[0]][0] + vertices[fWin[1]][0] + vertices[fWin[2]][0]) / 3;
-        let ny = (vertices[fWin[0]][1] + vertices[fWin[1]][1] + vertices[fWin[2]][1]) / 3;
-        let nz = (vertices[fWin[0]][2] + vertices[fWin[1]][2] + vertices[fWin[2]][2]) / 3;
+        const fWinBase = faces[11];
+        let nx = (vertices[fWinBase[0]][0] + vertices[fWinBase[1]][0] + vertices[fWinBase[2]][0]) / 3;
+        let ny = (vertices[fWinBase[0]][1] + vertices[fWinBase[1]][1] + vertices[fWinBase[2]][1]) / 3;
+        let nz = (vertices[fWinBase[0]][2] + vertices[fWinBase[1]][2] + vertices[fWinBase[2]][2]) / 3;
         const nl = Math.sqrt(nx*nx + ny*ny + nz*nz); nx /= nl; ny /= nl; nz /= nl;
+
 
         // Поворот вокруг Y, затем вокруг X, чтобы нормаль смотрела строго в экран (0, 0, 1)
         const rotY = -Math.atan2(nx, nz);
