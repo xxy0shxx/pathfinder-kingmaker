@@ -76,6 +76,7 @@ const CampingManager = {
 // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
 // ============================================================================
 
+
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -123,14 +124,20 @@ const CampingManager = {
             const finalCamoDc = baseRegionDc + prepareDcModifier;
             const finalHuntDc = baseRegionDc + prepareDcModifier;
 
-            ['label_dc_prepare', 'label_dc_camouflage', 'label_dc_hunt'].forEach(id => {
+            // Хелпер для раздельного форматирования регистров
+            const updateSkillDcLabel = (id, skillName, dcValue) => {
                 const el = document.getElementById(id);
                 if (el) {
-                    if (id === 'label_dc_prepare') el.textContent = `(СЛ: ${finalPrepareDc})`;
-                    if (id === 'label_dc_camouflage') el.textContent = `(СЛ: ${finalCamoDc})`;
-                    if (id === 'label_dc_hunt') el.textContent = `(СЛ: ${finalHuntDc})`;
+                    // Навык переводим в нижний регистр, СЛ оставляем как есть
+                    const lowerSkill = skillName.toLowerCase();
+                    el.textContent = `${lowerSkill} СЛ ${dcValue}`;
                 }
-            });
+            };
+
+            updateSkillDcLabel('label_dc_prepare', 'Выживание', finalPrepareDc);
+            updateSkillDcLabel('label_dc_camouflage', 'Скрытность', finalCamoDc);
+            updateSkillDcLabel('label_dc_hunt', 'Выживание', finalHuntDc);
+
 
             let finalEncounterDc = this.state.checkMod;
             if (!isCampHorrible) {
@@ -193,6 +200,25 @@ const CampingManager = {
         if (encEl) encEl.textContent = this.state.encounterDc;
         if (totEl) totEl.textContent = this.state.totalChecks;
 
+        // --- НОВЫЙ БЛОК: Динамическое добавление крупных надписей навыков ---
+        const appendSkillLabel = (rowId, skillText) => {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            const nameCell = row.querySelector('.camp-act-cell') || row.querySelector('td');
+            if (nameCell && !nameCell.querySelector('.skill-name-large')) {
+                const skillLabel = document.createElement('span');
+                skillLabel.className = 'skill-name-large';
+                skillLabel.textContent = skillText;
+                nameCell.appendChild(skillLabel);
+            }
+        };
+
+        // Добавляем крупные надписи навыков в соответствующие строки
+        appendSkillLabel('row_prepare', 'Выживание');
+        appendSkillLabel('row_camouflage', 'Скрытность');
+        appendSkillLabel('row_hunt', 'Выживание');
+        // ------------------------------------------------------------------
+
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
         effectsList.innerHTML = '';
@@ -219,6 +245,7 @@ const CampingManager = {
             }
         }
     },
+
 
     addLogLine(container, text, type) {
         const line = document.createElement('div');

@@ -2634,3 +2634,68 @@ body {
     box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.9) !important;
     background: #112417 !important;
 }
+
+/* Уменьшаем ширину колонок под радиокнопки, чтобы расширить место для текста */
+.camp-invisible-table th.col-radio,
+.camp-invisible-table td:not(.camp-act-cell) {
+    width: 42px !important;    /* Было 55px — сужаем колонки КУ, У, П, КП */
+    padding: 16px 2px !important; /* Уплотняем падинги */
+}
+
+/* Оптимизируем левую колонку под текст */
+.camp-invisible-table td.camp-act-cell {
+    padding: 16px 4px !important;
+}
+
+/* Стилизация новой единой строки навыка и сложности */
+.camp-invisible-table .skill-name-large {
+    font-size: 20px !important; /* Чуть аккуратнее размер, чтобы встало в один ряд */
+    font-weight: 900 !important;
+    background: #020503;
+    border: 2px solid #b89445;
+    padding: 4px 10px;
+    border-radius: 5px;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+    text-shadow: 0 0 8px rgba(255, 216, 117, 0.4);
+}
+
+/* Убираем рамки и фоны с самого текста сложности */
+[id^="label_dc_"] {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-top: 4px !important;
+    display: block !important;
+}
+
+/* Переносим единую рамку на всю левую ячейку с действием и навыком */
+.camp-invisible-table td.camp-act-cell {
+    background: #020503 !important;
+    border: 2px solid #b89445 !important;
+    border-radius: 5px !important;
+    padding: 10px 14px !important;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.9) !important;
+    text-shadow: 0 0 8px rgba(255, 216, 117, 0.4) !important;
+}
+
+/* Делаем аккуратный отступ между строками-рамками в таблице */
+.camp-invisible-table tr {
+    border-bottom: 12px solid transparent !important;
+}
+
+.camp-invisible-table .act-name {
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 2px !important;
+}
+
+[id^="label_dc_"] {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #dfbc6f !important;
+    text-transform: none !important;
+}
