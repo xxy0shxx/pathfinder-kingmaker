@@ -254,6 +254,11 @@ const HexManager = {
                 qTooltip.textContent = '⚜️ ' + data.questData.title.trim();
                 qTooltip.style.left = cx + 'px';
                 qTooltip.style.top = (cy - radius + 12) + 'px';
+
+                if (window.MAP_HIDE_QUEST_MARKERS) {
+                    qTooltip.style.display = 'none';
+                }
+
                 this.visualLayer.appendChild(qTooltip);
             }
         }

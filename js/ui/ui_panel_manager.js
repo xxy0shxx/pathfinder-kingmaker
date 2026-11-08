@@ -55,17 +55,6 @@ const UiPanelManager = {
             });
         }
 
-
-        // 3. Переключение мини-тултипов квестов
-        const btnToggleTooltips = document.getElementById('btnToggleTooltips');
-        if (btnToggleTooltips) {
-            btnToggleTooltips.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                AnimationManager.toggleQuestTooltips(btnToggleTooltips);
-            });
-        }
-
         // 4. Скрытие и отображение путей отряда
         const btnTogglePaths = document.getElementById('btnTogglePaths');
         const svgPathsLayer = document.getElementById('mapPathsSvg');

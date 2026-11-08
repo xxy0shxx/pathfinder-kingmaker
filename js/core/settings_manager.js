@@ -11,12 +11,12 @@ const SettingsManager = {
         squadTokenColor: 'gold',
         hideDc: false,
         hideLevel: false,
-        hideObjTitle: false, // Новое
-        hideObjIcon: false,  // Новое
+        hideObjTitle: false,
+        hideObjIcon: false,
         hideTerrain: false,
-        hideExplored: false, // Новое
-        hideMapped: false    // Новое
-
+        hideExplored: false,
+        hideMapped: false,
+        hideQuestMarkers: false // Новое реактивное свойство
     },
 
     init() {
@@ -30,7 +30,6 @@ const SettingsManager = {
         } catch (e) { console.error("Ошибка SettingsManager:", e); }
     },
 
-
     bindUiElements() {
         const ids = [
             { id: 'settingFlightMode', key: 'flightFromCapital', type: 'check' },
@@ -38,11 +37,12 @@ const SettingsManager = {
             { id: 'settingDisableAutocenter', key: 'disableAutocenter', type: 'check' },
             { id: 'settingHideDc', key: 'hideDc', type: 'check' },
             { id: 'settingHideLevel', key: 'hideLevel', type: 'check' },
-            { id: 'settingHideObjTitle', key: 'hideObjTitle', type: 'check' }, // Обновлено
-            { id: 'settingHideObjIcon', key: 'hideObjIcon', type: 'check' },   // Обновлено
+            { id: 'settingHideObjTitle', key: 'hideObjTitle', type: 'check' },
+            { id: 'settingHideObjIcon', key: 'hideObjIcon', type: 'check' },
             { id: 'settingHideTerrain', key: 'hideTerrain', type: 'check' },
-            { id: 'settingHideExplored', key: 'hideExplored', type: 'check' }, // Новое
-            { id: 'settingHideMapped', key: 'hideMapped', type: 'check' },     // Новое
+            { id: 'settingHideExplored', key: 'hideExplored', type: 'check' },
+            { id: 'settingHideMapped', key: 'hideMapped', type: 'check' },
+            { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' }, // Привязка нового чекбокса
             { id: 'settingSquadTokenSkin', key: 'squadTokenSkin', type: 'value' },
             { id: 'settingSquadSpawnAnim', key: 'squadAnimMode', type: 'value' }
         ];
@@ -70,7 +70,6 @@ const SettingsManager = {
             });
         }
 
-        // Привязка пресетов цвета фигурки отряда
         const colorContainer = document.getElementById('squadTokenColorPresets');
         if (colorContainer) {
             const buttons = colorContainer.querySelectorAll('.squad-color-btn');
@@ -93,8 +92,8 @@ const SettingsManager = {
                 });
             });
         }
-
     },
+
 
     applySettingsToEngine() {
         window.DISABLE_CAMERA_AUTOCENTER = this.state.disableAutocenter;
@@ -105,7 +104,7 @@ const SettingsManager = {
         window.GLOBAL_FOG_OPACITY = this.state.fogOpacity / 100;
         MAP_CONFIG.ENABLE_FPS_MONITOR = this.state.enableFpsMonitor;
 
-        // Выводим новые флаги фильтрации в глобальную область видимости окон
+        // Фильтры отображения объектов на карте
         window.MAP_HIDE_DC = this.state.hideDc;
         window.MAP_HIDE_LEVEL = this.state.hideLevel;
         window.MAP_HIDE_OBJ_TYPE = this.state.hideObjType;
@@ -115,6 +114,13 @@ const SettingsManager = {
         window.MAP_HIDE_EXPLORED = this.state.hideExplored;
         window.MAP_HIDE_MAPPED = this.state.hideMapped;
 
+        // СИНХРОНИЗАЦИЯ С ДВИЖКОМ CANVAS:
+        window.MAP_HIDE_QUEST_MARKERS = this.state.hideQuestMarkers;
+        if (window.HexCanvasRender) {
+            // Переворачиваем флаг, так как в меню у нас "Скрыть" (true), а в движке "Показывать" (show)
+            window.HexCanvasRender.showQuestTooltips = !this.state.hideQuestMarkers;
+        }
+
         const fpsCounter = document.getElementById('fpsCounter') || document.querySelector('.fps-monitor');
         if (fpsCounter) fpsCounter.style.display = this.state.enableFpsMonitor ? 'block' : 'none';
 
@@ -122,6 +128,8 @@ const SettingsManager = {
             window.HexCanvasRender.requestFrame();
         }
     },
+
+
 
     saveAndApply() {
         localStorage.setItem('kingmakerSystemSettings', JSON.stringify(this.state));

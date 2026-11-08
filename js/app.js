@@ -306,6 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
         HexCanvasRender.init(canvasElement, mapData.hexes, hexCoordinatesMap);
         window.HexCanvasRender = HexCanvasRender;
 
+        if (window.SettingsManager && window.SettingsManager.state) {
+            HexCanvasRender.showQuestTooltips = !window.SettingsManager.state.hideQuestMarkers;
+        }
+
         if (localStorage.getItem('kingmakerFrameStyle') === 'runes') {
             HexCanvasRender.startAnimationLoop();
         }

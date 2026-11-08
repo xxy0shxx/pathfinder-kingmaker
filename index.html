@@ -245,6 +245,11 @@
                     <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">📖 Скрыть маркер «Карта составлена» (иконка свитка)</label>
                     <input type="checkbox" id="settingHideMapped" style="transform: scale(1.4);">
                 </div>
+
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">⚜ Скрыть маркер «Отобразить задания» (плашка над названием гекса)</label>
+                    <input type="checkbox" id="settingHideQuestMarkers" style="transform: scale(1.4);">
+                </div>
             </fieldset>
             <!-- БЛОК 3: СИСТЕМНЫЕ НАСТРОЙКИ -->
             <fieldset style="border: 2px solid #543e0d; border-radius: 6px; padding: 20px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 16px;">
@@ -781,13 +786,13 @@
     <button type="button" id="btnToggleQuests" class="btn-ui-toggle quest-toggle-btn" title="Открыть журнал заданий">⚜️</button>
     <button type="button" id="btnToggleCamping" class="btn-ui-toggle" title="Дневник Привала">⛺</button>
     <button id="btnTogglePaths" title="Показать/скрыть маршрут">👣</button>
-    <button type="button" id="btnToggleTooltips" class="btn-ui-toggle" title="Скрыть/Показать тултипы квестов">✨</button>
     <button type="button" id="btnToggleMapMode" class="btn-ui-toggle" title="Переключить на карту лагеря">🗺️</button>
-    <button type="button" id="btnToggleFog" class="btn-ui-toggle" title="Включить/выключить туман">👁️</button>
     <button type="button" id="btnFrameStyle" class="btn-frame-style" title="Рамка: Без рун">🔲</button>
+    <button type="button" id="btnTogglePlayer" class="btn-ui-toggle" title="Открыть музыкальный плеер Winamp">🎵</button>
+    <button type="button" class="btn-ui-toggle"></button>
     <button type="button" id="btnImport" class="btn-ui-toggle" title="Импорт JSON">📤</button>
     <button type="button" id="btnExport" class="btn-ui-toggle" title="Экспорт JSON">📥</button>
-    <button type="button" id="btnTogglePlayer" class="btn-ui-toggle" title="Открыть музыкальный плеер Winamp">🎵</button>
+    <button type="button" class="btn-ui-toggle"></button>
     <button type="button" id="btnToggleSettings" class="btn-ui-toggle" title="Открыть настройки интерфейса">🎛️</button>
     <button type="button" id="btnMasterToggle" class="btn-ui-toggle master-toggle-btn" title="Показать/скрыть интерфейс управления">⚙️</button>
 </div>
