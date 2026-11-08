@@ -3310,3 +3310,112 @@ canvas[style*="position: fixed"] {
             0 0 35px 8px rgba(223, 188, 111, 0.6),
             inset 0 0 10px rgba(255, 216, 117, 0.5) !important;
 }
+
+/* ============================================================================
+   СТИЛИЗАЦИЯ МЕХАНИКИ НАТУРАЛЬНОЙ 20 (ЧЕКБОКС И КОРОНА)
+   ============================================================================ */
+
+/* Компактный геральдический чекбокс D20 в верхней панели */
+.init-nat20-checkbox-label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    background: #020503 !important;
+    border: 1px solid #543e0d !important;
+    padding: 6px 10px !important;
+    border-radius: 4px !important;
+    transition: all 0.2s ease !important;
+    height: 38px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+.init-nat20-checkbox-label:hover {
+    border-color: #b89445 !important;
+    background: rgba(184, 148, 69, 0.1) !important;
+}
+
+.init-nat20-checkbox-label input[type="checkbox"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    width: 18px !important;
+    height: 18px !important;
+    border: 2px solid #543e0d !important;
+    background: #000 !important;
+    border-radius: 3px !important;
+    position: relative !important;
+    cursor: pointer !important;
+    outline: none !important;
+    margin: 0 !important;
+    transition: all 0.15s ease !important;
+}
+
+.init-nat20-checkbox-label input[type="checkbox"]:checked {
+    border-color: #ffd875 !important;
+    background: #1e3c27 !important;
+    box-shadow: 0 0 8px rgba(255, 216, 117, 0.4) !important;
+}
+
+.init-nat20-checkbox-label input[type="checkbox"]:checked::before {
+    content: "✓" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    color: #ffd875 !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+}
+
+.init-nat20-checkbox-label span {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    color: #ebd291 !important;
+}
+
+/* Золотая корона крит-успеха на карточке */
+.init-crown-badge {
+    display: inline-block !important;
+    margin-left: 10px !important;
+    font-size: 24px !important;
+    animation: initCrownFloat 2s ease-in-out infinite alternate !important;
+    filter: drop-shadow(0 0 6px #ffd875) !important;
+    vertical-align: middle !important;
+}
+
+/* Кнопка быстрого переключения D20 внутри карточки */
+.init-btn-toggle-d20-inline {
+    background: #020503 !important;
+    border: 1px solid #543e0d !important;
+    color: #7f8c8d !important;
+    font-size: 18px !important;
+    width: 34px !important;
+    height: 34px !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+}
+
+.init-btn-toggle-d20-inline:hover {
+    border-color: #b89445 !important;
+    color: #ebd291 !important;
+}
+
+.init-btn-toggle-d20-inline.active {
+    border-color: #ffd875 !important;
+    color: #ffd875 !important;
+    background: #1e3c27 !important;
+    box-shadow: 0 0 10px rgba(255, 216, 117, 0.3) !important;
+}
+
+@keyframes initCrownFloat {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-3px) scale(1.08); }
+}

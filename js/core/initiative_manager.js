@@ -34,24 +34,6 @@ const InitiativeManager = {
         this.renderUi();
     },
 
-    addCombatant(name, score, faction) {
-        const cleanName = String(name).trim();
-        const parsedScore = parseInt(score, 10);
-
-        if (!cleanName) { alert("Введите имя или название существа!"); return; }
-        if (isNaN(parsedScore) || parsedScore < 1 || parsedScore > 100) { alert("Инициатива должна быть от 1 до 100!"); return; }
-
-        const newUnit = {
-            id: 'unit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-            name: cleanName,
-            score: parsedScore,
-            faction: faction || 'neutral'
-        };
-
-        this.state.combatants.push(newUnit);
-        this._sortAndSave();
-    },
-
     updateScore(id, newScore) {
         const val = parseInt(newScore, 10);
         if (isNaN(val) || val < 1 || val > 100) return;
@@ -105,12 +87,43 @@ const InitiativeManager = {
     /**
      * Динамическая генерация HTML-панели трекера инициативы с поддержкой скролла и Drag-and-Drop
      */
+
+
+    /**
+     * Добавление бойца с поддержкой флага Натуральной 20
+     */
+    addCombatant(name, score, faction, isNat20) {
+        const cleanName = String(name).trim();
+        const parsedScore = parseInt(score, 10);
+
+        if (!cleanName) { alert("Введите имя или название существа!"); return; }
+        if (isNaN(parsedScore) || parsedScore < 1 || parsedScore > 100) { alert("Инициатива должна быть от 1 до 100!"); return; }
+
+        const newUnit = {
+            id: 'unit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            name: cleanName,
+            score: parsedScore,
+            faction: faction || 'neutral',
+            isNat20: !!isNat20 // Регистрируем маркер критического успеха
+        };
+
+        this.state.combatants.push(newUnit);
+        this._sortAndSave();
+    },
+
+    toggleNat20(id) {
+        const unit = this.state.combatants.find(c => c.id === id);
+        if (unit) {
+            unit.isNat20 = !unit.isNat20;
+            this._saveWithoutSort();
+        }
+    },
+
     renderUi() {
         const container = document.getElementById('initiativeTabletContainer');
         if (!container) return;
 
-
-        // Если разметка планшета еще не создана — строим форму ввода без заголовка
+        // 1. Встраиваем чекбокс [ ] D20 в быструю панель ввода ГМа
         if (!container.querySelector('.init-header-zone')) {
             container.innerHTML = `
                 <div class="initiative-tablet-content" style="width: 100%;">
@@ -124,6 +137,12 @@ const InitiativeManager = {
                                 <input type="text" id="initInputScore" value="10" style="width: 50px; text-align: center; background: #000; border: 1px solid #543e0d; color: #fff; font-weight: bold;">
                                 <button type="button" onclick="document.getElementById('initInputScore').value = Math.min(100, parseInt(document.getElementById('initInputScore').value, 10) + 1)">+</button>
                             </div>
+
+                            <!-- НОВЫЙ ЧЕКБОКС НАТУРАЛЬНОЙ 20 -->
+                            <label class="init-nat20-checkbox-label" title="Натуральная 20 на кубике d20">
+                                <input type="checkbox" id="initInputNat20">
+                                <span>D20</span>
+                            </label>
 
                             <select id="initInputFaction" style="width: 140px; background: #090f0b; border: 1px solid #543e0d; color: #ebd291; padding: 4px;">
                                 <option value="friend">🟢 Союзник</option>
@@ -139,14 +158,16 @@ const InitiativeManager = {
                 </div>
             `;
 
-
-
             document.getElementById('initBtnAdd').addEventListener('click', () => {
                 const nameInp = document.getElementById('initInputName');
                 const scoreInp = document.getElementById('initInputScore');
                 const factInp = document.getElementById('initInputFaction');
-                this.addCombatant(nameInp.value, scoreInp.value, factInp.value);
+                const nat20Inp = document.getElementById('initInputNat20');
+
+                this.addCombatant(nameInp.value, scoreInp.value, factInp.value, nat20Inp.checked);
+
                 nameInp.value = '';
+                nat20Inp.checked = false; // Сбрасываем чекбокс для следующего бойца
                 nameInp.focus();
             });
 
@@ -158,28 +179,30 @@ const InitiativeManager = {
         listContainer.innerHTML = '';
 
         if (this.state.combatants.length === 0) {
-            listContainer.innerHTML = `<div class="quest-log-empty">Бой не начат. Добавьте участников или монстров через верхнюю панель, чтобы распределить очередность ходов.</div>`;
+            listContainer.innerHTML = `<div class="quest-log-empty">Бой не начат. Добавьте участников или монстров через верхнюю панель.</div>`;
             return;
         }
 
-        // Отрисовка списка из больших, легко читаемых элементов с поддержкой Drag-and-Drop
         this.state.combatants.forEach((unit, index) => {
             const card = document.createElement('div');
             card.className = `init-combatant-card faction-${unit.faction}`;
             card.setAttribute('draggable', 'true');
             card.setAttribute('data-id', unit.id);
+            if (this.state.selectedUnitId === unit.id) card.classList.add('selected-turn-gold');
 
-            // Если этот юнит выделен ГМом — включаем массивное золотое свечение в круг
-            if (this.state.selectedUnitId === unit.id) {
-                card.classList.add('selected-turn-gold');
-            }
-
+            // 2. ВСТРАИВАЕМ ИНДИКАТОР КОРОНЫ "👑" НА КАРТОЧКУ, ЕСЛИ ОНА АКТИВИРОВАНА
             card.innerHTML = `
                 <div class="init-card-left" style="pointer-events: none;">
                     <div class="init-badge-index">${index + 1}</div>
-                    <div class="init-card-name-text">${unit.name}</div>
+                    <div class="init-card-name-text">
+                        ${unit.name} 
+                        ${unit.isNat20 ? '<span class="init-crown-badge" title="Натуральная 20! Крит успех">👑</span>' : ''}
+                    </div>
                 </div>
                 <div class="init-card-right">
+                    <!-- Быстрое переключение статуса D20 кликом на иконку в карточке -->
+                    <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 ? 'active' : ''}" data-id="${unit.id}" title="Переключить маркер крита D20">🎲</button>
+                    
                     <div class="init-select-wrapper">
                         <select class="init-inline-faction-select" data-id="${unit.id}">
                             <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
@@ -187,19 +210,21 @@ const InitiativeManager = {
                             <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
                         </select>
                     </div>
-                    
                     <div class="init-score-massive-block" title="Прокрутите колесико мыши для изменения">
                         <input type="number" class="init-inline-score-input" data-id="${unit.id}" value="${unit.score}" min="1" max="100">
                     </div>
-
-                    <button type="button" class="init-btn-delete-card" data-id="${unit.id}" title="Удалить из боя">×</button>
+                    <button type="button" class="init-btn-delete-card" data-id="${unit.id}">×</button>
                 </div>
             `;
 
-            // Клик по карточке (кроме элементов управления) активирует золотую обводку
             card.addEventListener('click', (e) => {
                 if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
                 this.toggleSelectUnit(unit.id);
+            });
+
+            card.querySelector('.init-btn-toggle-d20-inline').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleNat20(e.target.dataset.id);
             });
 
             // ИНТЕГРАЦИЯ КОЛЕСИКА МЫШИ (Изменение инициативы при наведении)
