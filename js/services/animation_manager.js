@@ -96,6 +96,7 @@ const AnimationManager = {
         } catch (e) {}
     },
 
+
     playFlagFlight(oldHexId, currentHexId, onImpactCallback) {
         if (oldHexId === currentHexId) {
             if (typeof onImpactCallback === 'function') onImpactCallback();
@@ -221,10 +222,15 @@ const AnimationManager = {
 
         document.body.appendChild(flightContainer);
 
+
+
         // Обработка импакт-эффектов приземления в точке назначения
         setTimeout(() => {
             let mode = 'classic';
-            if (window.SettingsManager && window.SettingsManager.state && window.SettingsManager.state.squadAnimMode) {
+            const animSelect = document.getElementById('settingSquadAnimMode');
+            if (animSelect) {
+                mode = animSelect.value;
+            } else if (window.SettingsManager && window.SettingsManager.state && window.SettingsManager.state.squadAnimMode) {
                 mode = window.SettingsManager.state.squadAnimMode;
             }
 
@@ -264,7 +270,24 @@ const AnimationManager = {
                     viewportView.classList.add('squad-screen-shake');
                     setTimeout(() => viewportView.classList.remove('squad-screen-shake'), 400);
                 }
+            } else if (mode === 'quest') {
+                const hexElement = document.getElementById(currentHexId);
+                if (hexElement) {
+                    // Принудительно вешаем класс огромного золотого свечения из CSS
+                    hexElement.classList.add('hex-focused-flash');
+                    // Мягко удаляем класс после завершения анимации вспышки (1.2с * 3 повтора = 3.6с или по вкусу, снимем через 2.5с)
+                    setTimeout(() => { hexElement.classList.remove('hex-focused-flash'); }, 2500);
+                }
+
+                // Дополнительно бьем мощным вертикальным пучком лучей (масштаб 1.3 для жирного эффекта)
+                this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 1.3);
+
+                // Запускаем триггер радиальных колец фокуса из ядра
+                if (HexCanvasRender && typeof HexCanvasRender.triggerFocus === 'function') {
+                    HexCanvasRender.triggerFocus(currentHexId);
+                }
             } else {
+                // Классический дефолтный взрыв срабатывает ТОЛЬКО если не выбран "quest"
                 this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
                 setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 130);
                 setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 310);
@@ -275,7 +298,6 @@ const AnimationManager = {
 
         setTimeout(() => { flightContainer.remove(); }, 1300);
     },
-
 
     focusOnHex(hexId) {
         const coords = HexCanvasRender.hexCoords[hexId];
