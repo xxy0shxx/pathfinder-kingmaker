@@ -1,9 +1,10 @@
 /**
- * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ И БОЕВОЙ МЕНЕДЖЕР (INITIATIVE ENGINE)
+ * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ И БОЕВОЙ МЕНЕДЖЕР С ПОДДЕРЖКОЙ DRAG-AND-DROP И SCROLL-ИЗМЕНЕНИЙ
  */
 const InitiativeManager = {
     state: {
-        combatants: [] // Массив участников боевой сцены
+        combatants: [],
+        selectedUnitId: null // Запоминаем персонажа, чей сейчас ход
     },
     mapDataRef: null,
     onSaveCallback: null,
@@ -33,9 +34,6 @@ const InitiativeManager = {
         this.renderUi();
     },
 
-    /**
-     * Добавление нового бойца в трекер
-     */
     addCombatant(name, score, faction) {
         const cleanName = String(name).trim();
         const parsedScore = parseInt(score, 10);
@@ -54,9 +52,6 @@ const InitiativeManager = {
         this._sortAndSave();
     },
 
-    /**
-     * Изменение значения инициативы прямо в списке
-     */
     updateScore(id, newScore) {
         const val = parseInt(newScore, 10);
         if (isNaN(val) || val < 1 || val > 100) return;
@@ -68,41 +63,47 @@ const InitiativeManager = {
         }
     },
 
-    /**
-     * Быстрое переключение фракции
-     */
     updateFaction(id, newFaction) {
         const unit = this.state.combatants.find(c => c.id === id);
         if (unit) {
             unit.faction = newFaction;
-            this._sortAndSave();
+            this._saveWithoutSort();
         }
     },
 
     removeCombatant(id) {
         this.state.combatants = this.state.combatants.filter(c => c.id !== id);
-        this._sortAndSave();
+        if (this.state.selectedUnitId === id) this.state.selectedUnitId = null;
+        this._saveWithoutSort();
     },
 
     clearAll() {
         if (confirm("Полностью очистить боевой трекер инициативы?")) {
             this.state.combatants = [];
-            this._sortAndSave();
+            this.state.selectedUnitId = null;
+            this._saveWithoutSort();
         }
     },
 
-    _sortAndSave() {
-        // Сортировка: Тот, у кого инициатива больше, располагается всегда вверху
-        this.state.combatants.sort((a, b) => b.score - a.score);
+    toggleSelectUnit(id) {
+        // Если кликнули по уже выбранному — снимаем выделение, иначе активируем золотой круг ходов
+        this.state.selectedUnitId = (this.state.selectedUnitId === id) ? null : id;
+        this._saveWithoutSort();
+    },
 
+    _sortAndSave() {
+        this.state.combatants.sort((a, b) => b.score - a.score);
+        this._saveWithoutSort();
+    },
+
+    _saveWithoutSort() {
         if (this.mapDataRef) this.mapDataRef.initiative = this.state;
         if (this.onSaveCallback) this.onSaveCallback();
         else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
-
         this.renderUi();
     },
     /**
-     * Динамическая генерация HTML-панели трекера инициативы
+     * Динамическая генерация HTML-панели трекера инициативы с поддержкой скролла и Drag-and-Drop
      */
     renderUi() {
         const container = document.getElementById('initiativeTabletContainer');
@@ -111,7 +112,7 @@ const InitiativeManager = {
         // Если разметка планшета еще не создана — строим форму ввода и шапку
         if (!container.querySelector('.init-header-zone')) {
             container.innerHTML = `
-                <div class="initiative-tablet-content">
+                <div class="initiative-tablet-content" style="width: 100%;">
                     <div class="init-header-zone">
                         <div class="camping-section-title">⚔️ Боевой трекер инициативы</div>
                         <div class="init-quick-input-bar">
@@ -138,7 +139,6 @@ const InitiativeManager = {
                 </div>
             `;
 
-            // Вешаем обработчики на мастер-кнопки формы ввода
             document.getElementById('initBtnAdd').addEventListener('click', () => {
                 const nameInp = document.getElementById('initInputName');
                 const scoreInp = document.getElementById('initInputScore');
@@ -160,14 +160,20 @@ const InitiativeManager = {
             return;
         }
 
-        // Отрисовка списка из больших, легко читаемых элементов
+        // Отрисовка списка из больших, легко читаемых элементов с поддержкой Drag-and-Drop
         this.state.combatants.forEach((unit, index) => {
             const card = document.createElement('div');
             card.className = `init-combatant-card faction-${unit.faction}`;
-            if (index === 0) card.classList.add('active-turn-pulse'); // Подсвечиваем того, кто ходит первым
+            card.setAttribute('draggable', 'true');
+            card.setAttribute('data-id', unit.id);
+
+            // Если этот юнит выделен ГМом — включаем массивное золотое свечение в круг
+            if (this.state.selectedUnitId === unit.id) {
+                card.classList.add('selected-turn-gold');
+            }
 
             card.innerHTML = `
-                <div class="init-card-left">
+                <div class="init-card-left" style="pointer-events: none;">
                     <div class="init-badge-index">${index + 1}</div>
                     <div class="init-card-name-text">${unit.name}</div>
                 </div>
@@ -180,7 +186,7 @@ const InitiativeManager = {
                         </select>
                     </div>
                     
-                    <div class="init-score-massive-block">
+                    <div class="init-score-massive-block" title="Прокрутите колесико мыши для изменения">
                         <input type="number" class="init-inline-score-input" data-id="${unit.id}" value="${unit.score}" min="1" max="100">
                     </div>
 
@@ -188,8 +194,24 @@ const InitiativeManager = {
                 </div>
             `;
 
-            // Делегирование событий изменений прямо внутри сгенерированной карточки
-            card.querySelector('.init-inline-score-input').addEventListener('change', (e) => {
+            // Клик по карточке (кроме элементов управления) активирует золотую обводку
+            card.addEventListener('click', (e) => {
+                if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+                this.toggleSelectUnit(unit.id);
+            });
+
+            // ИНТЕГРАЦИЯ КОЛЕСИКА МЫШИ (Изменение инициативы при наведении)
+            const scoreInp = card.querySelector('.init-inline-score-input');
+            scoreInp.addEventListener('wheel', (e) => {
+                e.preventDefault(); // Блокируем скролл всей страницы
+                const direction = e.deltaY < 0 ? 1 : -1;
+                const currentVal = parseInt(scoreInp.value, 10) || 0;
+                const newVal = Math.max(1, Math.min(100, currentVal + direction));
+                scoreInp.value = newVal;
+                this.updateScore(unit.id, newVal);
+            });
+
+            scoreInp.addEventListener('change', (e) => {
                 this.updateScore(e.target.dataset.id, e.target.value);
             });
 
@@ -199,6 +221,45 @@ const InitiativeManager = {
 
             card.querySelector('.init-btn-delete-card').addEventListener('click', (e) => {
                 this.removeCombatant(e.target.dataset.id);
+            });
+
+            // ============================================================================
+            // РЕАЛИЗАЦИЯ DRAG AND DROP (МЕНЯЕМ ЭЛЕМЕНТЫ МЕСТАМИ)
+            // ============================================================================
+            card.addEventListener('dragstart', (e) => {
+                card.classList.add('init-card-dragging');
+                e.dataTransfer.setData('text/plain', unit.id);
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            card.addEventListener('dragend', () => {
+                card.classList.remove('init-card-dragging');
+                document.querySelectorAll('.init-combatant-card').forEach(c => c.classList.remove('init-drag-over'));
+            });
+
+            card.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Разрешаем drop
+                card.classList.add('init-drag-over');
+            });
+
+            card.addEventListener('dragleave', () => {
+                card.classList.remove('init-drag-over');
+            });
+
+            card.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId === unit.id) return;
+
+                const draggedIdx = this.state.combatants.findIndex(c => c.id === draggedId);
+                const targetIdx = this.state.combatants.findIndex(c => c.id === unit.id);
+
+                if (draggedIdx !== -1 && targetIdx !== -1) {
+                    // Извлекаем перетаскиваемый объект и вставляем его на новое место
+                    const [draggedItem] = this.state.combatants.splice(draggedIdx, 1);
+                    this.state.combatants.splice(targetIdx, 0, draggedItem);
+                    this._saveWithoutSort(); // Сохраняем пользовательский порядок ГМа
+                }
             });
 
             listContainer.appendChild(card);
