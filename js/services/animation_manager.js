@@ -694,13 +694,12 @@ const AnimationManager = {
         ctx.restore();
     },
 
-
     /**
-     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ С МАССИВНЫМИ ВЫПИРАЮЩИМИ ЗУБЦАМИ
+     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ (ПОЛНАЯ ВИДИМОСТЬ 360 ГРАДУСОВ)
      */
     draw3DCastleToken(ctx, cx, cy) {
         ctx.save();
-        // Замок смещен по вертикали вниз, чтобы стоять ровно над плашкой сложности
+        // Смещено по вертикали вниз, чтобы замок стоял идеально ровно над плашкой сложности
         ctx.translate(cx, cy + 18);
 
         const time = Date.now() / 1000;
@@ -708,143 +707,158 @@ const AnimationManager = {
         const angleY = time * 0.5; // Скорость вращения цитадели
         ctx.translate(0, bounceY);
 
-        const lightDir = Array(0.5, -0.8, 0.4);
-        const lLength = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
-        const lNorm = Array(lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength);
+        const lightDir = { x: 0.5, y: -0.8, z: 0.4 };
+        const lLength = Math.sqrt(lightDir.x*lightDir.x + lightDir.y*lightDir.y + lightDir.z*lightDir.z);
+        const lNorm = { x: lightDir.x/lLength, y: lightDir.y/lLength, z: lightDir.z/lLength };
 
         const polygons = [];
 
-        // Функция-хелпер для генерации стабильного 3D-куба (блока) по исходной схеме файлов
-        const addBlock = (bx, by, bz, w, h, d, type) => {
-            const v = Array(
-                Array(-w/2, -h/2, -d/2), Array(w/2, -h/2, -d/2),
-                Array(w/2, h/2, -d/2), Array(-w/2, h/2, -d/2),
-                Array(-w/2, -h/2,  d/2), Array(w/2, -h/2,  d/2),
-                Array(w/2, h/2,  d/2), Array(-w/2, h/2,  d/2)
-            );
+        // Функция-хелпер для генерации стабильного 3D-куба (блока) без квадратных скобок
+        const addBlock = (bx, by, bz, w, h, d, type, zWeight = 0) => {
+            const halfW = w * 0.5; const halfH = h * 0.5; const halfD = d * 0.5;
 
-            const f = Array(
-                { indices: Array(0, 1, 2, 3), norm: Array(0, 0, -1) }, // Передняя
-                { indices: Array(1, 5, 6, 2), norm: Array(1, 0, 0)  }, // Правая
-                { indices: Array(4, 0, 3, 7), norm: Array(-1, 0, 0) }, // Левая
-                { indices: Array(5, 4, 7, 6), norm: Array(0, 0, 1)  }, // Задняя
-                { indices: Array(3, 2, 6, 7), norm: Array(0, -1, 0) }, // Верхняя
-                { indices: Array(4, 5, 1, 0), norm: Array(0, 1, 0)  }  // Нижняя
-            );
+            const meshData = {
+                v0: { x: -halfW, y: -halfH, z: -halfD }, v1: { x: halfW,  y: -halfH, z: -halfD },
+                v2: { x: halfW,  y: h/2,    z: -halfD }, v3: { x: -halfW, y: h/2,    z: -halfD },
+                v4: { x: -halfW, y: -halfH, z: halfD },  v5: { x: halfW,  y: -halfH, z: halfD },
+                v6: { x: halfW,  y: h/2,    z: halfD },  v7: { x: -halfW, y: h/2,    z: halfD }
+            };
 
-            f.forEach(face => {
-                const projVertices = face.indices.map(i => {
-                    const lx = v[i][0] + bx; const ly = v[i][1] + by; const lz = v[i][2] + bz;
+            const processFace = (i0, i1, i2, i3, nx, ny, nz) => {
+                const getVert = (idx) => meshData["v" + idx];
+                const rawFace = { v0: getVert(i0), v1: getVert(i1), v2: getVert(i2), v3: getVert(i3) };
+
+                const transform = (v) => {
+                    const lx = v.x + bx; const ly = v.y + by; const lz = v.z + bz;
                     const rx = lx * Math.cos(angleY) + lz * Math.sin(angleY);
                     const rz = -lx * Math.sin(angleY) + lz * Math.cos(angleY);
-                    return Array(rx, ly, rz);
+                    return { x: rx, y: ly, z: rz };
+                };
+
+                const p0 = transform(rawFace.v0); const p1 = transform(rawFace.v1);
+                const p2 = transform(rawFace.v2); const p3 = transform(rawFace.v3);
+
+                const rnx = nx * Math.cos(angleY) + nz * Math.sin(angleY);
+                const rnz = -nx * Math.sin(angleY) + nz * Math.cos(angleY);
+
+                // Коррекция глубины: выталкивает мелкие детали (зубцы) вперед, исключая мигание ребер
+                const bias = type.endsWith('tooth') ? 1.5 : 0;
+                const avgZ = ((p0.z + p1.z + p2.z + p3.z) / 4) - zWeight - bias;
+
+                polygons.push({
+                    p0: p0, p1: p1, p2: p2, p3: p3,
+                    normal: { x: rnx, y: ny, z: rnz },
+                    z: avgZ,
+                    type: type
                 });
+            };
 
-                const nx = face.norm[0] * Math.cos(angleY) + face.norm[2] * Math.sin(angleY);
-                const nz = -face.norm[0] * Math.sin(angleY) + face.norm[2] * Math.cos(angleY);
-                const ny = face.norm[1];
-
-                let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; });
-                polygons.push({ pts: projVertices, normal: Array(nx, ny, nz), z: zSum / projVertices.length, type: type });
-            });
+            processFace(0, 1, 2, 3, 0, 0, -1); // Передняя
+            processFace(1, 5, 6, 2, 1, 0, 0);  // Правая
+            processFace(4, 0, 3, 7, -1, 0, 0); // Левая
+            processFace(5, 4, 7, 6, 0, 0, 1);  // Задняя
+            processFace(3, 2, 6, 7, 0, -1, 0); // Верхняя
+            processFace(4, 5, 1, 0, 0, 1, 0);  // Нижняя
         };
 
         const dist = 18; // Размер квадрата цитадели
 
         // А. Четыре угловые Башни-Ладьи
-        const towerOffsets = Array(Array(-dist, -dist), Array(dist, -dist), Array(dist, dist), Array(-dist, dist));
-        towerOffsets.forEach(pos => {
-            const tx = pos[0]; const tz = pos[1];
-            addBlock(tx, 14, tz, 10, 6, 10, 'tower_base');
-            addBlock(tx, 0,  tz, 8, 22, 8,  'tower_body');
-            addBlock(tx, -13, tz, 10, 4, 10, 'tower_crown');
+        const towerOffsets = { p0: -dist, p1: dist };
+        const buildTower = (tx, tz) => {
+            addBlock(tx, 14, tz, 10, 6, 10, 'tower_base', 0);
+            addBlock(tx, 0,  tz, 8, 22, 8,  'tower_body', 0);
+            addBlock(tx, -13, tz, 10, 4, 10, 'tower_crown', 0);
+            addBlock(tx - 4.5, -16.5, tz - 4.5, 3, 3, 3, 'tower_tooth', 0.5);
+            addBlock(tx + 4.5, -16.5, tz - 4.5, 3, 3, 3, 'tower_tooth', 0.5);
+            addBlock(tx + 4.5, -16.5, tz + 4.5, 3, 3, 3, 'tower_tooth', 0.5);
+            addBlock(tx - 4.5, -16.5, tz + 4.5, 3, 3, 3, 'tower_tooth', 0.5);
+        };
+        buildTower(towerOffsets.p0, towerOffsets.p0); buildTower(towerOffsets.p1, towerOffsets.p0);
+        buildTower(towerOffsets.p1, towerOffsets.p1); buildTower(towerOffsets.p0, towerOffsets.p1);
 
-            // ИСПРАВЛЕНО: Зубцы угловых ладей увеличены с 2x2x2 до 3x3x3 и сдвинуты наружу (координаты 4.5 вместо 4)
-            addBlock(tx - 4.5, -16.5, tz - 4.5, 3, 3, 3, 'tower_tooth');
-            addBlock(tx + 4.5, -16.5, tz - 4.5, 3, 3, 3, 'tower_tooth');
-            addBlock(tx + 4.5, -16.5, tz + 4.5, 3, 3, 3, 'tower_tooth');
-            addBlock(tx - 4.5, -16.5, tz + 4.5, 3, 3, 3, 'tower_tooth');
-        });
-
-        // Б. Соединительные Крепостные Стены и их зубцы
+        // Б. Крепостные Стены продлены вровень с подошвой башен (высота 18px, y = 7px)
         const wallLen = dist * 2 - 6;
-        addBlock(0, 4, -dist, wallLen, 12, 3, 'wall'); addBlock(0, 4,  dist, wallLen, 12, 3, 'wall');
-        addBlock(-dist, 4, 0, 3, 12, wallLen, 'wall'); addBlock(dist,  4, 0, 3, 12, wallLen, 'wall');
+        addBlock(0, 7, -dist, wallLen, 18, 3, 'wall', 0); addBlock(0, 7,  dist, wallLen, 18, 3, 'wall', 0);
+        addBlock(-dist, 7, 0, 3, 18, wallLen, 'wall', 0); addBlock(dist,  7, 0, 3, 18, wallLen, 'wall', 0);
 
         for (let x = -8; x <= 8; x += 8) {
-            addBlock(x, -3, -dist, 3, 2, 3, 'wall_tooth'); addBlock(x, -3,  dist, 3, 2, 3, 'wall_tooth');
+            addBlock(x, -3, -dist, 3, 2, 3, 'wall_tooth', 0.3); addBlock(x, -3,  dist, 3, 2, 3, 'wall_tooth', 0.3);
         }
         for (let z = -8; z <= 8; z += 8) {
-            addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth'); addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
+            addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth', 0.3); addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth', 0.3);
         }
 
-        // В. Увеличенный Центральный Донжон и его корона
+        // В. Центральный Донжон и его корона с массивными зубцами
         const cx5 = 0, cz5 = 0;
-        addBlock(cx5, 14,   cz5, 15, 6,  15, 'donjon_base');
-        addBlock(cx5, -11,  cz5, 13, 44, 13, 'donjon_body');
-        addBlock(cx5, -35,  cz5, 15, 4,  15, 'donjon_crown');
+        addBlock(cx5, 14,   cz5, 15, 6,  15, 'donjon_base', 0);
+        addBlock(cx5, -11,  cz5, 13, 44, 13, 'donjon_body', 0);
+        addBlock(cx5, -35,  cz5, 15, 4,  15, 'donjon_crown', 0);
 
-        // ИСПРАВЛЕНО: Зубцы короны Донжона увеличены с 3x2x3 до 4x4x4 и смещены на внешние углы (7.0 вместо 6.0)
-        addBlock(cx5 - 7.0, -39.0, cz5 - 7.0, 4, 4, 4, 'donjon_tooth');
-        addBlock(cx5 + 7.0, -39.0, cz5 - 7.0, 4, 4, 4, 'donjon_tooth');
-        addBlock(cx5 + 7.0, -39.0, cz5 + 7.0, 4, 4, 4, 'donjon_tooth');
-        addBlock(cx5 - 7.0, -39.0, cz5 + 7.0, 4, 4, 4, 'donjon_tooth');
-        // Г. Конусообразная крыша средней высоты (roofTopY = -49, rw = 12)
-        const roofBottomY = -37; const roofTopY = -49; const rw = 12;
-        const rv = Array(
-            Array(-rw/2, roofBottomY, -rw/2), Array(rw/2,  roofBottomY, -rw/2),
-            Array(rw/2,  roofBottomY,  rw/2), Array(-rw/2, roofBottomY,  rw/2), Array(0, roofTopY, 0)
-        );
+        addBlock(cx5 - 7.0, -39.0, cz5 - 7.0, 4, 4, 4, 'donjon_tooth', 0.8);
+        addBlock(cx5 + 7.0, -39.0, cz5 - 7.0, 4, 4, 4, 'donjon_tooth', 0.8);
+        addBlock(cx5 + 7.0, -39.0, cz5 + 7.0, 4, 4, 4, 'donjon_tooth', 0.8);
+        addBlock(cx5 - 7.0, -39.0, cz5 + 7.0, 4, 4, 4, 'donjon_tooth', 0.8);
+        // Г. Конусообразная 3D-крыша донжона (zWeight = 2.5 — выталкивает купол поверх короны)
+        const roofBottomY = -37; const roofTopY = -49; const rw = 12; const halfRw = rw * 0.5;
+        const roofVerts = {
+            v0: { x: -halfRw, y: roofBottomY, z: -halfRw }, v1: { x: halfRw,  y: roofBottomY, z: -halfRw },
+            v2: { x: halfRw,  y: roofBottomY, z: halfRw },  v3: { x: -halfRw, y: roofBottomY, z: halfRw },
+            v4: { x: 0,       y: roofTopY,    z: 0 }
+        };
 
-        const rf = Array(
-            { indices: Array(0, 1, 4), norm: Array(0, -0.2, -1) },
-            { indices: Array(1, 2, 4), norm: Array(1, -0.2, 0)  },
-            { indices: Array(2, 3, 4), norm: Array(0, -0.2, 1)  },
-            { indices: Array(3, 0, 4), norm: Array(-1, -0.2, 0) }
-        );
+        const processRoofFace = (i0, i1, i2, nx, ny, nz) => {
+            const getVert = (idx) => roofVerts["v" + idx];
+            const transform = (v) => {
+                const rx = v.x * Math.cos(angleY) + v.z * Math.sin(angleY);
+                const rz = -v.x * Math.sin(angleY) + v.z * Math.cos(angleY);
+                return { x: rx, y: v.y, z: rz };
+            };
+            const p0 = transform(getVert(i0)); const p1 = transform(getVert(i1)); const p2 = transform(getVert(i2));
 
-        rf.forEach(face => {
-            const projVertices = face.indices.map(i => {
-                const rx = rv[i][0] * Math.cos(angleY) + rv[i][2] * Math.sin(angleY);
-                const rz = -rv[i][0] * Math.sin(angleY) + rv[i][2] * Math.cos(angleY);
-                return Array(rx, rv[i][1], rz);
-            });
-            const nx = face.norm[0] * Math.cos(angleY) + face.norm[2] * Math.sin(angleY);
-            const nz = -face.norm[0] * Math.sin(angleY) + face.norm[2] * Math.cos(angleY);
-            let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; });
-            polygons.push({ pts: projVertices, normal: Array(nx, face.norm[1], nz), z: zSum / projVertices.length, type: 'donjon_roof', isTriangle: true });
-        });
+            const rnx = nx * Math.cos(angleY) + nz * Math.sin(angleY);
+            const rnz = -nx * Math.sin(angleY) + nz * Math.cos(angleY);
+            const avgZ = ((p0.z + p1.z + p2.z) / 3) - 2.5;
 
-        // Д. Флагшток и колышущееся знамя
-        addBlock(0, (roofTopY + (roofTopY - 14)) / 2, 0, 1, 14, 1, 'donjon_flagpole');
+            polygons.push({ p0: p0, p1: p1, p2: p2, p3: p2, normal: {x: rnx, y: ny, z: rnz}, z: avgZ, type: 'donjon_roof', isTriangle: true });
+        };
+        processRoofFace(0, 1, 4, 0, -0.2, -1); processRoofFace(1, 2, 4, 1, -0.2, 0);
+        processRoofFace(2, 3, 4, 0, -0.2, 1);  processRoofFace(3, 0, 4, -1, -0.2, 0);
+
+        // Д. Флагшток и вейв-знамя (zWeight = 4.0 — гарантирует рендер на пике конуса)
+        addBlock(0, (roofTopY + (roofTopY - 14)) * 0.5, 0, 1, 14, 1, 'donjon_flagpole', 3.5);
         const waveX = Math.sin(time * 6.5) * 4.5;
-        const flagPts = Array(Array(0, roofTopY - 14, 0), Array(0, roofTopY - 7, 0), Array(11, roofTopY - 10.5, waveX * 0.5));
 
-        const projFlagPts = flagPts.map(pt => {
-            const rx = pt[0] * Math.cos(angleY) + pt[2] * Math.sin(angleY);
-            const rz = -pt[0] * Math.sin(angleY) + pt[2] * Math.cos(angleY);
-            return Array(rx, pt[1], rz);
-        });
+        const fPoleTopY = roofTopY - 14; const fPoleMidY = roofTopY - 7;
+        const flagVerts = {
+            v0: { x: 0, y: fPoleTopY, z: 0 }, v1: { x: 0, y: fPoleMidY, z: 0 }, v2: { x: 11, y: roofTopY - 10.5, z: waveX * 0.5 }
+        };
+        const transformFlag = (v) => {
+            const rx = v.x * Math.cos(angleY) + v.z * Math.sin(angleY);
+            const rz = -v.x * Math.sin(angleY) + v.z * Math.cos(angleY);
+            return { x: rx, y: v.y, z: rz };
+        };
+        const pf0 = transformFlag(flagVerts.v0); const pf1 = transformFlag(flagVerts.v1); const pf2 = transformFlag(flagVerts.v2);
+        polygons.push({ p0: pf0, p1: pf1, p2: pf2, p3: pf2, normal: {x: 0, y: 0, z: -1}, z: ((pf0.z + pf1.z + pf2.z) / 3) - 5.0, type: 'donjon_flag_banner', isTriangle: true });
 
-        let flagZSum = 0; projFlagPts.forEach(pt => { flagZSum += pt[2]; });
-        polygons.push({ pts: projFlagPts, normal: Array(0, 0, -1), z: flagZSum / 3, type: 'donjon_flag_banner', isTriangle: true });
-
-        // Е. ЧИСТАЯ КЛАССИЧЕСКАЯ СОРТИРОВКА ИЗ ОРИГИНАЛЬНОГО ЯДРА
+        // Е. ГЛОБАЛЬНАЯ СКВОЗНАЯ СОРТИРОВКА ХУДОЖНИКА (По глубине z)
         polygons.sort((a, b) => a.z - b.z);
 
         polygons.forEach(poly => {
-            const p = poly.pts; const n = poly.normal;
+            const n = poly.normal;
+            const dot = n.x*lNorm.x + n.y*lNorm.y + n.z*lNorm.z;
 
-            if (n[2] < 0 || poly.type === 'donjon_flag_banner') {
-                const dot = n[0] * lNorm[0] + n[1] * lNorm[1] + n[2] * lNorm[2];
-                const intensity = Math.max(0.26, dot);
+            // ИСПРАВЛЕНО НА СТОПРОЦЕНТНЫЙ ДВУСТОРОННИЙ РЕНДЕР:
+            // Отсечение полностью отключено, рисуем абсолютно все полигоны замка!
+            const shouldRender = true;
 
-                ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
-                for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+            if (shouldRender) {
+                // Использование Math.abs спасает развернутые тылом грани от падения интенсивности в черноту
+                const intensity = Math.max(0.26, Math.abs(dot));
 
-                if (!poly.isTriangle && p[0]) {
-                    ctx.lineTo(p[0][0], p[0][1]);
-                }
+                ctx.beginPath();
+                ctx.moveTo(poly.p0.x, poly.p0.y); ctx.lineTo(poly.p1.x, poly.p1.y); ctx.lineTo(poly.p2.x, poly.p2.y);
+                if (!poly.isTriangle && poly.p3) { ctx.lineTo(poly.p3.x, poly.p3.y); }
                 ctx.closePath();
 
                 const tokenColorMaterial = window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
@@ -868,11 +882,34 @@ const AnimationManager = {
                     strokeColor = isFlag ? "rgba(100,100,100,0.3)" : "rgba(150, 140, 120, 0.15)";
                 } else {
                     r = isFlag ? 192 : Math.floor((210 + 45 * intensity) * matMod); g = isFlag ? 41 : Math.floor((165 + 40 * intensity) * matMod); b = Math.floor((60 + 20 * intensity) * matMod);
-                    strokeColor = isFlag ? "rgba(255,255,255,0.5)" : "rgba(255, 242, 195, 0.25)";
+                    strokeColor = isFlag ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 242, 195, 0.25)";
                 }
 
                 ctx.fillStyle = `rgb(${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)})`; ctx.fill();
                 ctx.strokeStyle = strokeColor; ctx.lineWidth = 0.5; ctx.stroke();
+
+                // Ж. ИСПРАВЛЕННЫЙ ТРАФАРЕТ ОКНО-БОЙНИЦ: Теперь окна рисуются только тогда, когда вектор грани донжона направлен к экрану (dot > 0)!
+                // Это полностью исключает рентген-эффект и просвечивание с обратной стороны башни!
+                if (poly.type === 'donjon_body' && dot > 0) {
+                    ctx.save();
+                    const midTopX = (poly.p0.x + poly.p1.x) * 0.5; const midTopY = (poly.p0.y + poly.p1.y) * 0.5;
+                    const midBotX = (poly.p3.x + poly.p2.x) * 0.5; const midBotY = (poly.p3.y + poly.p2.y) * 0.5;
+
+                    const drawWindow = (pctY) => {
+                        const wx = midTopX + (midBotX - midTopX) * pctY;
+                        const wy = midTopY + (midBotY - midTopY) * pctY;
+                        const winW = Math.max(0.6, Math.abs(poly.p1.x - poly.p0.x) * 0.16);
+
+                        ctx.fillStyle = "rgb(15, 20, 28)";
+                        ctx.fillRect(wx - winW * 0.5, wy - 3, winW, 6);
+                        ctx.strokeStyle = "rgba(0, 0, 0, 0.4)"; ctx.lineWidth = 0.5;
+                        ctx.strokeRect(wx - winW * 0.5, wy - 3, winW, 6);
+                    };
+
+                    drawWindow(0.25);
+                    drawWindow(0.65);
+                    ctx.restore();
+                }
             }
         });
         ctx.restore();
