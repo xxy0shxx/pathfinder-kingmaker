@@ -75,15 +75,17 @@ const InitiativeManager = {
         }
         this._sortAndSave();
     },
+
     nextTurn() {
         if (this.state.combatants.length === 0) return;
 
         const currentIndex = this.state.combatants.findIndex(c => c.id === this.state.selectedUnitId);
 
+        // ИСПРАВЛЕНО: Чтение ID строго по индексу [0] у первого элемента массива combatants
         if (currentIndex === -1 || currentIndex === this.state.combatants.length - 1) {
             this.state.selectedUnitId = this.state.combatants[0].id;
             this.state.round += 1;
-            this.triggerRoundFlashEffect();
+            this.triggerRoundFlashEffect(); // Запуск импульса света
         } else {
             this.state.selectedUnitId = this.state.combatants[currentIndex + 1].id;
         }
@@ -91,14 +93,22 @@ const InitiativeManager = {
         this._saveWithoutSort();
     },
 
+
     triggerRoundFlashEffect() {
         const listContainer = document.getElementById('initiativeCombatantsList');
-        if (listContainer) {
-            listContainer.classList.remove('init-round-flash-active');
-            void listContainer.offsetWidth; // Триггер reflow для перезапуска анимации
-            listContainer.classList.add('init-round-flash-active');
-        }
+        if (!listContainer) return;
+
+        // Полностью удаляем старый класс анимации
+        listContainer.classList.remove('init-round-flash-active');
+
+        // Переносим добавление класса в следующий кадр отрисовки браузера (ТВ-фикс)
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                listContainer.classList.add('init-round-flash-active');
+            });
+        });
     },
+
 
     toggleNat20(id) {
         const unit = this.state.combatants.find(c => c.id === id);

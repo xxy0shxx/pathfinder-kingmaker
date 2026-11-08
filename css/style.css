@@ -3719,3 +3719,59 @@ canvas[style*="position: fixed"] {
 .init-cards-scroll-list::-webkit-scrollbar-thumb:hover {
     background: #b89445 !important;
 }
+
+/* ============================================================================
+   РЕАКТИВНАЯ ВСПЫШКА И КРУПНЫЕ ГЕРАЛЬДИЧЕСКИЕ КВЕСТЫ
+   ============================================================================ */
+/* Привязываем анимацию к классу-триггеру */
+.init-cards-scroll-list.init-round-flash-active {
+    animation: initRoundFlashPulse 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+/* Увеличиваем силу и радиус импульса света, чтобы он гарантированно пробивал ТВ-экран */
+@keyframes initRoundFlashPulse {
+    0% {
+        box-shadow: inset 0 0 0px transparent !important;
+        background-color: rgba(255, 216, 117, 0) !important;
+    }
+    20% {
+        box-shadow: inset 0 0 150px rgba(255, 216, 117, 0.45) !important;
+        background-color: rgba(255, 216, 117, 0.12) !important;
+    }
+    100% {
+        box-shadow: inset 0 0 0px transparent !important;
+        background-color: rgba(255, 216, 117, 0) !important;
+    }
+}
+
+/* Крупная ТВ-стилизация для унифицированных карточек заданий в общем стиле со Слухами */
+#questLogList .quest-log-item.status-rumor {
+    background: #050806 !important;
+    border: 3px solid #543e0d !important;
+    padding: 18px 24px !important;
+    margin-bottom: 14px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6) !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#questLogList .quest-log-item.status-rumor:hover {
+    border-color: #b89445 !important;
+    background: rgba(184, 148, 69, 0.05) !important;
+}
+
+#questLogList .quest-item-title {
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    color: #ebd291 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+#questLogList .quest-item-location {
+    font-size: 16px !important;
+    color: #888 !important;
+    margin-top: 4px !important;
+}

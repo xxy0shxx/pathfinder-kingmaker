@@ -258,23 +258,32 @@ const QuestManager = {
                 }
             }
             else {
+
                 if (hex.questData && hex.questData.status === filterStatus) {
                     count++;
                     const questItem = document.createElement('div');
-                    questItem.className = `quest-log-item status-${filterStatus}`;
+
+                    // УНИФИЦИРОВАНО: Принудительно присваиваем карточкам квестов монументальный класс слухов
+                    questItem.className = 'quest-log-item status-rumor';
+
                     const objIcon = MAP_CONFIG.types[hex.type]?.icon || '⚜️';
+                    const statusLabel = filterStatus === 'completed' ? '✅ Задание завершено' : '⚔️ Активное задание';
 
                     questItem.innerHTML = `
-                        <div class="quest-item-title">${objIcon} ${hex.questData.title}</div>
-                        <div class="quest-item-location">📍 Регион: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
-                        ${hex.questData.desc ? `<div class="quest-item-desc">${hex.questData.desc.replace(/\n/g, '<br>')}</div>` : ''}
+                        <div class="quest-item-title">${objIcon} ${statusLabel}</div>
+                        <div class="quest-item-location">📍 Название/Регион: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
+                        <div class="quest-item-desc" style="font-size: 20px; font-weight: bold; color: #ffd875; margin-top: 6px; text-transform: uppercase;">${hex.questData.title}</div>
+                        ${hex.questData.desc ? `<div class="quest-item-desc" style="margin-top: 8px; color: #ccc; font-size: 16px;">${hex.questData.desc.replace(/\n/g, '<br>')}</div>` : ''}
                     `;
+
                     questItem.addEventListener('click', () => {
                         if (this.focusCallback) this.focusCallback(hexId);
                         this.closeFullscreenHUD();
                     });
+
                     listContainer.appendChild(questItem);
                 }
+
             }
         }
 
