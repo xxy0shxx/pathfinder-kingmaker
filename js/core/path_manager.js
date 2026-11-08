@@ -62,13 +62,8 @@ const PathManager = {
     },
 
     /**
-     * Генерация SVG-линий между всеми посещенными точками на карте на основе эталонных координат
-     */
-    /**
-     * Высокопроизводительная генерация SVG-маршрута на базе единого тега <path>
-     */
-    /**
      * Оптимизированный рендеринг пути через один тег <path>
+     * Слой гарантированно изолирован под фигурками отряда
      */
     render() {
         if (!this.svgLayer) this.svgLayer = document.getElementById('mapPathsSvg');
@@ -106,6 +101,10 @@ const PathManager = {
         }
 
         if (pathData) {
+            // Принудительно выставляем инлайновые стили для слоя, страхуя приоритет слоев
+            this.svgLayer.style.zIndex = "5";
+            this.svgLayer.style.pointerEvents = "none";
+
             this.svgLayer.innerHTML = `
                 <path 
                     d="${pathData}" 
@@ -113,12 +112,14 @@ const PathManager = {
                     stroke-width="5" 
                     fill="none" 
                     class="squad-path-line"
+                    style="pointer-events: none;"
                 ></path>
             `;
         } else {
             this.svgLayer.innerHTML = '';
         }
     }
+
 
 };
 

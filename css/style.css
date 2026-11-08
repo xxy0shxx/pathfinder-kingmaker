@@ -1428,6 +1428,16 @@ body {
     0 6px 18px rgba(0, 0, 0, 0.7) !important;
 }
 
+#mapPathsSvg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3840px;
+    height: 1280px;
+    z-index: 5 !important; /* Делаем z-index ниже, чем у Canvas (10) */
+    pointer-events: none; /* Чтобы линии не мешали кликать по гексам */
+}
+
 /* Скрытие SVG слоя путей при активации класса */
 #mapPathsSvg.hide-paths {
     display: none !important;
@@ -1683,13 +1693,14 @@ body {
     font-size: 13px;
 }
 
+
 #mapCanvas {
     position: absolute;
     top: 0;
     left: 0; /* Возвращаем привязку к левому верхнему углу картинки */
     width: 3840px;
     height: 1280px;
-    z-index: 3;
+    z-index: 10 !important;
     pointer-events: auto;
     /* Включаем максимальное сглаживание текстур при растяжении */
     image-rendering: auto;
