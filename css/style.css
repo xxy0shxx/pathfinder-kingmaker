@@ -3467,3 +3467,38 @@ canvas[style*="position: fixed"] {
 .init-cards-scroll-list {
     max-height: 54vh !important;
 }
+
+/* ============================================================================
+   КОМПАКТНАЯ КНОПКА ЭКСПРЕСС-СБРОСА РАУНДОВ (.INIT-BTN-RESET-ROUND-INLINE)
+   ============================================================================ */
+.init-round-counter-badge {
+    position: relative !important;
+    gap: 10px !important; /* Делаем зазор между цифрой раунда и кнопкой сброса */
+}
+
+.init-btn-reset-round-inline {
+    background: transparent !important;
+    border: none !important;
+    color: #ebd291 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    padding: 2px 4px !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    outline: none !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)) !important;
+}
+
+.init-btn-reset-round-inline:hover {
+    color: #ff7675 !important; /* При наведении иконка загорится тревожным алым цветом */
+    transform: rotate(-180deg) scale(1.2) !important; /* Красивый геральдический поворот */
+    text-shadow: 0 0 8px rgba(231, 76, 60, 0.6) !important;
+}
+
+.init-btn-reset-round-inline:active {
+    transform: rotate(-180deg) scale(0.95) !important;
+}

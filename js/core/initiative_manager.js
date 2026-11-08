@@ -1,5 +1,5 @@
 /**
- * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ С АВТОСКРОЛЛОМ И ГОРЯЧЕЙ КЛАВИШЕЙ ПРОБЕЛА
+ * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ С ТВ-СТРЕЛКОЙ ХОДА И ВСПЫШКОЙ НОВОГО РАУНДА
  */
 const InitiativeManager = {
     state: {
@@ -10,7 +10,7 @@ const InitiativeManager = {
     mapDataRef: null,
     onSaveCallback: null,
     _isInputsBound: false,
-    _isGlobalKeyBound: false, // Флаг-защитник для клавиатурного слушателя
+    _isGlobalKeyBound: false,
 
     init(mapData, onSave) {
         try {
@@ -27,30 +27,22 @@ const InitiativeManager = {
 
             window.InitiativeManager = this;
             this.renderUi();
-            this.bindGlobalHotkeys(); // Привязка Пробела
+            this.bindGlobalHotkeys();
         } catch (e) { console.error("Ошибка инициализации InitiativeManager:", e); }
     },
 
-    /**
-     * Глобальный перехватчик Пробела для переключения ходов
-     */
     bindGlobalHotkeys() {
         if (this._isGlobalKeyBound) return;
-
         window.addEventListener('keydown', (e) => {
-            // Проверяем, что открыта именно вкладка инициативы
             const container = document.getElementById('initiativeTabletContainer');
             if (!container || container.style.display === 'none') return;
-
-            // Если ГМ сейчас пишет имя в текстовое поле, Пробел блокировать НЕЛЬЗЯ
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
 
             if (e.code === 'Space') {
-                e.preventDefault(); // Запрещаем дефолтный скролл страницы браузером вниз
+                e.preventDefault();
                 this.nextTurn();
             }
         });
-
         this._isGlobalKeyBound = true;
     },
 
@@ -78,34 +70,34 @@ const InitiativeManager = {
         };
 
         this.state.combatants.push(newUnit);
-
-        // Автоматически ставим фокус на первого добавленного, если сцена пуста
         if (this.state.combatants.length === 1) {
             this.state.selectedUnitId = newUnit.id;
         }
-
         this._sortAndSave();
     },
-
-    /**
-     * Пошаговый сдвиг золотого свечения на следующего персонажа по списку
-     */
     nextTurn() {
         if (this.state.combatants.length === 0) return;
 
-        // Находим текущий индекс активного бойца
         const currentIndex = this.state.combatants.findIndex(c => c.id === this.state.selectedUnitId);
 
         if (currentIndex === -1 || currentIndex === this.state.combatants.length - 1) {
-            // Если никто не выбран или это был последний боец — перекидываем на верхнего и увеличиваем раунд
             this.state.selectedUnitId = this.state.combatants[0].id;
             this.state.round += 1;
+            this.triggerRoundFlashEffect();
         } else {
-            // Иначе просто сдвигаем ход на одну строчку вниз
             this.state.selectedUnitId = this.state.combatants[currentIndex + 1].id;
         }
 
         this._saveWithoutSort();
+    },
+
+    triggerRoundFlashEffect() {
+        const listContainer = document.getElementById('initiativeCombatantsList');
+        if (listContainer) {
+            listContainer.classList.remove('init-round-flash-active');
+            void listContainer.offsetWidth; // Триггер reflow для перезапуска анимации
+            listContainer.classList.add('init-round-flash-active');
+        }
     },
 
     toggleNat20(id) {
@@ -139,10 +131,25 @@ const InitiativeManager = {
     removeCombatant(id) {
         this.state.combatants = this.state.combatants.filter(c => c.id !== id);
         if (this.state.selectedUnitId === id) {
-            // Если удалили того, кто сейчас ходил, фокус прыгает на верхнего
             this.state.selectedUnitId = this.state.combatants.length > 0 ? this.state.combatants[0].id : null;
         }
         this._saveWithoutSort();
+    },
+
+    resetRound() {
+        if (this.state.round === 1) return; // Если уже 1, ничего не делаем
+
+        if (confirm("Сбросить счетчик текущих раундов боя до 1?")) {
+            this.state.round = 1;
+            this._saveWithoutSort();
+
+            // Запускаем легкий визуальный импульс на счетчике
+            const badge = document.querySelector('.init-round-counter-badge');
+            if (badge) {
+                badge.style.setProperty('filter', 'brightness(1.5)', 'important');
+                setTimeout(() => badge.style.removeProperty('filter'), 300);
+            }
+        }
     },
 
     clearAll() {
@@ -174,23 +181,14 @@ const InitiativeManager = {
         else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
 
         this.renderUi();
-        this.scrollToActiveCombatant(); // Скроллим к активному сразу после рендера
+        this.scrollToActiveCombatant();
     },
 
-    /**
-     * центрирование активного бойца
-     */
     scrollToActiveCombatant() {
         if (!this.state.selectedUnitId) return;
-
-        // Ищем в DOM-дереве карточку с классом активного хода
         const activeCard = document.querySelector(`.init-combatant-card.selected-turn-gold`);
         if (activeCard) {
-            activeCard.scrollIntoView({
-                behavior: 'smooth', // Плавная геральдическая прокрутка
-                block: 'center',    // Выравнивание карточки строго по центру вертикали скролла
-                inline: 'nearest'
-            });
+            activeCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         }
     },
 
@@ -202,10 +200,15 @@ const InitiativeManager = {
             container.innerHTML = `
                 <div class="initiative-tablet-content" style="width: 100%;">
                     <div class="init-header-zone">
-                        <!-- ТВ ИНДИКАТОР РАУНДОВ И КНОПКА ПОШАГОВОГО СДВИГА -->
                         <div class="init-master-battle-control-bar">
-                            <div class="init-round-counter-badge">РАУНД <span id="initRoundCounterNum">1</span></div>
+                       
+                            <!-- ИСПРАВЛЕНО: Добавлена кнопка экспресс-обнуления раундов внутри плашки -->
+                            <div class="init-round-counter-badge">
+                                РАУНД <span id="initRoundCounterNum">1</span>
+                                <button type="button" id="initBtnResetRoundOnly" class="init-btn-reset-round-inline" title="Сбросить раунды до 1">🔄</button>
+                            </div>
                             <button type="button" class="btn ok" id="initBtnNextTurn" style="flex-grow: 1; height: 50px; font-size: 18px; font-weight: 900; letter-spacing: 1px;">🛡️ СЛЕДУЮЩИЙ ХОД</button>
+                            
                         </div>
 
                         <div class="init-quick-input-bar" style="margin-top: 14px;">
@@ -230,7 +233,6 @@ const InitiativeManager = {
                             </select>
 
                             <button type="button" class="btn ok" id="initBtnAdd" style="padding: 6px 20px; font-size: 14px; min-width: auto; height: 38px;">⚜ Добавить</button>
-                            <button type="button" class="btn del" id="initBtnClearAll" style="padding: 6px 14px; font-size: 14px; min-width: auto; height: 38px;" title="Очистить весь бой">🔄 Сброс</button>
                         </div>
                     </div>
                     <div id="initiativeCombatantsList" class="init-cards-scroll-list"></div>
@@ -238,50 +240,42 @@ const InitiativeManager = {
             `;
             this._isInputsBound = false;
         }
-
-        // Обновляем число раунда на индикаторе ГМа
-        const roundNumEl = document.getElementById('initRoundCounterNum');
-        if (roundNumEl) roundNumEl.textContent = this.state.round;
-        // БЛОКИРОВКА ПОВТОРНЫХ СЛУШАТЕЛЕЙ: Привязываем события строго один раз
         if (!this._isInputsBound) {
             const nameInp = document.getElementById('initInputName');
             const scoreInp = document.getElementById('initInputScore');
             const factInp = document.getElementById('initInputFaction');
             const nat20Inp = document.getElementById('initInputNat20');
 
-            // Привязка новой ТВ-кнопки пошагового циклического сдвига
-            document.getElementById('initBtnNextTurn').addEventListener('click', () => {
-                this.nextTurn();
+            document.getElementById('initBtnNextTurn').addEventListener('click', () => this.nextTurn());
+
+            document.getElementById('initBtnResetRoundOnly').addEventListener('click', (e) => {
+                e.stopPropagation(); // Защита от ложных срабатываний
+                this.resetRound();
             });
 
             nat20Inp.addEventListener('change', () => {
                 if (nat20Inp.checked) {
-                    scoreInp.value = 20;
-                    scoreInp.disabled = true;
-                    scoreInp.style.opacity = '0.5';
+                    scoreInp.value = 20; scoreInp.disabled = true; scoreInp.style.opacity = '0.5';
                 } else {
-                    scoreInp.disabled = false;
-                    scoreInp.style.opacity = '1';
+                    scoreInp.disabled = false; scoreInp.style.opacity = '1';
                 }
             });
 
             document.getElementById('initBtnAdd').addEventListener('click', () => {
                 this.addCombatant(nameInp.value, scoreInp.value, factInp.value, nat20Inp.checked);
-
-                nameInp.value = '';
-                nat20Inp.checked = false;
-                scoreInp.disabled = false;
-                scoreInp.style.opacity = '1';
+                nameInp.value = ''; nat20Inp.checked = false; scoreInp.disabled = false; scoreInp.style.opacity = '1';
                 nameInp.focus();
             });
 
-            document.getElementById('initBtnClearAll').addEventListener('click', () => this.clearAll());
             this._isInputsBound = true;
         }
 
         const listContainer = document.getElementById('initiativeCombatantsList');
         if (!listContainer) return;
         listContainer.innerHTML = '';
+
+        const roundNumEl = document.getElementById('initRoundCounterNum');
+        if (roundNumEl) roundNumEl.textContent = this.state.round;
 
         if (this.state.combatants.length === 0) {
             listContainer.innerHTML = `<div class="quest-log-empty">Бой не начат. Добавьте участников или монстров через верхнюю панель.</div>`;
@@ -290,13 +284,15 @@ const InitiativeManager = {
 
         this.state.combatants.forEach((unit, index) => {
             const card = document.createElement('div');
+            const isActive = this.state.selectedUnitId === unit.id;
             card.className = `init-combatant-card faction-${unit.faction}`;
             card.setAttribute('draggable', 'true');
             card.setAttribute('data-id', unit.id);
-            if (this.state.selectedUnitId === unit.id) card.classList.add('selected-turn-gold');
+            if (isActive) card.classList.add('selected-turn-gold');
 
             card.innerHTML = `
                 <div class="init-card-left" style="pointer-events: none;">
+                    <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
                     <div class="init-badge-index">${index + 1}</div>
                     <div class="init-card-name-text">
                         ${unit.name} 
@@ -304,7 +300,7 @@ const InitiativeManager = {
                     </div>
                 </div>
                 <div class="init-card-right">
-                    <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 ? 'active' : ''}" data-id="${unit.id}" title="Переключить маркер крита D20">🎲</button>
+                    <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 ? 'active' : ''}" data-id="${unit.id}">🎲</button>
                     <div class="init-select-wrapper">
                         <select class="init-inline-faction-select" data-id="${unit.id}">
                             <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
@@ -312,7 +308,7 @@ const InitiativeManager = {
                             <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
                         </select>
                     </div>
-                    <div class="init-score-massive-block" title="Прокрутите колесико мыши для изменения">
+                    <div class="init-score-massive-block">
                         <input type="number" class="init-inline-score-input" data-id="${unit.id}" value="${unit.score}" min="1" max="100">
                     </div>
                     <button type="button" class="init-btn-delete-card" data-id="${unit.id}">×</button>
@@ -325,66 +321,44 @@ const InitiativeManager = {
             });
 
             card.querySelector('.init-btn-toggle-d20-inline').addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleNat20(e.target.dataset.id);
+                e.stopPropagation(); this.toggleNat20(e.target.dataset.id);
             });
 
             const scoreInp = card.querySelector('.init-inline-score-input');
             scoreInp.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 const direction = e.deltaY < 0 ? 1 : -1;
-                const currentVal = parseInt(scoreInp.value, 10) || 0;
-                const newVal = Math.max(1, Math.min(100, currentVal + direction));
-                scoreInp.value = newVal;
-                this.updateScore(unit.id, newVal);
+                const newVal = Math.max(1, Math.min(100, (parseInt(scoreInp.value, 10) || 0) + direction));
+                scoreInp.value = newVal; this.updateScore(unit.id, newVal);
             });
 
-            scoreInp.addEventListener('change', (e) => {
-                this.updateScore(e.target.dataset.id, e.target.value);
-            });
+            scoreInp.addEventListener('change', (e) => this.updateScore(e.target.dataset.id, e.target.value));
 
             card.querySelector('.init-inline-faction-select').addEventListener('change', (e) => {
-                this.updateFaction(e.target.dataset.id, e.target.value);
-                this._sortAndSave();
+                this.updateFaction(e.target.dataset.id, e.target.value); this._sortAndSave();
             });
 
             card.querySelector('.init-btn-delete-card').addEventListener('click', (e) => {
-                this.removeCombatant(e.target.dataset.id);
-                this._sortAndSave();
+                this.removeCombatant(e.target.dataset.id); this._sortAndSave();
             });
 
             card.addEventListener('dragstart', (e) => {
                 card.classList.add('init-card-dragging');
-                e.dataTransfer.setData('text/plain', unit.id);
-                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', unit.id); e.dataTransfer.effectAllowed = 'move';
             });
-
             card.addEventListener('dragend', () => {
                 card.classList.remove('init-card-dragging');
                 document.querySelectorAll('.init-combatant-card').forEach(c => c.classList.remove('init-drag-over'));
             });
-
-            card.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                card.classList.add('init-drag-over');
-            });
-
-            card.addEventListener('dragleave', () => {
-                card.classList.remove('init-drag-over');
-            });
-
+            card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('init-drag-over'); });
+            card.addEventListener('dragleave', () => card.classList.remove('init-drag-over'));
             card.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const draggedId = e.dataTransfer.getData('text/plain');
-                if (draggedId === unit.id) return;
-
+                e.preventDefault(); const draggedId = e.dataTransfer.getData('text/plain'); if (draggedId === unit.id) return;
                 const draggedIdx = this.state.combatants.findIndex(c => c.id === draggedId);
                 const targetIdx = this.state.combatants.findIndex(c => c.id === unit.id);
-
                 if (draggedIdx !== -1 && targetIdx !== -1) {
                     const [draggedItem] = this.state.combatants.splice(draggedIdx, 1);
-                    this.state.combatants.splice(targetIdx, 0, draggedItem);
-                    this._saveWithoutSort();
+                    this.state.combatants.splice(targetIdx, 0, draggedItem); this._saveWithoutSort();
                 }
             });
 
