@@ -73,8 +73,20 @@ const InitiativeManager = {
         this._saveWithoutSort();
     },
 
+    /**
+     * Двухфакторная сортировка боевой сцены: Натуральная 20 ВСЕГДА идет первой,
+     * а внутри групп участники выстраиваются по убыванию инициативы
+     */
     _sortAndSave() {
-        this.state.combatants.sort((a, b) => b.score - a.score);
+        this.state.combatants.sort((a, b) => {
+            // 1. Проверяем приоритет Натуральной 20
+            if (a.isNat20 && !b.isNat20) return -1;  // 'a' идет выше
+            if (!a.isNat20 && b.isNat20) return 1;   // 'b' идет выше
+
+            // 2. Если у обоих есть (или нет) Натуральная 20, сортируем по числовому значению
+            return b.score - a.score;
+        });
+
         this._saveWithoutSort();
     },
 
@@ -90,11 +102,13 @@ const InitiativeManager = {
 
 
     /**
-     * Добавление бойца с поддержкой флага Натуральной 20
+     * Добавление бойца (Автоматическое выставление 20 при Натуральной 20)
      */
     addCombatant(name, score, faction, isNat20) {
         const cleanName = String(name).trim();
-        const parsedScore = parseInt(score, 10);
+
+        // Если выставлена Натуральная 20, жестко перезаписываем значение инициативы на 20
+        let parsedScore = isNat20 ? 20 : parseInt(score, 10);
 
         if (!cleanName) { alert("Введите имя или название существа!"); return; }
         if (isNaN(parsedScore) || parsedScore < 1 || parsedScore > 100) { alert("Инициатива должна быть от 1 до 100!"); return; }
@@ -104,20 +118,28 @@ const InitiativeManager = {
             name: cleanName,
             score: parsedScore,
             faction: faction || 'neutral',
-            isNat20: !!isNat20 // Регистрируем маркер критического успеха
+            isNat20: !!isNat20
         };
 
         this.state.combatants.push(newUnit);
         this._sortAndSave();
     },
 
+    /**
+     * Переключение статуса D20 на карточке с авто-коррекцией значения на 20
+     */
     toggleNat20(id) {
         const unit = this.state.combatants.find(c => c.id === id);
         if (unit) {
             unit.isNat20 = !unit.isNat20;
-            this._saveWithoutSort();
+            // Если ГМ включил маркер крита — выставляем инициативу ровно 20
+            if (unit.isNat20) {
+                unit.score = 20;
+            }
+            this._sortAndSave(); // Пересортировываем список, так как значение изменилось
         }
     },
+
 
     renderUi() {
         const container = document.getElementById('initiativeTabletContainer');
@@ -163,6 +185,29 @@ const InitiativeManager = {
                 const scoreInp = document.getElementById('initInputScore');
                 const factInp = document.getElementById('initInputFaction');
                 const nat20Inp = document.getElementById('initInputNat20');
+
+                // РЕАКТИВНАЯ ПОДСТАНОВКА: Изменяем значение инпута при клике на чекбокс D20
+                nat20Inp.addEventListener('change', () => {
+                    if (nat20Inp.checked) {
+                        scoreInp.value = 20;
+                        scoreInp.disabled = true; // Блокируем ручной ввод, пока активен крит
+                        scoreInp.style.opacity = '0.5';
+                    } else {
+                        scoreInp.disabled = false;
+                        scoreInp.style.opacity = '1';
+                    }
+                });
+
+                document.getElementById('initBtnAdd').addEventListener('click', () => {
+                    this.addCombatant(nameInp.value, scoreInp.value, factInp.value, nat20Inp.checked);
+
+                    nameInp.value = '';
+                    nat20Inp.checked = false;
+                    scoreInp.disabled = false; // Разблокируем инпут для следующего броска
+                    scoreInp.style.opacity = '1';
+                    nameInp.focus();
+                });
+
 
                 this.addCombatant(nameInp.value, scoreInp.value, factInp.value, nat20Inp.checked);
 
@@ -222,9 +267,10 @@ const InitiativeManager = {
                 this.toggleSelectUnit(unit.id);
             });
 
+            // Переключатель D20 инлайн (кнопка с кубиком 🎲)
             card.querySelector('.init-btn-toggle-d20-inline').addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.toggleNat20(e.target.dataset.id);
+                this.toggleNat20(e.target.dataset.id); // Метод toggleNat20 уже сам вызывает _sortAndSave()
             });
 
             // ИНТЕГРАЦИЯ КОЛЕСИКА МЫШИ (Изменение инициативы при наведении)
@@ -242,12 +288,15 @@ const InitiativeManager = {
                 this.updateScore(e.target.dataset.id, e.target.value);
             });
 
+            // Изменение фракции: теперь тоже вызывает пересортировку, чтобы обновить списки на ТВ
             card.querySelector('.init-inline-faction-select').addEventListener('change', (e) => {
                 this.updateFaction(e.target.dataset.id, e.target.value);
+                this._sortAndSave(); // Форсируем обновление приоритетов
             });
 
             card.querySelector('.init-btn-delete-card').addEventListener('click', (e) => {
                 this.removeCombatant(e.target.dataset.id);
+                this._sortAndSave();
             });
 
             // ============================================================================
