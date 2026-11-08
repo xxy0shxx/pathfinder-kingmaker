@@ -255,17 +255,20 @@ const HexCanvasRender = {
             ctx.restore();
         };
 
-        if (data && data.explored) drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
-        if (data && data.mapMapped) drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
+        const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
 
-        // РЕЖИМ ИГРОКОВ: Скрытие типа объекта на гексе (Иконка)
-        if (!window.MAP_HIDE_OBJ_TYPE && data && data.type && MAP_CONFIG.types[data.type]) {
-            drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
-        }
+        if (isRevealed) {
+            // Раздельное скрытие маркеров разведки (🔍) и составления карт (📜)
+            if (!window.MAP_HIDE_EXPLORED && data.explored) drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
+            if (!window.MAP_HIDE_MAPPED && data.mapMapped) drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
 
-        // РЕЖИМ ИГРОКОВ: Скрытие типа местности гекса (Иконка)
-        if (!window.MAP_HIDE_TERRAIN && data && data.terrain && MAP_CONFIG.terrains[data.terrain]) {
-            drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
+            // Раздельное скрытие иконок объектов (🏰) и типов местности (🌲)
+            if (!window.MAP_HIDE_OBJ_ICON && data.type && MAP_CONFIG.types[data.type]) {
+                drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
+            }
+            if (!window.MAP_HIDE_TERRAIN && data.terrain && MAP_CONFIG.terrains[data.terrain]) {
+                drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
+            }
         }
 
         if (data && data.squadHere) {
@@ -284,21 +287,16 @@ const HexCanvasRender = {
             }
         }
 
-        // РЕЖИМ ИГРОКОВ: Скрытие названия объекта гекса
-        if (!window.MAP_HIDE_OBJ_TYPE && data && data.title) {
+        // Независимое скрытие названия региона (текстовой плашки заголовка)
+        if (!window.MAP_HIDE_OBJ_TITLE && data && data.title) {
             this.drawTextPlate(ctx, data.title, cx, cy - r + 32, false, true);
         }
 
-        // РЕЖИМ ИГРОКОВ: Скрытие Сложности (🎲) и Уровня региона (💀)
+        // Раздельное скрытие кубика СЛ сложности (🎲) и черепа опасности (💀)
         if (data && (data.difficulty || data.regionLevel)) {
             let statsText = '';
-
-            if (!window.MAP_HIDE_DC && data.difficulty) {
-                statsText += `🎲${data.difficulty}`;
-            }
-            if (!window.MAP_HIDE_LEVEL && data.regionLevel) {
-                statsText += `💀${data.regionLevel}`;
-            }
+            if (!window.MAP_HIDE_DC && data.difficulty) statsText += `🎲${data.difficulty}`;
+            if (!window.MAP_HIDE_LEVEL && data.regionLevel) statsText += `💀${data.regionLevel}`;
 
             if (statsText !== '') {
                 this.drawTextPlate(ctx, statsText, cx, cy + 54, true, false);

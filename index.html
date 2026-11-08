@@ -199,7 +199,6 @@
                     </div>
                 </div>
 
-                <!-- НОВЫЕ СИСТЕМНЫЕ ЧЕКБОКСЫ СКРЫТИЯ ИНФОРМАЦИИ С ГЕКСОВ -->
                 <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
                     <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🎲 Скрыть отображение Сложности региона (СЛ проверок)</label>
                     <input type="checkbox" id="settingHideDc" style="transform: scale(1.4);">
@@ -211,13 +210,29 @@
                 </div>
 
                 <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
-                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🏰 Скрыть Тип объекта на гексе (текстовые плашки названий)</label>
-                    <input type="checkbox" id="settingHideObjType" style="transform: scale(1.4);">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">📜 Скрыть Название региона / объекта (текстовые плашки)</label>
+                    <input type="checkbox" id="settingHideObjTitle" style="transform: scale(1.4);">
                 </div>
 
                 <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
-                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🌲 Скрыть Тип местности гекса (иконки ландшафтов)</label>
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🏰 Скрыть Иконку объекта на гексе (круглые маркеры логовищ/руин)</label>
+                    <input type="checkbox" id="settingHideObjIcon" style="transform: scale(1.4);">
+                </div>
+
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🌲 Скрыть Иконку местности гекса (маркер ландшафта)</label>
                     <input type="checkbox" id="settingHideTerrain" style="transform: scale(1.4);">
+                </div>
+
+                <!-- НОВЫЕ ЧЕКБОКСЫ ДЛЯ РАЗВЕДКИ И КАРТОГРАФИИ -->
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🔍 Скрыть маркер «Гекс разведан» (иконка лупы)</label>
+                    <input type="checkbox" id="settingHideExplored" style="transform: scale(1.4);">
+                </div>
+
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">📖 Скрыть маркер «Карта составлена» (иконка свитка)</label>
+                    <input type="checkbox" id="settingHideMapped" style="transform: scale(1.4);">
                 </div>
 
                 <div class="checkbox-row" style="padding: 6px 0; display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed rgba(84, 62, 13, 0.4); padding-top: 12px;">
@@ -225,6 +240,7 @@
                     <input type="checkbox" id="settingFpsMonitor" style="transform: scale(1.4);">
                 </div>
             </fieldset>
+
         </div>
 
 

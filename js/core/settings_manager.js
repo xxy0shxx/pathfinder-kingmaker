@@ -8,11 +8,13 @@ const SettingsManager = {
         disableAutocenter: false,
         squadAnimMode: 'classic',
         squadTokenSkin: 'flag',
-        // Новые флаги фильтрации глобальной карты
         hideDc: false,
         hideLevel: false,
-        hideObjType: false,
-        hideTerrain: false
+        hideObjTitle: false, // Новое
+        hideObjIcon: false,  // Новое
+        hideTerrain: false,
+        hideExplored: false, // Новое
+        hideMapped: false    // Новое
     },
 
     init() {
@@ -33,12 +35,14 @@ const SettingsManager = {
             { id: 'settingDisableAutocenter', key: 'disableAutocenter', type: 'check' },
             { id: 'settingHideDc', key: 'hideDc', type: 'check' },
             { id: 'settingHideLevel', key: 'hideLevel', type: 'check' },
-            { id: 'settingHideObjType', key: 'hideObjType', type: 'check' },
+            { id: 'settingHideObjTitle', key: 'hideObjTitle', type: 'check' }, // Обновлено
+            { id: 'settingHideObjIcon', key: 'hideObjIcon', type: 'check' },   // Обновлено
             { id: 'settingHideTerrain', key: 'hideTerrain', type: 'check' },
+            { id: 'settingHideExplored', key: 'hideExplored', type: 'check' }, // Новое
+            { id: 'settingHideMapped', key: 'hideMapped', type: 'check' },     // Новое
             { id: 'settingSquadTokenSkin', key: 'squadTokenSkin', type: 'value' },
             { id: 'settingSquadSpawnAnim', key: 'squadAnimMode', type: 'value' }
         ];
-
         ids.forEach(item => {
             const el = document.getElementById(item.id);
             if (!el) return;
@@ -77,6 +81,10 @@ const SettingsManager = {
         window.MAP_HIDE_LEVEL = this.state.hideLevel;
         window.MAP_HIDE_OBJ_TYPE = this.state.hideObjType;
         window.MAP_HIDE_TERRAIN = this.state.hideTerrain;
+        window.MAP_HIDE_OBJ_TITLE = this.state.hideObjTitle;
+        window.MAP_HIDE_OBJ_ICON = this.state.hideObjIcon;
+        window.MAP_HIDE_EXPLORED = this.state.hideExplored;
+        window.MAP_HIDE_MAPPED = this.state.hideMapped;
 
         const fpsCounter = document.getElementById('fpsCounter') || document.querySelector('.fps-monitor');
         if (fpsCounter) fpsCounter.style.display = this.state.enableFpsMonitor ? 'block' : 'none';
