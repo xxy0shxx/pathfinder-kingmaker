@@ -3419,3 +3419,51 @@ canvas[style*="position: fixed"] {
     0% { transform: translateY(0) scale(1); }
     100% { transform: translateY(-3px) scale(1.08); }
 }
+
+/* ============================================================================
+   ТВ ИНТЕРФЕЙС УПРАВЛЕНИЯ БОЕМ: КНОПКА ХОДА И ИНДИКАТОР РАУНДОВ
+   ============================================================================ */
+.init-master-battle-control-bar {
+    display: flex !important;
+    gap: 16px !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    padding: 10px !important;
+    border: 2px solid #543e0d !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8) !important;
+}
+
+/* Огромная плашка текущего раунда */
+.init-round-counter-badge {
+    background: linear-gradient(180deg, #1e3c27 0%, #0d1a10 100%) !important;
+    border: 2px solid #2ecc71 !important;
+    color: #fff !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    letter-spacing: 1.5px !important;
+    padding: 0 24px !important;
+    height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+    text-shadow: 0 0 8px rgba(46,204,113,0.6) !important;
+    box-shadow: 0 0 10px rgba(46,204,113,0.2) !important;
+    white-space: nowrap !important;
+}
+
+#initRoundCounterNum {
+    color: #ffd875 !important;
+    font-size: 24px !important;
+    margin-left: 6px !important;
+    text-shadow: 0 0 8px #dfbc6f !important;
+}
+
+/* Коррекция высоты скролла для компенсации мастер-бара ходов */
+.init-cards-scroll-list {
+    max-height: 54vh !important;
+}

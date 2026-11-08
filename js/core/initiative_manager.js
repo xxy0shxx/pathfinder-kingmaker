@@ -1,14 +1,15 @@
 /**
- * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ И БОЕВОЙ МЕНЕДЖЕР С ЗАЩИТОЙ ОТ ДУБЛИРОВАНИЯ СЛУШАТЕЛЕЙ
+ * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ И БОЕВОЙ МЕНЕДЖЕР С УПРАВЛЕНИЕМ РАУНДАМИ И ХОДАМИ
  */
 const InitiativeManager = {
     state: {
         combatants: [],
-        selectedUnitId: null
+        selectedUnitId: null, // ID персонажа, чей сейчас ход
+        round: 1              // Текущий раунд боевого столкновения
     },
     mapDataRef: null,
     onSaveCallback: null,
-    _isInputsBound: false, // Флаг-защитник от дублирования addEventListener
+    _isInputsBound: false,
 
     init(mapData, onSave) {
         try {
@@ -18,6 +19,7 @@ const InitiativeManager = {
             if (this.mapDataRef.initiative) {
                 this.state = this.mapDataRef.initiative;
                 if (!Array.isArray(this.state.combatants)) this.state.combatants = [];
+                if (this.state.round === undefined || isNaN(this.state.round)) this.state.round = 1;
             } else {
                 this.mapDataRef.initiative = this.state;
             }
@@ -51,7 +53,34 @@ const InitiativeManager = {
         };
 
         this.state.combatants.push(newUnit);
+
+        // Автоматически ставим фокус на первого добавленного, если сцена пуста
+        if (this.state.combatants.length === 1) {
+            this.state.selectedUnitId = newUnit.id;
+        }
+
         this._sortAndSave();
+    },
+
+    /**
+     * Пошаговый сдвиг золотого свечения на следующего персонажа по списку
+     */
+    nextTurn() {
+        if (this.state.combatants.length === 0) return;
+
+        // Находим текущий индекс активного бойца
+        const currentIndex = this.state.combatants.findIndex(c => c.id === this.state.selectedUnitId);
+
+        if (currentIndex === -1 || currentIndex === this.state.combatants.length - 1) {
+            // Если никто не выбран или это был последний боец — перекидываем на верхнего и увеличиваем раунд
+            this.state.selectedUnitId = this.state.combatants[0].id;
+            this.state.round += 1;
+        } else {
+            // Иначе просто сдвигаем ход на одну строчку вниз
+            this.state.selectedUnitId = this.state.combatants[currentIndex + 1].id;
+        }
+
+        this._saveWithoutSort();
     },
 
     toggleNat20(id) {
@@ -84,7 +113,10 @@ const InitiativeManager = {
 
     removeCombatant(id) {
         this.state.combatants = this.state.combatants.filter(c => c.id !== id);
-        if (this.state.selectedUnitId === id) this.state.selectedUnitId = null;
+        if (this.state.selectedUnitId === id) {
+            // Если удалили того, кто сейчас ходил, фокус прыгает на верхнего
+            this.state.selectedUnitId = this.state.combatants.length > 0 ? this.state.combatants[0].id : null;
+        }
         this._saveWithoutSort();
     },
 
@@ -92,6 +124,7 @@ const InitiativeManager = {
         if (confirm("Полностью очистить боевой трекер инициативы?")) {
             this.state.combatants = [];
             this.state.selectedUnitId = null;
+            this.state.round = 1;
             this._saveWithoutSort();
         }
     },
@@ -121,12 +154,17 @@ const InitiativeManager = {
         const container = document.getElementById('initiativeTabletContainer');
         if (!container) return;
 
-        // Генерация шапки выполняется строго один раз за сессию
         if (!container.querySelector('.init-header-zone')) {
             container.innerHTML = `
                 <div class="initiative-tablet-content" style="width: 100%;">
                     <div class="init-header-zone">
-                        <div class="init-quick-input-bar">
+                        <!-- ТВ ИНДИКАТОР РАУНДОВ И КНОПКА ПОШАГОВОГО СДВИГА -->
+                        <div class="init-master-battle-control-bar">
+                            <div class="init-round-counter-badge">РАУНД <span id="initRoundCounterNum">1</span></div>
+                            <button type="button" class="btn ok" id="initBtnNextTurn" style="flex-grow: 1; height: 50px; font-size: 18px; font-weight: 900; letter-spacing: 1px;">🛡️ СЛЕДУЮЩИЙ ХОД</button>
+                        </div>
+
+                        <div class="init-quick-input-bar" style="margin-top: 14px;">
                             <input type="text" id="initInputName" placeholder="Имя персонажа / Название монстра...">
                             
                             <div class="camp-count-controls" style="padding: 2px 8px;">
@@ -154,14 +192,23 @@ const InitiativeManager = {
                     <div id="initiativeCombatantsList" class="init-cards-scroll-list"></div>
                 </div>
             `;
-            this._isInputsBound = false; // Сбрасываем флаг, так как DOM пересоздан
+            this._isInputsBound = false;
         }
-        // БЛОКИРОВКА ПОВТОРНЫХ СЛУШАТЕЛЕЙ: Привязываем события к кнопкам ввода строго один раз
+
+        // Обновляем число раунда на индикаторе ГМа
+        const roundNumEl = document.getElementById('initRoundCounterNum');
+        if (roundNumEl) roundNumEl.textContent = this.state.round;
+        // БЛОКИРОВКА ПОВТОРНЫХ СЛУШАТЕЛЕЙ: Привязываем события строго один раз
         if (!this._isInputsBound) {
             const nameInp = document.getElementById('initInputName');
             const scoreInp = document.getElementById('initInputScore');
             const factInp = document.getElementById('initInputFaction');
             const nat20Inp = document.getElementById('initInputNat20');
+
+            // Привязка новой ТВ-кнопки пошагового циклического сдвига
+            document.getElementById('initBtnNextTurn').addEventListener('click', () => {
+                this.nextTurn();
+            });
 
             nat20Inp.addEventListener('change', () => {
                 if (nat20Inp.checked) {
@@ -185,7 +232,7 @@ const InitiativeManager = {
             });
 
             document.getElementById('initBtnClearAll').addEventListener('click', () => this.clearAll());
-            this._isInputsBound = true; // Выставляем щит-защиту от дублей
+            this._isInputsBound = true;
         }
 
         const listContainer = document.getElementById('initiativeCombatantsList');
