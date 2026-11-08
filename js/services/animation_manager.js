@@ -471,11 +471,46 @@ const AnimationManager = {
                 }
                 ctx.closePath();
 
-                ctx.fillStyle = `rgb(${Math.floor(195 + 60 * intensity)}, ${Math.floor(152 + 55 * intensity)}, ${Math.floor(45 + 30 * intensity)})`;
+                // Динамическая палитра материалов в зависимости от выбора ГМа
+                const tokenColorMaterial = window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
+                let r = 0, g = 0, b = 0;
+                let strokeColor = "rgba(255, 240, 180, 0.35)";
+
+                if (tokenColorMaterial === 'ruby') {
+                    r = Math.floor(180 + 75 * intensity);
+                    g = Math.floor(30 + 25 * intensity);
+                    b = Math.floor(30 + 25 * intensity);
+                    strokeColor = "rgba(255, 190, 190, 0.4)";
+                } else if (tokenColorMaterial === 'emerald') {
+                    r = Math.floor(30 + 25 * intensity);
+                    g = Math.floor(160 + 80 * intensity);
+                    b = Math.floor(60 + 35 * intensity);
+                    strokeColor = "rgba(190, 255, 190, 0.4)";
+                } else if (tokenColorMaterial === 'obsidian') {
+                    r = Math.floor(35 + 30 * intensity);
+                    g = Math.floor(45 + 35 * intensity);
+                    b = Math.floor(55 + 45 * intensity);
+                    strokeColor = "rgba(200, 220, 255, 0.25)";
+                } else if (tokenColorMaterial === 'bone') {
+                    r = Math.floor(210 + 45 * intensity);
+                    g = Math.floor(215 + 40 * intensity);
+                    b = Math.floor(200 + 40 * intensity);
+                    strokeColor = "rgba(150, 140, 120, 0.3)";
+                } else {
+                    // НАШЕ КЛАССИЧЕСКОЕ КОРОЛЕВСКОЕ ЗОЛОТО (Дефолт)
+                    r = Math.floor(205 + 50 * intensity);
+                    g = Math.floor(160 + 45 * intensity);
+                    b = Math.floor(55 + 25 * intensity);
+                    strokeColor = "rgba(255, 242, 195, 0.4)";
+                }
+
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
                 ctx.fill();
-                ctx.strokeStyle = "rgba(255, 240, 180, 0.32)";
+
+                ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = 0.8;
                 ctx.stroke();
+
             }
         });
         ctx.restore();
@@ -575,12 +610,46 @@ const AnimationManager = {
                 }
                 ctx.closePath();
 
-                // Насыщенная королевская золотая заливка с благородными тенями
-                ctx.fillStyle = `rgb(${Math.floor(205 + 50 * intensity)}, ${Math.floor(160 + 45 * intensity)}, ${Math.floor(55 + 25 * intensity)})`;
+                // Динамическая палитра материалов в зависимости от выбора ГМа
+                const tokenColorMaterial = window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
+                let r = 0, g = 0, b = 0;
+                let strokeColor = "rgba(255, 240, 180, 0.35)";
+
+                if (tokenColorMaterial === 'ruby') {
+                    r = Math.floor(180 + 75 * intensity);
+                    g = Math.floor(30 + 25 * intensity);
+                    b = Math.floor(30 + 25 * intensity);
+                    strokeColor = "rgba(255, 190, 190, 0.4)";
+                } else if (tokenColorMaterial === 'emerald') {
+                    r = Math.floor(30 + 25 * intensity);
+                    g = Math.floor(160 + 80 * intensity);
+                    b = Math.floor(60 + 35 * intensity);
+                    strokeColor = "rgba(190, 255, 190, 0.4)";
+                } else if (tokenColorMaterial === 'obsidian') {
+                    r = Math.floor(35 + 30 * intensity);
+                    g = Math.floor(45 + 35 * intensity);
+                    b = Math.floor(55 + 45 * intensity);
+                    strokeColor = "rgba(200, 220, 255, 0.25)";
+                } else if (tokenColorMaterial === 'bone') {
+                    r = Math.floor(210 + 45 * intensity);
+                    g = Math.floor(215 + 40 * intensity);
+                    b = Math.floor(200 + 40 * intensity);
+                    strokeColor = "rgba(150, 140, 120, 0.3)";
+                } else {
+                    // НАШЕ КЛАССИЧЕСКОЕ КОРОЛЕВСКОЕ ЗОЛОТО (Дефолт)
+                    r = Math.floor(205 + 50 * intensity);
+                    g = Math.floor(160 + 45 * intensity);
+                    b = Math.floor(55 + 25 * intensity);
+                    strokeColor = "rgba(255, 242, 195, 0.4)";
+                }
+
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
                 ctx.fill();
-                ctx.strokeStyle = "rgba(255, 240, 180, 0.35)";
+
+                ctx.strokeStyle = strokeColor;
                 ctx.lineWidth = 0.8;
                 ctx.stroke();
+
             }
         });
         ctx.restore();

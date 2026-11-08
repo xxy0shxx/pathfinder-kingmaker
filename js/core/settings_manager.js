@@ -8,6 +8,7 @@ const SettingsManager = {
         disableAutocenter: false,
         squadAnimMode: 'classic',
         squadTokenSkin: 'flag',
+        squadTokenColor: 'gold',
         hideDc: false,
         hideLevel: false,
         hideObjTitle: false, // Новое
@@ -15,6 +16,7 @@ const SettingsManager = {
         hideTerrain: false,
         hideExplored: false, // Новое
         hideMapped: false    // Новое
+
     },
 
     init() {
@@ -27,6 +29,7 @@ const SettingsManager = {
             this.bindUiElements();
         } catch (e) { console.error("Ошибка SettingsManager:", e); }
     },
+
 
     bindUiElements() {
         const ids = [
@@ -66,6 +69,31 @@ const SettingsManager = {
                 this.saveAndApply();
             });
         }
+
+        // Привязка пресетов цвета фигурки отряда
+        const colorContainer = document.getElementById('squadTokenColorPresets');
+        if (colorContainer) {
+            const buttons = colorContainer.querySelectorAll('.squad-color-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderColor = '#fff';
+
+                if (btn.dataset.color === this.state.squadTokenColor) {
+                    btn.classList.add('active');
+                    btn.style.borderColor = '#ffd875';
+                }
+
+                btn.addEventListener('click', () => {
+                    buttons.forEach(x => { x.classList.remove('active'); x.style.borderColor = '#fff'; });
+                    btn.classList.add('active');
+                    btn.style.borderColor = '#ffd875';
+
+                    this.state.squadTokenColor = btn.dataset.color;
+                    this.saveAndApply();
+                });
+            });
+        }
+
     },
 
     applySettingsToEngine() {
@@ -73,6 +101,7 @@ const SettingsManager = {
         window.FLIGHT_FROM_CAPITAL_MODE = this.state.flightFromCapital;
         window.CURRENT_SQUAD_ANIMATION_MODE = this.state.squadAnimMode;
         window.CURRENT_SQUAD_TOKEN_SKIN = this.state.squadTokenSkin;
+        window.CURRENT_SQUAD_TOKEN_COLOR = this.state.squadTokenColor;
         window.GLOBAL_FOG_OPACITY = this.state.fogOpacity / 100;
         MAP_CONFIG.ENABLE_FPS_MONITOR = this.state.enableFpsMonitor;
 
