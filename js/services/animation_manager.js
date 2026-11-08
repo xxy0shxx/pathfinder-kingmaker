@@ -695,8 +695,8 @@ const AnimationManager = {
     },
 
     /**
-     * НАДЁЖНЫЙ ГЕОМЕТРИЧЕСКИЙ 3D-ДВИЖОК ЦИТАДЕЛИ (Замок из 4 Ладей и Стен)
-     * Исправлены синтаксические ошибки, все индексы граней прописаны в явном виде
+     * НАДЁЖНЫЙ ГЕОМЕТРИЧЕСКИЙ 3D-ДВИЖОК ЦИТАДЕЛИ С ЦЕНТРАЛЬНЫМ ДОНЖОНОМ
+     * Защищен от скрытых фильтров. Исправлены нормали, Z-индексы и рендер граней.
      */
     draw3DCastleToken(ctx, cx, cy) {
         ctx.save();
@@ -716,26 +716,26 @@ const AnimationManager = {
         // Функция-хелпер для генерации стабильного 3D-куба (блока)
         const addBlock = (bx, by, bz, w, h, d, type) => {
             // Координаты вершин относительно локального центра блока
-            const v = [
-                [-w/2, -h/2, -d/2], // 0
-                [w/2, -h/2, -d/2],  // 1
-                [w/2, h/2, -d/2],   // 2
-                [-w/2, h/2, -d/2],  // 3
-                [-w/2, -h/2,  d/2], // 4
-                [w/2, -h/2,  d/2],  // 5
-                [w/2, h/2,  d/2],   // 6
-                [-w/2, h/2,  d/2]   // 7
-            ];
+            const v = Array(
+                Array(-w/2, -h/2, -d/2), // 0
+                Array(w/2, -h/2, -d/2),  // 1
+                Array(w/2, h/2, -d/2),   // 2
+                Array(-w/2, h/2, -d/2),  // 3
+                Array(-w/2, -h/2,  d/2), // 4
+                Array(w/2, -h/2,  d/2),  // 5
+                Array(w/2, h/2,  d/2),   // 6
+                Array(-w/2, h/2,  d/2)   // 7
+            );
 
-            // Массивы индексов вершин для каждой из 6 граней куба и их нормали
-            const f = [
-                { indices: [0, 1, 2, 3], norm: [0, 0, -1] }, // Передняя
-                { indices: [1, 5, 6, 2], norm: [1, 0, 0] },  // Правая
-                { indices: [4, 0, 3, 7], norm: [-1, 0, 0] }, // Левая
-                { indices: [5, 4, 7, 6], norm: [0, 0, 1] },  // Задняя
-                { indices: [4, 5, 1, 0], norm: [0, -1, 0] }, // Верхняя
-                { indices: [3, 2, 6, 7], norm: [0, 1, 0] }   // Нижняя
-            ];
+            // Индексы вершин для каждой из 6 граней куба и их нормали
+            const f = Array(
+                { indices: Array(0, 1, 2, 3), norm: Array(0, 0, -1) }, // Передняя
+                { indices: Array(1, 5, 6, 2), norm: Array(1, 0, 0)  }, // Правая
+                { indices: Array(4, 0, 3, 7), norm: Array(-1, 0, 0) }, // Левая
+                { indices: Array(5, 4, 7, 6), norm: Array(0, 0, 1)  }, // Задняя
+                { indices: Array(3, 2, 6, 7), norm: Array(0, -1, 0) }, // Верхняя (Крыша куба - исправлена по Y)
+                { indices: Array(4, 5, 1, 0), norm: Array(0, 1, 0)  }  // Нижняя (Подошва куба)
+            );
 
             f.forEach(face => {
                 // Трансформируем и проецируем вершины с учетом глобального вращения Замка
@@ -747,7 +747,7 @@ const AnimationManager = {
                     // Поворот по оси Y
                     const rx = lx * Math.cos(angleY) + lz * Math.sin(angleY);
                     const rz = -lx * Math.sin(angleY) + lz * Math.cos(angleY);
-                    return [rx, ly, rz];
+                    return Array(rx, ly, rz);
                 });
 
                 // Рассчитываем точную динамическую нормаль грани после вращения
@@ -762,7 +762,7 @@ const AnimationManager = {
 
                 polygons.push({
                     pts: projVertices,
-                    normal: [nx, ny, nz],
+                    normal: Array(nx, ny, nz),
                     z: avgZ,
                     type: type
                 });
@@ -770,59 +770,72 @@ const AnimationManager = {
         };
 
         // ============================================================================
-        // 1. СБОРКА АРХИТЕКТУРЫ ЗАМКА (Увеличенный масштаб, длинные стены)
+        // 1. СБОРКА АРХИТЕКТУРЫ ЗАМКА
         // ============================================================================
-        const dist = 18; // Расстояние башен от центра (размер квадрата цитадели)
+        const dist = 18; // Размер квадрата цитадели
 
-        // Четыре угловые Башни-Ладьи (собираются из основания, тела и зубцов короны)
-        const towerOffsets = [[-dist, -dist], [dist, -dist], [dist, dist], [-dist, dist]];
-        towerOffsets.forEach(([tx, tz]) => {
-            addBlock(tx, 14, tz, 10, 6, 10, 'tower_base'); // Основание башни (уширенная подошва)
-            addBlock(tx, 0,  tz, 8, 22, 8,  'tower_body'); // Главное вертикальное тело ладьи
-            addBlock(tx, -13, tz, 10, 4, 10, 'tower_crown'); // Корона ладьи
+        // А. Четыре угловые Башни-Ладьи (Высота тела = 22px)
+        const towerOffsets = Array(Array(-dist, -dist), Array(dist, -dist), Array(dist, dist), Array(-dist, dist));
+        towerOffsets.forEach(pos => {
+            const tx = pos[0];
+            const tz = pos[1];
+            addBlock(tx, 14, tz, 10, 6, 10, 'tower_base');   // Подошва
+            addBlock(tx, 0,  tz, 8, 22, 8,  'tower_body');   // Тело башни
+            addBlock(tx, -13, tz, 10, 4, 10, 'tower_crown'); // Корона
 
-            // Маленькие зубцы по углам короны ладьи
+            // Зубцы короны
             addBlock(tx - 4, -16, tz - 4, 2, 2, 2, 'tower_tooth');
             addBlock(tx + 4, -16, tz - 4, 2, 2, 2, 'tower_tooth');
             addBlock(tx + 4, -16, tz + 4, 2, 2, 2, 'tower_tooth');
             addBlock(tx - 4, -16, tz + 4, 2, 2, 2, 'tower_tooth');
         });
 
-        // Четыре соединительные Крепостные Стены
-        const wallLen = dist * 2 - 6; // Длина стены, заходящая в пазы башен
-        addBlock(0, 4, -dist, wallLen, 12, 3, 'wall'); // Северная стена
-        addBlock(0, 4,  dist, wallLen, 12, 3, 'wall'); // Южная стена
-        addBlock(-dist, 4, 0, 3, 12, wallLen, 'wall'); // Западная стена
-        addBlock(dist,  4, 0, 3, 12, wallLen, 'wall'); // Восточная стена
+        // Б. Соединительные Крепостные Стены
+        const wallLen = dist * 2 - 6;
+        addBlock(0, 4, -dist, wallLen, 12, 3, 'wall'); // Север
+        addBlock(0, 4,  dist, wallLen, 12, 3, 'wall'); // Юг
+        addBlock(-dist, 4, 0, 3, 12, wallLen, 'wall'); // Запад
+        addBlock(dist,  4, 0, 3, 12, wallLen, 'wall'); // Восток
 
-        // Декоративные зубцы на стенах (Север / Юг)
+        // Зубцы на стенах (Север / Юг)
         for (let x = -8; x <= 8; x += 8) {
             addBlock(x, -3, -dist, 3, 2, 3, 'wall_tooth');
             addBlock(x, -3,  dist, 3, 2, 3, 'wall_tooth');
         }
-        // Декоративные зубцы на стенах (Запад / Восток)
+        // Зубцы на стенах (Запад / Восток)
         for (let z = -8; z <= 8; z += 8) {
             addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth');
             addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
         }
 
+        // В. ЦЕНТРАЛЬНЫЙ ДОНЖОН (В 1.5 раза выше угловых башен)
+        const cx5 = 0, cz5 = 0;
+        addBlock(cx5, 14,      cz5, 12, 6,  12, 'donjon_base');  // Основание донжона
+        addBlock(cx5, -5.5,    cz5, 10, 33, 10, 'donjon_body');  // Тело донжона (высота 33)
+        addBlock(cx5, -24,     cz5, 12, 4,  12, 'donjon_crown'); // Корона донжона
+
+        // Зубцы короны донжона
+        addBlock(cx5 - 5, -27, cz5 - 5, 2, 2, 2, 'donjon_tooth');
+        addBlock(cx5 + 5, -27, cz5 - 5, 2, 2, 2, 'donjon_tooth');
+        addBlock(cx5 + 5, -27, cz5 + 5, 2, 2, 2, 'donjon_tooth');
+        addBlock(cx5 - 5, -27, cz5 + 5, 2, 2, 2, 'donjon_tooth');
+
         // ============================================================================
-        // 2. БЕЗУПРЕЧНЫЙ МАТЕМАТИЧЕСКИЙ РЕНДЕР (Художник + Ламберт-Шейдинг)
+        // 2. МАТЕМАТИЧЕСКИЙ РЕНДЕР (Z-Сортировка + Ламберт)
         // ============================================================================
-        // Сортируем все грани от дальних к ближним
         polygons.sort((a, b) => a.z - b.z);
 
         polygons.forEach(poly => {
             const p = poly.pts;
             const n = poly.normal;
 
-            // Проверка видимости лицевых граней (Backface Culling относительно экрана)
+            // Проверка видимости граней относительно камеры
             if (n[2] < 0) {
                 // Расчет освещенности по закону Ламберта
                 const dot = n[0] * lNorm[0] + n[1] * lNorm[1] + n[2] * lNorm[2];
                 const intensity = Math.max(0.26, dot);
 
-                // Отрисовка контура полигона
+                // Отрисовка контура полигона грань за гранью
                 ctx.beginPath();
                 ctx.moveTo(p[0][0], p[0][1]);
                 for (let i = 1; i < p.length; i++) {
@@ -835,38 +848,32 @@ const AnimationManager = {
                 let r = 0, g = 0, b = 0;
                 let strokeColor = "rgba(255, 242, 195, 0.22)";
 
-                // Притемняем стены для глубокого шва каменной кладки
-                const matMod = (poly.type === 'wall' || poly.type === 'wall_tooth') ? 0.84 : 1.0;
+                // Текстурные коэффициенты для контраста швов
+                let matMod = 1.0;
+                if (poly.type === 'wall' || poly.type === 'wall_tooth') {
+                    matMod = 0.84;
+                } else if (poly.type.startsWith('donjon')) {
+                    matMod = 1.08;
+                }
 
                 if (tokenColorMaterial === 'ruby') {
-                    r = Math.floor((185 + 70 * intensity) * matMod);
-                    g = Math.floor(35 * matMod);
-                    b = Math.floor(35 * matMod);
+                    r = Math.floor((185 + 70 * intensity) * matMod); g = Math.floor(35 * matMod); b = Math.floor(35 * matMod);
                     strokeColor = "rgba(255, 190, 190, 0.2)";
                 } else if (tokenColorMaterial === 'emerald') {
-                    r = Math.floor(35 * matMod);
-                    g = Math.floor((165 + 75 * intensity) * matMod);
-                    b = Math.floor(65 * matMod);
+                    r = Math.floor(35 * matMod); g = Math.floor((165 + 75 * intensity) * matMod); b = Math.floor(65 * matMod);
                     strokeColor = "rgba(190, 255, 190, 0.2)";
                 } else if (tokenColorMaterial === 'obsidian') {
-                    r = Math.floor((35 + 30 * intensity) * matMod);
-                    g = Math.floor((45 + 35 * intensity) * matMod);
-                    b = Math.floor((55 + 45 * intensity) * matMod);
+                    r = Math.floor((35 + 30 * intensity) * matMod); g = Math.floor((45 + 35 * intensity) * matMod); b = Math.floor((55 + 45 * intensity) * matMod);
                     strokeColor = "rgba(200, 220, 255, 0.15)";
                 } else if (tokenColorMaterial === 'bone') {
-                    r = Math.floor((215 + 40 * intensity) * matMod);
-                    g = Math.floor((215 + 40 * intensity) * matMod);
-                    b = Math.floor((200 + 40 * intensity) * matMod);
+                    r = Math.floor((215 + 40 * intensity) * matMod); g = Math.floor((215 + 40 * intensity) * matMod); b = Math.floor((200 + 40 * intensity) * matMod);
                     strokeColor = "rgba(150, 140, 120, 0.15)";
                 } else {
-                    // Классическое Королевское Золото (Дефолт)
-                    r = Math.floor((210 + 45 * intensity) * matMod);
-                    g = Math.floor((165 + 40 * intensity) * matMod);
-                    b = Math.floor((60 + 20 * intensity) * matMod);
+                    r = Math.floor((210 + 45 * intensity) * matMod); g = Math.floor((165 + 40 * intensity) * matMod); b = Math.floor((60 + 20 * intensity) * matMod);
                     strokeColor = "rgba(255, 242, 195, 0.25)";
                 }
 
-                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.fillStyle = `rgb(${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)})`;
                 ctx.fill();
 
                 ctx.strokeStyle = strokeColor;
