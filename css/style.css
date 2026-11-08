@@ -2845,3 +2845,49 @@ canvas[style*="position: fixed"] {
         transform: translate3d(var(--target-x), var(--target-y), 0) scale(1);
     }
 }
+
+/* Геральдическое выравнивание выпадающих списков внутри fieldset настроек */
+#settingsTabletContainer .custom-select {
+    width: 100%;
+    position: relative;
+    font-family: 'Montserrat', sans-serif;
+}
+
+#settingsTabletContainer .custom-select-trigger {
+    background: #090f0b;
+    border: 1px solid #543e0d;
+    color: #ebd291;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+#settingsTabletContainer .custom-select.active .custom-select-trigger {
+    border-color: #ffd875;
+    box-shadow: 0 0 10px rgba(255, 216, 117, 0.4);
+}
+
+#settingsTabletContainer .custom-options-container {
+    background: #090f0b;
+    border: 2px solid #b89445;
+    border-radius: 4px;
+    margin-top: 2px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+}
+
+#settingsTabletContainer .custom-option {
+    padding: 10px 14px;
+    color: #ebd291;
+    font-size: 14px;
+    transition: all 0.15s ease;
+}
+
+#settingsTabletContainer .custom-option:hover,
+#settingsTabletContainer .custom-option.selected {
+    background-color: #1e3c27;
+    color: #ffd875;
+}

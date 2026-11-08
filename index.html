@@ -157,15 +157,19 @@
             <fieldset style="border: 2px solid #543e0d; border-radius: 6px; padding: 20px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 16px;">
                 <legend style="color: #ffd875; font-family: 'Tinos', serif; font-size: 20px; font-weight: 900; padding: 0 10px;">🛡️ Настройки токена и перемещения отряда</legend>
 
-                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 8px; width: 100%;">
-                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 16px; color: #dfbc6f;">🎨 Визуальный токен отряда на карте:</span>
-                    <select id="settingSquadTokenSkin">
-                        <option value="flag">🚩 Классическое развевающееся знамя</option>
-                        <option value="queen">👑 Объемная 3D-фигура: Шахматный Ферзь</option>
-                        <option value="rook">🏰 Объемная 3D-фигура: Крепостная Ладья</option>
-                        <option value="castle">🏰 Вращающийся Цитадель-Замок (4 Ладьи и Стены)</option>
-                        <option value="dice">🎲 Бесконечно катящийся 3D-кубик D20</option>
-                    </select>
+                <div class="box">
+                    <label>🎨 Визуальный токен отряда на карте:</label>
+                    <div class="custom-select" id="customSelectSquadTokenSkin">
+                        <div class="custom-select-trigger">🚩 Классическое развевающееся знамя</div>
+                        <div class="custom-options-container">
+                            <div class="custom-option selected" data-value="flag">🚩 Классическое развевающееся знамя</div>
+                            <div class="custom-option" data-value="queen">👑 Объемная 3D-фигура: Шахматный Ферзь</div>
+                            <div class="custom-option" data-value="rook"> Castle Объемная 3D-фигура: Крепостная Ладья</div>
+                            <div class="custom-option" data-value="castle">🏰 Вращающийся Цитадель-Замок (4 Ладьи и Стены)</div>
+                            <div class="custom-option" data-value="dice">🎲 Бесконечно катящийся 3D-кубик D20</div>
+                        </div>
+                        <input type="hidden" id="settingSquadTokenSkin" name="squadTokenSkin" value="flag">
+                    </div>
                 </div>
 
                 <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; margin-top: 5px;">

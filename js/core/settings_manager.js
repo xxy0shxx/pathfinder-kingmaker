@@ -7,7 +7,7 @@ const SettingsManager = {
         fogOpacity: 70,
         disableAutocenter: false,
         squadAnimMode: 'classic',
-        squadTokenSkin: 'flag', // По умолчанию летит флаг
+        squadTokenSkin: 'flag',
         squadTokenColor: 'gold',
         hideDc: false,
         hideLevel: false,
@@ -16,7 +16,7 @@ const SettingsManager = {
         hideTerrain: false,
         hideExplored: false,
         hideMapped: false,
-        hideQuestMarkers: false // Состояние скрытия маркеров ⚜
+        hideQuestMarkers: false
     },
 
     init() {
@@ -31,6 +31,7 @@ const SettingsManager = {
     },
 
     bindUiElements() {
+        // Конфигурация элементов управления
         const ids = [
             { id: 'settingFlightMode', key: 'flightFromCapital', type: 'check' },
             { id: 'settingFpsMonitor', key: 'enableFpsMonitor', type: 'check' },
@@ -42,22 +43,47 @@ const SettingsManager = {
             { id: 'settingHideTerrain', key: 'hideTerrain', type: 'check' },
             { id: 'settingHideExplored', key: 'hideExplored', type: 'check' },
             { id: 'settingHideMapped', key: 'hideMapped', type: 'check' },
-            { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' }, // Связываем новый чекбокс
-            { id: 'settingSquadTokenSkin', key: 'squadTokenSkin', type: 'value' }, // Связываем новый селект токена
-            { id: 'settingSquadSpawnAnim', key: 'squadAnimMode', type: 'value' }
+            { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' }
         ];
+
+        // 1. Привязка стандартных чекбоксов
         ids.forEach(item => {
             const el = document.getElementById(item.id);
             if (!el) return;
-            if (item.type === 'check') {
-                el.checked = this.state[item.key];
-                el.addEventListener('change', () => { this.state[item.key] = el.checked; this.saveAndApply(); });
-            } else {
-                el.value = this.state[item.key];
-                el.addEventListener('change', () => { this.state[item.key] = el.value; this.saveAndApply(); });
-            }
+            el.checked = this.state[item.key];
+            el.addEventListener('change', () => {
+                this.state[item.key] = el.checked;
+                this.saveAndApply();
+            });
         });
 
+        // 2. ИНТЕГРАЦИЯ КАСТОМНЫХ СЕЛЕКТОВ ГМА (Скин токена и режим анимации)
+        const bindCustomSelect = (containerId, hiddenInputId, stateKey) => {
+            const container = document.getElementById(containerId);
+            const hiddenInput = document.getElementById(hiddenInputId);
+            if (!container || !hiddenInput) return;
+
+            // Синхронизируем стартовое значение из базы данных
+            hiddenInput.value = this.state[stateKey];
+            if (window.UiSelectManager && typeof window.UiSelectManager.setCustomSelectValue === 'function') {
+                window.UiSelectManager.setCustomSelectValue(containerId, this.state[stateKey]);
+            }
+
+            // Ловим клики по опциям внутри кастомного списка
+            container.querySelectorAll('.custom-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const val = option.dataset.value;
+                    this.state[stateKey] = val;
+                    hiddenInput.value = val;
+                    this.saveAndApply();
+                });
+            });
+        };
+
+        // Связываем новые кастомные выпадающие контейнеры с внутренним стейтом
+        bindCustomSelect('customSelectSquadTokenSkin', 'settingSquadTokenSkin', 'squadTokenSkin');
+        bindCustomSelect('customSelectSquadSpawnAnim', 'settingSquadSpawnAnim', 'squadAnimMode');
+        // 3. Управление ползунком плотности Тумана Войны
         const sldFog = document.getElementById('settingFogOpacity');
         const lblFog = document.getElementById('settingFogOpacityVal');
         if (sldFog) {
@@ -70,7 +96,7 @@ const SettingsManager = {
             });
         }
 
-        // Привязка пресетов цвета фигурки отряда
+        // 4. Привязка пресетов цвета фигурки отряда
         const colorContainer = document.getElementById('squadTokenColorPresets');
         if (colorContainer) {
             const buttons = colorContainer.querySelectorAll('.squad-color-btn');
@@ -99,7 +125,7 @@ const SettingsManager = {
         window.DISABLE_CAMERA_AUTOCENTER = this.state.disableAutocenter;
         window.FLIGHT_FROM_CAPITAL_MODE = this.state.flightFromCapital;
         window.CURRENT_SQUAD_ANIMATION_MODE = this.state.squadAnimMode;
-        window.CURRENT_SQUAD_TOKEN_SKIN = this.state.squadTokenSkin; // Теперь сюда запишется 'queen' или 'rook'
+        window.CURRENT_SQUAD_TOKEN_SKIN = this.state.squadTokenSkin;
         window.CURRENT_SQUAD_TOKEN_COLOR = this.state.squadTokenColor;
         window.GLOBAL_FOG_OPACITY = this.state.fogOpacity / 100;
         MAP_CONFIG.ENABLE_FPS_MONITOR = this.state.enableFpsMonitor;
@@ -112,7 +138,6 @@ const SettingsManager = {
         window.MAP_HIDE_EXPLORED = this.state.hideExplored;
         window.MAP_HIDE_MAPPED = this.state.hideMapped;
 
-        // Синхронизация скрытия маркеров квестов с Canvas
         window.MAP_HIDE_QUEST_MARKERS = this.state.hideQuestMarkers;
         if (window.HexCanvasRender) {
             window.HexCanvasRender.showQuestTooltips = !this.state.hideQuestMarkers;

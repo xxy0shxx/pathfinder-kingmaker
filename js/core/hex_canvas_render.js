@@ -214,12 +214,15 @@ const HexCanvasRender = {
         }
     },
 
+
+
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 
         if (this.colorCache[hexKey]) {
             this.drawHexPath(cx, cy, r);
-            ctx.fillStyle = this.colorCache[hexKey]; ctx.fill();
+            ctx.fillStyle = this.colorCache[hexKey];
+            ctx.fill();
         }
 
         if (MAP_CONFIG.isGlobalFogEnabled) {
@@ -227,18 +230,22 @@ const HexCanvasRender = {
             if (!isRevealed) {
                 this.drawHexPath(cx, cy, r);
                 const currentAlpha = window.GLOBAL_FOG_OPACITY !== undefined ? window.GLOBAL_FOG_OPACITY : 0.7;
-                ctx.fillStyle = `rgba(0, 0, 0, ${currentAlpha})`; ctx.fill();
+                ctx.fillStyle = `rgba(0, 0, 0, ${currentAlpha})`;
+                ctx.fill();
             }
         }
 
         if (data && data.squadHere) {
             this.drawHexPath(cx, cy, r);
             const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.7);
-            grad.addColorStop(0, 'rgba(231, 76, 60, 0.8)'); grad.addColorStop(1, 'rgba(231, 76, 60, 0)');
-            ctx.fillStyle = grad; ctx.fill();
+            grad.addColorStop(0, 'rgba(231, 76, 60, 0.8)');
+            grad.addColorStop(1, 'rgba(231, 76, 60, 0)');
+            ctx.fillStyle = grad;
+            ctx.fill();
         }
 
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
         let iconScale = 1.0;
         if (this.spawnTimers[hexKey]) {
@@ -246,11 +253,19 @@ const HexCanvasRender = {
         }
 
         const drawAnimatedIcon = (iconText, targetX, targetY) => {
-            ctx.save(); ctx.translate(targetX, targetY);
+            ctx.save();
+            ctx.translate(targetX, targetY);
             if (iconScale !== 1.0) ctx.scale(iconScale, iconScale);
-            ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(20, 20, 20, 0.75)'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1.5;
-            ctx.fill(); ctx.stroke(); ctx.font = '18px sans-serif'; ctx.fillText(iconText, 0, 1); ctx.restore();
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 1.5;
+            ctx.fill();
+            ctx.stroke();
+            ctx.font = '18px sans-serif';
+            ctx.fillText(iconText, 0, 1);
+            ctx.restore();
         };
 
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
@@ -265,11 +280,10 @@ const HexCanvasRender = {
                 drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
             }
         }
-
         if (data && data.squadHere) {
             const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
 
-            // ИСПРАВЛЕНО: Вызываем рендеринг напрямую из автономного ThreeDTokenEngine
+            // ГАРАНТИРОВАННЫЙ СТАТИЧНЫЙ РЕНДЕР ИЗ АВТОНОМНОГО ThreeDTokenEngine
             if (currentSkin === 'queen') {
                 ThreeDTokenEngine.draw3DQueenToken(ctx, cx, cy);
                 this.isAnimating = true;
@@ -303,6 +317,9 @@ const HexCanvasRender = {
             if (questTitle !== '') this.drawQuestPlate(ctx, `⚜️ ${questTitle}`, cx, cy - r + 8);
         }
     },
+
+
+
     drawQuestPlate(ctx, text, x, y) {
         ctx.save();
         ctx.font = 'bold 12px Montserrat, sans-serif';
