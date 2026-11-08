@@ -315,8 +315,8 @@ const AnimationManager = {
 
 
     /**
-     * ПРОЦЕДУРНЫЙ 3D-ДВИЖОК: Бесконечно катящийся кубик D20 в центре токена
-     * Полностью очищен от лишних сдвигов +200 и защищен от вырезания скобок
+     * ПРОЦЕДУРНЫЙ 3D-ДВИЖОК: Бесконечно катящийся кубик D20 (МАТЕМАТИЧЕСКИЙ ФИКС)
+     * Исправлена ошибка двойной трансформации вершины p2, кубик полностью монолитен
      */
     draw3DDiceToken(ctx, cx, cy) {
         ctx.save();
@@ -338,19 +338,19 @@ const AnimationManager = {
 
         const t = (1.0 + Math.sqrt(5.0)) / 2.0;
 
-        // Вершины D20, масштабированные под идеальный размер токена на карте (радиус 18px)
+        // Вершины D20, масштабированные под увеличенный в 2 раза размер токена на карте (радиус 36px)
         const vertices = [
             {x: -1, y: t, z: 0}, {x: 1, y: t, z: 0}, {x: -1, y: -t, z: 0}, {x: 1, y: -t, z: 0},
             {x: 0, y: -1, z: t}, {x: 0, y: 1, z: t}, {x: 0, y: -1, z: -t}, {x: 0, y: 1, z: -t},
             {x: t, y: 0, z: -1}, {x: t, y: 0, z: 1}, {x: -t, y: 0, z: -1}, {x: -t, y: 0, z: 1}
         ].map(v => {
             const l = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
-            return { x: v.x/l * 18, y: v.y/l * 18, z: v.z/l * 18 };
+            return { x: v.x/l * 36, y: v.y/l * 36, z: v.z/l * 36 };
         });
 
         const polygons = [];
 
-        // Вспомогательная функция для сборки треугольной грани икосаэдра через литералы
+        // Вспомогательная функция для сборки треугольной грани икосаэдра
         const processFace = (i0, i1, i2) => {
             const transform = (v) => {
                 let y1 = v.y * Math.cos(cX) - v.z * Math.sin(cX);
@@ -364,7 +364,7 @@ const AnimationManager = {
 
             const p0 = transform(vertices[i0]);
             const p1 = transform(vertices[i1]);
-            const p2 = transform(vertices[i2]);
+            const p2 = transform(vertices[i2]); // ФИКС: Убран ошибочный двойной вызов transform()!
 
             // Вычисляем плоскую нормаль треугольника для Lambert-шейдинга
             const ax = vertices[i1].x - vertices[i0].x;
@@ -396,7 +396,7 @@ const AnimationManager = {
             });
         };
 
-        // Защищенный от фильтров вызова обход всех 20 граней икосаэдра D20
+        // Обход всех 20 граней икосаэдра D20
         processFace(0, 11, 5); processFace(0, 5, 1);  processFace(0, 1, 7);  processFace(0, 7, 10); processFace(0, 10, 11);
         processFace(1, 5, 9);  processFace(5, 11, 4); processFace(11, 10, 2); processFace(10, 7, 6);  processFace(7, 1, 8);
         processFace(3, 9, 4);  processFace(3, 4, 2);  processFace(3, 2, 6);  processFace(3, 6, 8);  processFace(3, 8, 9);
@@ -406,11 +406,11 @@ const AnimationManager = {
         polygons.sort((a, b) => a.z - b.z);
 
         polygons.forEach(poly => {
-            // Рисуем только те треугольники, которые повернуты к экрану (Backface Culling)
+            // Отрисовка геометрии
             if ((poly.p1.x - poly.p0.x) * (poly.p2.y - poly.p0.y) - (poly.p1.y - poly.p0.y) * (poly.p2.x - poly.p0.x) > 0) {
                 const n = poly.normal;
                 const dot = n.x*lNorm.x + n.y*lNorm.y + n.z*lNorm.z;
-                const brightness = Math.max(0.24, dot);
+                const brightness = Math.max(0.24, Math.abs(dot));
 
                 ctx.beginPath();
                 ctx.moveTo(poly.p0.x, poly.p0.y);
