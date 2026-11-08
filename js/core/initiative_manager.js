@@ -1,15 +1,16 @@
 /**
- * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ И БОЕВОЙ МЕНЕДЖЕР С УПРАВЛЕНИЕМ РАУНДАМИ И ХОДАМИ
+ * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ С АВТОСКРОЛЛОМ И ГОРЯЧЕЙ КЛАВИШЕЙ ПРОБЕЛА
  */
 const InitiativeManager = {
     state: {
         combatants: [],
-        selectedUnitId: null, // ID персонажа, чей сейчас ход
-        round: 1              // Текущий раунд боевого столкновения
+        selectedUnitId: null,
+        round: 1
     },
     mapDataRef: null,
     onSaveCallback: null,
     _isInputsBound: false,
+    _isGlobalKeyBound: false, // Флаг-защитник для клавиатурного слушателя
 
     init(mapData, onSave) {
         try {
@@ -26,7 +27,31 @@ const InitiativeManager = {
 
             window.InitiativeManager = this;
             this.renderUi();
+            this.bindGlobalHotkeys(); // Привязка Пробела
         } catch (e) { console.error("Ошибка инициализации InitiativeManager:", e); }
+    },
+
+    /**
+     * Глобальный перехватчик Пробела для переключения ходов
+     */
+    bindGlobalHotkeys() {
+        if (this._isGlobalKeyBound) return;
+
+        window.addEventListener('keydown', (e) => {
+            // Проверяем, что открыта именно вкладка инициативы
+            const container = document.getElementById('initiativeTabletContainer');
+            if (!container || container.style.display === 'none') return;
+
+            // Если ГМ сейчас пишет имя в текстовое поле, Пробел блокировать НЕЛЬЗЯ
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.code === 'Space') {
+                e.preventDefault(); // Запрещаем дефолтный скролл страницы браузером вниз
+                this.nextTurn();
+            }
+        });
+
+        this._isGlobalKeyBound = true;
     },
 
     updateMapData(newMapData) {
@@ -147,7 +172,26 @@ const InitiativeManager = {
         if (this.mapDataRef) this.mapDataRef.initiative = this.state;
         if (this.onSaveCallback) this.onSaveCallback();
         else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
+
         this.renderUi();
+        this.scrollToActiveCombatant(); // Скроллим к активному сразу после рендера
+    },
+
+    /**
+     * центрирование активного бойца
+     */
+    scrollToActiveCombatant() {
+        if (!this.state.selectedUnitId) return;
+
+        // Ищем в DOM-дереве карточку с классом активного хода
+        const activeCard = document.querySelector(`.init-combatant-card.selected-turn-gold`);
+        if (activeCard) {
+            activeCard.scrollIntoView({
+                behavior: 'smooth', // Плавная геральдическая прокрутка
+                block: 'center',    // Выравнивание карточки строго по центру вертикали скролла
+                inline: 'nearest'
+            });
+        }
     },
 
     renderUi() {
