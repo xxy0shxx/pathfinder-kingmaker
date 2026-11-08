@@ -1,7 +1,6 @@
 import { MAP_CONFIG } from '../config/app_config.js';
 import HexCanvasRender from '../core/hex_canvas_render.js';
 import ViewportManager from '../services/viewport_manager.js';
-// Подключаем наш новый изолированный 3D движок токенов
 import ThreeDTokenEngine from './3d_token_engine.js';
 
 const AnimationManager = {
@@ -201,12 +200,9 @@ const AnimationManager = {
                     const runeEl = document.createElement('div');
                     runeEl.className = 'squad-rune-particle';
                     runeEl.textContent = runesPool[Math.floor(Math.random() * runesPool.length)];
-                    const angleRad = (Math.PI * 2 / numRunes) * i;
-                    const angleDeg = (360 / numRunes) * i;
-                    runeEl.style.setProperty('--start-x', `${Math.cos(angleRad) * 15}px`);
-                    runeEl.style.setProperty('--start-y', `${Math.sin(angleRad) * 15}px`);
-                    runeEl.style.setProperty('--target-x', `${Math.cos(angleRad) * 130}px`);
-                    runeEl.style.setProperty('--target-y', `${Math.sin(angleRad) * 130}px`);
+                    const angleRad = (Math.PI * 2 / numRunes) * i; const angleDeg = (360 / numRunes) * i;
+                    runeEl.style.setProperty('--start-x', `${Math.cos(angleRad) * 15}px`); runeEl.style.setProperty('--start-y', `${Math.sin(angleRad) * 15}px`);
+                    runeEl.style.setProperty('--target-x', `${Math.cos(angleRad) * 130}px`); runeEl.style.setProperty('--target-y', `${Math.sin(angleRad) * 130}px`);
                     runeEl.style.setProperty('--rotate-deg', `${angleDeg - 90}deg`);
                     container.appendChild(runeEl);
                 }
@@ -244,7 +240,6 @@ const AnimationManager = {
 
         setTimeout(() => { flightContainer.remove(); }, 1300);
     },
-
     focusOnHex(hexId) {
         const coords = HexCanvasRender.hexCoords[hexId];
         if (!coords) return;
@@ -279,6 +274,100 @@ const AnimationManager = {
             btnElement.classList.toggle('ui-active', !HexCanvasRender.showQuestTooltips);
         }
         if (typeof HexCanvasRender.requestFrame === 'function') HexCanvasRender.requestFrame();
+    },
+
+    playCampDiceAnimation(targetDc, onCompleteCallback) {
+        const overlay = document.getElementById('campDiceOverlay');
+        const canvas = document.getElementById('d20Canvas');
+        if (!overlay || !canvas) { if (typeof onCompleteCallback === 'function') onCompleteCallback(); return; }
+        overlay.classList.add('open');
+
+        // Исправленный запуск процедурного каскада звуков вращения кости
+        this._playDiceSoundEffects();
+
+        const ctx = canvas.getContext('2d'), t = (1.0 + Math.sqrt(5.0)) / 2.0;
+        const vertices = [
+            [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t],
+            [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
+        ].map(v => { const l = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); return [v[0]/l * 120, v[1]/l * 120, v[2]/l * 120]; });
+
+        const faces = [
+            [0, 11, 5, "⚜"], [0, 5, 1, "2"], [0, 1, 7, "3"], [0, 7, 10, "4"], [0, 10, 11, "5"],
+            [1, 5, 9, "6"], [5, 11, 4, "7"], [11, 10, 2, "8"], [10, 7, 6, "9"], [7, 1, 8, "10"],
+            [3, 9, 4, "11"], [3, 4, 2, "12"], [3, 2, 6, "13"], [3, 6, 8, "14"], [3, 8, 9, "15"],
+            [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
+        ];
+
+        const fWinBase = faces[11];
+        let nx = (vertices[fWinBase[0]][0] + vertices[fWinBase[1]][0] + vertices[fWinBase[2]][0]) / 3;
+        let ny = (vertices[fWinBase[0]][1] + vertices[fWinBase[1]][1] + vertices[fWinBase[2]][1]) / 3;
+        let nz = (vertices[fWinBase[0]][2] + vertices[fWinBase[1]][2] + vertices[fWinBase[2]][2]) / 3;
+        const nl = Math.sqrt(nx*nx + ny*ny + nz*nz); nx /= nl; ny /= nl; nz /= nl;
+
+        const rotY = -Math.atan2(nx, nz); const nzR = -nx * Math.sin(rotY) + nz * Math.cos(rotY); const rotX = Math.atan2(ny, nzR);
+        const dcMap = { "⚜":0, "1":0, "2":1, "3":2, "4":3, "5":4, "6":5, "7":6, "8":7, "9":8, "10":9, "11":10, "12":11, "13":12, "14":13, "15":14, "16":15, "17":16, "18":17, "19":18, "20":19 };
+        let realWinIdx = 11;
+        if (targetDc !== undefined && targetDc !== null) {
+            const k = String(targetDc).trim();
+            if (dcMap[k] !== undefined) realWinIdx = dcMap[k];
+        }
+
+        const dynamicTextValue = faces[realWinIdx][3];
+        let aX = Math.random() * 5, aY = Math.random() * 5, aZ = Math.random() * 5;
+        let sc = 0.1, sTime = performance.now(), frameId, snapX = null, snapY = null, snapZ = null, flashed = false;
+
+        const draw3D = () => {
+            const elapsed = performance.now() - sTime;
+            if (elapsed >= 3000) { cancelAnimationFrame(frameId); overlay.classList.remove('open'); if (onCompleteCallback) onCompleteCallback(); return; }
+
+            let cX = aX += 0.12, cY = aY += 0.18, cZ = aZ += 0.06;
+            if (elapsed >= 1000 && elapsed < 1400) {
+                if (snapX === null) { snapX = (aX - 0.12) % (Math.PI * 2); snapY = (aY - 0.18) % (Math.PI * 2); snapZ = (aZ - 0.06) % (Math.PI * 2); }
+                const p = (elapsed - 1000) / 400, ease = p * p * (3 - 2 * p);
+                cX = snapX + (rotX - snapX) * ease; cY = snapY + (rotY - snapY) * ease; cZ = snapZ + (0 - snapZ) * ease;
+            } else if (elapsed >= 1400) { cX = rotX; cY = rotY; cZ = 0; }
+
+            sc = elapsed < 200 ? 0.1 + 0.9 * (elapsed / 200) : (elapsed > 2700 ? 1.0 - 0.9 * ((elapsed - 2700) / 300) : 1.0);
+            ctx.clearRect(0, 0, 400, 400);
+
+            const rotated = vertices.map(v => {
+                let x = v[0], y = v[1], z = v[2];
+                let y1 = y * Math.cos(cX) - z * Math.sin(cX), z1 = y * Math.sin(cX) + z * Math.cos(cX);
+                let x2 = x * Math.cos(cY) + z1 * Math.sin(cY), z2 = -x * Math.sin(cY) + z1 * Math.cos(cY);
+                let x3 = x2 * Math.cos(cZ) - y1 * Math.sin(cZ), y3 = x2 * Math.sin(cZ) + y1 * Math.cos(cZ);
+                return [x3 * sc + 200, y3 * sc + 200, z2];
+            });
+
+            const renderOrder = faces.map(f => ({ face: f, z: (rotated[f[0]][2] + rotated[f[1]][2] + rotated[f[2]][2]) / 3 })).sort((a, b) => a.z - b.z);
+            renderOrder.forEach(item => {
+                const f = item.face, p0 = rotated[f[0]], p1 = rotated[f[1]], p2 = rotated[f[2]];
+                if ((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]) > 0) {
+                    const ax = vertices[f[1]][0] - vertices[f[0]][0], ay = vertices[f[1]][1] - vertices[f[0]][1], az = vertices[f[1]][2] - vertices[f[0]][2];
+                    const bx = vertices[f[2]][0] - vertices[f[0]][0], by = vertices[f[2]][1] - vertices[f[0]][1], bz = vertices[f[2]][2] - vertices[f[0]][2];
+                    let cx = ay*bz - az*by, cy = az*bx - ax*bz, cz = ax*by - ay*bx, cl = Math.sqrt(cx*cx + cy*cy + cz*cz); cx /= cl; cy /= cl; cz /= cl;
+
+                    let ny1 = cy*Math.cos(cX) - cz*Math.sin(cX), nz1 = cy*Math.sin(cX) + cz*Math.cos(cX), nx2 = cx*Math.cos(cY) + nz1*Math.sin(cY);
+                    let nx3 = nx2*Math.cos(cZ) - ny1*Math.sin(cZ), ny3 = nx2*Math.sin(cZ) + ny1*Math.cos(cZ);
+
+                    const brightness = Math.max(0.2, nx3*0.3 + ny3*0.3 + nz1*0.9);
+                    ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.closePath();
+                    ctx.fillStyle = `rgb(${Math.floor(180 + 75 * brightness)}, ${Math.floor(135 + 80 * brightness)}, ${Math.floor(35 + 40 * brightness)})`; ctx.fill();
+                    ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
+
+                    if (elapsed >= 1400 && f[0] === faces[11][0] && f[1] === faces[11][1] && f[2] === faces[11][2]) {
+                        ctx.save(); if (!flashed) { this.spawnBeamsBurst(canvas.getBoundingClientRect().left + 200, canvas.getBoundingClientRect().top + 200, 1.4); flashed = true; }
+                        const opacity = Math.min(1, (elapsed - 1400) / 150);
+                        let sz = Math.floor(54 * sc), sCol = `rgba(255,162,0,${opacity})`, tCol = `rgba(255,255,255,${opacity})`;
+                        if (dynamicTextValue === "20") { sz = Math.floor(68 * sc); sCol = `rgba(46,204,113,${opacity})`; tCol = `rgba(235,255,240,${opacity})`; }
+                        else if (dynamicTextValue === "1" || dynamicTextValue === "⚜") { sz = Math.floor(68 * sc); sCol = `rgba(231,76,60,${opacity})`; tCol = `rgba(255,210,210,${opacity})`; }
+                        ctx.fillStyle = tCol; ctx.font = `900 ${sz}px 'Times New Roman', serif`; ctx.shadowColor = sCol; ctx.shadowBlur = 18; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        ctx.fillText(dynamicTextValue, (p0[0] + p1[0] + p2[0]) / 3, (p0[0] + p1[0] + p2[0]) / 3); ctx.restore();
+                    }
+                }
+            });
+            frameId = requestAnimationFrame(draw3D);
+        };
+        draw3D();
     }
 };
 
