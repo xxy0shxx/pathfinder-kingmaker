@@ -3502,3 +3502,220 @@ canvas[style*="position: fixed"] {
 .init-btn-reset-round-inline:active {
     transform: rotate(-180deg) scale(0.95) !important;
 }
+
+/* ============================================================================
+   УЛЬТИМАТИВНЫЙ ПОЛНОЭКРАННЫЙ ТВ-РЕЖИМ ДЛЯ ЖУРНАЛА И ТРЕКЕРОВ (FULLSCREEN HUD)
+   ============================================================================ */
+
+/* 1. Полная деструктуризация боковой панели и перевод её в режим 100% экрана */
+#questLogContainer {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;  /* Занимает всю ширину телевизора */
+    height: 100vh !important; /* Занимает всю высоту телевизора */
+    max-width: 100vw !important;
+    background: #0d1e13 !important; /* Роскошный монолитный геральдический фон */
+    border: none !important;
+    border-radius: 0 !important; /* Убираем скругления углов для полноэкранного HUD */
+    margin: 0 !important;
+    padding: 24px !important; /* Защитные поля от краев экрана ТВ */
+    box-sizing: border-box !important;
+    z-index: 1999999 !important;
+    transform: none !important; /* Отключаем боковое выезжание */
+    transition: opacity 0.25s ease, cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    overflow: visible !important;
+    contain: none !important;
+}
+
+/* 2. Логика скрытия: вместо уезжания за экран панель просто мягко затухает */
+#questLogContainer.ui-collapsed {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.99) !important; /* Эффект мягкого отдаления при закрытии */
+}
+
+/* 3. Масштабирование шапки вкладок на всю ширину экрана */
+.quest-log-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    border-bottom: 2px solid #543e0d !important;
+    padding-bottom: 14px !important;
+    margin-bottom: 10px !important;
+}
+
+.quest-log-tabs {
+    display: flex !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important; /* Страховка от переполнения вкладок */
+}
+
+/* Крупные, легко читаемые вкладки для больших разрешений */
+.quest-tab-btn {
+    font-size: 16px !important;
+    padding: 10px 20px !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+/* 4. Расширение полезной зоны для контента (Планшеты, Свитки, Квесты) */
+#questLogList,
+#initiativeTabletContainer,
+#campingTabletContainer,
+#kingdomTabletContainer,
+#settingsTabletContainer {
+    flex-grow: 1 !important;
+    width: 100% !important;
+    height: calc(100vh - 140px) !important; /* Автоматический расчет высоты под размер экрана */
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    contain: none !important;
+}
+
+/* 5. ИНТЕНСИВНЫЙ ТВ-СКРОЛЛ ДЛЯ ИНИЦИАТИВЫ: Теперь список карточек занимает максимум пространства */
+.init-cards-scroll-list {
+    max-height: calc(100vh - 260px) !important; /* Огромное поле видимости для длинных боевых сцен */
+    padding: 20px 45px 45px 45px !important; /* Полная защита от обрезки неонового свечения ходов */
+}
+
+/* Крупная кнопка закрытия журнала в углу экрана */
+.btn-close-quest-log {
+    font-size: 32px !important;
+    color: #ebd291 !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: color 0.15s ease !important;
+}
+.btn-close-quest-log:hover {
+    color: #ff7675 !important;
+}
+
+/* ============================================================================
+   ТОТАЛЬНОЕ УНИЧТОЖЕНИЕ СТАРОГО ЗАГОЛОВКА ЖУРНАЛА
+   ============================================================================ */
+
+/* Жестко скрываем любой текстовый заголовок или h2 внутри шапки журнала во всех режимах */
+#questLogContainer .quest-log-header h2,
+#questLogContainer .quest-log-header .quest-log-title,
+#questLogContainer .quest-log-header div:not(.quest-log-tabs) {
+    display: none !important;
+}
+
+/* Очищаем шапку от лишних отступов, оставляя только вкладки и крестик */
+.quest-log-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+/* ============================================================================
+   УЛЬТИМАТИВНОЕ ВЫЖИГАНИЕ ЛЮБЫХ ТЕКСТОВЫХ ЗАГОЛОВКОВ ИЗ ШАПКИ ЖУРНАЛА
+   ============================================================================ */
+
+/* 1. Намертво скрываем левый блок шапки, где выводится текст "Журнал заданий" и золотая лилия */
+#questLogContainer .quest-log-header > div:first-child:not(.quest-log-tabs),
+#questLogContainer .quest-log-header h2,
+#questLogContainer .quest-log-header h3,
+#questLogContainer .quest-log-header [class*="title"],
+#questLogContainer .quest-log-header [class*="left"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 2. Форсируем правильное флекс-распределение: табы занимают левую часть, крестик — в правом углу */
+#questLogContainer .quest-log-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    font-size: 0 !important; /* Страховка от любого "голого" текста без тегов */
+    color: transparent !important;
+}
+
+/* 3. Восстанавливаем корректное отображение размеров для вкладок */
+.quest-log-tabs .quest-tab-btn {
+    font-size: 16px !important;
+}
+
+/* ============================================================================
+   ТОТАЛЬНЫЙ ДЕМОНТАЖ ВЕРХНЕЙ ПОЛОСЫ ШАПКИ (ЭКОНОМИЯ МЕСТА ПОД ЭКРАН ТВ)
+   ============================================================================ */
+
+/* Полностью скрываем верхний контейнер шапки вместе с крестиком закрытия */
+#questLogContainer .quest-log-header {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Расширяем полезную зону прокрутки карточек вверх на освободившееся место */
+.init-cards-scroll-list {
+    max-height: calc(100vh - 150px) !important; /* На телевизоре поместится еще больше монстров! */
+    padding-top: 10px !important;
+}
+
+/* ============================================================================
+   ВОССТАНОВЛЕНИЕ ВЕРТИКАЛЬНОЙ ПРОКРУТКИ ДЛЯ ДЛИННЫХ МЕНЮ (НАСТРОЙКИ / ПРИВАЛ)
+   ============================================================================ */
+
+/* 1. Возвращаем индивидуальный внутренний скролл для контентных планшетов */
+#settingsTabletContainer,
+#campingTabletContainer,
+#kingdomTabletContainer,
+#questLogList {
+    overflow-y: auto !important; /* Включает прокрутку, если меню длиннее экрана */
+    overflow-x: hidden !important; /* Защита от случайного горизонтального сдвига */
+    max-height: calc(100vh - 100px) !important; /* Жестко ограничиваем высоту под экран ТВ */
+    padding-right: 10px !important; /* Защитный зазор под полосу прокрутки */
+    box-sizing: border-box !important;
+}
+
+/* 2. Тонкая геральдическая полоса прокрутки (Scrollbar) в стиле Kingmaker для ТВ */
+#settingsTabletContainer::-webkit-scrollbar,
+#campingTabletContainer::-webkit-scrollbar,
+#kingdomTabletContainer::-webkit-scrollbar,
+#questLogList::-webkit-scrollbar,
+.init-cards-scroll-list::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+#settingsTabletContainer::-webkit-scrollbar-track,
+#campingTabletContainer::-webkit-scrollbar-track,
+#kingdomTabletContainer::-webkit-scrollbar-track,
+#questLogList::-webkit-scrollbar-track,
+.init-cards-scroll-list::-webkit-scrollbar-track {
+    background: #020503 !important;
+    border-radius: 4px !important;
+}
+
+#settingsTabletContainer::-webkit-scrollbar-thumb,
+#campingTabletContainer::-webkit-scrollbar-thumb,
+#kingdomTabletContainer::-webkit-scrollbar-thumb,
+#questLogList::-webkit-scrollbar-thumb,
+.init-cards-scroll-list::-webkit-scrollbar-thumb {
+    background: #543e0d !important;
+    border: 1px solid #b89445 !important;
+    border-radius: 4px !important;
+}
+
+#settingsTabletContainer::-webkit-scrollbar-thumb:hover,
+#campingTabletContainer::-webkit-scrollbar-thumb:hover,
+#kingdomTabletContainer::-webkit-scrollbar-thumb:hover,
+#questLogList::-webkit-scrollbar-thumb:hover,
+.init-cards-scroll-list::-webkit-scrollbar-thumb:hover {
+    background: #b89445 !important;
+}

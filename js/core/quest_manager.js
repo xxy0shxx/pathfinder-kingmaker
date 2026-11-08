@@ -1,6 +1,6 @@
-// QuestManager.js
+// QuestManager.js — ЧАСТЬ 1 ИЗ 2
 import { MAP_CONFIG } from '../config/app_config.js';
-import KingdomManager from './kingdom_manager.js'; // Подключаем менеджер королевства
+import KingdomManager from './kingdom_manager.js';
 
 /**
  * Модуль для управления Журналом заданий, вкладками и слухами Королевства
@@ -20,8 +20,7 @@ const QuestManager = {
         this.initDOMPlacement();
         this.initTabs();
         this.initUnifiedUICollapse();
-
-//        window.QuestManager = this;
+        this.bindGlobalEscapeKey(); // Намертво вешаем хоткей Escape на закрытие
     },
 
     /**
@@ -32,7 +31,6 @@ const QuestManager = {
         if (questLogContainerEl) {
             document.body.appendChild(questLogContainerEl);
 
-            // Добавляем кнопку закрытия "×", если её нет
             const questHeader = questLogContainerEl.querySelector('.quest-log-header');
             if (questHeader && !questHeader.querySelector('.btn-close-quest-log')) {
                 const closeBtn = document.createElement('button');
@@ -43,20 +41,44 @@ const QuestManager = {
 
                 closeBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    questLogContainerEl.classList.add('ui-collapsed');
-
-
-
-                    const btnToggleQuests = document.getElementById('btnToggleQuests');
-                    if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
-                    const btnToggleCamping = document.getElementById('btnToggleCamping');
-                    if (btnToggleCamping) btnToggleCamping.removeAttribute('style');
+                    this.closeFullscreenHUD();
                 });
                 questHeader.appendChild(closeBtn);
             }
         }
     },
 
+    /**
+     * Слушатель клавиши Escape для быстрого закрытия полноэкранного режима
+     */
+    bindGlobalEscapeKey() {
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.code === 'Escape') {
+                const questLog = document.getElementById('questLogContainer');
+                if (questLog && !questLog.classList.contains('ui-collapsed')) {
+                    e.preventDefault();
+                    this.closeFullscreenHUD();
+                }
+            }
+        });
+    },
+
+    /**
+     * Унифицированный метод полного закрытия HUD и очистки стилей
+     */
+    closeFullscreenHUD() {
+        const questLog = document.getElementById('questLogContainer');
+        if (questLog) questLog.classList.add('ui-collapsed');
+
+        const btnToggleQuests = document.getElementById('btnToggleQuests');
+        if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
+
+        const btnToggleCamping = document.getElementById('btnToggleCamping');
+        if (btnToggleCamping) btnToggleCamping.removeAttribute('style');
+
+        const btnToggleSettings = document.getElementById('btnToggleSettings');
+        if (btnToggleSettings) btnToggleSettings.removeAttribute('style');
+    },
 
     /**
      * Инициализация вкладок (Активные / Завершенные / Слухи / Королевство / Привал / Настройки)
@@ -80,81 +102,45 @@ const QuestManager = {
             tabRumors.addEventListener('click', () => this.setActiveTab(tabRumors, 'rumors'));
         }
 
-        if (tabKingdom) {
-            tabKingdom.addEventListener('click', () => this.setActiveTab(tabKingdom, 'kingdom'));
-        }
-
-        if (tabCamping) {
-            tabCamping.addEventListener('click', () => this.setActiveTab(tabCamping, 'camping'));
-        }
-
-        // ИСПРАВЛЕНО: Добавлен обязательный слушатель клика для вкладки настроек в шапке!
-        if (tabSettings) {
-            tabSettings.addEventListener('click', () => this.setActiveTab(tabSettings, 'settings'));
-        }
+        if (tabKingdom) tabKingdom.addEventListener('click', () => this.setActiveTab(tabKingdom, 'kingdom'));
+        if (tabCamping) tabCamping.addEventListener('click', () => this.setActiveTab(tabCamping, 'camping'));
+        if (tabSettings) tabSettings.addEventListener('click', () => this.setActiveTab(tabSettings, 'settings'));
 
         const tabCloseJournal = document.getElementById('tabCloseJournal');
         if (tabCloseJournal) {
             tabCloseJournal.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const questLogContainerEl = document.getElementById('questLogContainer');
-                if (questLogContainerEl) {
-                    questLogContainerEl.classList.add('ui-collapsed');
-                }
-
-                const btnToggleQuests = document.getElementById('btnToggleQuests');
-                if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
-
-                const btnToggleCamping = document.getElementById('btnToggleCamping');
-                if (btnToggleCamping) btnToggleCamping.removeAttribute('style');
-
-                const btnToggleSettings = document.getElementById('btnToggleSettings');
-                if (btnToggleSettings) btnToggleSettings.removeAttribute('style');
+                e.preventDefault(); e.stopPropagation();
+                this.closeFullscreenHUD();
             });
         }
     },
 
-
-    /**
-     * Переключение активной вкладки
-     */
     setActiveTab(tabElement, filterName) {
         document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
         tabElement.classList.add('active');
         this.currentFilter = filterName;
         this.render();
     },
-
     /**
      * Настройка открытия/закрытия панелей по кнопкам интерфейса
      */
-// QuestManager.js — Финальная и неубиваемая логика открытия панелей
     initUnifiedUICollapse() {
         const questLog = document.getElementById('questLogContainer');
         const btnToggleQuests = document.getElementById('btnToggleQuests');
-        const btnToggleCamping = document.getElementById('btnToggleCamping'); // Подключаем кнопку привала напрямую
+        const btnToggleCamping = document.getElementById('btnToggleCamping');
 
-        // 1. Единый обработчик для кнопки Квестов
         if (btnToggleQuests && questLog) {
             btnToggleQuests.addEventListener('click', (e) => {
                 e.preventDefault(); e.stopPropagation();
-
-                // Переключаем фильтр на обычные активные квесты
                 this.currentFilter = 'active';
 
-                // Переключаем вкладки кнопок в дефолтный статус
                 document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
                 const tabActive = document.getElementById('tabActiveQuests');
                 if (tabActive) tabActive.classList.add('active');
 
                 const isLogCollapsed = questLog.classList.toggle('ui-collapsed');
                 if (!isLogCollapsed) {
-                    // Убираем подсветку с кнопки привала ГМа, если она была активна
                     if (btnToggleCamping) btnToggleCamping.removeAttribute('style');
-
-                    // Включаем зеленую подсветку кнопке квестов
                     btnToggleQuests.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
                     btnToggleQuests.style.setProperty('border-color', '#dfbc6f', 'important');
                     btnToggleQuests.style.setProperty('color', '#dfbc6f', 'important');
@@ -165,7 +151,6 @@ const QuestManager = {
             });
         }
 
-        // 2. Единый перехватчик для кнопки Привала
         if (btnToggleCamping && questLog) {
             btnToggleCamping.addEventListener('click', (e) => {
                 e.preventDefault(); e.stopPropagation();
@@ -174,27 +159,19 @@ const QuestManager = {
                 const isCurrentlyCollapsed = questLog.classList.contains('ui-collapsed');
                 const isCampVisible = campTablet && campTablet.style.display === 'flex';
 
-                // Логика открытия/закрытия
                 if (isCurrentlyCollapsed) {
                     questLog.classList.remove('ui-collapsed');
                 } else if (isCampVisible) {
-                    questLog.classList.add('ui-collapsed');
-                    btnToggleCamping.removeAttribute('style');
+                    this.closeFullscreenHUD();
                     return;
                 }
 
-                // Жестко блокируем фильтр квестов на значении привала
                 this.currentFilter = 'camping';
-
-                // Сбрасываем подсветку с кнопки квестов на правой панели
                 if (btnToggleQuests) btnToggleQuests.removeAttribute('style');
 
-                // === НОВЫЙ КОД: Переключаем визуальную подсветку табов ЖУРНАЛА ===
                 document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
                 const tabCamping = document.getElementById('tabCamping');
-                if (tabCamping) {
-                    tabCamping.classList.add('active'); // Намертво включаем подсветку вкладки "Привал ГМа"
-                }
+                if (tabCamping) tabCamping.classList.add('active');
 
                 this.render();
 
@@ -202,7 +179,6 @@ const QuestManager = {
                     window.CampingManager.recalculateCamp();
                 }
 
-                // Включаем зеленую подсветку быстрой кнопке привала на панели 3х4
                 btnToggleCamping.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
                 btnToggleCamping.style.setProperty('border-color', '#dfbc6f', 'important');
                 btnToggleCamping.style.setProperty('color', '#dfbc6f', 'important');
@@ -210,18 +186,12 @@ const QuestManager = {
         }
     },
 
-
-    /**
-     * Обновление данных карты внутри менеджера (вызывать при импорте новых файлов)
-     */
     updateMapData(newMapData) {
         this.mapDataRef = newMapData;
     },
 
-
-
     /**
-     * Генерация контента и управление переключением вкладок/планшетов
+     * Генерация контента без принудительной перезаписи заголовков шапки HUD
      */
     render() {
         const listContainer = document.getElementById('questLogList');
@@ -231,40 +201,32 @@ const QuestManager = {
         const initiativeTabletEl = document.getElementById('initiativeTabletContainer');
         if (!this.mapDataRef) return;
 
-        // ЖЕСТКИЙ СБРОС СТИЛЕЙ ОТОБРАЖЕНИЯ ПЕРЕД РЕНДЕРОМ
+        // Полный сброс отображения вкладок
         if (listContainer) listContainer.style.display = 'none';
         if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
         if (campingTabletEl) campingTabletEl.style.display = 'none';
         if (settingsTabletEl) settingsTabletEl.style.display = 'none';
-        if (initiativeTabletEl) initiativeTabletEl.style.display = 'none'
+        if (initiativeTabletEl) initiativeTabletEl.style.display = 'none';
 
-        // 1. РЕЖИМ ПРИВАЛА ГМА
         if (this.currentFilter === 'camping') {
             if (campingTabletEl) campingTabletEl.style.display = 'flex';
             if (window.CampingManager) window.CampingManager.recalculateCamp();
             return;
         }
-
-        // 2. РЕЖИМ ПЛАНШЕТА КОРОЛЕВСТВА
         else if (this.currentFilter === 'kingdom') {
             if (kingdomTabletEl) kingdomTabletEl.style.display = 'flex';
             KingdomManager.renderUi();
             return;
         }
-
         else if (this.currentFilter === 'initiative') {
             if (initiativeTabletEl) initiativeTabletEl.style.display = 'flex';
             if (window.InitiativeManager) window.InitiativeManager.renderUi();
             return;
         }
-
-            // 3. ИСПРАВЛЕНО: РЕЖИМ СИСТЕМНЫХ НАСТРОЕК (Мгновенный переход по табу в шапке)
         else if (this.currentFilter === 'settings') {
             if (settingsTabletEl) settingsTabletEl.style.display = 'flex';
             return;
         }
-
-        // 4. СТАНДАРТНЫЙ РЕЖИМ КВЕСТОВ И СЛУХОВ
         else {
             if (listContainer) listContainer.style.display = 'flex';
         }
@@ -283,19 +245,15 @@ const QuestManager = {
                     count++;
                     const rumorItem = document.createElement('div');
                     rumorItem.className = 'quest-log-item status-rumor';
-
                     rumorItem.innerHTML = `
                         <div class="quest-item-title">👂 Наводка / Слух</div>
                         <div class="quest-item-location">📍 Место действия: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
                         <div class="quest-item-desc">${hex.rumorText.replace(/\n/g, '<br>')}</div>
                     `;
-
                     rumorItem.addEventListener('click', () => {
                         if (this.focusCallback) this.focusCallback(hexId);
-                        const questLog = document.getElementById('questLogContainer');
-                        if (questLog) questLog.classList.add('ui-collapsed');
+                        this.closeFullscreenHUD();
                     });
-
                     listContainer.appendChild(rumorItem);
                 }
             }
@@ -304,7 +262,6 @@ const QuestManager = {
                     count++;
                     const questItem = document.createElement('div');
                     questItem.className = `quest-log-item status-${filterStatus}`;
-
                     const objIcon = MAP_CONFIG.types[hex.type]?.icon || '⚜️';
 
                     questItem.innerHTML = `
@@ -312,13 +269,10 @@ const QuestManager = {
                         <div class="quest-item-location">📍 Регион: ${hex.title || hexId.replace('hex_', 'Гекс ')}</div>
                         ${hex.questData.desc ? `<div class="quest-item-desc">${hex.questData.desc.replace(/\n/g, '<br>')}</div>` : ''}
                     `;
-
                     questItem.addEventListener('click', () => {
                         if (this.focusCallback) this.focusCallback(hexId);
-                        const questLog = document.getElementById('questLogContainer');
-                        if (questLog) questLog.classList.add('ui-collapsed');
+                        this.closeFullscreenHUD();
                     });
-
                     listContainer.appendChild(questItem);
                 }
             }
@@ -329,8 +283,6 @@ const QuestManager = {
             listContainer.innerHTML = `<div class="quest-log-empty">${emptyMessage}</div>`;
         }
     }
-
-
 };
 
 export default QuestManager;
