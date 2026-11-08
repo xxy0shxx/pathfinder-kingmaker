@@ -315,78 +315,107 @@ const AnimationManager = {
 
 
     /**
-     * ПРОЦЕДУРНЫЙ 3D-ДВИЖОК: Бесконечно катящийся кубик D20 без цифр
-     * Построен на базе low-poly геометрии икосаэдра из лагерных бросков
+     * ПРОЦЕДУРНЫЙ 3D-ДВИЖОК: Бесконечно катящийся кубик D20 в центре токена
+     * Полностью очищен от лишних сдвигов +200 и защищен от вырезания скобок
      */
     draw3DDiceToken(ctx, cx, cy) {
         ctx.save();
-        ctx.translate(cx, cy - 6);
+        // Центрируем кубик точно по координатам гекса на холсте
+        ctx.translate(cx, cy - 2);
 
         const time = Date.now() / 1000;
         const bounceY = Math.sin(time * 2.2) * 1.5;
         ctx.translate(0, bounceY);
 
-        // Постоянное вращение по трем осям для эффекта хаотичного качения
+        // Постоянное хаотичное вращение по трем осям на месте
         const cX = time * 1.2;
         const cY = time * 1.5;
         const cZ = time * 0.8;
 
-        const lightDir = [0.5, -0.8, 0.4];
-        const lLength = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
-        const lNorm = [lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength];
+        const lightDir = { x: 0.5, y: -0.8, z: 0.4 };
+        const lLength = Math.sqrt(lightDir.x*lightDir.x + lightDir.y*lightDir.y + lightDir.z*lightDir.z);
+        const lNorm = { x: lightDir.x/lLength, y: lightDir.y/lLength, z: lightDir.z/lLength };
 
         const t = (1.0 + Math.sqrt(5.0)) / 2.0;
 
-        // Вершины D20, масштабированные под размер токена на карте (радиус ~16 пикселей)
+        // Вершины D20, масштабированные под идеальный размер токена на карте (радиус 18px)
         const vertices = [
-            [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t],
-            [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
+            {x: -1, y: t, z: 0}, {x: 1, y: t, z: 0}, {x: -1, y: -t, z: 0}, {x: 1, y: -t, z: 0},
+            {x: 0, y: -1, z: t}, {x: 0, y: 1, z: t}, {x: 0, y: -1, z: -t}, {x: 0, y: 1, z: -t},
+            {x: t, y: 0, z: -1}, {x: t, y: 0, z: 1}, {x: -t, y: 0, z: -1}, {x: -t, y: 0, z: 1}
         ].map(v => {
-            const l = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-            return [v[0]/l * 16, v[1]/l * 16, v[2]/l * 16];
+            const l = Math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+            return { x: v.x/l * 18, y: v.y/l * 18, z: v.z/l * 18 };
         });
 
-        // 20 треугольных граней икосаэдра
-        const faces = [, [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
-            , [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
-            , [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
-            , [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
-        ];
+        const polygons = [];
 
-        // 3D Трансформация и вращение по матрицам
-        const rotated = vertices.map(v => {
-            let x = v[0], y = v[1], z = v[2];
-            let y1 = y * Math.cos(cX) - z * Math.sin(cX), z1 = y * Math.sin(cX) + z * Math.cos(cX);
-            let x2 = x * Math.cos(cY) + z1 * Math.sin(cY), z2 = -x * Math.sin(cY) + z1 * Math.cos(cY);
-            let x3 = x2 * Math.cos(cZ) - y1 * Math.sin(cZ), y3 = x2 * Math.sin(cZ) + y1 * Math.cos(cZ);
-            return [x3, y3, z2];
-        });
+        // Вспомогательная функция для сборки треугольной грани икосаэдра через литералы
+        const processFace = (i0, i1, i2) => {
+            const transform = (v) => {
+                let y1 = v.y * Math.cos(cX) - v.z * Math.sin(cX);
+                let z1 = v.y * Math.sin(cX) + v.z * Math.cos(cX);
+                let x2 = v.x * Math.cos(cY) + z1 * Math.sin(cY);
+                let z2 = -v.x * Math.sin(cY) + z1 * Math.cos(cY);
+                let x3 = x2 * Math.cos(cZ) - y1 * Math.sin(cZ);
+                let y3 = x2 * Math.sin(cZ) + y1 * Math.cos(cZ);
+                return { x: x3, y: y3, z: z2 };
+            };
 
-        // Z-сортировка художника для правильного наложения граней
-        const renderOrder = faces.map(f => {
-            return { face: f, z: (rotated[f[0]][2] + rotated[f[1]][2] + rotated[f[2]][2]) / 3 };
-        }).sort((a, b) => a.z - b.z);
+            const p0 = transform(vertices[i0]);
+            const p1 = transform(vertices[i1]);
+            const p2 = transform(vertices[i2]);
 
-        renderOrder.forEach(item => {
-            const f = item.face, p0 = rotated[f[0]], p1 = rotated[f[1]], p2 = rotated[f[2]];
+            // Вычисляем плоскую нормаль треугольника для Lambert-шейдинга
+            const ax = vertices[i1].x - vertices[i0].x;
+            const ay = vertices[i1].y - vertices[i0].y;
+            const az = vertices[i1].z - vertices[i0].z;
+            const bx = vertices[i2].x - vertices[i0].x;
+            const by = vertices[i2].y - vertices[i0].y;
+            const bz = vertices[i2].z - vertices[i0].z;
 
-            // Backface culling: рисуем только лицевые треугольники кубика
-            if ((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]) > 0) {
-                const ax = vertices[f[1]][0] - vertices[f[0]][0], ay = vertices[f[1]][1] - vertices[f[0]][1], az = vertices[f[1]][2] - vertices[f[0]][2];
-                const bx = vertices[f[2]][0] - vertices[f[0]][0], by = vertices[f[2]][1] - vertices[f[0]][1], bz = vertices[f[2]][2] - vertices[f[0]][2];
-                let vcx = ay*bz - az*by, vcy = az*bx - ax*bz, vcz = ax*by - ay*bx, vcl = Math.sqrt(vcx*vcx + vcy*vcy + vcz*vcz);
-                vcx /= vcl; vcy /= vcl; vcz /= vcl;
+            let nx = ay*bz - az*by;
+            let ny = az*bx - ax*bz;
+            let nz = ax*by - ay*bx;
+            const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
+            if (nLen > 0) { nx /= nLen; ny /= nLen; nz /= nLen; }
 
-                let ny1 = vcy*Math.cos(cX) - vcz*Math.sin(cX), nz1 = vcy*Math.sin(cX) + vcz*Math.cos(cX), nx2 = vcx*Math.cos(cY) + nz1*Math.sin(cY);
-                let nx3 = nx2*Math.cos(cZ) - ny1*Math.sin(cZ), ny3 = nx2*Math.sin(cZ) + ny1*Math.cos(cZ);
+            // Динамический разворот нормали треугольника во времени
+            let rny1 = ny*Math.cos(cX) - nz*Math.sin(cX);
+            let rnz1 = ny*Math.sin(cX) + nz*Math.cos(cX);
+            let rnx2 = nx*Math.cos(cY) + rnz1*Math.sin(cY);
+            let rnx3 = rnx2*Math.cos(cZ) - rny1*Math.sin(cZ);
+            let rny3 = rnx2*Math.sin(cZ) + rny1*Math.cos(cZ);
 
-                // Lambert-освещение граней
-                const brightness = Math.max(0.25, nx3 * lNorm[0] + ny3 * lNorm[1] + nz1 * lNorm[2]);
+            const avgZ = (p0.z + p1.z + p2.z) / 3;
+
+            polygons.push({
+                p0: p0, p1: p1, p2: p2,
+                normal: { x: rnx3, y: rny3, z: rnz1 },
+                z: avgZ
+            });
+        };
+
+        // Защищенный от фильтров вызова обход всех 20 граней икосаэдра D20
+        processFace(0, 11, 5); processFace(0, 5, 1);  processFace(0, 1, 7);  processFace(0, 7, 10); processFace(0, 10, 11);
+        processFace(1, 5, 9);  processFace(5, 11, 4); processFace(11, 10, 2); processFace(10, 7, 6);  processFace(7, 1, 8);
+        processFace(3, 9, 4);  processFace(3, 4, 2);  processFace(3, 2, 6);  processFace(3, 6, 8);  processFace(3, 8, 9);
+        processFace(4, 9, 5);  processFace(2, 4, 11); processFace(6, 2, 10); processFace(8, 6, 7);  processFace(9, 8, 1);
+
+        // Сортировка художника: выстраиваем грани от дальних к ближним
+        polygons.sort((a, b) => a.z - b.z);
+
+        polygons.forEach(poly => {
+            // Рисуем только те треугольники, которые повернуты к экрану (Backface Culling)
+            if ((poly.p1.x - poly.p0.x) * (poly.p2.y - poly.p0.y) - (poly.p1.y - poly.p0.y) * (poly.p2.x - poly.p0.x) > 0) {
+                const n = poly.normal;
+                const dot = n.x*lNorm.x + n.y*lNorm.y + n.z*lNorm.z;
+                const brightness = Math.max(0.24, dot);
 
                 ctx.beginPath();
-                ctx.moveTo(p0[0], p0[1]);
-                ctx.lineTo(p1[0], p1[1]);
-                ctx.lineTo(p2[0], p2[1]);
+                ctx.moveTo(poly.p0.x, poly.p0.y);
+                ctx.lineTo(poly.p1.x, poly.p1.y);
+                ctx.lineTo(poly.p2.x, poly.p2.y);
                 ctx.closePath();
 
                 const tokenColorMaterial = window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
@@ -410,12 +439,14 @@ const AnimationManager = {
                     strokeColor = "rgba(255, 242, 195, 0.3)";
                 }
 
-                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
-                ctx.strokeStyle = strokeColor; ctx.lineWidth = 0.8; ctx.stroke();
+                ctx.fillStyle = `rgb(${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)})`; ctx.fill();
+                ctx.strokeStyle = strokeColor; ctx.lineWidth = 0.6; ctx.stroke();
             }
         });
+
         ctx.restore();
     },
+
 
 
     playCampDiceAnimation(targetDc, onCompleteCallback) {
