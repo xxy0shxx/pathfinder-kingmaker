@@ -695,8 +695,8 @@ const AnimationManager = {
     },
 
     /**
-     * НАДЁЖНЫЙ ГЕОМЕТРИЧЕСКИЙ 3D-ДВИЖОК ЦИТАДЕЛИ С ЦЕНТРАЛЬНЫМ ДОНЖОНОМ
-     * Защищен от скрытых фильтров. Исправлены нормали, Z-индексы и рендер граней.
+     * ФИНАЛЬНЫЙ СТАБИЛЬНЫЙ 3D-ДВИЖОК ЦИТАДЕЛИ (Замок из 5 Ладей и Стен)
+     * Мощный увеличенный центральный Донжон (в 2 раза выше угловых башен)
      */
     draw3DCastleToken(ctx, cx, cy) {
         ctx.save();
@@ -733,8 +733,8 @@ const AnimationManager = {
                 { indices: Array(1, 5, 6, 2), norm: Array(1, 0, 0)  }, // Правая
                 { indices: Array(4, 0, 3, 7), norm: Array(-1, 0, 0) }, // Левая
                 { indices: Array(5, 4, 7, 6), norm: Array(0, 0, 1)  }, // Задняя
-                { indices: Array(3, 2, 6, 7), norm: Array(0, -1, 0) }, // Верхняя (Крыша куба - исправлена по Y)
-                { indices: Array(4, 5, 1, 0), norm: Array(0, 1, 0)  }  // Нижняя (Подошва куба)
+                { indices: Array(3, 2, 6, 7), norm: Array(0, -1, 0) }, // Верхняя (Крыша)
+                { indices: Array(4, 5, 1, 0), norm: Array(0, 1, 0)  }  // Нижняя (Подошва)
             );
 
             f.forEach(face => {
@@ -774,7 +774,7 @@ const AnimationManager = {
         // ============================================================================
         const dist = 18; // Размер квадрата цитадели
 
-        // А. Четыре угловые Башни-Ладьи (Высота тела = 22px)
+        // А. Четыре угловые Башни-Ладьи (Высота тела = 22px, обхват = 8x8)
         const towerOffsets = Array(Array(-dist, -dist), Array(dist, -dist), Array(dist, dist), Array(-dist, dist));
         towerOffsets.forEach(pos => {
             const tx = pos[0];
@@ -808,17 +808,17 @@ const AnimationManager = {
             addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
         }
 
-        // В. ЦЕНТРАЛЬНЫЙ ДОНЖОН (В 1.5 раза выше угловых башен)
+        // В. УВЕЛИЧЕННЫЙ ЦЕНТРАЛЬНЫЙ ДОНЖОН (Высота тела башни = 44px, обхват расширен до 13x13)
         const cx5 = 0, cz5 = 0;
-        addBlock(cx5, 14,      cz5, 12, 6,  12, 'donjon_base');  // Основание донжона
-        addBlock(cx5, -5.5,    cz5, 10, 33, 10, 'donjon_body');  // Тело донжона (высота 33)
-        addBlock(cx5, -24,     cz5, 12, 4,  12, 'donjon_crown'); // Корона донжона
+        addBlock(cx5, 14,      cz5, 15, 6,  15, 'donjon_base');  // Уширенное массивное основание донжона
+        addBlock(cx5, -11,     cz5, 13, 44, 13, 'donjon_body');  // Тело донжона (высота 44 вместо 33, обхват 13 вместо 10)
+        addBlock(cx5, -35,     cz5, 15, 4,  15, 'donjon_crown'); // Мощная корона донжона
 
-        // Зубцы короны донжона
-        addBlock(cx5 - 5, -27, cz5 - 5, 2, 2, 2, 'donjon_tooth');
-        addBlock(cx5 + 5, -27, cz5 - 5, 2, 2, 2, 'donjon_tooth');
-        addBlock(cx5 + 5, -27, cz5 + 5, 2, 2, 2, 'donjon_tooth');
-        addBlock(cx5 - 5, -27, cz5 + 5, 2, 2, 2, 'donjon_tooth');
+        // Зубцы короны донжона (пересчитаны под новые габариты расширенной короны)
+        addBlock(cx5 - 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
+        addBlock(cx5 + 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
+        addBlock(cx5 + 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
+        addBlock(cx5 - 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
 
         // ============================================================================
         // 2. МАТЕМАТИЧЕСКИЙ РЕНДЕР (Z-Сортировка + Ламберт)
@@ -835,7 +835,7 @@ const AnimationManager = {
                 const dot = n[0] * lNorm[0] + n[1] * lNorm[1] + n[2] * lNorm[2];
                 const intensity = Math.max(0.26, dot);
 
-                // Отрисовка контура полигона грань за гранью
+                // Отрисовка контура полигона
                 ctx.beginPath();
                 ctx.moveTo(p[0][0], p[0][1]);
                 for (let i = 1; i < p.length; i++) {
@@ -848,12 +848,12 @@ const AnimationManager = {
                 let r = 0, g = 0, b = 0;
                 let strokeColor = "rgba(255, 242, 195, 0.22)";
 
-                // Текстурные коэффициенты для контраста швов
+                // Текстурные коэффициенты для контраста
                 let matMod = 1.0;
                 if (poly.type === 'wall' || poly.type === 'wall_tooth') {
                     matMod = 0.84;
                 } else if (poly.type.startsWith('donjon')) {
-                    matMod = 1.08;
+                    matMod = 1.10; // Сделаем центральный донжон еще более ярким
                 }
 
                 if (tokenColorMaterial === 'ruby') {
