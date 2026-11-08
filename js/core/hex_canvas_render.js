@@ -303,6 +303,11 @@ const HexCanvasRender = {
                 window.AnimationManager.draw3DRookToken(ctx, cx, cy);
                 this.isAnimating = true;
             }
+            else if (currentSkin === 'castle' && window.AnimationManager) {
+                // Добавляем рендер вращающегося замка на гекс
+                window.AnimationManager.draw3DCastleToken(ctx, cx, cy);
+                this.isAnimating = true; // Форсим бесконечный цикл отрисовки для вращения граней
+            }
             else {
                 this.drawCanvasFlag(cx, cy);
             }
