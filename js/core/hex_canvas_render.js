@@ -26,6 +26,7 @@ const HexCanvasRender = {
         this.ctx = this.canvas.getContext('2d');
         this.hexCoords = coordinatesMap || {};
 
+        // Базовое виртуальное разрешение холста Kingmaker
         this.canvas.width = 3840;
         this.canvas.height = 1280;
 
@@ -35,7 +36,7 @@ const HexCanvasRender = {
     },
 
     /**
-     * Запрос единичного кадра перерисовки холста (On-Demand ядро)
+     * Запрос единичного кадра перерисовки холста (On-Demand ядро с HD-пересчетом)
      */
     requestFrame() {
         if (this.frameRequested || this.isAnimating) return;
@@ -126,7 +127,27 @@ const HexCanvasRender = {
     render() {
         DebugManager.profileFps();
 
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // ХАК №2: Математический расчет плотности пикселей холста под текущий уровень Zoom ГМа
+        const zoom = (window.ViewportManager && window.ViewportManager.currentZoom) || 1.0;
+        const baseWidth = 3840;
+        const baseHeight = 1280;
+
+        const targetWidth = Math.round(baseWidth * zoom);
+        const targetHeight = Math.round(baseHeight * zoom);
+
+        // Если уровень приближения изменился — динамически перестраиваем сетку пикселей холста
+        if (this.canvas.width !== targetWidth || this.canvas.height !== targetHeight) {
+            this.canvas.width = targetWidth;
+            this.canvas.height = targetHeight;
+
+            // Масштабируем матрицу контекста, чтобы внутренние формулы отрисовки не сбились
+            this.ctx.scale(zoom, zoom);
+
+            this.ctx.imageSmoothingEnabled = true;
+            this.ctx.imageSmoothingQuality = 'high';
+        }
+
+        this.ctx.clearRect(0, 0, baseWidth, baseHeight);
 
         if (localStorage.getItem('kingmakerFrameStyle') === 'runes' && window.FrameManager) {
             const frame = document.querySelector('.kingmaker-frame');
@@ -258,11 +279,9 @@ const HexCanvasRender = {
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
 
         if (isRevealed) {
-            // Раздельное скрытие маркеров разведки (🔍) и составления карт (📜)
             if (!window.MAP_HIDE_EXPLORED && data.explored) drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
             if (!window.MAP_HIDE_MAPPED && data.mapMapped) drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
 
-            // Раздельное скрытие иконок объектов (🏰) и типов местности (🌲)
             if (!window.MAP_HIDE_OBJ_ICON && data.type && MAP_CONFIG.types[data.type]) {
                 drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
             }
@@ -287,12 +306,10 @@ const HexCanvasRender = {
             }
         }
 
-        // Независимое скрытие названия региона (текстовой плашки заголовка)
         if (!window.MAP_HIDE_OBJ_TITLE && data && data.title) {
             this.drawTextPlate(ctx, data.title, cx, cy - r + 32, false, true);
         }
 
-        // Раздельное скрытие кубика СЛ сложности (🎲) и черепа опасности (💀)
         if (data && (data.difficulty || data.regionLevel)) {
             let statsText = '';
             if (!window.MAP_HIDE_DC && data.difficulty) statsText += `🎲${data.difficulty}`;

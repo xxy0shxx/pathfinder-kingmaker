@@ -1691,6 +1691,13 @@ body {
     height: 1280px;
     z-index: 3;
     pointer-events: auto;
+    /* Включаем максимальное сглаживание текстур при растяжении */
+    image-rendering: auto;
+    image-rendering: optimizeQuality;
+
+    /* Дополнительно сглаживаем углы силами GPU */
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
 }
 
 /* ============================================================================

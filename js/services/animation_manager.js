@@ -90,7 +90,7 @@ const AnimationManager = {
             let delay = 0.05;
             for (let i = 0; i < 22; i++) {
                 playClick(scheduleTime, Math.max(0.15, (22 - i) / 22));
-                delay += 0.015;
+                delay += 0.002;
                 scheduleTime += delay;
             }
         } catch (e) {}
