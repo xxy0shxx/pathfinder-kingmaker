@@ -31,7 +31,6 @@ const SettingsManager = {
     },
 
     bindUiElements() {
-        // Конфигурация элементов управления
         const ids = [
             { id: 'settingFlightMode', key: 'flightFromCapital', type: 'check' },
             { id: 'settingFpsMonitor', key: 'enableFpsMonitor', type: 'check' },
@@ -46,7 +45,6 @@ const SettingsManager = {
             { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' }
         ];
 
-        // 1. Привязка стандартных чекбоксов
         ids.forEach(item => {
             const el = document.getElementById(item.id);
             if (!el) return;
@@ -57,32 +55,52 @@ const SettingsManager = {
             });
         });
 
-        // 2. ИНТЕГРАЦИЯ КАСТОМНЫХ СЕЛЕКТОВ ГМА (Скин токена и режим анимации)
-        const bindCustomSelect = (containerId, hiddenInputId, stateKey) => {
-            const container = document.getElementById(containerId);
-            const hiddenInput = document.getElementById(hiddenInputId);
-            if (!container || !hiddenInput) return;
+        // 1. СИНХРОНИЗАЦИЯ КАСТОМНОГО СЕЛЕКТА (Скин токена отряда)
+        const container = document.getElementById('customSelectSquadTokenSkin');
+        const hiddenInput = document.getElementById('settingSquadTokenSkin');
+        if (container && hiddenInput) {
+            const savedSkin = this.state.squadTokenSkin;
+            hiddenInput.value = savedSkin;
 
-            // Синхронизируем стартовое значение из базы данных
-            hiddenInput.value = this.state[stateKey];
             if (window.UiSelectManager && typeof window.UiSelectManager.setCustomSelectValue === 'function') {
-                window.UiSelectManager.setCustomSelectValue(containerId, this.state[stateKey]);
+                window.UiSelectManager.setCustomSelectValue('customSelectSquadTokenSkin', savedSkin);
+            } else {
+                const activeOption = container.querySelector(`.custom-option[data-value="${savedSkin}"]`);
+                if (activeOption) {
+                    container.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+                    activeOption.classList.add('selected');
+                    const trigger = container.querySelector('.custom-select-trigger');
+                    if (trigger) trigger.textContent = activeOption.textContent;
+                }
             }
 
-            // Ловим клики по опциям внутри кастомного списка
             container.querySelectorAll('.custom-option').forEach(option => {
                 option.addEventListener('click', () => {
-                    const val = option.dataset.value;
-                    this.state[stateKey] = val;
-                    hiddenInput.value = val;
+                    this.state.squadTokenSkin = option.dataset.value;
+                    hiddenInput.value = option.dataset.value;
                     this.saveAndApply();
                 });
             });
-        };
+        }
 
-        // Связываем новые кастомные выпадающие контейнеры с внутренним стейтом
-        bindCustomSelect('customSelectSquadTokenSkin', 'settingSquadTokenSkin', 'squadTokenSkin');
-        bindCustomSelect('customSelectSquadSpawnAnim', 'settingSquadSpawnAnim', 'squadAnimMode');
+        // 2. ИСПРАВЛЕННАЯ СИНХРОНИЗАЦИЯ ГРУППЫ РАДИОКНОПОК (Режим эффектов прибытия)
+        const savedAnimMode = this.state.squadAnimMode;
+        const animRadioButtons = document.querySelectorAll('input[name="squadAnimMode"]');
+
+        animRadioButtons.forEach(radio => {
+            // Подсвечиваем сохраненную в LocalStorage радиокнопку при загрузке страницы
+            if (radio.value === savedAnimMode) {
+                radio.checked = true;
+            }
+
+            // Слушаем клики ГМа для мгновенного сохранения режима эффекта
+            radio.addEventListener('change', () => {
+                if (radio.checked) {
+                    this.state.squadAnimMode = radio.value;
+                    this.saveAndApply();
+                }
+            });
+        });
         // 3. Управление ползунком плотности Тумана Войны
         const sldFog = document.getElementById('settingFogOpacity');
         const lblFog = document.getElementById('settingFogOpacityVal');
