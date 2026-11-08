@@ -696,11 +696,12 @@ const AnimationManager = {
 
 
     /**
-     * ЧАСТЬ 1 ИЗ 2: СБОРКА МОНУМЕНТАЛЬНОЙ АРХИТЕКТУРЫ ЦИТАДЕЛИ
+     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ (ПРАВИЛЬНАЯ МАТЕМАТИКА ОСЕЙ)
      */
     draw3DCastleToken(ctx, cx, cy) {
         ctx.save();
-        ctx.translate(cx, cy - 2);
+        // Замок смещен по вертикали вниз ровно на cy + 18, чтобы стоять над плашкой сложности
+        ctx.translate(cx, cy + 18);
 
         const time = Date.now() / 1000;
         const bounceY = Math.sin(time * 2.2) * 1.5;
@@ -713,8 +714,8 @@ const AnimationManager = {
 
         const polygons = [];
 
-        // Функция-хелпер для генерации стабильного 3D-куба (блока) с Z-сдвигом деталей
-        const addBlock = (bx, by, bz, w, h, d, type, zWeight = 0) => {
+        // Функция-хелпер для генерации стабильного 3D-куба (блока) по исходной схеме файлов
+        const addBlock = (bx, by, bz, w, h, d, type) => {
             const v = Array(
                 Array(-w/2, -h/2, -d/2), Array(w/2, -h/2, -d/2),
                 Array(w/2, h/2, -d/2), Array(-w/2, h/2, -d/2),
@@ -744,11 +745,7 @@ const AnimationManager = {
                 const ny = face.norm[1];
 
                 let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; });
-                // Небольшой bias выталкивает мелкие зубцы вперед, исключая мигание
-                const bias = type.endsWith('tooth') ? 2.0 : 0;
-                const avgZ = (zSum / projVertices.length) - zWeight - bias;
-
-                polygons.push({ pts: projVertices, normal: Array(nx, ny, nz), z: avgZ, type: type });
+                polygons.push({ pts: projVertices, normal: Array(nx, ny, nz), z: zSum / projVertices.length, type: type });
             });
         };
 
@@ -762,6 +759,7 @@ const AnimationManager = {
             addBlock(tx, 0,  tz, 8, 22, 8,  'tower_body');
             addBlock(tx, -13, tz, 10, 4, 10, 'tower_crown');
 
+            // Зубцы короны башен
             addBlock(tx - 4, -16, tz - 4, 2, 2, 2, 'tower_tooth');
             addBlock(tx + 4, -16, tz - 4, 2, 2, 2, 'tower_tooth');
             addBlock(tx + 4, -16, tz + 4, 2, 2, 2, 'tower_tooth');
@@ -780,7 +778,7 @@ const AnimationManager = {
             addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth'); addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
         }
 
-        // В. Увеличенный Центральный Донжон и его корона
+        // В. Центральный Донжон
         const cx5 = 0, cz5 = 0;
         addBlock(cx5, 14,   cz5, 15, 6,  15, 'donjon_base');
         addBlock(cx5, -11,  cz5, 13, 44, 13, 'donjon_body');
@@ -790,18 +788,19 @@ const AnimationManager = {
         addBlock(cx5 + 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
         addBlock(cx5 + 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
         addBlock(cx5 - 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
-        // Г. НОВОЕ: Конусообразная крыша средней высоты (12px, roofTopY = -49)
+        // Г. Конусообразная крыша средней высоты (ИСПРАВЛЕНЫ НОРМАЛИ ПОЛЕТА ГРАНЕЙ)
         const roofBottomY = -37; const roofTopY = -49; const rw = 12;
         const rv = Array(
             Array(-rw/2, roofBottomY, -rw/2), Array(rw/2,  roofBottomY, -rw/2),
             Array(rw/2,  roofBottomY,  rw/2), Array(-rw/2, roofBottomY,  rw/2), Array(0, roofTopY, 0)
         );
 
+        // Вектор наклона Y изменен с -0.5 на -0.2 для идеального зацепа при отсечении граней
         const rf = Array(
-            { indices: Array(0, 1, 4), norm: Array(0, -0.5, -1) },
-            { indices: Array(1, 2, 4), norm: Array(1, -0.5, 0)  },
-            { indices: Array(2, 3, 4), norm: Array(0, -0.5, 1)  },
-            { indices: Array(3, 0, 4), norm: Array(-1, -0.5, 0) }
+            { indices: Array(0, 1, 4), norm: Array(0, -0.2, -1) },
+            { indices: Array(1, 2, 4), norm: Array(1, -0.2, 0)  },
+            { indices: Array(2, 3, 4), norm: Array(0, -0.2, 1)  },
+            { indices: Array(3, 0, 4), norm: Array(-1, -0.2, 0) }
         );
 
         rf.forEach(face => {
@@ -813,12 +812,11 @@ const AnimationManager = {
             const nx = face.norm[0] * Math.cos(angleY) + face.norm[2] * Math.sin(angleY);
             const nz = -face.norm[0] * Math.sin(angleY) + face.norm[2] * Math.cos(angleY);
             let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; });
-            // Корректируем глубину крыши (-3.5), выводя её строго поверх стен донжона
-            polygons.push({ pts: projVertices, normal: Array(nx, face.norm[1], nz), z: (zSum / projVertices.length) - 3.5, type: 'donjon_roof', isTriangle: true });
+            polygons.push({ pts: projVertices, normal: Array(nx, face.norm[1], nz), z: zSum / projVertices.length, type: 'donjon_roof', isTriangle: true });
         });
 
         // Д. Флагшток и колышущееся знамя
-        addBlock(0, (roofTopY + (roofTopY - 14)) / 2, 0, 1, 14, 1, 'donjon_flagpole', 4.0);
+        addBlock(0, (roofTopY + (roofTopY - 14)) / 2, 0, 1, 14, 1, 'donjon_flagpole');
         const waveX = Math.sin(time * 6.5) * 4.5;
         const flagPts = Array(Array(0, roofTopY - 14, 0), Array(0, roofTopY - 7, 0), Array(11, roofTopY - 10.5, waveX * 0.5));
 
@@ -829,28 +827,23 @@ const AnimationManager = {
         });
 
         let flagZSum = 0; projFlagPts.forEach(pt => { flagZSum += pt[2]; });
-        polygons.push({ pts: projFlagPts, normal: Array(0, 0, -1), z: (flagZSum / 3) - 6.0, type: 'donjon_flag_banner', isTriangle: true });
+        polygons.push({ pts: projFlagPts, normal: Array(0, 0, -1), z: flagZSum / 3, type: 'donjon_flag_banner', isTriangle: true });
 
-        // Е. ГЛОБАЛЬНАЯ СКВОЗНАЯ СОРТИРОВКА ХУДОЖНИКА (По глубине Z)
+        // Е. ЧИСТАЯ КЛАССИЧЕСКАЯ СОРТИРОВКА ИЗ РАБОЧЕГО ИСХОДНИКА
         polygons.sort((a, b) => a.z - b.z);
 
         polygons.forEach(poly => {
             const p = poly.pts; const n = poly.normal;
 
-            // Двусторонний рендер мелких элементов, кубы отсекаем по классике исходного кода
-            const isBaseBlock = poly.type === 'wall' || poly.type.endsWith('base') || poly.type.endsWith('body') || poly.type.endsWith('crown');
-            const shouldRender = !isBaseBlock || (n[2] < 0);
-
-            if (shouldRender) {
+            // ВОЗВРАЩЕНО: Строгое и надежное отсечение тыльных полигонов из оригинального ядра
+            if (n[2] < 0 || poly.type === 'donjon_flag_banner') {
                 const dot = n[0] * lNorm[0] + n[1] * lNorm[1] + n[2] * lNorm[2];
-                const intensity = Math.max(0.26, Math.abs(dot)); // Абсолютное значение спасает от черноты
+                const intensity = Math.max(0.26, dot);
 
-                ctx.beginPath();
-                ctx.moveTo(p[0][0], p[0][1]);
+                ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
                 ctx.lineTo(p[1][0], p[1][1]);
                 ctx.lineTo(p[2][0], p[2][1]);
 
-                // Четырехугольники закрываем по 4-й точке, истинные треугольники замыкаем сразу
                 if (!poly.isTriangle && p[3]) {
                     ctx.lineTo(p[3][0], p[3][1]);
                 }
@@ -886,7 +879,6 @@ const AnimationManager = {
         });
         ctx.restore();
     },
-
 
 };
 
