@@ -67,7 +67,12 @@ const QuestManager = {
         const tabRumors = document.getElementById('tabRumors');
         const tabKingdom = document.getElementById('tabKingdom');
         const tabCamping = document.getElementById('tabCamping');
-        const tabSettings = document.getElementById('tabSettings'); // НАШ ТАБ
+        const tabSettings = document.getElementById('tabSettings');
+        const tabInitiative = document.getElementById('tabInitiative');
+
+        if (tabInitiative) {
+            tabInitiative.addEventListener('click', () => this.setActiveTab(tabInitiative, 'initiative'));
+        }
 
         if (tabActive && tabCompleted && tabRumors) {
             tabActive.addEventListener('click', () => this.setActiveTab(tabActive, 'active'));
@@ -223,6 +228,7 @@ const QuestManager = {
         const kingdomTabletEl = document.getElementById('kingdomTabletContainer');
         const campingTabletEl = document.getElementById('campingTabletContainer');
         const settingsTabletEl = document.getElementById('settingsTabletContainer');
+        const initiativeTabletEl = document.getElementById('initiativeTabletContainer');
         if (!this.mapDataRef) return;
 
         // ЖЕСТКИЙ СБРОС СТИЛЕЙ ОТОБРАЖЕНИЯ ПЕРЕД РЕНДЕРОМ
@@ -230,6 +236,7 @@ const QuestManager = {
         if (kingdomTabletEl) kingdomTabletEl.style.display = 'none';
         if (campingTabletEl) campingTabletEl.style.display = 'none';
         if (settingsTabletEl) settingsTabletEl.style.display = 'none';
+        if (initiativeTabletEl) initiativeTabletEl.style.display = 'none'
 
         // 1. РЕЖИМ ПРИВАЛА ГМА
         if (this.currentFilter === 'camping') {
@@ -245,7 +252,13 @@ const QuestManager = {
             return;
         }
 
-        // 3. ИСПРАВЛЕНО: РЕЖИМ СИСТЕМНЫХ НАСТРОЕК (Мгновенный переход по табу в шапке)
+        else if (this.currentFilter === 'initiative') {
+            if (initiativeTabletEl) initiativeTabletEl.style.display = 'flex';
+            if (window.InitiativeManager) window.InitiativeManager.renderUi();
+            return;
+        }
+
+            // 3. ИСПРАВЛЕНО: РЕЖИМ СИСТЕМНЫХ НАСТРОЕК (Мгновенный переход по табу в шапке)
         else if (this.currentFilter === 'settings') {
             if (settingsTabletEl) settingsTabletEl.style.display = 'flex';
             return;

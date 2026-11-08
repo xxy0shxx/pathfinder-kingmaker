@@ -254,6 +254,8 @@ import UiPanelManager from './ui/ui_panel_manager.js';
  */
 import TacticalMapManager from './tactical_map/tactical_map_manager.js';
 
+import InitiativeManager from './core/initiative_manager.js';
+
 let hasMoved = false;
 let mapData = { hexes: {}, kingdom: null, paths: [] };
 window.FLIGHT_FROM_CAPITAL_MODE = true;
@@ -367,6 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
         HexCanvasRender.requestFrame();
 
         setTimeout(() => { PathManager.render(); }, 50);
+    });
+
+    InitiativeManager.init(mapData, () => {
+        StorageManager.saveData(mapData);
     });
 
     // ============================================================================
