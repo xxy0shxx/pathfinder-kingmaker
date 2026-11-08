@@ -696,11 +696,11 @@ const AnimationManager = {
 
 
     /**
-     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ (ПРАВИЛЬНАЯ МАТЕМАТИКА ОСЕЙ)
+     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ С МАССИВНЫМИ ВЫПИРАЮЩИМИ ЗУБЦАМИ
      */
     draw3DCastleToken(ctx, cx, cy) {
         ctx.save();
-        // Замок смещен по вертикали вниз ровно на cy + 18, чтобы стоять над плашкой сложности
+        // Замок смещен по вертикали вниз, чтобы стоять ровно над плашкой сложности
         ctx.translate(cx, cy + 18);
 
         const time = Date.now() / 1000;
@@ -759,11 +759,11 @@ const AnimationManager = {
             addBlock(tx, 0,  tz, 8, 22, 8,  'tower_body');
             addBlock(tx, -13, tz, 10, 4, 10, 'tower_crown');
 
-            // Зубцы короны башен
-            addBlock(tx - 4, -16, tz - 4, 2, 2, 2, 'tower_tooth');
-            addBlock(tx + 4, -16, tz - 4, 2, 2, 2, 'tower_tooth');
-            addBlock(tx + 4, -16, tz + 4, 2, 2, 2, 'tower_tooth');
-            addBlock(tx - 4, -16, tz + 4, 2, 2, 2, 'tower_tooth');
+            // ИСПРАВЛЕНО: Зубцы угловых ладей увеличены с 2x2x2 до 3x3x3 и сдвинуты наружу (координаты 4.5 вместо 4)
+            addBlock(tx - 4.5, -16.5, tz - 4.5, 3, 3, 3, 'tower_tooth');
+            addBlock(tx + 4.5, -16.5, tz - 4.5, 3, 3, 3, 'tower_tooth');
+            addBlock(tx + 4.5, -16.5, tz + 4.5, 3, 3, 3, 'tower_tooth');
+            addBlock(tx - 4.5, -16.5, tz + 4.5, 3, 3, 3, 'tower_tooth');
         });
 
         // Б. Соединительные Крепостные Стены и их зубцы
@@ -778,24 +778,24 @@ const AnimationManager = {
             addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth'); addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
         }
 
-        // В. Центральный Донжон
+        // В. Увеличенный Центральный Донжон и его корона
         const cx5 = 0, cz5 = 0;
         addBlock(cx5, 14,   cz5, 15, 6,  15, 'donjon_base');
         addBlock(cx5, -11,  cz5, 13, 44, 13, 'donjon_body');
         addBlock(cx5, -35,  cz5, 15, 4,  15, 'donjon_crown');
 
-        addBlock(cx5 - 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
-        addBlock(cx5 + 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
-        addBlock(cx5 + 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
-        addBlock(cx5 - 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
-        // Г. Конусообразная крыша средней высоты (ИСПРАВЛЕНЫ НОРМАЛИ ПОЛЕТА ГРАНЕЙ)
+        // ИСПРАВЛЕНО: Зубцы короны Донжона увеличены с 3x2x3 до 4x4x4 и смещены на внешние углы (7.0 вместо 6.0)
+        addBlock(cx5 - 7.0, -39.0, cz5 - 7.0, 4, 4, 4, 'donjon_tooth');
+        addBlock(cx5 + 7.0, -39.0, cz5 - 7.0, 4, 4, 4, 'donjon_tooth');
+        addBlock(cx5 + 7.0, -39.0, cz5 + 7.0, 4, 4, 4, 'donjon_tooth');
+        addBlock(cx5 - 7.0, -39.0, cz5 + 7.0, 4, 4, 4, 'donjon_tooth');
+        // Г. Конусообразная крыша средней высоты (roofTopY = -49, rw = 12)
         const roofBottomY = -37; const roofTopY = -49; const rw = 12;
         const rv = Array(
             Array(-rw/2, roofBottomY, -rw/2), Array(rw/2,  roofBottomY, -rw/2),
             Array(rw/2,  roofBottomY,  rw/2), Array(-rw/2, roofBottomY,  rw/2), Array(0, roofTopY, 0)
         );
 
-        // Вектор наклона Y изменен с -0.5 на -0.2 для идеального зацепа при отсечении граней
         const rf = Array(
             { indices: Array(0, 1, 4), norm: Array(0, -0.2, -1) },
             { indices: Array(1, 2, 4), norm: Array(1, -0.2, 0)  },
@@ -829,23 +829,21 @@ const AnimationManager = {
         let flagZSum = 0; projFlagPts.forEach(pt => { flagZSum += pt[2]; });
         polygons.push({ pts: projFlagPts, normal: Array(0, 0, -1), z: flagZSum / 3, type: 'donjon_flag_banner', isTriangle: true });
 
-        // Е. ЧИСТАЯ КЛАССИЧЕСКАЯ СОРТИРОВКА ИЗ РАБОЧЕГО ИСХОДНИКА
+        // Е. ЧИСТАЯ КЛАССИЧЕСКАЯ СОРТИРОВКА ИЗ ОРИГИНАЛЬНОГО ЯДРА
         polygons.sort((a, b) => a.z - b.z);
 
         polygons.forEach(poly => {
             const p = poly.pts; const n = poly.normal;
 
-            // ВОЗВРАЩЕНО: Строгое и надежное отсечение тыльных полигонов из оригинального ядра
             if (n[2] < 0 || poly.type === 'donjon_flag_banner') {
                 const dot = n[0] * lNorm[0] + n[1] * lNorm[1] + n[2] * lNorm[2];
                 const intensity = Math.max(0.26, dot);
 
                 ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
-                ctx.lineTo(p[1][0], p[1][1]);
-                ctx.lineTo(p[2][0], p[2][1]);
+                for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
 
-                if (!poly.isTriangle && p[3]) {
-                    ctx.lineTo(p[3][0], p[3][1]);
+                if (!poly.isTriangle && p[0]) {
+                    ctx.lineTo(p[0][0], p[0][1]);
                 }
                 ctx.closePath();
 
@@ -879,6 +877,7 @@ const AnimationManager = {
         });
         ctx.restore();
     },
+
 
 };
 
