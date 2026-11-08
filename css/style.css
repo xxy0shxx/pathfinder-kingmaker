@@ -3775,3 +3775,142 @@ canvas[style*="position: fixed"] {
     color: #888 !important;
     margin-top: 4px !important;
 }
+
+/* ============================================================================
+   МАКСИМАЛЬНОЕ СЖАТИЕ ВЕРХНЕЙ ПАНЕЛИ ПОД ЭКРАН ТЕЛЕВИЗОРА
+   ============================================================================ */
+
+/* 1. Минимизируем отступы всего полноэкранного HUD-контейнера сверху */
+#questLogContainer {
+    padding-top: 10px !important; /* Прижимаем весь интерфейс ближе к краю экрана */
+}
+
+/* 2. Сжимаем полосу вкладок-иконок и полностью убираем её нижний маргин и рамку */
+#questLogContainer .quest-log-header {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+}
+
+/* 3. Делаем сами иконки вкладок меньше и плотнее, чтобы они не раздували шапку по высоте */
+#questLogContainer .quest-log-tabs {
+    gap: 4px !important;
+}
+
+#questLogContainer .quest-tab-btn {
+    font-size: 13px !important; /* Уменьшаем размер иконок */
+    padding: 4px 10px !important; /* Делаем кнопки вкладок максимально тонкими */
+    height: auto !important;
+    min-height: 0 !important;
+}
+
+/* 4. Убираем лишние верхние отступы у панели раундов и формы ввода */
+.init-master-battle-control-bar {
+    margin-top: 5px !important; /* Вплотную приближаем трекер ходов к вкладкам */
+}
+
+/* 5. Расширяем область скролла карточек на всю освободившуюся высоту */
+.init-cards-scroll-list {
+    max-height: calc(100vh - 170px) !important; /* Карточки займут практически весь экран */
+    padding-top: 5px !important;
+}
+/* ============================================================================
+   ФИКС ВЕРХНЕГО ПРОСТРАНСТВА ПОД ТАБАМИ ЖУРНАЛА
+   ============================================================================ */
+
+/* 1. Полностью убираем верхний внутренний отступ у шапки трекера */
+.init-header-zone {
+    padding-top: 0 !important;
+}
+
+/* 2. Прижимаем мастер-панель раундов вплотную к верхним кнопкам-вкладкам */
+.init-master-battle-control-bar {
+    margin-top: 0 !important;
+    margin-bottom: 8px !important; /* Небольшой зазор перед строкой ввода */
+}
+
+/* 3. Возвращаем первой карточке её законное место и отступ, чтобы свечение не резалось */
+.init-cards-scroll-list {
+    padding-top: 15px !important; /* Возвращаем воздух для верхнего ореола света */
+}
+
+.init-cards-scroll-list .init-combatant-card:first-child {
+    margin-top: 15px !important; /* Опускаем карточку обратно как было */
+}
+
+.init-quick-input-bar {
+    margin-bottom: 12px !important; /* Базовый отступ под строкой ввода */
+}
+
+/* ============================================================================
+   УЛЬТИМАТИВНОЕ СХЛОПЫВАНИЕ ВЕРХНЕЙ ПУСТОТЫ ПОД ТАБАМИ
+   ============================================================================ */
+
+/* 1. Полностью обнуляем нижний маргин и падинг контейнера шапки с табами */
+#questLogContainer .quest-log-header {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-bottom: none !important;
+}
+
+/* 2. Убираем лишний верхний падинг у главного полноэкранного HUD */
+#questLogContainer {
+    padding-top: 8px !important;
+}
+
+/* 3. Принудительно прижимаем мастер-панель раундов к верхнему краю внутренней зоны */
+.init-master-battle-control-bar {
+    margin-top: -6px !important; /* Легкий отрицательный сдвиг для идеальной стыковки */
+    margin-bottom: 8px !important;
+}
+
+/* 4. Страхуем внутреннюю контентную зону от скрытых дефолтных отступов */
+.initiative-tablet-content {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* ============================================================================
+   БЕЗКОМПРОМИССНОЕ ВЫЖИГАНИЕ СКРЫТОГО ЗАГОЛОВКА ДЛЯ ТВ
+   ============================================================================ */
+
+/* 1. Полностью аннулируем физическое присутствие ЛЮБЫХ заголовков и скрытых блоков в шапке */
+#questLogContainer h2,
+#questLogContainer h3,
+#questLogContainer .quest-log-title,
+#questLogContainer .quest-log-header-left {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important; /* Убирает элемент из общего потока верстки */
+}
+
+/* 2. Зануляем высоту и отступы у самой обертки шапки, оставляя только кнопки */
+#questLogContainer .quest-log-header {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 0 4px 0 !important; /* Минимальный зазор под кнопками вкладок */
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* 3. Форсируем подъем мастер-панели раундов к кнопкам переключения табов */
+.init-master-battle-control-bar {
+    margin-top: 0 !important;
+    position: relative !important;
+    top: -2px !important; /* Аккуратная ТВ-стыковка встык к табам */
+}
+
+/* 4. Защищаем внутренний контент от фоновых отступов */
+#initiativeTabletContainer,
+.initiative-tablet-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
