@@ -694,9 +694,9 @@ const AnimationManager = {
         ctx.restore();
     },
 
+
     /**
-     * ФИНАЛЬНЫЙ СТАБИЛЬНЫЙ 3D-ДВИЖОК ЦИТАДЕЛИ (Замок из 5 Ладей и Стен)
-     * Мощный увеличенный центральный Донжон (в 2 раза выше угловых башен)
+     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ
      */
     draw3DCastleToken(ctx, cx, cy) {
         ctx.save();
@@ -707,27 +707,21 @@ const AnimationManager = {
         const angleY = time * 0.5; // Скорость вращения цитадели
         ctx.translate(0, bounceY);
 
-        const lightDir = [0.5, -0.8, 0.4];
+        const lightDir = Array(0.5, -0.8, 0.4);
         const lLength = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
-        const lNorm = [lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength];
+        const lNorm = Array(lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength);
 
         const polygons = [];
 
         // Функция-хелпер для генерации стабильного 3D-куба (блока)
         const addBlock = (bx, by, bz, w, h, d, type) => {
-            // Координаты вершин относительно локального центра блока
             const v = Array(
-                Array(-w/2, -h/2, -d/2), // 0
-                Array(w/2, -h/2, -d/2),  // 1
-                Array(w/2, h/2, -d/2),   // 2
-                Array(-w/2, h/2, -d/2),  // 3
-                Array(-w/2, -h/2,  d/2), // 4
-                Array(w/2, -h/2,  d/2),  // 5
-                Array(w/2, h/2,  d/2),   // 6
-                Array(-w/2, h/2,  d/2)   // 7
+                Array(-w/2, -h/2, -d/2), Array(w/2, -h/2, -d/2),
+                Array(w/2, h/2, -d/2), Array(-w/2, h/2, -d/2),
+                Array(-w/2, -h/2,  d/2), Array(w/2, -h/2,  d/2),
+                Array(w/2, h/2,  d/2), Array(-w/2, h/2,  d/2)
             );
 
-            // Индексы вершин для каждой из 6 граней куба и их нормали
             const f = Array(
                 { indices: Array(0, 1, 2, 3), norm: Array(0, 0, -1) }, // Передняя
                 { indices: Array(1, 5, 6, 2), norm: Array(1, 0, 0)  }, // Правая
@@ -738,47 +732,28 @@ const AnimationManager = {
             );
 
             f.forEach(face => {
-                // Трансформируем и проецируем вершины с учетом глобального вращения Замка
                 const projVertices = face.indices.map(i => {
-                    const lx = v[i][0] + bx;
-                    const ly = v[i][1] + by;
-                    const lz = v[i][2] + bz;
-
-                    // Поворот по оси Y
+                    const lx = v[i][0] + bx; const ly = v[i][1] + by; const lz = v[i][2] + bz;
                     const rx = lx * Math.cos(angleY) + lz * Math.sin(angleY);
                     const rz = -lx * Math.sin(angleY) + lz * Math.cos(angleY);
                     return Array(rx, ly, rz);
                 });
 
-                // Рассчитываем точную динамическую нормаль грани после вращения
                 const nx = face.norm[0] * Math.cos(angleY) + face.norm[2] * Math.sin(angleY);
                 const nz = -face.norm[0] * Math.sin(angleY) + face.norm[2] * Math.cos(angleY);
                 const ny = face.norm[1];
 
-                // Вычисляем средний Z-индекс грани для корректной сортировки
-                let zSum = 0;
-                projVertices.forEach(pt => { zSum += pt[2]; });
-                const avgZ = zSum / projVertices.length;
-
-                polygons.push({
-                    pts: projVertices,
-                    normal: Array(nx, ny, nz),
-                    z: avgZ,
-                    type: type
-                });
+                let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; });
+                polygons.push({ pts: projVertices, normal: Array(nx, ny, nz), z: zSum / projVertices.length, type: type });
             });
         };
 
-        // ============================================================================
-        // 1. СБОРКА АРХИТЕКТУРЫ ЗАМКА
-        // ============================================================================
         const dist = 18; // Размер квадрата цитадели
 
-        // А. Четыре угловые Башни-Ладьи (Высота тела = 22px, обхват = 8x8)
+        // А. Четыре угловые Башни-Ладьи
         const towerOffsets = Array(Array(-dist, -dist), Array(dist, -dist), Array(dist, dist), Array(-dist, dist));
         towerOffsets.forEach(pos => {
-            const tx = pos[0];
-            const tz = pos[1];
+            const tx = pos[0]; const tz = pos[1];
             addBlock(tx, 14, tz, 10, 6, 10, 'tower_base');   // Подошва
             addBlock(tx, 0,  tz, 8, 22, 8,  'tower_body');   // Тело башни
             addBlock(tx, -13, tz, 10, 4, 10, 'tower_crown'); // Корона
@@ -790,100 +765,107 @@ const AnimationManager = {
             addBlock(tx - 4, -16, tz + 4, 2, 2, 2, 'tower_tooth');
         });
 
-        // Б. Соединительные Крепостные Стены
+        // Б. Соединительные Крепостные Стены и их зубцы
         const wallLen = dist * 2 - 6;
-        addBlock(0, 4, -dist, wallLen, 12, 3, 'wall'); // Север
-        addBlock(0, 4,  dist, wallLen, 12, 3, 'wall'); // Юг
-        addBlock(-dist, 4, 0, 3, 12, wallLen, 'wall'); // Запад
-        addBlock(dist,  4, 0, 3, 12, wallLen, 'wall'); // Восток
+        addBlock(0, 4, -dist, wallLen, 12, 3, 'wall'); addBlock(0, 4,  dist, wallLen, 12, 3, 'wall');
+        addBlock(-dist, 4, 0, 3, 12, wallLen, 'wall'); addBlock(dist,  4, 0, 3, 12, wallLen, 'wall');
 
-        // Зубцы на стенах (Север / Юг)
         for (let x = -8; x <= 8; x += 8) {
-            addBlock(x, -3, -dist, 3, 2, 3, 'wall_tooth');
-            addBlock(x, -3,  dist, 3, 2, 3, 'wall_tooth');
+            addBlock(x, -3, -dist, 3, 2, 3, 'wall_tooth'); addBlock(x, -3,  dist, 3, 2, 3, 'wall_tooth');
         }
-        // Зубцы на стенах (Запад / Восток)
         for (let z = -8; z <= 8; z += 8) {
-            addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth');
-            addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
+            addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth'); addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
         }
 
-        // В. УВЕЛИЧЕННЫЙ ЦЕНТРАЛЬНЫЙ ДОНЖОН (Высота тела башни = 44px, обхват расширен до 13x13)
+        // В. Базовые блоки Центрального Донжона
         const cx5 = 0, cz5 = 0;
-        addBlock(cx5, 14,      cz5, 15, 6,  15, 'donjon_base');  // Уширенное массивное основание донжона
-        addBlock(cx5, -11,     cz5, 13, 44, 13, 'donjon_body');  // Тело донжона (высота 44 вместо 33, обхват 13 вместо 10)
-        addBlock(cx5, -35,     cz5, 15, 4,  15, 'donjon_crown'); // Мощная корона донжона
+        addBlock(cx5, 14,   cz5, 15, 6,  15, 'donjon_base');
+        addBlock(cx5, -11,  cz5, 13, 44, 13, 'donjon_body');
+        addBlock(cx5, -35,  cz5, 15, 4,  15, 'donjon_crown');
+        // ЧАСТЬ 2 ИЗ 2: ГЕНЕРАЦИЯ КРЫШИ, ВЕЙВ-ФЛАГА И ОТРИСОВКА МАТЕРИАЛОВ
+        const roofBottomY = -37; const roofTopY = -53; const rw = 15;
+        const rv = Array(
+            Array(-rw/2, roofBottomY, -rw/2), Array(rw/2,  roofBottomY, -rw/2),
+            Array(rw/2,  roofBottomY,  rw/2), Array(-rw/2, roofBottomY,  rw/2), Array(0, roofTopY, 0)
+        );
 
-        // Зубцы короны донжона (пересчитаны под новые габариты расширенной короны)
-        addBlock(cx5 - 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
-        addBlock(cx5 + 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
-        addBlock(cx5 + 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
-        addBlock(cx5 - 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
+        const rf = Array(
+            { indices: Array(0, 1, 4), norm: Array(0, -0.5, -1) }, // Перед
+            { indices: Array(1, 2, 4), norm: Array(1, -0.5, 0)  }, // Право
+            { indices: Array(2, 3, 4), norm: Array(0, -0.5, 1)  }, // Зад
+            { indices: Array(3, 0, 4), norm: Array(-1, -0.5, 0) }  // Лево
+        );
 
-        // ============================================================================
-        // 2. МАТЕМАТИЧЕСКИЙ РЕНДЕР (Z-Сортировка + Ламберт)
-        // ============================================================================
+        rf.forEach(face => {
+            const projVertices = face.indices.map(i => {
+                const rx = rv[i][0] * Math.cos(angleY) + rv[i][2] * Math.sin(angleY);
+                const rz = -rv[i][0] * Math.sin(angleY) + rv[i][2] * Math.cos(angleY);
+                return Array(rx, rv[i][1], rz);
+            });
+            const nx = face.norm[0] * Math.cos(angleY) + face.norm[2] * Math.sin(angleY);
+            const nz = -face.norm[0] * Math.sin(angleY) + face.norm[2] * Math.cos(angleY);
+            let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; });
+            polygons.push({ pts: projVertices, normal: Array(nx, face.norm[1], nz), z: zSum / projVertices.length, type: 'donjon_roof' });
+        });
+
+        // Д. Флагшток и вейв-знамя
+        addBlock(0, (roofTopY + (roofTopY - 14)) / 2, 0, 1, 14, 1, 'donjon_flagpole');
+        const waveX = Math.sin(time * 6.5) * 4.5;
+        const flagPts = Array(Array(0, roofTopY - 14, 0), Array(0, roofTopY - 7, 0), Array(11, roofTopY - 10.5, waveX * 0.5));
+
+        const projFlagPts = flagPts.map(pt => {
+            const rx = pt[0] * Math.cos(angleY) + pt[2] * Math.sin(angleY);
+            const rz = -pt[0] * Math.sin(angleY) + pt[2] * Math.cos(angleY);
+            return Array(rx, pt[1], rz);
+        });
+
+        let flagZSum = 0; projFlagPts.forEach(pt => { flagZSum += pt[2]; });
+        polygons.push({ pts: projFlagPts, normal: Array(0, 0, -1), z: flagZSum / 3 - 2, type: 'donjon_flag_banner' });
+
+        // Е. Послойный Z-Рендеринг полигонов
         polygons.sort((a, b) => a.z - b.z);
 
         polygons.forEach(poly => {
-            const p = poly.pts;
-            const n = poly.normal;
-
-            // Проверка видимости граней относительно камеры
-            if (n[2] < 0) {
-                // Расчет освещенности по закону Ламберта
+            const p = poly.pts; const n = poly.normal;
+            if (n[2] < 0 || poly.type === 'donjon_flag_banner') {
                 const dot = n[0] * lNorm[0] + n[1] * lNorm[1] + n[2] * lNorm[2];
                 const intensity = Math.max(0.26, dot);
 
-                // Отрисовка контура полигона
-                ctx.beginPath();
-                ctx.moveTo(p[0][0], p[0][1]);
-                for (let i = 1; i < p.length; i++) {
-                    ctx.lineTo(p[i][0], p[i][1]);
-                }
+                ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+                for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
                 ctx.closePath();
 
-                // Палитра материалов в зависимости от настроек цвета в GM-меню
                 const tokenColorMaterial = window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
-                let r = 0, g = 0, b = 0;
-                let strokeColor = "rgba(255, 242, 195, 0.22)";
-
-                // Текстурные коэффициенты для контраста
+                let r = 0, g = 0, b = 0; let strokeColor = "rgba(255, 242, 195, 0.22)";
                 let matMod = 1.0;
-                if (poly.type === 'wall' || poly.type === 'wall_tooth') {
-                    matMod = 0.84;
-                } else if (poly.type.startsWith('donjon')) {
-                    matMod = 1.10; // Сделаем центральный донжон еще более ярким
-                }
+                if (poly.type === 'wall' || poly.type === 'wall_tooth') matMod = 0.84;
+                else if (poly.type.startsWith('donjon')) matMod = poly.type === 'donjon_roof' ? 0.94 : 1.10;
 
+                const isFlag = poly.type === 'donjon_flag_banner';
                 if (tokenColorMaterial === 'ruby') {
-                    r = Math.floor((185 + 70 * intensity) * matMod); g = Math.floor(35 * matMod); b = Math.floor(35 * matMod);
-                    strokeColor = "rgba(255, 190, 190, 0.2)";
+                    r = isFlag ? 235 : Math.floor((185 + 70 * intensity) * matMod); g = isFlag ? 40 : Math.floor(35 * matMod); b = isFlag ? 40 : Math.floor(35 * matMod);
+                    strokeColor = isFlag ? "rgba(255,255,255,0.4)" : "rgba(255, 190, 190, 0.2)";
                 } else if (tokenColorMaterial === 'emerald') {
-                    r = Math.floor(35 * matMod); g = Math.floor((165 + 75 * intensity) * matMod); b = Math.floor(65 * matMod);
-                    strokeColor = "rgba(190, 255, 190, 0.2)";
+                    r = isFlag ? 40 : Math.floor(35 * matMod); g = isFlag ? 220 : Math.floor((165 + 75 * intensity) * matMod); b = isFlag ? 65 : Math.floor(65 * matMod);
+                    strokeColor = isFlag ? "rgba(255,255,255,0.4)" : "rgba(190, 255, 190, 0.2)";
                 } else if (tokenColorMaterial === 'obsidian') {
-                    r = Math.floor((35 + 30 * intensity) * matMod); g = Math.floor((45 + 35 * intensity) * matMod); b = Math.floor((55 + 45 * intensity) * matMod);
-                    strokeColor = "rgba(200, 220, 255, 0.15)";
+                    r = isFlag ? 25 : Math.floor((35 + 30 * intensity) * matMod); g = isFlag ? 30 : Math.floor((45 + 35 * intensity) * matMod); b = isFlag ? 40 : Math.floor((55 + 45 * intensity) * matMod);
+                    strokeColor = isFlag ? "rgba(255,255,255,0.2)" : "rgba(200, 220, 255, 0.15)";
                 } else if (tokenColorMaterial === 'bone') {
-                    r = Math.floor((215 + 40 * intensity) * matMod); g = Math.floor((215 + 40 * intensity) * matMod); b = Math.floor((200 + 40 * intensity) * matMod);
-                    strokeColor = "rgba(150, 140, 120, 0.15)";
+                    r = isFlag ? 240 : Math.floor((215 + 40 * intensity) * matMod); g = isFlag ? 235 : Math.floor((215 + 40 * intensity) * matMod); b = isFlag ? 215 : Math.floor((200 + 40 * intensity) * matMod);
+                    strokeColor = isFlag ? "rgba(100,100,100,0.3)" : "rgba(150, 140, 120, 0.15)";
                 } else {
-                    r = Math.floor((210 + 45 * intensity) * matMod); g = Math.floor((165 + 40 * intensity) * matMod); b = Math.floor((60 + 20 * intensity) * matMod);
-                    strokeColor = "rgba(255, 242, 195, 0.25)";
+                    r = isFlag ? 192 : Math.floor((210 + 45 * intensity) * matMod); g = isFlag ? 41 : Math.floor((165 + 40 * intensity) * matMod); b = isFlag ? 43 : Math.floor((60 + 20 * intensity) * matMod);
+                    strokeColor = isFlag ? "rgba(255,255,255,0.5)" : "rgba(255, 242, 195, 0.25)";
                 }
 
-                ctx.fillStyle = `rgb(${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)})`;
-                ctx.fill();
-
-                ctx.strokeStyle = strokeColor;
-                ctx.lineWidth = 0.5;
-                ctx.stroke();
+                ctx.fillStyle = `rgb(${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)})`; ctx.fill();
+                ctx.strokeStyle = strokeColor; ctx.lineWidth = 0.5; ctx.stroke();
             }
         });
-
         ctx.restore();
     },
+
 
 
 };
