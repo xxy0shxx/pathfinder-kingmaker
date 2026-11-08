@@ -81,11 +81,13 @@ const InitiativeManager = {
 
         const currentIndex = this.state.combatants.findIndex(c => c.id === this.state.selectedUnitId);
 
-        // ИСПРАВЛЕНО: Чтение ID строго по индексу [0] у первого элемента массива combatants
+        // Если это конец раунда — переключаем на индекс 0
         if (currentIndex === -1 || currentIndex === this.state.combatants.length - 1) {
             this.state.selectedUnitId = this.state.combatants[0].id;
             this.state.round += 1;
-            this.triggerRoundFlashEffect(); // Запуск импульса света
+
+            // Вызов нашей новой независимой вспышки
+            this.triggerRoundFlashEffect();
         } else {
             this.state.selectedUnitId = this.state.combatants[currentIndex + 1].id;
         }
@@ -93,21 +95,46 @@ const InitiativeManager = {
         this._saveWithoutSort();
     },
 
-
+    /**
+     * НЕУБИВАЕМАЯ ТВ-ВСПЫШКА: Создание независимого оверлея поверх всего экрана
+     */
     triggerRoundFlashEffect() {
-        const listContainer = document.getElementById('initiativeCombatantsList');
-        if (!listContainer) return;
+        // Удаляем старый оверлей, если ГМ слишком быстро нажал пробел
+        const oldFlash = document.getElementById('initTvRoundFlashOverlay');
+        if (oldFlash) oldFlash.remove();
 
-        // Полностью удаляем старый класс анимации
-        listContainer.classList.remove('init-round-flash-active');
+        // Создаем абсолютно чистый независимый элемент
+        const flashOverlay = document.createElement('div');
+        flashOverlay.id = 'initTvRoundFlashOverlay';
 
-        // Переносим добавление класса в следующий кадр отрисовки браузера (ТВ-фикс)
+        // Жесткие инлайновые стили, чтобы его не перекрыли другие блоки планшета
+        flashOverlay.style.cssText = `
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            pointer-events: none !important;
+            z-index: 299999999 !important; /* Выше всех HUD и окон */
+            box-shadow: inset 0 0 200px 50px rgba(255, 216, 117, 0.6) !important;
+            background-color: rgba(255, 216, 117, 0.12) !important;
+            opacity: 1 !important;
+            transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        `;
+
+        document.body.appendChild(flashOverlay);
+
+        // Через кадр запускаем плавное затухание в ноль
         requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                listContainer.classList.add('init-round-flash-active');
-            });
+            flashOverlay.style.opacity = '0';
         });
+
+        // Полное физическое удаление из памяти после завершения анимации
+        setTimeout(() => {
+            if (flashOverlay.parentNode) flashOverlay.remove();
+        }, 600);
     },
+
 
 
     toggleNat20(id) {
