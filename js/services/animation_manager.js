@@ -150,7 +150,7 @@ const AnimationManager = {
         let flightContainer;
         const size = 120; // Габариты холста под 3D-модели
 
-        if (tokenSkin === 'queen' || tokenSkin === 'rook' || tokenSkin === 'castle') {
+        if (tokenSkin === 'queen' || tokenSkin === 'rook' || tokenSkin === 'castle' || tokenSkin === 'dice') {
             flightContainer = document.createElement('canvas');
             flightContainer.width = size;
             flightContainer.height = size;
@@ -179,6 +179,8 @@ const AnimationManager = {
                     this.draw3DRookToken(fCtx, size / 2, size / 2 + 15);
                 } else if (tokenSkin === 'castle') {
                     this.draw3DCastleToken(fCtx, size / 2, size / 2 + 15); // Наш замок в полете
+                } else if (tokenSkin === 'dice') {
+                    this.draw3DDiceToken(fCtx, size / 2, size / 2 + 10);
                 }
                 requestAnimationFrame(renderLoop);
             };
@@ -309,6 +311,110 @@ const AnimationManager = {
             btnElement.classList.toggle('ui-active', !HexCanvasRender.showQuestTooltips);
         }
         if (typeof HexCanvasRender.requestFrame === 'function') HexCanvasRender.requestFrame();
+    },
+
+
+    /**
+     * ПРОЦЕДУРНЫЙ 3D-ДВИЖОК: Бесконечно катящийся кубик D20 без цифр
+     * Построен на базе low-poly геометрии икосаэдра из лагерных бросков
+     */
+    draw3DDiceToken(ctx, cx, cy) {
+        ctx.save();
+        ctx.translate(cx, cy - 6);
+
+        const time = Date.now() / 1000;
+        const bounceY = Math.sin(time * 2.2) * 1.5;
+        ctx.translate(0, bounceY);
+
+        // Постоянное вращение по трем осям для эффекта хаотичного качения
+        const cX = time * 1.2;
+        const cY = time * 1.5;
+        const cZ = time * 0.8;
+
+        const lightDir = [0.5, -0.8, 0.4];
+        const lLength = Math.sqrt(lightDir[0]*lightDir[0] + lightDir[1]*lightDir[1] + lightDir[2]*lightDir[2]);
+        const lNorm = [lightDir[0]/lLength, lightDir[1]/lLength, lightDir[2]/lLength];
+
+        const t = (1.0 + Math.sqrt(5.0)) / 2.0;
+
+        // Вершины D20, масштабированные под размер токена на карте (радиус ~16 пикселей)
+        const vertices = [
+            [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t],
+            [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
+        ].map(v => {
+            const l = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+            return [v[0]/l * 16, v[1]/l * 16, v[2]/l * 16];
+        });
+
+        // 20 треугольных граней икосаэдра
+        const faces = [, [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+            , [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+            , [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+            , [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
+        ];
+
+        // 3D Трансформация и вращение по матрицам
+        const rotated = vertices.map(v => {
+            let x = v[0], y = v[1], z = v[2];
+            let y1 = y * Math.cos(cX) - z * Math.sin(cX), z1 = y * Math.sin(cX) + z * Math.cos(cX);
+            let x2 = x * Math.cos(cY) + z1 * Math.sin(cY), z2 = -x * Math.sin(cY) + z1 * Math.cos(cY);
+            let x3 = x2 * Math.cos(cZ) - y1 * Math.sin(cZ), y3 = x2 * Math.sin(cZ) + y1 * Math.cos(cZ);
+            return [x3, y3, z2];
+        });
+
+        // Z-сортировка художника для правильного наложения граней
+        const renderOrder = faces.map(f => {
+            return { face: f, z: (rotated[f[0]][2] + rotated[f[1]][2] + rotated[f[2]][2]) / 3 };
+        }).sort((a, b) => a.z - b.z);
+
+        renderOrder.forEach(item => {
+            const f = item.face, p0 = rotated[f[0]], p1 = rotated[f[1]], p2 = rotated[f[2]];
+
+            // Backface culling: рисуем только лицевые треугольники кубика
+            if ((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]) > 0) {
+                const ax = vertices[f[1]][0] - vertices[f[0]][0], ay = vertices[f[1]][1] - vertices[f[0]][1], az = vertices[f[1]][2] - vertices[f[0]][2];
+                const bx = vertices[f[2]][0] - vertices[f[0]][0], by = vertices[f[2]][1] - vertices[f[0]][1], bz = vertices[f[2]][2] - vertices[f[0]][2];
+                let vcx = ay*bz - az*by, vcy = az*bx - ax*bz, vcz = ax*by - ay*bx, vcl = Math.sqrt(vcx*vcx + vcy*vcy + vcz*vcz);
+                vcx /= vcl; vcy /= vcl; vcz /= vcl;
+
+                let ny1 = vcy*Math.cos(cX) - vcz*Math.sin(cX), nz1 = vcy*Math.sin(cX) + vcz*Math.cos(cX), nx2 = vcx*Math.cos(cY) + nz1*Math.sin(cY);
+                let nx3 = nx2*Math.cos(cZ) - ny1*Math.sin(cZ), ny3 = nx2*Math.sin(cZ) + ny1*Math.cos(cZ);
+
+                // Lambert-освещение граней
+                const brightness = Math.max(0.25, nx3 * lNorm[0] + ny3 * lNorm[1] + nz1 * lNorm[2]);
+
+                ctx.beginPath();
+                ctx.moveTo(p0[0], p0[1]);
+                ctx.lineTo(p1[0], p1[1]);
+                ctx.lineTo(p2[0], p2[1]);
+                ctx.closePath();
+
+                const tokenColorMaterial = window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
+                let r = 0, g = 0, b = 0;
+                let strokeColor = "rgba(255, 230, 150, 0.4)";
+
+                if (tokenColorMaterial === 'ruby') {
+                    r = Math.floor(180 + 75 * brightness); g = Math.floor(30 + 25 * brightness); b = Math.floor(30 + 25 * brightness);
+                    strokeColor = "rgba(255, 190, 190, 0.3)";
+                } else if (tokenColorMaterial === 'emerald') {
+                    r = Math.floor(30 + 25 * brightness); g = Math.floor(160 + 80 * brightness); b = Math.floor(60 + 35 * brightness);
+                    strokeColor = "rgba(190, 255, 190, 0.3)";
+                } else if (tokenColorMaterial === 'obsidian') {
+                    r = Math.floor(35 + 30 * brightness); g = Math.floor(45 + 35 * brightness); b = Math.floor(55 + 45 * brightness);
+                    strokeColor = "rgba(200, 220, 255, 0.15)";
+                } else if (tokenColorMaterial === 'bone') {
+                    r = Math.floor(210 + 45 * brightness); g = Math.floor(215 + 40 * brightness); b = Math.floor(200 + 40 * brightness);
+                    strokeColor = "rgba(150, 140, 120, 0.2)";
+                } else {
+                    r = Math.floor(205 + 50 * brightness); g = Math.floor(160 + 45 * brightness); b = Math.floor(55 + 25 * brightness);
+                    strokeColor = "rgba(255, 242, 195, 0.3)";
+                }
+
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`; ctx.fill();
+                ctx.strokeStyle = strokeColor; ctx.lineWidth = 0.8; ctx.stroke();
+            }
+        });
+        ctx.restore();
     },
 
 

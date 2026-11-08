@@ -308,6 +308,10 @@ const HexCanvasRender = {
                 window.AnimationManager.draw3DCastleToken(ctx, cx, cy);
                 this.isAnimating = true; // Форсим бесконечный цикл отрисовки для вращения граней
             }
+            else if (currentSkin === 'dice' && window.AnimationManager) {
+                window.AnimationManager.draw3DDiceToken(ctx, cx, cy);
+                this.isAnimating = true; // Форсим бесконечный цикл перерисовки для вращения граней
+            }
             else {
                 this.drawCanvasFlag(cx, cy);
             }
