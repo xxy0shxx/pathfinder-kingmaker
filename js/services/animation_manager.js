@@ -696,7 +696,7 @@ const AnimationManager = {
 
 
     /**
-     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ
+     * ЧАСТЬ 1 ИЗ 2: СБОРКА АРХИТЕКТУРЫ ЦИТАДЕЛИ С ЗУБЦАМИ ДОНЖОНА (ИСПРАВЛЕНО)
      */
     draw3DCastleToken(ctx, cx, cy) {
         ctx.save();
@@ -743,7 +743,7 @@ const AnimationManager = {
                 const nz = -face.norm[0] * Math.sin(angleY) + face.norm[2] * Math.cos(angleY);
                 const ny = face.norm[1];
 
-                let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; });
+                let zSum = 0; projVertices.forEach(pt => { zSum += pt[2]; }); // Фикс: берем только координату Z
                 polygons.push({ pts: projVertices, normal: Array(nx, ny, nz), z: zSum / projVertices.length, type: type });
             });
         };
@@ -777,23 +777,29 @@ const AnimationManager = {
             addBlock(-dist, -3, z, 3, 2, 3, 'wall_tooth'); addBlock(dist,  -3, z, 3, 2, 3, 'wall_tooth');
         }
 
-        // В. Базовые блоки Центрального Донжона
+        // В. Центральный Донжон с зубцами по углам короны
         const cx5 = 0, cz5 = 0;
         addBlock(cx5, 14,   cz5, 15, 6,  15, 'donjon_base');
         addBlock(cx5, -11,  cz5, 13, 44, 13, 'donjon_body');
         addBlock(cx5, -35,  cz5, 15, 4,  15, 'donjon_crown');
-        // ЧАСТЬ 2 ИЗ 2: ГЕНЕРАЦИЯ КРЫШИ, ВЕЙВ-ФЛАГА И ОТРИСОВКА МАТЕРИАЛОВ
-        const roofBottomY = -37; const roofTopY = -53; const rw = 15;
+
+        addBlock(cx5 - 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
+        addBlock(cx5 + 6, -38, cz5 - 6, 3, 2, 3, 'donjon_tooth');
+        addBlock(cx5 + 6, -38, cz5 + 6, 3, 2, 3, 'donjon_tooth');
+        addBlock(cx5 - 6, -38, cz5 + 5, 3, 2, 3, 'donjon_tooth');
+        // ЧАСТЬ 2 ИЗ 2: ГЕНЕРАЦИЯ ЗАНИЖЕННОЙ КРЫШИ, ВЕЙВ-ФЛАГА И ОТРИСОВКА
+        // Высота конуса крыши уменьшена до 8px (roofTopY теперь -45 вместо -53)
+        const roofBottomY = -37; const roofTopY = -45; const rw = 12;
         const rv = Array(
             Array(-rw/2, roofBottomY, -rw/2), Array(rw/2,  roofBottomY, -rw/2),
             Array(rw/2,  roofBottomY,  rw/2), Array(-rw/2, roofBottomY,  rw/2), Array(0, roofTopY, 0)
         );
 
         const rf = Array(
-            { indices: Array(0, 1, 4), norm: Array(0, -0.5, -1) }, // Перед
-            { indices: Array(1, 2, 4), norm: Array(1, -0.5, 0)  }, // Право
-            { indices: Array(2, 3, 4), norm: Array(0, -0.5, 1)  }, // Зад
-            { indices: Array(3, 0, 4), norm: Array(-1, -0.5, 0) }  // Лево
+            { indices: Array(0, 1, 4), norm: Array(0, -0.5, -1) },
+            { indices: Array(1, 2, 4), norm: Array(1, -0.5, 0)  },
+            { indices: Array(2, 3, 4), norm: Array(0, -0.5, 1)  },
+            { indices: Array(3, 0, 4), norm: Array(-1, -0.5, 0) }
         );
 
         rf.forEach(face => {
@@ -808,7 +814,7 @@ const AnimationManager = {
             polygons.push({ pts: projVertices, normal: Array(nx, face.norm[1], nz), z: zSum / projVertices.length, type: 'donjon_roof' });
         });
 
-        // Д. Флагшток и вейв-знамя
+        // Д. Флагшток и вейв-знамя (смещены под заниженную крышу)
         addBlock(0, (roofTopY + (roofTopY - 14)) / 2, 0, 1, 14, 1, 'donjon_flagpole');
         const waveX = Math.sin(time * 6.5) * 4.5;
         const flagPts = Array(Array(0, roofTopY - 14, 0), Array(0, roofTopY - 7, 0), Array(11, roofTopY - 10.5, waveX * 0.5));
@@ -849,13 +855,13 @@ const AnimationManager = {
                     r = isFlag ? 40 : Math.floor(35 * matMod); g = isFlag ? 220 : Math.floor((165 + 75 * intensity) * matMod); b = isFlag ? 65 : Math.floor(65 * matMod);
                     strokeColor = isFlag ? "rgba(255,255,255,0.4)" : "rgba(190, 255, 190, 0.2)";
                 } else if (tokenColorMaterial === 'obsidian') {
-                    r = isFlag ? 25 : Math.floor((35 + 30 * intensity) * matMod); g = isFlag ? 30 : Math.floor((45 + 35 * intensity) * matMod); b = isFlag ? 40 : Math.floor((55 + 45 * intensity) * matMod);
+                    r = isFlag ? 25 : Math.floor((35 + 30 * intensity) * matMod); g = isFlag ? 30 : Math.floor((45 + 35 * intensity) * matMod); b = Math.floor((55 + 45 * intensity) * matMod);
                     strokeColor = isFlag ? "rgba(255,255,255,0.2)" : "rgba(200, 220, 255, 0.15)";
                 } else if (tokenColorMaterial === 'bone') {
-                    r = isFlag ? 240 : Math.floor((215 + 40 * intensity) * matMod); g = isFlag ? 235 : Math.floor((215 + 40 * intensity) * matMod); b = isFlag ? 215 : Math.floor((200 + 40 * intensity) * matMod);
+                    r = isFlag ? 240 : Math.floor((215 + 40 * intensity) * matMod); g = isFlag ? 235 : Math.floor((215 + 40 * intensity) * matMod); b = Math.floor((200 + 40 * intensity) * matMod);
                     strokeColor = isFlag ? "rgba(100,100,100,0.3)" : "rgba(150, 140, 120, 0.15)";
                 } else {
-                    r = isFlag ? 192 : Math.floor((210 + 45 * intensity) * matMod); g = isFlag ? 41 : Math.floor((165 + 40 * intensity) * matMod); b = isFlag ? 43 : Math.floor((60 + 20 * intensity) * matMod);
+                    r = isFlag ? 192 : Math.floor((210 + 45 * intensity) * matMod); g = isFlag ? 41 : Math.floor((165 + 40 * intensity) * matMod); b = Math.floor((60 + 20 * intensity) * matMod);
                     strokeColor = isFlag ? "rgba(255,255,255,0.5)" : "rgba(255, 242, 195, 0.25)";
                 }
 
@@ -865,7 +871,6 @@ const AnimationManager = {
         });
         ctx.restore();
     },
-
 
 
 };
