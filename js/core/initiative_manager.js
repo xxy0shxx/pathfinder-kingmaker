@@ -109,12 +109,12 @@ const InitiativeManager = {
         const container = document.getElementById('initiativeTabletContainer');
         if (!container) return;
 
-        // Если разметка планшета еще не создана — строим форму ввода и шапку
+
+        // Если разметка планшета еще не создана — строим форму ввода без заголовка
         if (!container.querySelector('.init-header-zone')) {
             container.innerHTML = `
                 <div class="initiative-tablet-content" style="width: 100%;">
                     <div class="init-header-zone">
-                        <div class="camping-section-title">⚔️ Боевой трекер инициативы</div>
                         <div class="init-quick-input-bar">
                             <input type="text" id="initInputName" placeholder="Имя персонажа / Название монстра...">
                             
@@ -138,6 +138,8 @@ const InitiativeManager = {
                     <div id="initiativeCombatantsList" class="init-cards-scroll-list"></div>
                 </div>
             `;
+
+
 
             document.getElementById('initBtnAdd').addEventListener('click', () => {
                 const nameInp = document.getElementById('initInputName');

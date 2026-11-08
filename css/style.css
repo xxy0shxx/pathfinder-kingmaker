@@ -3079,6 +3079,7 @@ canvas[style*="position: fixed"] {
     outline: none;
 }
 
+
 .init-cards-scroll-list {
     display: flex;
     flex-direction: column;
@@ -3191,6 +3192,7 @@ canvas[style*="position: fixed"] {
     color: #fff;
 }
 
+
 /* ============================================================================
    ИНТЕРАКТИВНЫЕ ЭФФЕКТЫ ТРЕКЕРА ИНИЦИАТИВЫ (SCROLL, DRAG, HIGHLIGHT)
    ============================================================================ */
@@ -3242,4 +3244,69 @@ canvas[style*="position: fixed"] {
 .init-inline-score-input {
     -moz-appearance: textfield;
     cursor: ns-resize !important; /* Указатель изменения вверх-вниз */
+}
+
+/* ============================================================================
+   КОМПАКТНЫЙ ТВ-СТИЛЬ: ДЕМОНТАЖ ЗАГОЛОВКА И ПЛОТНАЯ КОМПОНОВКА КАРТОЧЕК
+   ============================================================================ */
+
+#questLogContainer:has(#initiativeTabletContainer[style*="display: flex"]) {
+    overflow: visible !important;
+    contain: none !important;
+}
+
+#initiativeTabletContainer,
+.initiative-tablet-content {
+    overflow: visible !important;
+    contain: none !important;
+}
+
+/* Область прокрутки: увеличили полезную высоту (max-height) за счет сноса заголовка */
+.init-cards-scroll-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important; /* Вернули аккуратный базовый зазор между карточками */
+    overflow-y: auto !important;
+    overflow-x: visible !important;
+    max-height: 62vh !important; /* Список стал значительно вместительнее */
+    padding: 15px 45px 45px 45px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    contain: none !important;
+}
+
+/* Возвращаем дефолтные минимальные отступы для плотного отображения */
+.init-combatant-card {
+    margin: 0 !important;
+}
+
+/* Сплошная заливка фракций */
+.init-combatant-card.faction-friend {
+    border: 3px solid #2ecc71 !important;
+    background: #11381e !important;
+    box-shadow: inset 0 0 15px rgba(46, 204, 113, 0.4) !important;
+}
+
+.init-combatant-card.faction-enemy {
+    border: 3px solid #e74c3c !important;
+    background: #3c1616 !important;
+    box-shadow: inset 0 0 15px rgba(231, 76, 60, 0.4) !important;
+}
+
+.init-combatant-card.faction-neutral {
+    border: 3px solid #f1c40f !important;
+    background: #423507 !important;
+    box-shadow: inset 0 0 15px rgba(241, 196, 15, 0.35) !important;
+}
+
+/* Сконцентрированное сочное ТВ-свечение (защищено от обрезки невидимой рамкой) */
+.init-combatant-card.selected-turn-gold {
+    transform: scale(1.025) !important;
+    border-color: #ffffff !important;
+    z-index: 99999 !important;
+
+    box-shadow:
+            0 0 20px 4px rgba(255, 216, 117, 0.95),
+            0 0 35px 8px rgba(223, 188, 111, 0.6),
+            inset 0 0 10px rgba(255, 216, 117, 0.5) !important;
 }
