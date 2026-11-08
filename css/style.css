@@ -2815,3 +2815,22 @@ body {
         transform: translate(var(--target-x), var(--target-y)) rotate(var(--rotate-deg)) scale(1.4);
     }
 }
+
+/* Фикс траектории полета для 3D холстов, отменяющий заваливание набок */
+canvas[style*="position: fixed"] {
+    animation: windowsSmoothFly3D 1.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+@keyframes windowsSmoothFly3D {
+    0% {
+        opacity: 0;
+        transform: translate3d(var(--start-x), var(--start-y), 0) scale(0.7);
+    }
+    12% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(var(--target-x), var(--target-y), 0) scale(1);
+    }
+}

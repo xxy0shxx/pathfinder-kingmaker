@@ -171,7 +171,8 @@ const HexUiSyncer = {
             qTooltip.remove();
         }
 
-        // 8. Логика анимации летящего флага отряда
+
+        // 8. Логика анимации летящего флага/3D-токена отряда
         const flagElem = currentHexElement.querySelector('.squad-flag-container');
         if (flagElem) {
             if (formData.squadHere) {
@@ -181,16 +182,19 @@ const HexUiSyncer = {
                     flagElem.style.display = 'none';
                     flagElem.classList.remove('active-flag');
 
-                    const oldHexElement = document.getElementById('visual_' + oldHexId);
-
-                    AnimationManager.playFlagFlight(oldHexElement, currentHexElement, () => {
-                        flagElem.style.display = 'block';
-                        flagElem.style.animation = 'flagAppear 0.05s forwards';
-
-                        setTimeout(() => {
-                            flagElem.style.animation = '';
-                            flagElem.classList.add('active-flag');
-                        }, 50);
+                    // ПЕРЕДАЕМ СТРОКОВЫЕ ID ГЕКСОВ (например, "hex_0_0"), а не HTML элементы!
+                    AnimationManager.playFlagFlight(oldHexId, hexId, () => {
+                        // По завершении полета Canvas-рендерер HexCanvasRender сам отобразит 3D-фигуру,
+                        // но если скин выставлен в 'flag', мы мягко включаем DOM-флаг
+                        const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
+                        if (currentSkin === 'flag') {
+                            flagElem.style.display = 'block';
+                            flagElem.style.animation = 'flagAppear 0.05s forwards';
+                            setTimeout(() => {
+                                flagElem.style.animation = '';
+                                flagElem.classList.add('active-flag');
+                            }, 50);
+                        }
                     });
                 }
             } else {
@@ -199,6 +203,7 @@ const HexUiSyncer = {
                 flagElem.style.animation = '';
             }
         }
+
     },
 
     /**

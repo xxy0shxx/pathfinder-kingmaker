@@ -7,7 +7,7 @@ const SettingsManager = {
         fogOpacity: 70,
         disableAutocenter: false,
         squadAnimMode: 'classic',
-        squadTokenSkin: 'flag',
+        squadTokenSkin: 'flag', // По умолчанию летит флаг
         squadTokenColor: 'gold',
         hideDc: false,
         hideLevel: false,
@@ -16,7 +16,7 @@ const SettingsManager = {
         hideTerrain: false,
         hideExplored: false,
         hideMapped: false,
-        hideQuestMarkers: false // Новое реактивное свойство
+        hideQuestMarkers: false // Состояние скрытия маркеров ⚜
     },
 
     init() {
@@ -42,8 +42,8 @@ const SettingsManager = {
             { id: 'settingHideTerrain', key: 'hideTerrain', type: 'check' },
             { id: 'settingHideExplored', key: 'hideExplored', type: 'check' },
             { id: 'settingHideMapped', key: 'hideMapped', type: 'check' },
-            { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' }, // Привязка нового чекбокса
-            { id: 'settingSquadTokenSkin', key: 'squadTokenSkin', type: 'value' },
+            { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' }, // Связываем новый чекбокс
+            { id: 'settingSquadTokenSkin', key: 'squadTokenSkin', type: 'value' }, // Связываем новый селект токена
             { id: 'settingSquadSpawnAnim', key: 'squadAnimMode', type: 'value' }
         ];
         ids.forEach(item => {
@@ -70,6 +70,7 @@ const SettingsManager = {
             });
         }
 
+        // Привязка пресетов цвета фигурки отряда
         const colorContainer = document.getElementById('squadTokenColorPresets');
         if (colorContainer) {
             const buttons = colorContainer.querySelectorAll('.squad-color-btn');
@@ -94,30 +95,26 @@ const SettingsManager = {
         }
     },
 
-
     applySettingsToEngine() {
         window.DISABLE_CAMERA_AUTOCENTER = this.state.disableAutocenter;
         window.FLIGHT_FROM_CAPITAL_MODE = this.state.flightFromCapital;
         window.CURRENT_SQUAD_ANIMATION_MODE = this.state.squadAnimMode;
-        window.CURRENT_SQUAD_TOKEN_SKIN = this.state.squadTokenSkin;
+        window.CURRENT_SQUAD_TOKEN_SKIN = this.state.squadTokenSkin; // Теперь сюда запишется 'queen' или 'rook'
         window.CURRENT_SQUAD_TOKEN_COLOR = this.state.squadTokenColor;
         window.GLOBAL_FOG_OPACITY = this.state.fogOpacity / 100;
         MAP_CONFIG.ENABLE_FPS_MONITOR = this.state.enableFpsMonitor;
 
-        // Фильтры отображения объектов на карте
         window.MAP_HIDE_DC = this.state.hideDc;
         window.MAP_HIDE_LEVEL = this.state.hideLevel;
-        window.MAP_HIDE_OBJ_TYPE = this.state.hideObjType;
         window.MAP_HIDE_TERRAIN = this.state.hideTerrain;
         window.MAP_HIDE_OBJ_TITLE = this.state.hideObjTitle;
         window.MAP_HIDE_OBJ_ICON = this.state.hideObjIcon;
         window.MAP_HIDE_EXPLORED = this.state.hideExplored;
         window.MAP_HIDE_MAPPED = this.state.hideMapped;
 
-        // СИНХРОНИЗАЦИЯ С ДВИЖКОМ CANVAS:
+        // Синхронизация скрытия маркеров квестов с Canvas
         window.MAP_HIDE_QUEST_MARKERS = this.state.hideQuestMarkers;
         if (window.HexCanvasRender) {
-            // Переворачиваем флаг, так как в меню у нас "Скрыть" (true), а в движке "Показывать" (show)
             window.HexCanvasRender.showQuestTooltips = !this.state.hideQuestMarkers;
         }
 
@@ -128,8 +125,6 @@ const SettingsManager = {
             window.HexCanvasRender.requestFrame();
         }
     },
-
-
 
     saveAndApply() {
         localStorage.setItem('kingmakerSystemSettings', JSON.stringify(this.state));

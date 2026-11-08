@@ -101,124 +101,159 @@ const AnimationManager = {
             if (typeof onImpactCallback === 'function') onImpactCallback();
             return;
         }
-        const targetCoords = HexCanvasRender.hexCoords[currentHexId];
-        if (!targetCoords) return;
 
-        let startCoords = HexCanvasRender.hexCoords[oldHexId];
-        if (!startCoords || oldHexId === 'hex_0_0') {
-            startCoords = { cx: targetCoords.cx > 1920 ? 100 : 3740, cy: targetCoords.cy };
+        // Страхуем получение данных о координатах целевого гекса
+        const targetCoords = HexCanvasRender.hexCoords ? HexCanvasRender.hexCoords[currentHexId] : null;
+        if (!targetCoords) {
+            if (typeof onImpactCallback === 'function') onImpactCallback();
+            return;
         }
 
-        const zoom = ViewportManager.currentZoom || 1.0;
-        const panX = ViewportManager.x || 0;
-        const panY = ViewportManager.y || 0;
-        const viewportElement = document.getElementById('viewport');
-        const viewRect = viewportElement ? viewportElement.getBoundingClientRect() : { left: 0, top: 0 };
-        const viewWidth = viewportElement ? viewportElement.clientWidth : 0;
+        // Рассчитываем стартовый гекс (или столицу при FLIGHT_FROM_CAPITAL_MODE)
+        let startCoords = HexCanvasRender.hexCoords ? HexCanvasRender.hexCoords[oldHexId] : null;
+        if (!startCoords || oldHexId === 'hex_0_0' || window.FLIGHT_FROM_CAPITAL_MODE) {
+            startCoords = (HexCanvasRender.hexCoords && HexCanvasRender.hexCoords['hex_0_0']) || { cx: 0, cy: 0 };
+        }
 
+        // НАХОДИМ РЕАЛЬНЫЙ ХОЛСТ НА ЭКРАНЕ ДЛЯ СНЯТИЯ МАТРИЦЫ СДВИГА
+        const canvasElement = document.getElementById('mapCanvas');
+        if (!canvasElement) {
+            if (typeof onImpactCallback === 'function') onImpactCallback();
+            return;
+        }
+
+        // Считываем физические границы холста с учетом CSS-трансформаций, скролла и зума
+        const canvasRect = canvasElement.getBoundingClientRect();
+
+        // Вычисляем текущий реальный масштаб сжатия/растяжения Canvas на экране ГМа
+        const realScaleX = canvasRect.width / 3840;
+        const realScaleY = canvasRect.height / 1280;
+
+        // ПРЯМАЯ ПРОЕКЦИЯ КООРДИНАТ: Точнейшая привязка виртуального гекса к пикселям монитора
         const calcScreen = (coords) => ({
-            x: viewRect.left + panX + viewWidth - ((3840 - coords.cx) * zoom),
-            y: viewRect.top + panY + (coords.cy * zoom)
+            x: canvasRect.left + (coords.cx * realScaleX),
+            y: canvasRect.top + (coords.cy * realScaleY)
         });
 
         const startScreen = calcScreen(startCoords);
         const targetScreen = calcScreen(targetCoords);
 
-        const flyingFlag = document.createElement('div');
-        flyingFlag.className = 'global-flying-flag';
-        flyingFlag.innerHTML = `<div class="squad-pole"><div class="squad-flag"></div></div>`;
+        // Считываем текущий визуальный скин токена отряда
+        let tokenSkin = 'flag';
+        if (window.CURRENT_SQUAD_TOKEN_SKIN) {
+            tokenSkin = window.CURRENT_SQUAD_TOKEN_SKIN;
+        } else if (window.SettingsManager && window.SettingsManager.state && window.SettingsManager.state.squadTokenSkin) {
+            tokenSkin = window.SettingsManager.state.squadTokenSkin;
+        }
+        tokenSkin = String(tokenSkin).trim().toLowerCase();
 
-        flyingFlag.style.setProperty('--start-x', `${startScreen.x - 9}px`);
-        flyingFlag.style.setProperty('--start-y', `${startScreen.y - 50}px`);
-        flyingFlag.style.setProperty('--target-x', `${targetScreen.x - 9}px`);
-        flyingFlag.style.setProperty('--target-y', `${targetScreen.y - 50}px`);
+        let flightContainer;
+        const size = 120; // Габариты холста под 3D-модели
 
-        document.body.appendChild(flyingFlag);
+        if (tokenSkin === 'queen' || tokenSkin === 'rook') {
+            flightContainer = document.createElement('canvas');
+            flightContainer.width = size;
+            flightContainer.height = size;
+            flightContainer.style.cssText = `
+                position: fixed;
+                z-index: 2000000 !important;
+                pointer-events: none;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                will-change: transform;
+                left: 0;
+                top: 0;
+            `;
 
+            const fCtx = flightContainer.getContext('2d');
+            const renderLoop = () => {
+                if (!document.body.contains(flightContainer)) return;
+                fCtx.clearRect(0, 0, size, size);
+                if (tokenSkin === 'queen') {
+                    this.draw3DQueenToken(fCtx, size / 2, size / 2 + 15);
+                } else {
+                    this.draw3DRookToken(fCtx, size / 2, size / 2 + 15);
+                }
+                requestAnimationFrame(renderLoop);
+            };
+            requestAnimationFrame(renderLoop);
+        } else {
+            flightContainer = document.createElement('div');
+            flightContainer.className = 'global-flying-flag';
+            flightContainer.style.cssText = `
+                position: fixed;
+                z-index: 2000000 !important;
+                pointer-events: none;
+                left: 0;
+                top: 0;
+            `;
+            flightContainer.innerHTML = `<div class="squad-pole"><div class="squad-flag"></div></div>`;
+        }
+
+        // Идеальное центрирование геометрии токенов по центру шестиугольника гекса
+        const offsetX = (tokenSkin === 'queen' || tokenSkin === 'rook') ? size / 2 : 9;
+        const offsetY = (tokenSkin === 'queen' || tokenSkin === 'rook') ? size / 2 + 15 : 50;
+
+        const startX = startScreen.x - offsetX;
+        const startY = startScreen.y - offsetY;
+        const targetX = targetScreen.x - offsetX;
+        const targetY = targetScreen.y - offsetY;
+
+        flightContainer.style.setProperty('--start-x', `${startX}px`);
+        flightContainer.style.setProperty('--start-y', `${startY}px`);
+        flightContainer.style.setProperty('--target-x', `${targetX}px`);
+        flightContainer.style.setProperty('--target-y', `${targetY}px`);
+
+        // Запускаем аппаратную интерполяцию полета
+        flightContainer.style.animation = 'windowsSmoothFly3D 1.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards';
+
+        document.body.appendChild(flightContainer);
+
+        // Обработка импакт-эффектов приземления в точке назначения
         setTimeout(() => {
-            // ИСПРАВЛЕНО: Безопасно считываем стейт напрямую из менеджера настроек,
-            // страхуясь на случай, если модуль еще не успел записать данные в window
             let mode = 'classic';
             if (window.SettingsManager && window.SettingsManager.state && window.SettingsManager.state.squadAnimMode) {
                 mode = window.SettingsManager.state.squadAnimMode;
             }
 
-            // Находим реальный HTML-элемент вьюпорта для симуляции встряски экрана
             const viewportView = document.getElementById('viewport');
 
-
-            // --- ВАРИАНТ 1: ПУЛЬСИРУЮЩАЯ ВОЛНА РУН (МАТЕМАТИЧЕСКИЙ РАСЧЕТ КОЛЬЦА В JS) ---
             if (mode === 'wave') {
                 this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
-
-                // Создаем невидимый контейнер-эпицентр взрыва в точке приземления флага
                 const container = document.createElement('div');
                 container.style.cssText = `position:absolute; left:${targetScreen.x}px; top:${targetScreen.y}px; pointer-events:none; z-index:9999;`;
                 document.body.appendChild(container);
-
-                const runesPool = (window.FrameManager && window.FrameManager.RUNE_POOL) ||
-                    ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ", "ᛁ", "ᛃ", "ᛇ", "ᛈ", "ᛉ", "ᛊ", "ᛏ", "ᛒ", "ᛗ", "ᛚ", "ᛜ", "ᛟ", "ᛞ"];
-
-                const numRunes = 12; // Количество рун в идеальной окружности
-
+                const runesPool = (window.FrameManager && window.FrameManager.RUNE_POOL) || ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ", "ᛁ", "ᛃ", "ᛇ", "ᛈ", "ᛉ", "ᛊ", "ᛏ", "ᛒ", "ᛗ", "ᛚ", "ᛜ", "ᛟ", "ᛞ"];
+                const numRunes = 12;
                 for (let i = 0; i < numRunes; i++) {
                     const runeEl = document.createElement('div');
                     runeEl.className = 'squad-rune-particle';
                     runeEl.textContent = runesPool[Math.floor(Math.random() * runesPool.length)];
-
-                    // Шаг 1: Вычисляем угол для текущей руны (в радианах и градусах)
                     const angleRad = (Math.PI * 2 / numRunes) * i;
                     const angleDeg = (360 / numRunes) * i;
-
-                    // Шаг 2: Рассчитываем точные стартовые и финальные координаты смещения по окружности в JS
-                    const startRadius = 15;   // Исходный радиус появления рун (близко к центру)
-                    const targetRadius = 130; // Финальный радиус разлета волны рун
-
-                    const startX = Math.cos(angleRad) * startRadius;
-                    const startY = Math.sin(angleRad) * startRadius;
-                    const targetX = Math.cos(angleRad) * targetRadius;
-                    const targetY = Math.sin(angleRad) * targetRadius;
-
-                    // Передаем точные числовые координаты и углы поворота в CSS переменные
-                    // Смещение angleDeg - 90 разворачивает руны верхней (головной) частью точно к центру взрыва
-                    runeEl.style.setProperty('--start-x', `${startX}px`);
-                    runeEl.style.setProperty('--start-y', `${startY}px`);
-                    runeEl.style.setProperty('--target-x', `${targetX}px`);
-                    runeEl.style.setProperty('--target-y', `${targetY}px`);
+                    const startRadius = 15; const targetRadius = 130;
+                    const startX = Math.cos(angleRad) * startRadius; const startY = Math.sin(angleRad) * startRadius;
+                    const targetX = Math.cos(angleRad) * targetRadius; const targetY = Math.sin(angleRad) * targetRadius;
+                    runeEl.style.setProperty('--start-x', `${startX}px`); runeEl.style.setProperty('--start-y', `${startY}px`);
+                    runeEl.style.setProperty('--target-x', `${targetX}px`); runeEl.style.setProperty('--target-y', `${targetY}px`);
                     runeEl.style.setProperty('--rotate-deg', `${angleDeg - 90}deg`);
-
                     container.appendChild(runeEl);
                 }
-
-                // Безопасно вычищаем контейнер из DOM по завершении анимации разлета
                 setTimeout(() => container.remove(), 1000);
-            }
-
-
-            // --- ВАРИАНТ 2: ПРИЗРАЧНОЕ ПРОЯВЛЕНИЕ ИЗ ТУМАНА ---
-            else if (mode === 'ghost') {
+            } else if (mode === 'ghost') {
                 const cloud = document.createElement('div');
                 cloud.className = 'squad-impact-cloud';
-                cloud.style.left = `${targetScreen.x}px`;
-                cloud.style.top = `${targetScreen.y}px`;
+                cloud.style.left = `${targetScreen.x}px`; cloud.style.top = `${targetScreen.y}px`;
                 document.body.appendChild(cloud);
                 setTimeout(() => cloud.remove(), 1200);
-            }
-
-            // --- ВАРИАНТ 3: УДАРНАЯ СЕЙСМИЧЕСКАЯ ВСТРЯСКА КАРТЫ ---
-            else if (mode === 'shake') {
+            } else if (mode === 'shake') {
                 this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
-
-                // Встряхиваем само окно просмотра (viewport), чтобы эффект
-                // выглядел одинаково сочно при любом уровне приближения (Zoom)
                 if (viewportView) {
                     viewportView.classList.add('squad-screen-shake');
                     setTimeout(() => viewportView.classList.remove('squad-screen-shake'), 400);
                 }
-            }
-
-            // --- ВАРИАНТ CLASSIC: СТАНДАРТНЫЙ ГЕРАЛЬДИЧЕСКИЙ ВЗРЫВ ---
-            else {
+            } else {
                 this.spawnBeamsBurst(targetScreen.x, targetScreen.y, 0.1);
                 setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 130);
                 setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 310);
@@ -227,14 +262,9 @@ const AnimationManager = {
             if (typeof onImpactCallback === 'function') onImpactCallback();
         }, 1300);
 
-
-        setTimeout(() => { flyingFlag.remove(); }, 1300);
-        /*
-        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x - 45, targetScreen.y + 40, 0.1); }, 1430);
-        setTimeout(() => { this.spawnBeamsBurst(targetScreen.x + 45, targetScreen.y - 40, 0.1); }, 1610);
-
-         */
+        setTimeout(() => { flightContainer.remove(); }, 1300);
     },
+
 
     focusOnHex(hexId) {
         const coords = HexCanvasRender.hexCoords[hexId];

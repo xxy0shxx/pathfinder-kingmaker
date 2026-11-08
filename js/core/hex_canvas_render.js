@@ -290,14 +290,16 @@ const HexCanvasRender = {
             }
         }
 
+
         if (data && data.squadHere) {
             const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
 
-            if (currentSkin === '3dqueen' && window.AnimationManager) {
+            // ИСПРАВЛЕНО: Сверяем с чистыми значениями настроек 'queen' и 'rook'
+            if (currentSkin === 'queen' && window.AnimationManager) {
                 window.AnimationManager.draw3DQueenToken(ctx, cx, cy);
                 this.isAnimating = true;
             }
-            else if (currentSkin === '3drook' && window.AnimationManager) {
+            else if (currentSkin === 'rook' && window.AnimationManager) {
                 window.AnimationManager.draw3DRookToken(ctx, cx, cy);
                 this.isAnimating = true;
             }
@@ -305,6 +307,7 @@ const HexCanvasRender = {
                 this.drawCanvasFlag(cx, cy);
             }
         }
+
 
         if (!window.MAP_HIDE_OBJ_TITLE && data && data.title) {
             this.drawTextPlate(ctx, data.title, cx, cy - r + 32, false, true);
