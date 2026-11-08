@@ -106,7 +106,7 @@ const HexCanvasRender = {
         const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
 
         if (hasActiveSpawnAnimations || isRuneStyleActive) {
-            this.startAnimationLoop(); // Запускаем постоянный цикл для мерцания рун
+            this.startAnimationLoop();
         } else {
             this.requestFrame();
         }
@@ -123,7 +123,6 @@ const HexCanvasRender = {
         }
         this.ctx.closePath();
     },
-
     render() {
         DebugManager.profileFps();
 
@@ -201,34 +200,25 @@ const HexCanvasRender = {
         }
     },
 
-
-
-
-
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 
-        // 1. Быстрая заливка из предвычисленного кэша цветов
         if (this.colorCache[hexKey]) {
             this.drawHexPath(cx, cy, r);
             ctx.fillStyle = this.colorCache[hexKey];
             ctx.fill();
         }
 
-        // 2. Туман войны (с динамической регулировкой плотности из настроек ГМа)
         if (MAP_CONFIG.isGlobalFogEnabled) {
             const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
             if (!isRevealed) {
                 this.drawHexPath(cx, cy, r);
-
-                // Используем сохраненный коэффициент window.GLOBAL_FOG_OPACITY (по дефолту 0.7)
                 const currentAlpha = window.GLOBAL_FOG_OPACITY !== undefined ? window.GLOBAL_FOG_OPACITY : 0.7;
                 ctx.fillStyle = `rgba(0, 0, 0, ${currentAlpha})`;
                 ctx.fill();
             }
         }
 
-        // 3. Свечение под домашней клеткой отряда
         if (data && data.squadHere) {
             this.drawHexPath(cx, cy, r);
             const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.7);
@@ -241,7 +231,6 @@ const HexCanvasRender = {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        // Вычисляем текущий коэффициент scale для анимации спавна
         let iconScale = 1.0;
         if (this.spawnTimers[hexKey]) {
             const elapsed = Date.now() - this.spawnTimers[hexKey];
@@ -266,45 +255,56 @@ const HexCanvasRender = {
             ctx.restore();
         };
 
-        // 4. Отрисовка статусов и слоев
         if (data && data.explored) drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
         if (data && data.mapMapped) drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
-        if (data && data.type && MAP_CONFIG.types[data.type]) drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
-        if (data && data.terrain && MAP_CONFIG.terrains[data.terrain]) drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
 
-        // Отрисовка токена отряда на глобальном холсте Canvas
+        // РЕЖИМ ИГРОКОВ: Скрытие типа объекта на гексе (Иконка)
+        if (!window.MAP_HIDE_OBJ_TYPE && data && data.type && MAP_CONFIG.types[data.type]) {
+            drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
+        }
+
+        // РЕЖИМ ИГРОКОВ: Скрытие типа местности гекса (Иконка)
+        if (!window.MAP_HIDE_TERRAIN && data && data.terrain && MAP_CONFIG.terrains[data.terrain]) {
+            drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
+        }
+
         if (data && data.squadHere) {
             const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
 
             if (currentSkin === '3dqueen' && window.AnimationManager) {
-                // Вызываем метод Ферзя из менеджера анимаций, передавая контекст холста
-                window.AnimationManager.draw3DQueenToken(this.ctx, cx, cy);
+                window.AnimationManager.draw3DQueenToken(ctx, cx, cy);
                 this.isAnimating = true;
             }
             else if (currentSkin === '3drook' && window.AnimationManager) {
-                // Вызываем метод Ладьи из менеджера анимаций, передавая контекст холста
-                window.AnimationManager.draw3DRookToken(this.ctx, cx, cy);
+                window.AnimationManager.draw3DRookToken(ctx, cx, cy);
                 this.isAnimating = true;
             }
             else {
-                // Классическое знамя остается внутри рендерера
                 this.drawCanvasFlag(cx, cy);
             }
         }
 
-        // 5. Текстовые плашки названий и характеристик
-        if (data && data.title) {
+        // РЕЖИМ ИГРОКОВ: Скрытие названия объекта гекса
+        if (!window.MAP_HIDE_OBJ_TYPE && data && data.title) {
             this.drawTextPlate(ctx, data.title, cx, cy - r + 32, false, true);
         }
 
+        // РЕЖИМ ИГРОКОВ: Скрытие Сложности (🎲) и Уровня региона (💀)
         if (data && (data.difficulty || data.regionLevel)) {
             let statsText = '';
-            if (data.difficulty) statsText += `🎲${data.difficulty}`;
-            if (data.regionLevel) statsText += `💀${data.regionLevel}`;
-            this.drawTextPlate(ctx, statsText, cx, cy + 54, true, false);
+
+            if (!window.MAP_HIDE_DC && data.difficulty) {
+                statsText += `🎲${data.difficulty}`;
+            }
+            if (!window.MAP_HIDE_LEVEL && data.regionLevel) {
+                statsText += `💀${data.regionLevel}`;
+            }
+
+            if (statsText !== '') {
+                this.drawTextPlate(ctx, statsText, cx, cy + 54, true, false);
+            }
         }
 
-        // 6. Парящий тултип активного задания
         if (this.showQuestTooltips && data && data.questData && data.questData.title && data.questData.status !== 'completed') {
             const questTitle = data.questData.title.trim();
             if (questTitle !== '') {
@@ -312,7 +312,6 @@ const HexCanvasRender = {
             }
         }
     },
-
     drawQuestPlate(ctx, text, x, y) {
         ctx.save();
         ctx.font = 'bold 12px Montserrat, sans-serif';
@@ -366,6 +365,7 @@ const HexCanvasRender = {
         ctx.fillText(text, x, y);
         ctx.restore();
     },
+
     drawCanvasFlag(cx, cy) {
         const ctx = this.ctx;
         ctx.save();

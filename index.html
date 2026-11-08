@@ -148,56 +148,87 @@
             <button type="button" id="tabCloseJournal" class="quest-tab-btn tab-close-action" title="Закрыть окно">×</button>
         </div>
 
-        <!-- Новый невидимый контейнер для содержимого настроек внутри общего окна -->
-        <div id="settingsTabletContainer" style="display: none; flex-direction: column; padding: 30px; gap: 20px; overflow-y: auto; height: calc(100% - 75px);">
+
+
+        <div id="settingsTabletContainer" style="display: none; flex-direction: column; padding: 25px; gap: 25px; overflow-y: auto; height: calc(100% - 75px);">
             <div class="camping-section-title">⚙️ Настройки интерфейса системы</div>
 
-            <div class="camping-region-bar" style="gap: 20px;">
-                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; width: 100%;">
-                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 18px; color: #dfbc6f;">🎨 Визуальный токен отряда на карте:</span>
-                    <select id="settingSquadTokenSkin" style="width: 100%; background: #020503; color: #ffd875; border: 2px solid #b89445; padding: 10px 14px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
+            <!-- БЛОК 1: НАСТРОЙКИ ОТРЯДА -->
+            <fieldset style="border: 2px solid #543e0d; border-radius: 6px; padding: 20px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 16px;">
+                <legend style="color: #ffd875; font-family: 'Tinos', serif; font-size: 20px; font-weight: 900; padding: 0 10px;">🛡️ Настройки токена и перемещения отряда</legend>
+
+                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 8px; width: 100%;">
+                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 16px; color: #dfbc6f;">🎨 Визуальный токен отряда на карте:</span>
+                    <select id="settingSquadTokenSkin" style="width: 100%; background: #020503; color: #ffd875; border: 1px solid #b89445; padding: 8px 12px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
                         <option value="flag">🚩 Классическое развевающееся знамя</option>
-                        <!--option value="3dknight">🐴 Объемная 3D-фигура: Шахматный Конь</option-->
                         <option value="3dqueen">👑 Объемная 3D-фигура: Шахматный Ферзь</option>
                         <option value="3drook">🏰 Объемная 3D-фигура: Крепостная Ладья</option>
                     </select>
                 </div>
 
-                <div class="checkbox-row" style="padding: 10px 14px;">
-                    <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">✈️ Баллистический полет флага из столицы (hex_0_0)</label>
-                    <input type="checkbox" id="settingFlightMode" style="transform: scale(1.5);" checked>
+                <div class="checkbox-row" style="padding: 6px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">✈️ Баллистический полет флага из столицы (hex_0_0)</label>
+                    <input type="checkbox" id="settingFlightMode" style="transform: scale(1.4);" checked>
                 </div>
 
-                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; width: 100%;">
-                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 18px; color: #dfbc6f;">✨ Эффект прибытия отряда в гекс:</span>
-                    <select id="settingSquadSpawnAnim" style="width: 100%; background: #020503; color: #ffd875; border: 2px solid #b89445; padding: 10px 14px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
-                        <option value="classic">⚜️ Классический взрыв</option>
-                        <option value="wave">🟢 Пульсирующая волна рун</option>
+                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 8px; width: 100%;">
+                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 16px; color: #dfbc6f;">✨ Эффект прибытия отряда в гекс:</span>
+                    <select id="settingSquadSpawnAnim" style="width: 100%; background: #020503; color: #ffd875; border: 1px solid #b89445; padding: 8px 12px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
+                        <option value="classic">⚜️ Классический геральдический взрыв</option>
+                        <option value="wave">🟡 Пульсирующая волна золотых рун</option>
                         <option value="ghost">🌫️ Призрачное проявление из тумана</option>
                         <option value="shake">💥 Ударная сейсмическая встряска</option>
                     </select>
                 </div>
 
-                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px;">
-                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 18px;">🕶️ Плотность Тумана Войны (Глобальная карта):</span>
-                    <div style="display: flex; align-items: center; gap: 15px; width: 100%; background: rgba(0, 0, 0, 0.2); padding: 10px 14px; border-radius: 4px; border: 1px solid rgba(84, 62, 13, 0.3);">
-                        <input type="range" id="settingFogOpacity" min="0" max="100" value="70" style="flex-grow: 1; -webkit-appearance: none; appearance: none; height: 8px; background: linear-gradient(to right, #112417, #dfbc6f); border-radius: 4px; outline: none; cursor: pointer;">
-                        <span id="settingFogOpacityVal" style="font-weight: bold; color: #ffd875; font-family: monospace; font-size: 20px; min-width: 45px; text-align: right;">70%</span>
+                <div class="checkbox-row" style="padding: 6px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">📍 Зафиксировать камеру (отключить автоцентрирование)</label>
+                    <input type="checkbox" id="settingDisableAutocenter" style="transform: scale(1.4);">
+                </div>
+            </fieldset>
+
+            <!-- БЛОК 2: НАСТРОЙКИ КАРТЫ -->
+            <fieldset style="border: 2px solid #543e0d; border-radius: 6px; padding: 20px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 16px;">
+                <legend style="color: #ffd875; font-family: 'Tinos', serif; font-size: 20px; font-weight: 900; padding: 0 10px;">🗺️ Настройки отображения глобальной карты</legend>
+
+                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 8px; width: 100%;">
+                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 16px; color: #dfbc6f;">🕶️ Плотность Тумана Войны:</span>
+                    <div style="display: flex; align-items: center; gap: 15px; width: 100%; background: rgba(0, 0, 0, 0.4); padding: 8px 12px; border-radius: 4px; border: 1px solid rgba(84, 62, 13, 0.4);">
+                        <input type="range" id="settingFogOpacity" min="0" max="100" value="70" style="flex-grow: 1; cursor: pointer;">
+                        <span id="settingFogOpacityVal" style="font-weight: bold; color: #ffd875; font-family: monospace; font-size: 18px; min-width: 45px; text-align: right;">70%</span>
                     </div>
                 </div>
 
-                <div class="checkbox-row" style="padding: 10px 14px;">
-                    <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">📍 Зафиксировать камеру (отключить автоцентрирование на отряде)</label>
-                    <input type="checkbox" id="settingDisableAutocenter" style="transform: scale(1.5);">
+                <!-- НОВЫЕ СИСТЕМНЫЕ ЧЕКБОКСЫ СКРЫТИЯ ИНФОРМАЦИИ С ГЕКСОВ -->
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🎲 Скрыть отображение Сложности региона (СЛ проверок)</label>
+                    <input type="checkbox" id="settingHideDc" style="transform: scale(1.4);">
                 </div>
 
-                <div class="checkbox-row" style="padding: 10px 14px;">
-                    <label style="font-size: 18px; font-weight: bold; font-family: 'Tinos', serif;">🖥️ Включить мониторинг производительности и FPS</label>
-                    <input type="checkbox" id="settingFpsMonitor" style="transform: scale(1.5);" checked>
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">💀 Скрыть отображение Уровня региона (кубы и черепа опасности)</label>
+                    <input type="checkbox" id="settingHideLevel" style="transform: scale(1.4);">
                 </div>
 
-            </div>
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🏰 Скрыть Тип объекта на гексе (текстовые плашки названий)</label>
+                    <input type="checkbox" id="settingHideObjType" style="transform: scale(1.4);">
+                </div>
+
+                <div class="checkbox-row" style="padding: 4px 0; display: flex; align-items: center; justify-content: space-between;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🌲 Скрыть Тип местности гекса (иконки ландшафтов)</label>
+                    <input type="checkbox" id="settingHideTerrain" style="transform: scale(1.4);">
+                </div>
+
+                <div class="checkbox-row" style="padding: 6px 0; display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed rgba(84, 62, 13, 0.4); padding-top: 12px;">
+                    <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">🖥️ Включить мониторинг производительности и FPS (F12 console)</label>
+                    <input type="checkbox" id="settingFpsMonitor" style="transform: scale(1.4);">
+                </div>
+            </fieldset>
         </div>
+
+
+
 
         <div id="questLogList" class="quest-log-list"></div>
         <div id="kingdomTabletContainer" class="kingdom-tablet-content" style="display: none;">
