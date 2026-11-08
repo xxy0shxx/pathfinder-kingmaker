@@ -2,6 +2,7 @@ import { MAP_CONFIG } from '../config/app_config.js';
 import { ColorConverter } from '../utils/helpers.js';
 import ViewportManager from '../services/viewport_manager.js';
 import DebugManager from '../utils/debug.js';
+import ThreeDTokenEngine from '../services/3d_token_engine.js';
 
 const HexCanvasRender = {
     canvas: null,
@@ -127,7 +128,6 @@ const HexCanvasRender = {
     render() {
         DebugManager.profileFps();
 
-        // ХАК №2: Математический расчет плотности пикселей холста под текущий уровень Zoom ГМа
         const zoom = (window.ViewportManager && window.ViewportManager.currentZoom) || 1.0;
         const baseWidth = 3840;
         const baseHeight = 1280;
@@ -135,14 +135,10 @@ const HexCanvasRender = {
         const targetWidth = Math.round(baseWidth * zoom);
         const targetHeight = Math.round(baseHeight * zoom);
 
-        // Если уровень приближения изменился — динамически перестраиваем сетку пикселей холста
         if (this.canvas.width !== targetWidth || this.canvas.height !== targetHeight) {
             this.canvas.width = targetWidth;
             this.canvas.height = targetHeight;
-
-            // Масштабируем матрицу контекста, чтобы внутренние формулы отрисовки не сбились
             this.ctx.scale(zoom, zoom);
-
             this.ctx.imageSmoothingEnabled = true;
             this.ctx.imageSmoothingQuality = 'high';
         }
@@ -167,8 +163,7 @@ const HexCanvasRender = {
                 const coords = this.hexCoords[hexKey];
                 if (!coords) continue;
 
-                const cx = coords.cx;
-                const cy = coords.cy;
+                const cx = coords.cx; const cy = coords.cy;
                 const data = this.hexesData[hexKey] ? { ...this.hexesData[hexKey] } : null;
 
                 if (data && this.hiddenSquadHexId === hexKey) {
@@ -191,9 +186,7 @@ const HexCanvasRender = {
                     focusGrad.addColorStop(0, `rgba(255, 216, 117, ${this.focusAlpha})`);
                     focusGrad.addColorStop(0.5, `rgba(231, 76, 60, ${this.focusAlpha * 0.4})`);
                     focusGrad.addColorStop(1, 'rgba(231, 76, 60, 0)');
-                    this.ctx.fillStyle = focusGrad;
-                    this.ctx.fill();
-                    this.ctx.restore();
+                    this.ctx.fillStyle = focusGrad; this.ctx.fill(); ctx.restore();
                 }
 
                 if (this.spawnTimers[hexKey]) {
@@ -226,8 +219,7 @@ const HexCanvasRender = {
 
         if (this.colorCache[hexKey]) {
             this.drawHexPath(cx, cy, r);
-            ctx.fillStyle = this.colorCache[hexKey];
-            ctx.fill();
+            ctx.fillStyle = this.colorCache[hexKey]; ctx.fill();
         }
 
         if (MAP_CONFIG.isGlobalFogEnabled) {
@@ -235,45 +227,30 @@ const HexCanvasRender = {
             if (!isRevealed) {
                 this.drawHexPath(cx, cy, r);
                 const currentAlpha = window.GLOBAL_FOG_OPACITY !== undefined ? window.GLOBAL_FOG_OPACITY : 0.7;
-                ctx.fillStyle = `rgba(0, 0, 0, ${currentAlpha})`;
-                ctx.fill();
+                ctx.fillStyle = `rgba(0, 0, 0, ${currentAlpha})`; ctx.fill();
             }
         }
 
         if (data && data.squadHere) {
             this.drawHexPath(cx, cy, r);
             const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.7);
-            grad.addColorStop(0, 'rgba(231, 76, 60, 0.8)');
-            grad.addColorStop(1, 'rgba(231, 76, 60, 0)');
-            ctx.fillStyle = grad;
-            ctx.fill();
+            grad.addColorStop(0, 'rgba(231, 76, 60, 0.8)'); grad.addColorStop(1, 'rgba(231, 76, 60, 0)');
+            ctx.fillStyle = grad; ctx.fill();
         }
 
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
         let iconScale = 1.0;
         if (this.spawnTimers[hexKey]) {
-            const elapsed = Date.now() - this.spawnTimers[hexKey];
-            iconScale = Math.min(1.0, elapsed / 250);
+            iconScale = Math.min(1.0, (Date.now() - this.spawnTimers[hexKey]) / 250);
         }
 
         const drawAnimatedIcon = (iconText, targetX, targetY) => {
-            ctx.save();
-            ctx.translate(targetX, targetY);
+            ctx.save(); ctx.translate(targetX, targetY);
             if (iconScale !== 1.0) ctx.scale(iconScale, iconScale);
-
-            ctx.beginPath();
-            ctx.arc(0, 0, 14, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
-            ctx.strokeStyle = '#d4af37';
-            ctx.lineWidth = 1.5;
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.font = '18px sans-serif';
-            ctx.fillText(iconText, 0, 1);
-            ctx.restore();
+            ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(20, 20, 20, 0.75)'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1.5;
+            ctx.fill(); ctx.stroke(); ctx.font = '18px sans-serif'; ctx.fillText(iconText, 0, 1); ctx.restore();
         };
 
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
@@ -281,7 +258,6 @@ const HexCanvasRender = {
         if (isRevealed) {
             if (!window.MAP_HIDE_EXPLORED && data.explored) drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
             if (!window.MAP_HIDE_MAPPED && data.mapMapped) drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
-
             if (!window.MAP_HIDE_OBJ_ICON && data.type && MAP_CONFIG.types[data.type]) {
                 drawAnimatedIcon(MAP_CONFIG.types[data.type].icon, cx + r * 0.42, cy - r * 0.22);
             }
@@ -290,33 +266,26 @@ const HexCanvasRender = {
             }
         }
 
-
         if (data && data.squadHere) {
             const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
 
-            // ИСПРАВЛЕНО: Сверяем с чистыми значениями настроек 'queen' и 'rook'
-            if (currentSkin === 'queen' && window.AnimationManager) {
-                window.AnimationManager.draw3DQueenToken(ctx, cx, cy);
+            // ИСПРАВЛЕНО: Вызываем рендеринг напрямую из автономного ThreeDTokenEngine
+            if (currentSkin === 'queen') {
+                ThreeDTokenEngine.draw3DQueenToken(ctx, cx, cy);
                 this.isAnimating = true;
-            }
-            else if (currentSkin === 'rook' && window.AnimationManager) {
-                window.AnimationManager.draw3DRookToken(ctx, cx, cy);
+            } else if (currentSkin === 'rook') {
+                ThreeDTokenEngine.draw3DRookToken(ctx, cx, cy);
                 this.isAnimating = true;
-            }
-            else if (currentSkin === 'castle' && window.AnimationManager) {
-                // Добавляем рендер вращающегося замка на гекс
-                window.AnimationManager.draw3DCastleToken(ctx, cx, cy);
-                this.isAnimating = true; // Форсим бесконечный цикл отрисовки для вращения граней
-            }
-            else if (currentSkin === 'dice' && window.AnimationManager) {
-                window.AnimationManager.draw3DDiceToken(ctx, cx, cy);
-                this.isAnimating = true; // Форсим бесконечный цикл перерисовки для вращения граней
-            }
-            else {
+            } else if (currentSkin === 'castle') {
+                ThreeDTokenEngine.draw3DCastleToken(ctx, cx, cy);
+                this.isAnimating = true;
+            } else if (currentSkin === 'dice') {
+                ThreeDTokenEngine.draw3DDiceToken(ctx, cx, cy);
+                this.isAnimating = true;
+            } else {
                 this.drawCanvasFlag(cx, cy);
             }
         }
-
 
         if (!window.MAP_HIDE_OBJ_TITLE && data && data.title) {
             this.drawTextPlate(ctx, data.title, cx, cy - r + 32, false, true);
@@ -326,17 +295,12 @@ const HexCanvasRender = {
             let statsText = '';
             if (!window.MAP_HIDE_DC && data.difficulty) statsText += `🎲${data.difficulty}`;
             if (!window.MAP_HIDE_LEVEL && data.regionLevel) statsText += `💀${data.regionLevel}`;
-
-            if (statsText !== '') {
-                this.drawTextPlate(ctx, statsText, cx, cy + 54, true, false);
-            }
+            if (statsText !== '') this.drawTextPlate(ctx, statsText, cx, cy + 54, true, false);
         }
 
         if (this.showQuestTooltips && data && data.questData && data.questData.title && data.questData.status !== 'completed') {
             const questTitle = data.questData.title.trim();
-            if (questTitle !== '') {
-                this.drawQuestPlate(ctx, `⚜️ ${questTitle}`, cx, cy - r + 8);
-            }
+            if (questTitle !== '') this.drawQuestPlate(ctx, `⚜️ ${questTitle}`, cx, cy - r + 8);
         }
     },
     drawQuestPlate(ctx, text, x, y) {
@@ -352,8 +316,7 @@ const HexCanvasRender = {
 
         ctx.beginPath();
         ctx.roundRect(x - w / 2, y - h / 2, w, h, 4);
-        ctx.fill();
-        ctx.stroke();
+        ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = '#ffffff';
         ctx.fillText(text, x, y);
@@ -385,8 +348,7 @@ const HexCanvasRender = {
 
         ctx.beginPath();
         ctx.roundRect(x - w / 2, y - h / 2, w, h, 6);
-        ctx.fill();
-        ctx.stroke();
+        ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = isStats ? '#ebd291' : '#ffd875';
         ctx.fillText(text, x, y);
@@ -414,10 +376,8 @@ const HexCanvasRender = {
         ctx.lineTo(35, 10);
         ctx.lineTo(10, 20);
         ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-        ctx.restore();
+        ctx.fill(); ctx.stroke();
+        ctx.restore(); ctx.restore();
     },
 
     attachMouseEvents() {
@@ -461,15 +421,13 @@ const HexCanvasRender = {
 
         this.canvas.addEventListener('mousemove', calculateVirtualCoords);
         this.canvas.addEventListener('mouseleave', () => {
-            this.mouseX = -1000;
-            this.mouseY = -1000;
+            this.mouseX = -1000; this.mouseY = -1000;
             if (this.hoveredHexKey) {
                 this.hoveredHexKey = null;
                 this.requestFrame();
             }
             if (tooltipElem) {
-                tooltipElem.style.display = 'none';
-                tooltipElem.innerHTML = '';
+                tooltipElem.style.display = 'none'; tooltipElem.innerHTML = '';
             }
         });
     },
@@ -477,10 +435,7 @@ const HexCanvasRender = {
     updateTooltipState(tooltip) {
         if (!tooltip) return;
         const hexKey = this.hoveredHexKey;
-        if (!hexKey) {
-            tooltip.style.display = 'none';
-            return;
-        }
+        if (!hexKey) { tooltip.style.display = 'none'; return; }
 
         const [_, row, col] = hexKey.split('_');
         const data = this.hexesData[hexKey] || null;
@@ -489,8 +444,7 @@ const HexCanvasRender = {
         if (!data || (!data.title && !data.text)) {
             tooltip.innerHTML = `<div class="tooltip-title" style="color: #95a5a6;">📍 Гекс [${row};${col}]</div>
                                  <div style="font-size: 16px; color: #ccc; margin: 8px 0 4px 0;">❌ <span style="color: #7f8c8d;">Не разведан</span></div>`;
-            tooltip.style.display = 'block';
-            return;
+            tooltip.style.display = 'block'; return;
         }
 
         let content = '';
@@ -521,8 +475,7 @@ const HexCanvasRender = {
         if (data.text) content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
         if (isRevealed && data.lastSaved) content += `<div style="margin-top: 8px; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">🛡️ ${data.lastSaved}</div>`;
 
-        tooltip.innerHTML = content;
-        tooltip.style.display = 'block';
+        tooltip.innerHTML = content; tooltip.style.display = 'block';
     },
 
     triggerFocus(hexId) {
@@ -530,10 +483,7 @@ const HexCanvasRender = {
         this.focusTime = 0;
         this.startAnimationLoop();
         setTimeout(() => {
-            if (this.focusedHexKey === hexId) {
-                this.focusedHexKey = null;
-                this.requestFrame();
-            }
+            if (this.focusedHexKey === hexId) { this.focusedHexKey = null; this.requestFrame(); }
         }, 3600);
     }
 };
