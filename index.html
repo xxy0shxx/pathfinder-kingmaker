@@ -172,16 +172,45 @@
                     </div>
                 </div>
 
-                <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; margin-top: 5px;">
-                    <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 16px; color: #dfbc6f;">🎨 Материал / Цвет 3D-фигурки:</span>
-                    <div id="squadTokenColorPresets" style="display: flex; gap: 10px; flex-wrap: wrap; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 4px; border: 1px solid #543e0d; width: 100%; box-sizing: border-box;">
-                        <button type="button" class="squad-color-btn active" data-color="gold" title="Королевское золото" style="width: 26px; height: 26px; border-radius: 50%; border: 2px solid #ffd875; background: #d4af37; cursor: pointer; outline: none;"></button>
-                        <button type="button" class="squad-color-btn" data-color="ruby" title="Кровавый рубин" style="width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; background: #c0392b; cursor: pointer; outline: none;"></button>
-                        <button type="button" class="squad-color-btn" data-color="emerald" title="Магический изумруд" style="width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; background: #27ae60; cursor: pointer; outline: none;"></button>
-                        <button type="button" class="squad-color-btn" data-color="obsidian" title="Темный обсидиан" style="width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; background: #2c3e50; cursor: pointer; outline: none;"></button>
-                        <button type="button" class="squad-color-btn" data-color="bone" title="Древняя кость" style="width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; background: #f5f6fa; cursor: pointer; outline: none;"></button>
+                <div class="box">
+                    <label>🎨 Материал / Цвет 3D-фигурки:</label>
+                    <div id="squadTokenColorPresets" class="squad-color-presets-row">
+                        <!-- Металлы -->
+                        <button type="button" class="squad-color-btn" data-color="gold" style="background-color: #f1c40f;" title="Королевское золото"></button>
+                        <button type="button" class="squad-color-btn" data-color="steel" style="background-color: #95a5a6;" title="Кованая сталь"></button>
+                        <button type="button" class="squad-color-btn" data-color="bronze" style="background-color: #d35400;" title="Древняя бронза"></button>
+                        <button type="button" class="squad-color-btn" data-color="mithril" style="background-color: #a5b1b2;" title="Искристый мифрил"></button>
+                        <button type="button" class="squad-color-btn" data-color="adamant" style="background-color: #2c3e50;" title="Тяжелый адамантий"></button>
+                        <button type="button" class="squad-color-btn" data-color="platinum" style="background-color: #f5f6fa;" title="Чистая платина"></button>
+                        <button type="button" class="squad-color-btn" data-color="silver" style="background-color: #dcdde1;" title="Благородное серебро"></button>
+                        <button type="button" class="squad-color-btn" data-color="copper" style="background-color: #e67e22;" title="Листовая медь"></button>
+                        <button type="button" class="squad-color-btn" data-color="quicksilver" style="background-color: #7f8c8d;" title="Жидкая ртуть"></button>
+
+                        <!-- Самоцветы и камни -->
+                        <button type="button" class="squad-color-btn" data-color="ruby" style="background-color: #e74c3c;" title="Кровавый рубин"></button>
+                        <button type="button" class="squad-color-btn" data-color="emerald" style="background-color: #2ecc71;" title="Древний изумруд"></button>
+                        <button type="button" class="squad-color-btn" data-color="sapphire" style="background-color: #3498db;" title="Глубокий сапфир"></button>
+                        <button type="button" class="squad-color-btn" data-color="amethyst" style="background-color: #9b59b6;" title="Магический аметист"></button>
+                        <button type="button" class="squad-color-btn" data-color="turquoise" style="background-color: #1abc9c;" title="Морская бирюза"></button>
+                        <button type="button" class="squad-color-btn" data-color="amber" style="background-color: #f39c12;" title="Пылающий янтарь"></button>
+                        <button type="button" class="squad-color-btn" data-color="malachite" style="background-color: #27ae60;" title="Дикий малахит"></button>
+                        <button type="button" class="squad-color-btn" data-color="jade" style="background-color: #16a085;" title="Императорский нефрит"></button>
+                        <button type="button" class="squad-color-btn" data-color="topaz" style="background-color: #f1c40f;" title="Золотистый топаз"></button>
+                        <button type="button" class="squad-color-btn" data-color="garnet" style="background-color: #c0392b;" title="Густой гранат"></button>
+                        <button type="button" class="squad-color-btn" data-color="quartz" style="background-color: #d1d8e0;" title="Дымчатый кварц"></button>
+                        <button type="button" class="squad-color-btn" data-color="lapis" style="background-color: #2b5c8f;" title="Лазурит ордена"></button>
+
+                        <!-- Органика и Мистика -->
+                        <button type="button" class="squad-color-btn" data-color="bone" style="background-color: #ecf0f1;" title="Драконья кость"></button>
+                        <button type="button" class="squad-color-btn" data-color="pearl" style="background-color: #fff9e6;" title="Речной жемчуг"></button>
+                        <button type="button" class="squad-color-btn" data-color="shadow" style="background-color: #111412;" title="Эфирная тень"></button>
+                        <button type="button" class="squad-color-btn" data-color="void" style="background-color: #190a2b;" title="Энергия Пустоты"></button>
+                        <button type="button" class="squad-color-btn" data-color="ice" style="background-color: #74b9ff;" title="Первородный лед"></button>
+                        <button type="button" class="squad-color-btn" data-color="blood" style="background-color: #8b0000;" title="Проклятая кровь"></button>
+                        <button type="button" class="squad-color-btn" data-color="flesh" style="background-color: #ffcccc;" title="Свежая плоть"></button>
                     </div>
                 </div>
+
 
                 <div class="checkbox-row" style="padding: 6px 0; display: flex; align-items: center; justify-content: space-between;">
                     <label style="font-size: 16px; font-weight: bold; font-family: 'Tinos', serif; color: #fff;">✈️ Баллистический полет флага из столицы (hex_0_0)</label>
@@ -190,13 +219,26 @@
 
                 <div class="camp-param-box" style="flex-direction: column; align-items: flex-start; gap: 8px; width: 100%;">
                     <span class="camp-param-label" style="font-family: 'Tinos', serif; font-size: 16px; color: #dfbc6f;">✨ Эффект прибытия отряда в гекс:</span>
-                    <select id="settingSquadAnimMode" style="width: 100%; background: #020503; color: #ffd875; border: 1px solid #b89445; padding: 8px 12px; font-size: 16px; font-weight: bold; border-radius: 4px; outline: none; cursor: pointer; font-family: 'Tinos', serif;">
-                        <option value="classic">⚜️ Классический геральдический взрыв</option>
-                        <option value="wave">🟡 Пульсирующая волна золотых рун</option>
-                        <option value="ghost">🌫️ Призрачное проявление из тумана</option>
-                        <option value="shake">💥 Ударная сейсмическая встряска</option>
-                        <option value="quest">📜 Пульсация фокуса (как в квест-логе)</option>
-                    </select>
+                    <div class="radio-row">
+                        <input type="radio" id="settingSquadSpawnAnimClassic" name="squadAnimMode" value="classic">
+                        <label for="settingSquadSpawnAnimClassic">⚜ Классический геральдический взрыв</label>
+                    </div>
+                    <div class="radio-row">
+                        <input type="radio" id="settingSquadSpawnAnimWave" name="squadAnimMode" value="wave">
+                        <label for="settingSquadSpawnAnimWave">🟡 Пульсирующая волна золотых рун</label>
+                    </div>
+                    <div class="radio-row">
+                        <input type="radio" id="settingSquadSpawnAnimGhost" name="squadAnimMode" value="ghost">
+                        <label for="settingSquadSpawnAnimGhost">🌫 Призрачное проявление из тумана</label>
+                    </div>
+                    <div class="radio-row">
+                        <input type="radio" id="settingSquadSpawnAnimShake" name="squadAnimMode" value="shake">
+                        <label for="settingSquadSpawnAnimShake">💥 Ударная сейсмическая встряска</label>
+                    </div>
+                    <div class="radio-row">
+                        <input type="radio" id="settingSquadSpawnAnimQuest" name="squadAnimMode" value="quest">
+                        <label for="settingSquadSpawnAnimQuest">📜 Пульсация фокуса (как в квест-логе)</label>
+                    </div>
                 </div>
 
                 <div class="checkbox-row" style="padding: 6px 0; display: flex; align-items: center; justify-content: space-between;">
@@ -204,6 +246,8 @@
                     <input type="checkbox" id="settingDisableAutocenter" style="transform: scale(1.4);">
                 </div>
             </fieldset>
+
+            <div class="kingmaker-hr"></div>
 
             <!-- БЛОК 2: НАСТРОЙКИ КАРТЫ -->
             <fieldset style="border: 2px solid #543e0d; border-radius: 6px; padding: 20px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 16px;">
@@ -258,6 +302,8 @@
                     <input type="checkbox" id="settingHideQuestMarkers" style="transform: scale(1.4);">
                 </div>
             </fieldset>
+
+            <div class="kingmaker-hr"></div>
             <!-- БЛОК 3: СИСТЕМНЫЕ НАСТРОЙКИ -->
             <fieldset style="border: 2px solid #543e0d; border-radius: 6px; padding: 20px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 16px;">
                     <legend style="color: #ffd875; font-family: 'Tinos', serif; font-size: 20px; font-weight: 900; padding: 0 10px;">⚙️ Системные настройки</legend>

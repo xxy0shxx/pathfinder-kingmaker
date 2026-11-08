@@ -7,34 +7,55 @@ const ThreeDTokenEngine = {
         let r = 0, g = 0, b = 0;
         let strokeColor = "rgba(255, 242, 195, 0.4)";
 
-        if (tokenColorMaterial === 'ruby') {
-            r = isFlag ? 235 : Math.floor(180 + 75 * intensity);
-            g = isFlag ? 40 : Math.floor(30 + 25 * intensity);
-            b = isFlag ? 40 : Math.floor(30 + 25 * intensity);
-            strokeColor = isFlag ? "rgba(255,255,255,0.4)" : "rgba(255, 190, 190, 0.35)";
-        } else if (tokenColorMaterial === 'emerald') {
-            r = isFlag ? 40 : Math.floor(30 + 25 * intensity);
-            g = isFlag ? 220 : Math.floor(160 + 80 * intensity);
-            b = isFlag ? 65 : Math.floor(60 + 35 * intensity);
-            strokeColor = isFlag ? "rgba(255,255,255,0.4)" : "rgba(190, 255, 190, 0.35)";
-        } else if (tokenColorMaterial === 'obsidian') {
-            r = isFlag ? 25 : Math.floor(35 + 30 * intensity);
-            g = isFlag ? 30 : Math.floor(45 + 35 * intensity);
-            b = Math.floor(55 + 45 * intensity);
-            strokeColor = isFlag ? "rgba(255,255,255,0.2)" : "rgba(200, 220, 255, 0.2)";
-        } else if (tokenColorMaterial === 'bone') {
-            r = isFlag ? 240 : Math.floor(210 + 45 * intensity);
-            g = isFlag ? 235 : Math.floor(215 + 40 * intensity);
-            b = Math.floor(200 + 40 * intensity);
-            strokeColor = isFlag ? "rgba(100,100,100,0.3)" : "rgba(150, 140, 120, 0.25)";
+        if (tokenColorMaterial === 'ruby' || tokenColorMaterial === 'garnet' || tokenColorMaterial === 'blood') {
+            const isDark = tokenColorMaterial === 'blood';
+            r = isFlag ? (isDark ? 139 : 235) : Math.floor((isDark ? 100 : 180) + 75 * intensity);
+            g = b = isFlag ? (isDark ? 0 : 40) : Math.floor((isDark ? 10 : 30) + 25 * intensity);
+            strokeColor = "rgba(255, 190, 190, 0.35)";
+        } else if (['emerald', 'malachite', 'jade'].includes(tokenColorMaterial)) {
+            const isJade = tokenColorMaterial === 'jade';
+            r = Math.floor((isJade ? 20 : 35) + 25 * intensity);
+            g = Math.floor((isJade ? 140 : 160) + 80 * intensity);
+            b = Math.floor((isJade ? 110 : 60) + 35 * intensity);
+            strokeColor = "rgba(190, 255, 190, 0.35)";
+        } else if (['obsidian', 'shadow', 'adamant', 'void'].includes(tokenColorMaterial)) {
+            const isVoid = tokenColorMaterial === 'void';
+            r = Math.floor((isVoid ? 25 : 35) + 30 * intensity);
+            g = Math.floor((isVoid ? 10 : 45) + 35 * intensity);
+            b = Math.floor((isVoid ? 43 : 55) + 45 * intensity);
+            strokeColor = "rgba(200, 220, 255, 0.15)";
+        } else if (['bone', 'pearl', 'platinum', 'silver', 'quartz'].includes(tokenColorMaterial)) {
+            const isPlat = tokenColorMaterial === 'platinum';
+            r = g = b = Math.floor((isPlat ? 230 : 210) + 45 * intensity);
+            strokeColor = "rgba(255, 255, 255, 0.5)";
+        } else if (['sapphire', 'turquoise', 'lapis', 'ice'].includes(tokenColorMaterial)) {
+            const isIce = tokenColorMaterial === 'ice';
+            r = Math.floor(30 + 25 * intensity);
+            g = Math.floor((isIce ? 170 : 110) + 55 * intensity);
+            b = Math.floor((isIce ? 240 : 190) + 65 * intensity);
+            strokeColor = "rgba(190, 230, 255, 0.4)";
+        } else if (tokenColorMaterial === 'amethyst') {
+            r = Math.floor(120 + 45 * intensity); g = Math.floor(60 + 30 * intensity); b = Math.floor(170 + 65 * intensity);
+            strokeColor = "rgba(230, 190, 255, 0.4)";
+        } else if (['amber', 'citrine', 'topaz', 'copper'].includes(tokenColorMaterial)) {
+            r = Math.floor(210 + 40 * intensity); g = Math.floor(120 + 40 * intensity); b = Math.floor(30 + 15 * intensity);
+            strokeColor = "rgba(255, 220, 150, 0.4)";
+        } else if (tokenColorMaterial === 'steel' || tokenColorMaterial === 'quicksilver' || tokenColorMaterial === 'mithril') {
+            r = g = Math.floor(130 + 45 * intensity); b = Math.floor(145 + 45 * intensity);
+            strokeColor = "rgba(240, 245, 255, 0.35)";
+        } else if (tokenColorMaterial === 'bronze') {
+            r = Math.floor(160 + 50 * intensity); g = Math.floor(80 + 30 * intensity); b = Math.floor(20 + 15 * intensity);
+            strokeColor = "rgba(240, 180, 130, 0.35)";
         } else {
             r = isFlag ? 192 : Math.floor(205 + 50 * intensity);
             g = isFlag ? 41 : Math.floor(160 + 45 * intensity);
             b = Math.floor(55 + 25 * intensity);
-            strokeColor = isFlag ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 242, 195, 0.4)";
+            strokeColor = "rgba(255, 242, 195, 0.4)";
         }
         return { r, g, b, strokeColor };
     },
+
+
 
     draw3DDiceToken(ctx, cx, cy) {
         ctx.save();
