@@ -89,12 +89,13 @@ const InitiativeManager = {
         this._sortAndSave();
     },
 
+
     nextTurn() {
         if (this.state.combatants.length === 0) return;
 
         const currentIndex = this.state.combatants.findIndex(c => c.id === this.state.selectedUnitId);
 
-        // Обновляем случайный сид фразы абсолютно на каждый ход
+        // Гарантированно обновляем сид фразы абсолютно на каждый ход
         this.state.phraseSeed = Math.floor(Math.random() * 1000);
 
         if (currentIndex === -1 || currentIndex === this.state.combatants.length - 1) {
@@ -138,9 +139,15 @@ const InitiativeManager = {
         }
     },
 
+
+
+    /**
+     * НЕУБИВАЕМАЯ ТВ-ВСПЫШКА + СИНТЕЗАТОР БОЕВОГО ГОНГА РАУНДА
+     */
     triggerRoundFlashEffect() {
         const oldFlash = document.getElementById('initTvRoundFlashOverlay');
         if (oldFlash) oldFlash.remove();
+
         const flashOverlay = document.createElement('div');
         flashOverlay.id = 'initTvRoundFlashOverlay';
         flashOverlay.style.cssText = `
@@ -152,7 +159,54 @@ const InitiativeManager = {
             opacity: 1 !important; transition: opacity 0.6s ease-out !important;
         `;
         document.body.appendChild(flashOverlay);
+
         requestAnimationFrame(() => { flashOverlay.style.opacity = '0'; });
+
+        // ИНТЕГРАЦИЯ ЗВУКА: процедурный синтез низкого эпического удара гонга/литавр
+        try {
+            // Безопасно заимствуем AudioContext из глобального AnimationManager карты
+            const audioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = (window.AnimationManager && window.AnimationManager._audioCtx) || new audioCtx();
+
+            if (ctx && ctx.state !== 'suspended') {
+                const now = ctx.currentTime;
+
+                // Главный низкочастотный осциллятор (основа удара гонга)
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+
+                osc.type = 'triangle'; // Треугольная волна для мягкого, но мощного баса
+                osc.frequency.setValueAtTime(90, now); // Базовая частота 90 Гц
+                osc.frequency.exponentialRampToValueAtTime(45, now + 1.2); // Плавное падение тона вниз
+
+                // Управление громкостью (взрывной старт и долгое затухание в 0)
+                gainNode.gain.setValueAtTime(0.35, now); // Начальная громкость удара
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.4); // Затухание за 1.4 секунды
+
+                // Металлический отзвук (высокочастотный обертон для эффекта резонирующей стали)
+                const subOsc = ctx.createOscillator();
+                const subGain = ctx.createGain();
+                subOsc.type = 'sine';
+                subOsc.frequency.setValueAtTime(180, now); // Гармоника на октаву выше
+                subGain.gain.setValueAtTime(0.08, now);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6); // Гаснет быстрее основного баса
+
+                // Сборка аудио-графа
+                osc.connect(gainNode);
+                subOsc.connect(subGain);
+                gainNode.connect(ctx.destination);
+                subGain.connect(ctx.destination);
+
+                // Запуск и автоматический демонтаж узлов
+                osc.start(now);
+                subOsc.start(now);
+                osc.stop(now + 1.4);
+                subOsc.stop(now + 1.4);
+            }
+        } catch (audioError) {
+            console.warn("Синтез звука раунда заблокирован политикой браузера до первого клика:", audioError);
+        }
+
         setTimeout(() => { if (flashOverlay.parentNode) flashOverlay.remove(); }, 600);
     },
 
