@@ -4483,3 +4483,49 @@ canvas[style*="position: fixed"] {
     color: #ffd875 !important;
     border: 1px solid #dfbc6f !important;
 }
+
+/* ============================================================================
+   ПОЛНОФОРМАТНАЯ ЗАЛИВКА АКТИВНОГО ХОДА В ЦВЕТ ФРАКЦИИ
+   ============================================================================ */
+
+/* 🟢 АКТИВНЫЙ СОЮЗНИК: Насыщенный изумрудный фон и неоновое свечение */
+.init-combatant-card.faction-friend.selected-turn-gold {
+    background: linear-gradient(180deg, #1e5c31 0%, #11381e 100%) !important;
+    border-color: #2ecc71 !important;
+    box-shadow:
+            0 10px 30px 8px rgba(46, 204, 113, 0.8),
+            0 15px 45px 12px rgba(46, 204, 113, 0.35),
+            inset 0 0 15px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 🔴 АКТИВНЫЙ ВРАГ: Глубокий рубиново-алый фон и тревожный неон */
+.init-combatant-card.faction-enemy.selected-turn-gold {
+    background: linear-gradient(180deg, #6b1d1d 0%, #3c1616 100%) !important;
+    border-color: #e74c3c !important;
+    box-shadow:
+            0 10px 30px 8px rgba(231, 76, 60, 0.8),
+            0 15px 45px 12px rgba(231, 76, 60, 0.35),
+            inset 0 0 15px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 💛 АКТИВНЫЙ НЕЙТРАЛ: Благородный янтарно-желтый фон и золотой ореол */
+.init-combatant-card.faction-neutral.selected-turn-gold {
+    background: linear-gradient(180deg, #7a6109 0%, #423507 100%) !important;
+    border-color: #f1c40f !important;
+    box-shadow:
+            0 10px 30px 8px rgba(241, 196, 15, 0.85),
+            0 15px 45px 12px rgba(241, 196, 15, 0.4),
+            inset 0 0 15px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Коррекция внутренних элементов для сохранения высокой контрастности текста на ярких фонах */
+.init-combatant-card.selected-turn-gold .init-card-name-text {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+.init-combatant-card.selected-turn-gold .init-badge-index {
+    background: #000000 !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: #ffffff !important;
+}
