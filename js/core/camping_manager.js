@@ -330,6 +330,7 @@ const CampingManager = {
     },
 
 
+
     triggerDiceAndResultModal() {
         const resultModal = document.getElementById('campResultModal');
         const modalBody = document.getElementById('campResultModalBody');
@@ -338,35 +339,38 @@ const CampingManager = {
 
         modalBody.innerHTML = '';
 
-        // ОПРЕДЕЛЕНИЕ УСЛОВИЙ ДЛЯ ТВ-ПОДСВЕТКИ ШАПКИ
-        // 1. Проверки: если итоговых проверок больше, чем базовая ставка игрока — это штраф (красный)
-        const isChecksBad = this.state.totalChecks > this.state.baseChecks;
-        const checksClass = isChecksBad ? 'class="negative"' : '';
-
-        // 2. Ингредиенты: если добыто меньше пайков, чем СЛ региона (базовая норма) — это провал (красный)
-        // Для этого нам нужно узнать базовую СЛ, которая хранится в checkMod до модификаторов или высчитывается из нормальных yield
-        // По умолчанию базовое пропитание при успехе равно СЛ региона. Если оно меньше — красим.
+        // Находим базовые параметры региона для сравнения
         const squadHex = Object.values(this.mapDataRef.hexes).find(h => h.squadHere === true);
         const baseRegionDc = squadHex && squadHex.difficulty ? parseInt(squadHex.difficulty, 10) : 14;
 
-        const isIngredientsBad = this.state.normalIngredients < baseRegionDc;
-        const ingredientsClass = isIngredientsBad ? 'class="negative"' : '';
+        // 1. СЛ Сцены: если итоговая СЛ стала МЕНЬШЕ базовой (из-за крит. провала маскировки) — красим в красный
+        const isDcBad = this.state.encounterDc < this.state.checkMod;
+        const dcSpanClass = isDcBad ? 'class="negative"' : '';
 
-        // Блок 1: Крупные цифры-статы с динамическими классами подсветки
+        // 2. Проверок: если итоговых проверок БОЛЬШЕ базовой ставки игрока — штраф (красный)
+        const isChecksBad = this.state.totalChecks > this.state.baseChecks;
+        const checksSpanClass = isChecksBad ? 'class="negative"' : '';
+
+        // 3. Ингредиенты: если выпало "1d4" (строка) или число меньше базовой СЛ — провал (красный)
+        const isIngredientsBad = String(this.state.specialIngredients).includes('d') ||
+            isNaN(this.state.normalIngredients) ||
+            this.state.normalIngredients < baseRegionDc;
+        const ingredientsSpanClass = isIngredientsBad ? 'class="negative"' : '';
+
+        // Блок 1: Крупные цифры-статы с точечным внедрением классов в теги span
         const summaryStats = document.createElement('div');
         summaryStats.innerHTML = `
-            <div>🎲 СЛ Сцены: <span>${this.state.encounterDc}</span></div>
-            <div>⏱ Проверок: <span ${checksClass}>${this.state.totalChecks}</span></div>
-            <div>🥩 Ингредиенты: <span ${ingredientsClass}>${this.state.normalIngredients}</span></div>
+            <div>🎲 СЛ Сцены: <span ${dcSpanClass}>${this.state.encounterDc}</span></div>
+            <div>⏱ Проверок: <span ${checksSpanClass}>${this.state.totalChecks}</span></div>
+            <div>🥩 Ингредиенты: <span ${ingredientsSpanClass}>${this.state.normalIngredients}</span></div>
             <div>🌿 Особые: <span>${this.state.specialIngredients}</span></div>
         `;
         modalBody.appendChild(summaryStats);
 
-        // Блок 2: ИЗОЛИРУЮЩИЙ КОНТЕЙНЕР ДЛЯ ЛИТЕРАТУРНОГО ТЕКСТА
+        // Блок 2: Изолирующий контейнер для литературного текста
         const textContainer = document.createElement('div');
         textContainer.className = 'camp-result-text-container';
 
-        // Копируем строки внутрь изолированного текстового блока
         Array.from(effectsList.children).forEach(child => {
             const clone = child.cloneNode(true);
             textContainer.appendChild(clone);
