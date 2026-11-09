@@ -228,8 +228,8 @@ const InitiativeManager = {
                     osc.start(now); osc.stop(now + 0.4);
 
                 } else if (mode === 'horn') {
-                    // 2. ПРЕСЕТ: Сигнальный боевой рог (Монументальный, благородный и протяжный мажорный призыв)
-                    const duration = 4.0; // Экстремально протяжное звучание (4 секунды)
+                    // 2. ПРЕСЕТ: Сигнальный боевой рог (Монументальный, глубокий басовый мажорный призыв)
+                    const duration = 4.0; // Протяжное звучание (4 секунды)
                     const now = ctx.currentTime;
 
                     const osc = ctx.createOscillator();
@@ -237,28 +237,29 @@ const InitiativeManager = {
                     const osc3 = ctx.createOscillator();
                     const gainNode = ctx.createGain();
 
-                    // Базовый тон рога — чистая глубокая синусоида (Соль большой октавы, 98 Гц)
+                    // ОПУСТИЛИ НА ОКТАВУ ВНИЗ ДЛЯ ГЛУБОКОГО БАСА
+                    // Базовый тон — чистая суббасовая синусоида (Соль контроктавы, 49 Гц)
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(98, now);
+                    osc.frequency.setValueAtTime(49, now);
 
-                    // Второй тон — мягкая треугольная волна на октаву выше для объема (Соль малой октавы, 196 Гц)
+                    // Второй тон — мягкая треугольная волна для плотности и объема (Соль большой октавы, 98 Гц)
                     osc2.type = 'triangle';
-                    osc2.frequency.setValueAtTime(196, now);
+                    osc2.frequency.setValueAtTime(98, now);
 
-                    // Третий тон — идеальная мажорная терция для благородного светлого звучания (Си малой октавы, 247 Гц)
+                    // Третий тон — идеальная мажорная терция на октаву выше для благородного светлого окраса (Си малой октавы, 123.47 Гц)
                     osc3.type = 'sine';
-                    osc3.frequency.setValueAtTime(246.94, now);
+                    osc3.frequency.setValueAtTime(123.47, now);
 
                     // Имитируем естественное затихание дыхания: частота к концу выдоха едва заметно и плавно опускается
-                    osc.frequency.linearRampToValueAtTime(96, now + duration);
-                    osc2.frequency.linearRampToValueAtTime(192, now + duration);
-                    osc3.frequency.linearRampToValueAtTime(242, now + duration);
+                    osc.frequency.linearRampToValueAtTime(47, now + duration);
+                    osc2.frequency.linearRampToValueAtTime(94, now + duration);
+                    osc3.frequency.linearRampToValueAtTime(120, now + duration);
 
-                    // Благородное нарастание и монументальное раскатистое эхо
+                    // Нарастание и монументальное раскатистое эхо
                     gainNode.gain.setValueAtTime(0.001, now);
-                    gainNode.gain.linearRampToValueAtTime(0.25, now + 0.3); // Мягкий, величественный старт выдоха
-                    gainNode.gain.setValueAtTime(0.25, now + 1.5);         // Плотное удержание звука
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration); // Очень долгое, парящее затухание в тишину
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.35); // Величественный, мягкий старт
+                    gainNode.gain.setValueAtTime(0.3, now + 1.5);          // Плотное удержание баса
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration); // Парящее затухание в тишину
 
                     // Сборка аудио-графа
                     osc.connect(gainNode);
@@ -275,6 +276,7 @@ const InitiativeManager = {
                     osc.stop(now + duration);
                     osc2.stop(now + duration);
                     osc3.stop(now + duration);
+
 
                 } else if (mode === 'thunder') {
                     // 3. ПРЕСЕТ: Раскат грома (Синтез белого шума фильтром низких частот)
