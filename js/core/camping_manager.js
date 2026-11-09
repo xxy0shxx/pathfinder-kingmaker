@@ -57,7 +57,6 @@ const CampingManager = {
         this.recalculateCamp();
     },
 
-    // Возвращаем ручное изменение СЛ случайной сцены кнопками - и +
     changeCheckMod(amount) {
         this.state.checkMod = Math.max(1, Math.min(41, this.state.checkMod + amount));
         this.syncCountersUi();
@@ -75,7 +74,6 @@ const CampingManager = {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
         return checked ? checked.value : null;
     },
-
     // ============================================================================
     // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
     // ============================================================================
@@ -205,8 +203,6 @@ const CampingManager = {
             this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, currentRegionLevel, specialYieldText);
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
-
-
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
         const specEl = document.getElementById('campSpecialIngredients');
@@ -240,11 +236,9 @@ const CampingManager = {
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
-        // ПОДГОТОВКА ЛАГЕРЯ
         if (prepareRes === 'crit_success') {
             this.addLogLine(effectsList, "Критический успех в подготовке: Лагерь обустроен безупречно. Общее число проверок привала снижено на 1, а сложность ночной сцены защищена и увеличена на +2.", "good");
         } else if (prepareRes === 'success') {
-            // ВОССТАНОВЛЕНО: Добавлен развернутый текст для обычного успеха подготовки лагеря
             this.addLogLine(effectsList, "Успех в подготовке: Укрытие организовано надежно и по правилам, стоянка безопасна для отдыха.", "good");
         } else if (prepareRes === 'failure') {
             this.addLogLine(effectsList, "Провал в подготовке: Место для стоянки выбрано неудачно. Сложность проверок Маскировки и Охоты принудительно увеличена на +2.", "bad");
@@ -252,7 +246,6 @@ const CampingManager = {
             this.addLogLine(effectsList, "Критический провал в подготовке: Это ужасное место для лагеря! Маскировка лагеря и Охота физически невозможны. Общее число ночных проверок привала увеличено на +1.", "bad");
         }
 
-        // МАСКИРОВКА ЛАГЕРЯ
         if (!isCampHorrible) {
             if (camoRes === 'crit_success') {
                 this.addLogLine(effectsList, "Критический успех в маскировке: Лагерь скрыт гениально. Общее число проверок привала снижено на 1, а сложность обнаружения лагеря случайной ночной сценой увеличена на +2.", "good");
@@ -263,12 +256,11 @@ const CampingManager = {
             }
         }
 
-        // ОХОТА И ПРОПИТАНИЕ
         if (!isCampHorrible) {
             if (huntRes === 'success') {
                 this.addLogLine(effectsList, `Успешная охота (Уровень региона: ${lvl}): Егеря добыли базовое пропитание. Получено походных пайков в количестве, равном сложности региона (${this.state.normalIngredients} шт.). Бросьте кубики за столом на ${specialYieldText} для сбора особых специй.`, "good");
             } else if (huntRes === 'crit_success') {
-                this.addLogLine(effectsList, `Критический успех в охоте (Уровень региона: ${lvl}): Потрясающая добыча! Получено походных пайков в количестве, равном сложности региона (${this.state.normalIngredients} шт.), а также гарантированно найдено ${specialYieldText} редких специй и ингредиентов.`, "good");
+                this.addLogLine(effectsList, `Критический успех в охоте (Уровень regiona: ${lvl}): Потрясающая добыча! Получено походных пайков в количестве, равном сложности региона (${this.state.normalIngredients} шт.), а также гарантированно найдено ${specialYieldText} редких специй и ингредиентов.`, "good");
             } else if (huntRes === 'failure') {
                 this.addLogLine(effectsList, `Провал на охоте: Дичь упущена. Найдено лишь скромное базовое пропитание в размере сложности региона (${this.state.normalIngredients} шт.). Редкие специи отсутствуют.`, "generic");
             } else if (huntRes === 'crit_failure') {
@@ -277,21 +269,18 @@ const CampingManager = {
         }
     },
 
-    // ============================================================================
-    // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 3 ИЗ 3
-    // ============================================================================
-
+    // Парсер регулярных выражений для оборачивания цифр и костей в текстовые плашки
     addLogLine(container, text, type) {
         const line = document.createElement('div');
         line.className = `camp-effect-line ${type}`;
-        line.textContent = text;
+        const formattedText = text.replace(/([+-]?\d+d\d+|[+-]?\d+\s*(?:шт\.)?|[+-]\d+|девятнадцать|двадцать)/g, '<span>$1</span>');
+        line.innerHTML = formattedText;
         container.appendChild(line);
     },
 
     attachInputListeners() {
         const grid = document.querySelector('.camp-gm-inputs-grid');
         if (!grid) return;
-
         grid.removeEventListener('change', this._handleGridChange);
         grid.removeEventListener('mousedown', this._handleGridMouseDown);
 
@@ -299,11 +288,8 @@ const CampingManager = {
             this.recalculateCamp();
             this.checkCampPhaseCompletion();
         };
-
         this._handleGridMouseDown = () => {
-            if (window.AnimationManager) {
-                window.AnimationManager.warmUpAudioContext();
-            }
+            if (window.AnimationManager) window.AnimationManager.warmUpAudioContext();
         };
 
         grid.addEventListener('change', this._handleGridChange);
@@ -312,41 +298,30 @@ const CampingManager = {
 
     checkCampPhaseCompletion() {
         this.recalculateCamp();
-
         const prepareRes = this.getSelectedRadio('res_prepare');
         const camoRes = this.getSelectedRadio('res_camouflage');
         const huntRes = this.getSelectedRadio('res_hunt');
-
         let isFinished = false;
 
-        if (prepareRes === 'crit_failure') {
+        if (prepareRes === 'crit_failure' || (prepareRes && camoRes && huntRes)) {
             isFinished = true;
         }
-        else if (prepareRes && camoRes && huntRes) {
-            isFinished = true;
-        }
-
-        if (isFinished) {
-            this.triggerDiceAndResultModal();
-        }
+        if (isFinished) this.triggerDiceAndResultModal();
     },
 
     triggerDiceAndResultModal() {
         const resultModal = document.getElementById('campResultModal');
         const modalBody = document.getElementById('campResultModalBody');
         const effectsList = document.getElementById('campEffectsList');
-
         if (!resultModal || !modalBody || !effectsList) return;
 
         modalBody.innerHTML = '';
-
         const summaryStats = document.createElement('div');
-        summaryStats.style.cssText = 'background: rgba(0,0,0,0.5); padding: 24px; border: 2px solid #543e0d; border-radius: 6px; margin-bottom: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; text-align: center; color: #ffd875; font-weight: 900; font-size: 42px; text-transform: uppercase; letter-spacing: 1px;';
         summaryStats.innerHTML = `
-            <div>🎲 СЛ Сцены: <span style="color:#fff;">${this.state.encounterDc}</span></div>
-            <div>⏱ Проверок: <span style="color:#2ecc71;">${this.state.totalChecks}</span></div>
-            <div>🥩 Пайки: <span style="color:#fff;">${this.state.normalIngredients}</span></div>
-            <div>🌿 Специи: <span style="color:#2ecc71;">${this.state.specialIngredients}</span></div>
+            <div>🎲 СЛ Сцены: <span>${this.state.encounterDc}</span></div>
+            <div>⏱ Проверок: <span>${this.state.totalChecks}</span></div>
+            <div>🥩 Пайки: <span>${this.state.normalIngredients}</span></div>
+            <div>🌿 Специи: <span>${this.state.specialIngredients}</span></div>
         `;
         modalBody.appendChild(summaryStats);
 
@@ -371,7 +346,6 @@ const CampingManager = {
                 this.triggerDiceAndResultModal();
                 return;
             }
-
             if (this.mapDataRef) this.mapDataRef.camping = this.state;
             if (this.onSaveCallback) this.onSaveCallback();
             else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
@@ -404,33 +378,25 @@ const CampingManager = {
                     if (window.QuestManager) window.QuestManager.currentFilter = 'active';
                 }, 450);
             }
-        } catch (error) { console.error("Критическая ошибка при сохранении привала:", error); }
+        } catch (error) { console.error("Критическая ошибка сохранения привала:", error); }
     },
 
     resetToDefault() {
         try {
             const camoRow = document.getElementById('row_camouflage');
             const huntRow = document.getElementById('row_hunt');
-
             if (camoRow) camoRow.style.display = 'table-row';
             if (huntRow) huntRow.style.display = 'table-row';
-
             this.state.baseChecks = 2;
             this.state.checkMod = 12;
-
-            document.querySelectorAll('input[type="radio"]').forEach(radio => {
-                radio.checked = false;
-            });
-
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
             this.syncCountersUi();
             this.recalculateCamp();
-
             const resetBtn = document.querySelector('.kingdom-save-wrapper .btn.del');
             if (resetBtn) {
                 const oldText = resetBtn.textContent;
                 resetBtn.style.setProperty('transform', 'scale(0.96)', 'important');
                 resetBtn.textContent = '🔄 Сброшено';
-
                 const flash = document.createElement('div');
                 flash.className = 'button-flash-overlay';
                 flash.style.left = resetBtn.offsetLeft + 'px';
@@ -438,12 +404,10 @@ const CampingManager = {
                 flash.style.width = resetBtn.offsetWidth + 'px';
                 flash.style.height = resetBtn.offsetHeight + 'px';
                 resetBtn.parentNode.appendChild(flash);
-
                 setTimeout(() => {
                     resetBtn.style.removeProperty('transform');
                     flash.style.opacity = '0';
                 }, 40);
-
                 setTimeout(() => {
                     flash.remove();
                     resetBtn.textContent = oldText;
@@ -452,6 +416,4 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при сбросе параметров привала:", e); }
     }
 };
-
 export default CampingManager;
-
