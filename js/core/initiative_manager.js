@@ -86,7 +86,8 @@ const InitiativeManager = {
             score: parsedScore,
             faction: faction || 'neutral',
             isNat20: !!isNat20,
-            isNat1: !!isNat1
+            isNat1: !!isNat1,
+            avatar: null // НОВОЕ: Поле для хранения Data-URL или типа аватарки персонажа
         };
 
         this.state.combatants.push(newUnit);
@@ -94,6 +95,29 @@ const InitiativeManager = {
             this.state.selectedUnitId = newUnit.id;
         }
         this._sortAndSave();
+    },
+
+    /**
+     * Назначение аватарки персонажу по его ID
+     * Поддерживает типы 'orc', 'elf' (генерация на Canvas) или сброс в null
+     */
+    setCombatantAvatar(id, avatarType) {
+        const unit = this.state.combatants.find(c => c.id === id);
+        if (!unit) return;
+
+        unit.avatarType = avatarType || null; // Фиксируем строковый тип
+
+        if (avatarType === 'orc') {
+            unit.avatar = this.generateOrcAvatarDataUrl();
+        } else if (avatarType === 'elf') {
+            unit.avatar = this.generateElfAvatarDataUrl();
+        } else if (avatarType === 'dwarf') {
+            unit.avatar = this.generateDwarfAvatarDataUrl(); // НОВОЕ: Вызов генератора дварфа
+        } else {
+            unit.avatar = null;
+        }
+
+        this._saveWithoutSort();
     },
 
     nextTurn() {
@@ -1081,6 +1105,7 @@ const InitiativeManager = {
 
         const currentQuoteHTML = phrases[this.state.phraseSeed % phrases.length];
 
+
         this.state.combatants.forEach((unit, index) => {
             const card = document.createElement('div');
             const isActive = this.state.selectedUnitId === unit.id;
@@ -1093,12 +1118,60 @@ const InitiativeManager = {
             if (unit.isNat20) statusIcon = '<span class="init-crown-badge">👑</span>';
             if (unit.isNat1) statusIcon = '<span class="init-nat1-skull-badge">💀</span>';
 
+            // НОВОЕ: Отрисовка аватарки (если установлена — выводим Canvas-картинку, иначе — пустой щит с номером)
+            let avatarHtml = '';
+            if (unit.avatar) {
+                avatarHtml = `<div class="init-avatar-shield-circle active" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #543e0d; background: #020503; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;"><img src="${unit.avatar}" style="width: 100%; height: 100%; object-fit: cover;"></div>`;
+            } else {
+                avatarHtml = `<div class="init-avatar-shield-circle" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #543e0d; background: #020503; display: flex; align-items: center; justify-content: center; color: #b89445; font-size: 16px; font-weight: 900; font-family: monospace; flex-shrink: 0;">${index + 1}</div>`;
+            }
+
             card.innerHTML = `
-                <div class="init-card-left" style="pointer-events: none;"><div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div><div class="init-badge-index">${index + 1}</div><div class="init-card-name-text">${unit.name}</div>${statusIcon}</div>
-                <div class="init-card-right"><button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button><div class="init-select-wrapper"><select class="init-inline-faction-select" data-id="${unit.id}"><option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option><option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>💛 Нейтрал</option><option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option></select></div><div class="init-score-massive-block"><input type="number" class="init-inline-score-input" data-id="${unit.id}" value="${unit.score}"></div><button type="button" class="init-btn-delete-card">×</button></div>
+                <div class="init-card-left" style="pointer-events: none;">
+                    <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
+                    ${avatarHtml}
+                    <div class="init-card-name-text">${unit.name}</div>
+                    ${statusIcon}
+                </div>
+                <div class="init-card-right">
+                    <!-- НОВОЕ: Инлайн селектор выбора аватарки -->
+                    <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
+                        <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
+                            <option value="">👤 Нет фото</option>
+                            <option value="orc" ${unit.avatarType === 'orc' ? 'selected' : ''}>👹 Орк</option>
+                            <option value="elf" ${unit.avatarType === 'elf' ? 'selected' : ''}>🧝 Эльф</option>
+                            <option value="dwarf" ${unit.avatarType === 'dwarf' ? 'selected' : ''}>🧔 Дварф</option>
+                        </select>
+
+                    </div>
+
+                    <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button>
+                    <div class="init-select-wrapper">
+                        <select class="init-inline-faction-select" data-id="${unit.id}">
+                            <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
+                            <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>💛 Нейтрал</option>
+                            <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
+                        </select>
+                    </div>
+                    <div class="init-score-massive-block">
+                        <input type="number" class="init-inline-score-input" data-id="${unit.id}" value="${unit.score}">
+                    </div>
+                    <button type="button" class="init-btn-delete-card">×</button>
+                </div>
             `;
 
-            card.addEventListener('click', (e) => { if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') this.toggleSelectUnit(unit.id); });
+            // Навешивание стандартных и новых обработчиков событий
+            card.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+                    this.toggleSelectUnit(unit.id);
+                }
+            });
+
+            // НОВОЕ: Слушатель смены выпадающего списка аватарки персонажа
+            card.querySelector('.init-inline-avatar-select').addEventListener('change', (e) => {
+                this.setCombatantAvatar(unit.id, e.target.value);
+            });
+
             card.querySelector('.init-btn-toggle-d20-inline').addEventListener('click', (e) => { e.stopPropagation(); if (!unit.isNat20 && !unit.isNat1) this.toggleNat20(unit.id); else if (unit.isNat20) this.toggleNat1(unit.id); else { unit.isNat1 = false; this._sortAndSave(); } });
 
             const scoreInp = card.querySelector('.init-inline-score-input');
@@ -1112,13 +1185,256 @@ const InitiativeManager = {
             card.addEventListener('dragend', () => card.classList.remove('init-card-dragging'));
             card.addEventListener('dragover', (e) => e.preventDefault());
             card.addEventListener('drop', (e) => { e.preventDefault(); const draggedId = e.dataTransfer.getData('text/plain'); const draggedIdx = this.state.combatants.findIndex(c => c.id === draggedId); const targetIdx = this.state.combatants.findIndex(c => c.id === unit.id); if (draggedIdx !== -1 && targetIdx !== -1) { const [draggedItem] = this.state.combatants.splice(draggedIdx, 1); this.state.combatants.splice(targetIdx, 0, draggedItem); this._saveWithoutSort(); } });
+
             listContainer.appendChild(card);
         });
+
+
 
         const quoteShield = document.createElement('div'); quoteShield.className = 'init-focus-quote-shield';
         quoteShield.innerHTML = `<div class="init-focus-phrase-text">${currentQuoteHTML}</div>`;
         listContainer.parentNode.appendChild(quoteShield);
-    }
+    },
+    /**
+     * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ОРКА НА CANVAS
+     * Возвращает строку Data-URL для мгновенного рендеринга в тег img
+     */
+    generateOrcAvatarDataUrl() {
+        const size = 128; // Оптимальный HD-размер для мини-карточек
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. ФОН: Круглая плашка щита
+        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#2c1313'; ctx.strokeStyle = '#543e0d'; ctx.lineWidth = 2;
+        ctx.fill(); ctx.stroke();
+
+        // 2. УШИ ОРКА
+        ctx.fillStyle = '#1e3d24';
+        ctx.beginPath(); ctx.moveTo(35, 60); ctx.lineTo(10, 48); ctx.lineTo(38, 72); ctx.fill(); // Левое
+        ctx.beginPath(); ctx.moveTo(93, 60); ctx.lineTo(118, 48); ctx.lineTo(90, 72); ctx.fill(); // Правое
+
+        // 3. ШЕЯ И ГОЛОВА
+        ctx.fillStyle = '#22472a';
+        ctx.beginPath(); ctx.moveTo(45, 90); ctx.lineTo(30, 128); ctx.lineTo(98, 128); ctx.lineTo(83, 90); ctx.fill(); // Шея
+
+        ctx.fillStyle = '#2d5a37'; // Лицо
+        ctx.beginPath();
+        ctx.moveTo(40, 55); ctx.lineTo(64, 38); ctx.lineTo(88, 55); ctx.lineTo(90, 85);
+        ctx.lineTo(72, 100); ctx.lineTo(56, 100); ctx.lineTo(38, 85); ctx.closePath(); ctx.fill();
+
+        // 4. НАДБРОВНЫЕ ДУГИ И ГЛАЗА
+        ctx.fillStyle = '#22472a';
+        ctx.beginPath(); ctx.moveTo(42, 58); ctx.lineTo(64, 63); ctx.lineTo(86, 58); ctx.lineTo(84, 52); ctx.lineTo(64, 56); ctx.lineTo(44, 52); ctx.fill();
+
+        ctx.fillStyle = '#e74c3c'; // Красный неон глаз
+        ctx.beginPath(); ctx.ellipse(54, 63, 4, 2, Math.PI / 12, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(74, 63, 4, 2, -Math.PI / 12, 0, Math.PI * 2); ctx.fill();
+
+        // 5. БОЕВОЙ ШРАМ
+        ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(51, 55); ctx.lineTo(56, 70); ctx.stroke();
+
+        // 6. ПРИПЛЮСНУТЫЙ НОС
+        ctx.fillStyle = '#1e3d24';
+        ctx.beginPath(); ctx.moveTo(59, 67); ctx.lineTo(69, 67); ctx.lineTo(71, 74); ctx.lineTo(57, 74); ctx.fill();
+
+        // 7. РОТ И КЛЫКИ
+        ctx.strokeStyle = '#162b1a'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(50, 84); ctx.quadraticCurveTo(64, 89, 78, 84); ctx.stroke();
+
+        ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#162b1a'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(52, 86); ctx.lineTo(55, 74); ctx.lineTo(59, 87); ctx.closePath(); ctx.fill(); ctx.stroke(); // Левый клык
+        ctx.beginPath(); ctx.moveTo(76, 86); ctx.lineTo(73, 74); ctx.lineTo(69, 87); ctx.closePath(); ctx.fill(); ctx.stroke(); // Правый клык
+
+        // 8. ТЕНЕВАЯ ПОЛОВИНА ФЛЭТ-ОБЪЕМА
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.beginPath(); ctx.moveTo(64, 38); ctx.lineTo(40, 55); ctx.lineTo(38, 85); ctx.lineTo(56, 100); ctx.lineTo(64, 100); ctx.closePath(); ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+    /**
+     * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ЭЛЬФА НА CANVAS
+     * Возвращает строку Data-URL для мгновенного рендеринга
+     */
+    generateElfAvatarDataUrl() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. ФОН: Изумрудный благородный щит
+        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#112918'; ctx.strokeStyle = '#8a6421'; ctx.lineWidth = 2;
+        ctx.fill(); ctx.stroke();
+
+        // 2. ДЛИННЫЕ ЭЛЬФИЙСКИЕ УШИ (Экстремально вытянутые вверх и в стороны)
+        ctx.fillStyle = '#cbdcd0'; // Теневой цвет ушей (чуть темнее кожи)
+        ctx.beginPath(); ctx.moveTo(44, 65); ctx.lineTo(4, 30); ctx.lineTo(42, 78); ctx.fill(); // Левое
+        ctx.beginPath(); ctx.moveTo(84, 65); ctx.lineTo(124, 30); ctx.lineTo(86, 78); ctx.fill(); // Правое
+
+        // Внутренняя розовая часть ушей
+        ctx.fillStyle = '#e8c4c4';
+        ctx.beginPath(); ctx.moveTo(42, 66); ctx.lineTo(14, 36); ctx.lineTo(40, 74); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(86, 66); ctx.lineTo(114, 36); ctx.lineTo(88, 74); ctx.fill();
+
+        // 3. ШЕЯ И ДЛИННЫЕ ВОЛОСЫ
+        ctx.fillStyle = '#e5eff2'; // Серебряные волосы на заднем плане
+        ctx.beginPath(); ctx.moveTo(35, 70); ctx.lineTo(25, 128); ctx.lineTo(103, 128); ctx.lineTo(93, 70); ctx.fill();
+
+        ctx.fillStyle = '#daeae1'; // Изящная шея
+        ctx.beginPath(); ctx.moveTo(50, 85); ctx.lineTo(44, 120); ctx.lineTo(84, 120); ctx.lineTo(78, 85); ctx.fill();
+
+        // 4. ЛИЦО (Заостренный подбородок, идеальные эльфийские пропорции)
+        ctx.fillStyle = '#eaf5ee'; // Бледная благородная кожа
+        ctx.beginPath();
+        ctx.moveTo(45, 50); // Левая скула
+        ctx.lineTo(64, 34); // Макушка
+        ctx.lineTo(83, 50); // Правая скула
+        ctx.lineTo(82, 80); // Правая челюсть
+        ctx.lineTo(64, 102); // Заостренный подбородок
+        ctx.lineTo(46, 80); // Левая челюсть
+        ctx.closePath(); ctx.fill();
+
+        // 5. РАСКОСЫЕ МИСТИЧЕСКИЕ ГЛАЗА (Золотое свечение)
+        ctx.fillStyle = '#b89445'; // Благородный золотой
+        ctx.beginPath(); ctx.ellipse(54, 58, 5, 2, -Math.PI / 10, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(74, 58, 5, 2, Math.PI / 10, 0, Math.PI * 2); ctx.fill();
+
+        // Магический зрачок
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(55, 58, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(73, 58, 1.5, 0, Math.PI * 2); ctx.fill();
+
+        // Изящные тонкие брови стрелами
+        ctx.strokeStyle = '#543e0d'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(46, 52); ctx.lineTo(58, 54); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(82, 52); ctx.lineTo(70, 54); ctx.stroke();
+
+        // 6. МАГИЧЕСКИЙ РИТУАЛЬНЫЙ ТАТУАЖ (Синие линии на щеках)
+        ctx.strokeStyle = '#2980b9'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(48, 68); ctx.lineTo(56, 76); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(80, 68); ctx.lineTo(72, 76); ctx.stroke();
+
+        // 7. АККУРАТНЫЙ ТОНКИЙ НОС И АККУРАТНЫЕ ГУБЫ
+        ctx.strokeStyle = '#b4cfc0'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(64, 55); ctx.lineTo(62, 74); ctx.lineTo(66, 74); ctx.stroke();
+
+        ctx.fillStyle = '#e77f7f'; // Утонченные розовые губы
+        ctx.beginPath(); ctx.ellipse(64, 86, 6, 2, 0, 0, Math.PI * 2); ctx.fill();
+
+        // 8. СЕРЕБРЯНАЯ ДИАДЕМА ВЛАСТИТЕЛЯ (На лбу)
+        ctx.fillStyle = '#b89445'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(48, 45); ctx.lineTo(64, 50); ctx.lineTo(80, 45); ctx.lineTo(76, 41); ctx.lineTo(64, 44); ctx.lineTo(52, 41);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Кристалл в центре короны
+        ctx.fillStyle = '#3498db';
+        ctx.beginPath(); ctx.arc(64, 47, 2.5, 0, Math.PI * 2); ctx.fill();
+
+        // 9. ТЕНЕВАЯ ПОЛОВИНА FLAT-ОБЪЕМА
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.beginPath(); ctx.moveTo(64, 34); ctx.lineTo(45, 50); ctx.lineTo(46, 80); ctx.lineTo(64, 102); ctx.closePath(); ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+
+    /**
+     * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ДВАРФА НА CANVAS
+     * Возвращает строку Data-URL для мгновенного рендеринга
+     */
+    generateDwarfAvatarDataUrl() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. ФОН: Глубокий каменный щит
+        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#2c2c2c'; ctx.strokeStyle = '#7f8c8d'; ctx.lineWidth = 2;
+        ctx.fill(); ctx.stroke();
+
+        // 2. ДВАРФИЙСКИЙ РОГАТЫЙ ШЛЕМ И СТАЛЬНЫЕ НАПЛЕЧНИКИ
+        ctx.fillStyle = '#1e272c'; // Наплечники
+        ctx.beginPath(); ctx.moveTo(25, 128); ctx.lineTo(40, 105); ctx.lineTo(88, 105); ctx.lineTo(103, 128); ctx.fill();
+
+        ctx.fillStyle = '#7f8c8d'; // База шлема
+        ctx.beginPath();
+        ctx.moveTo(38, 48); ctx.lineTo(64, 25); ctx.lineTo(90, 48); ctx.lineTo(86, 62); ctx.lineTo(42, 62);
+        ctx.closePath(); ctx.fill();
+
+        // Рога шлема (угловатые, брутальные)
+        ctx.fillStyle = '#dcdde1';
+        ctx.beginPath(); ctx.moveTo(38, 44); ctx.lineTo(18, 30); ctx.lineTo(34, 52); ctx.fill(); // Левый рог
+        ctx.beginPath(); ctx.moveTo(90, 44); ctx.lineTo(110, 30); ctx.lineTo(94, 52); ctx.fill(); // Правый рог
+
+        // 3. ЛИЦО (Широкое, загорелое, суровое)
+        ctx.fillStyle = '#d39e82';
+        ctx.beginPath();
+        ctx.moveTo(42, 60); ctx.lineTo(86, 60); ctx.lineTo(84, 88);
+        ctx.lineTo(64, 105); ctx.lineTo(44, 88); ctx.closePath(); ctx.fill();
+
+        // 4. ГУСТЫЕ ДВАРФИЙСКИЕ БРОВИ И МАЛЕНЬКИЕ ГЛАЗА
+        ctx.fillStyle = '#d65d11'; // Рыжие брови
+        ctx.fillRect(43, 62, 18, 5);
+        ctx.fillRect(67, 62, 18, 5);
+
+        ctx.fillStyle = '#2f3542'; // Хитрые темные глаза
+        ctx.beginPath(); ctx.arc(52, 72, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(76, 72, 2.5, 0, Math.PI * 2); ctx.fill();
+
+        // 5. ОГРОМНЫЙ КНОПОЧНЫЙ КАРТОФЕЛЬНЫЙ НОС
+        ctx.fillStyle = '#c2856a';
+        ctx.beginPath(); ctx.arc(64, 76, 7, 0, Math.PI * 2); ctx.fill();
+
+        // 6. КАНOНИЧНАЯ МАССИВНАЯ РЫЖАЯ БОРОДА (Перекрывает всё лицо снизу)
+        ctx.fillStyle = '#e67e22'; // Яркий рыжий цвет бороды
+        ctx.beginPath();
+        ctx.moveTo(42, 80);
+        ctx.lineTo(32, 105);
+        ctx.lineTo(46, 128);
+        ctx.lineTo(82, 128);
+        ctx.lineTo(96, 105);
+        ctx.lineTo(86, 80);
+        ctx.quadraticCurveTo(64, 94, 42, 80); // Вырез под рот и нос
+        ctx.closePath(); ctx.fill();
+
+        // Усы (Тяжелые накладные плашки)
+        ctx.fillStyle = '#d65d11'; // Более темный рыжий для усов
+        ctx.beginPath();
+        ctx.moveTo(50, 81); ctx.lineTo(64, 86); ctx.lineTo(78, 81);
+        ctx.lineTo(84, 95); ctx.lineTo(64, 91); ctx.lineTo(44, 95);
+        ctx.closePath(); ctx.fill();
+
+        // 7. ЖЕЛЕЗНЫЕ КОЛЬЦА-ЗАЖИМЫ НА КОСАХ БОРОДЫ (В самом низу)
+        ctx.fillStyle = '#718093'; // Стальной цвет колец
+        ctx.fillRect(44, 118, 10, 6);
+        ctx.fillRect(74, 118, 10, 6);
+
+        // 8. ТЕНЕВАЯ ПОЛОВИНА FLAT-ОБЪЕМА
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.beginPath(); ctx.moveTo(64, 25); ctx.lineTo(18, 30); ctx.lineTo(32, 105); ctx.lineTo(46, 128); ctx.lineTo(64, 128); ctx.closePath(); ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+
 };
 
 export default InitiativeManager;

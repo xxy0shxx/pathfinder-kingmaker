@@ -4752,3 +4752,56 @@ canvas[style*="position: fixed"] {
     border-color: #ffd875 !important;
     box-shadow: inset 0 0 15px rgba(255, 216, 117, 0.1), 0 4px 15px rgba(0,0,0,0.7) !important;
 }
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА АВАТАРОК ТРЕКЕРА ИНИЦИАТИВЫ ПОД ТВ
+   ============================================================================ */
+
+/* 1. Эффект неонового золотого канта для активного круглого щита аватарки */
+.init-avatar-shield-circle.active {
+    box-shadow: 0 0 8px rgba(255, 216, 117, 0.4), inset 0 0 4px rgba(0,0,0,0.8) !important;
+    border-color: #dfbc6f !important;
+}
+
+/* 2. АДАПТАЦИЯ ПОД ГОРИЗОНТАЛЬНЫЙ РЕЖИМ (MODE-BG3) */
+
+/* Прячем выпадающий селектор аватарки в горизонтальном режиме, чтобы не забивать HUD */
+.init-cards-scroll-list.mode-bg3 .avatar-picker-wrapper {
+    display: none !important;
+}
+
+/* Перестраиваем аватарку: укрупняем её и центрируем внутри квадратного токена */
+.init-cards-scroll-list.mode-bg3 .init-avatar-shield-circle {
+    width: 52px !important;  /* Увеличили размер для хорошей видимости на ТВ */
+    height: 52px !important;
+    margin: 4px auto 2px auto !important; /* Центрируем и сдвигаем к центру карточки */
+    display: flex !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Удостоверимся, что картинка внутри круглого щита не заваливается набок */
+.init-cards-scroll-list.mode-bg3 .init-avatar-shield-circle img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* Аккуратная корректировка положения имени персонажа под токеном-аватаркой */
+.init-cards-scroll-list.mode-bg3 .init-avatar-shield-circle + .init-card-name-text {
+    margin-top: 4px !important;
+    font-size: 13px !important; /* Оптимальный компактный шрифт для двух строк */
+}
+
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА ДВАРФИЙСКИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Легкое контурное тиснение для стального шлема и рыжей бороды дварфа */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #7f8c8d !important; /* Стальной кант по умолчанию для дварфийских карточек */
+}
+
+/* В режиме Горизонт (mode-bg3) красим ободок под золото, если токен в фокусе хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
+}
