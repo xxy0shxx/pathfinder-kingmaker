@@ -125,6 +125,7 @@ const HexCanvasRender = {
         }
         this.ctx.closePath();
     },
+
     render() {
         DebugManager.profileFps();
 
@@ -186,7 +187,9 @@ const HexCanvasRender = {
                     focusGrad.addColorStop(0, `rgba(255, 216, 117, ${this.focusAlpha})`);
                     focusGrad.addColorStop(0.5, `rgba(231, 76, 60, ${this.focusAlpha * 0.4})`);
                     focusGrad.addColorStop(1, 'rgba(231, 76, 60, 0)');
-                    this.ctx.fillStyle = focusGrad; this.ctx.fill(); ctx.restore();
+                    this.ctx.fillStyle = focusGrad;
+                    this.ctx.fill();
+                    this.ctx.restore(); // ИСПРАВЛЕНО: Заменено ошибочное ctx.restore() на корректное (this.ctx)
                 }
 
                 if (this.spawnTimers[hexKey]) {
@@ -213,6 +216,7 @@ const HexCanvasRender = {
             this.stopAnimationLoop();
         }
     },
+
 
 
 

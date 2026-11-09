@@ -4683,3 +4683,72 @@ canvas[style*="position: fixed"] {
 .camp-invisible-table td.camp-act-cell .skill-name-large + .skill-name-large {
     display: none !important;
 }
+
+/* ============================================================================
+   ФИНАЛЬНЫЙ ТВ-МАСТЕР КОРРЕКЦИИ ШРИФТОВ И РАССТОЯНИЙ ПРИВАЛА
+   ============================================================================ */
+
+/* 1. Увеличиваем ширину колонок радиокнопок для равномерного распределения */
+.camp-invisible-table th.col-radio,
+.camp-invisible-table td:not(.camp-act-cell) {
+    width: 65px !important; /* Увеличили с 42px — теперь пустота слева исчезнет */
+    padding: 14px 4px !important;
+}
+
+/* 2. Делаем заголовки действий (Подготовка, Маскировка, Охота) существенно больше */
+.camp-invisible-table .act-name {
+    font-size: 26px !important; /* Было 20px — мощный, читаемый заголовок */
+    font-weight: 900 !important;
+    letter-spacing: 0.8px !important;
+    margin-bottom: 6px !important;
+}
+
+/* Иконки-эмодзи перед названиями действий делаем пропорционально крупнее */
+.camp-invisible-table .act-name img,
+.camp-invisible-table .act-name span {
+    font-size: 24px !important;
+    vertical-align: middle !important;
+}
+
+/* 3. Укрупняем шрифт навыков и параметров сложности (ВЫЖИВАНИЕ СЛ 14) */
+[id^="label_dc_"] {
+    font-size: 21px !important; /* Было 16px — теперь отлично видно издалека */
+    font-weight: 800 !important;
+    color: #ffd875 !important; /* Подсвечиваем более ярким золотом */
+    letter-spacing: 0.5px !important;
+    margin-top: 5px !important;
+}
+
+/* Корректируем внутренние отступы левой плашки под укрупненный текст */
+.camp-invisible-table td.camp-act-cell {
+    padding: 16px 20px !important; /* Добавили воздуха внутри плашки */
+}
+
+/* ============================================================================
+   ФИНАЛЬНОЕ ВЫРАВНИВАНИЕ СЕТКИ ТАБЛИЦЫ ПРИВАЛА
+   ============================================================================ */
+
+/* Точно центрируем буквы КУ, У, П, КП в шапке над радиокнопками */
+.camp-invisible-table th.col-radio {
+    text-align: center !important;
+    font-size: 22px !important; /* Делаем буквы шапки чуть крупнее и заметнее */
+    font-weight: 900 !important;
+    letter-spacing: 1px !important;
+    padding-bottom: 15px !important; /* Отделяем шапку от первой строки */
+}
+
+/* Гарантируем, что радиокнопки стоят строго по центру своих ячеек */
+.camp-invisible-table td:not(.camp-act-cell) input[type="radio"] {
+    margin: 0 auto !important;
+}
+
+/* Увеличиваем вертикальный разрыв между плашками действий для идеального баланса */
+.camp-invisible-table tr {
+    border-bottom: 16px solid transparent !important;
+}
+
+/* Легкое визуальное выделение строки при наведении мыши ГМа */
+.camp-invisible-table tr:hover td.camp-act-cell {
+    border-color: #ffd875 !important;
+    box-shadow: inset 0 0 15px rgba(255, 216, 117, 0.1), 0 4px 15px rgba(0,0,0,0.7) !important;
+}
