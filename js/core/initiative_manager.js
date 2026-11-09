@@ -495,24 +495,145 @@ const InitiativeManager = {
                     osc2.stop(now + duration);
                     osc3.stop(now + duration);
 
+
+
                 } else if (mode === 'thunder') {
-                    // 3. ПРЕСЕТ: Раскат грома (Синтез белого шума фильтром низких частот)
-                    const bufferSize = ctx.sampleRate * 0.6;
-                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                    const data = buffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-                    const noise = ctx.createBufferSource();
-                    noise.buffer = buffer;
-                    const filter = ctx.createBiquadFilter();
-                    filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(250, now);
-                    filter.frequency.exponentialRampToValueAtTime(40, now + 0.5);
-                    const gainNode = ctx.createGain();
-                    gainNode.gain.setValueAtTime(0.6, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-                    noise.connect(filter); filter.connect(gainNode);
-                    gainNode.connect(ctx.destination);
-                    noise.start(now); noise.stop(now + 0.6);
+                    // ⚡ ПРЕСЕТ: Mortal Kombat Theme (64 шага, Точная тональность A-Minor + Питч-детюн, 120 BPM)
+                    const totalSteps = 64;
+                    const stepTime = 0.125; // 120 BPM (0.125 сек на 16-ю ноту)
+
+                    // СЕТКА ЧАСТОТ: Ля-минор в высокой 3-й октаве
+                    // Паттерн: Ля -> Ля -> До -> Ля -> Ре -> Ля -> Ми -> Ре...
+                    const mkThemeScale = [
+                        // КВАДРАТ 1: Главная тема в оригинальном высоком регистре
+                        880.00, 880.00, 1046.50, 880.00, 1174.66, 880.00, 1318.51, 1174.66, // Ля-Ля-До-Ля-Ре-Ля-Ми-Ре
+                        1046.50, 1046.50, 1244.51, 1046.50, 1396.91, 1046.50, 1567.98, 1396.91, // До-До-Ре#-До-Фа-До-Соль-Фа
+                        1174.66, 1174.66, 1396.91, 1174.66, 1567.98, 1174.66, 1760.00, 1567.98, // Ре-Ре-Фа-Ре-Соль-Ре-Ля-Соль
+                        1046.50, 1046.50, 1244.51, 1046.50, 987.77,  987.77,  783.99,  880.00,  // До-До-Ре#-До-Си-Си-Соль-Ля
+
+                        // КВАДРАТ 2: Развитие и разгон частот
+                        880.00, 880.00, 1046.50, 880.00, 1174.66, 880.00, 1318.51, 1174.66,
+                        1046.50, 1046.50, 1244.51, 1046.50, 1396.91, 1046.50, 1567.98, 1396.91,
+                        1318.51, 1318.51, 1567.98, 1318.51, 1760.00, 1318.51, 1975.53, 1760.00, // Подъем в Ми-регистр
+                        1567.98, 1567.98, 1760.00, 1975.53, 2093.00, 2349.32, 2637.02, 3520.00  // Финальный взрывной взлет вверх!
+                    ];
+
+                    // Упругая танцевальная брейкбит-сетка
+                    const drumMatrix = [
+                        4, 0, 1, 0, 3, 0, 1, 0,
+                        1, 0, 1, 0, 3, 0, 1, 0,
+                        4, 0, 1, 0, 3, 0, 1, 0,
+                        1, 0, 1, 0, 3, 2, 3, 4,
+                        4, 0, 1, 0, 3, 0, 1, 0,
+                        1, 0, 1, 0, 3, 0, 1, 0,
+                        4, 0, 1, 0, 3, 0, 1, 0,
+                        1, 2, 2, 2, 3, 3, 3, 4
+                    ];
+
+                    for (let i = 0; i < totalSteps; i++) {
+                        const t = now + (i * stepTime);
+                        const noteFreq = mkThemeScale[i];
+                        const drumTrigger = drumMatrix[i];
+
+                        // --- 1. СИНТЕЗ КУЛЬТОВОГО СИНТ-РИФФА (РЕЗКИЙ HIGH-PITCH С ДЕТЮНОМ) ---
+                        if (noteFreq > 0) {
+                            const synthOsc = ctx.createOscillator();
+                            const synthOsc2 = ctx.createOscillator();
+                            const synthFilter = ctx.createBiquadFilter();
+                            const synthGain = ctx.createGain();
+
+                            synthOsc.type = 'square';
+                            synthOsc.frequency.setValueAtTime(noteFreq, t);
+                            // ИСПРАВЛЕНО: Добавляем +45 центов микро-детюна для эмуляции питча оригинальной записи
+                            synthOsc.detune.setValueAtTime(45, t);
+
+                            synthOsc2.type = 'sine';
+                            synthOsc2.frequency.setValueAtTime(noteFreq * 2.0, t);
+                            synthOsc2.detune.setValueAtTime(45, t);
+
+                            // Полосовой фильтр (Bandpass на 1.9 кГц) делает высокий синт чистым и пробивным
+                            synthFilter.type = 'bandpass';
+                            synthFilter.frequency.setValueAtTime(1900, t);
+                            synthFilter.Q.setValueAtTime(1.8, t);
+
+                            // Хлесткое, собранное стаккато
+                            synthGain.gain.setValueAtTime(0.13, t);
+                            synthGain.gain.exponentialRampToValueAtTime(0.001, t + stepTime * 0.75);
+
+                            synthOsc.connect(synthFilter);
+                            synthOsc2.connect(synthFilter);
+                            synthFilter.connect(synthGain);
+                            synthGain.connect(ctx.destination);
+
+                            synthOsc.start(t); synthOsc2.start(t);
+                            synthOsc.stop(t + stepTime * 0.8); synthOsc2.stop(t + stepTime * 0.8);
+                        }
+
+                        // --- 2. ELECTRONIC DANCE KICK ---
+                        if (drumTrigger === 1 || drumTrigger === 3 || drumTrigger === 4) {
+                            const kickOsc = ctx.createOscillator();
+                            const kickGain = ctx.createGain();
+                            kickOsc.type = 'triangle';
+                            kickOsc.frequency.setValueAtTime(145, t);
+                            kickOsc.frequency.exponentialRampToValueAtTime(46, t + 0.08);
+
+                            kickGain.gain.setValueAtTime(0.48, t);
+                            kickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+
+                            kickOsc.connect(kickGain); kickGain.connect(ctx.destination);
+                            kickOsc.start(t); kickOsc.stop(t + 0.14);
+                        }
+
+                        // --- 3. SYNTH-WAVE SNARE ---
+                        if (drumTrigger === 2 || drumTrigger === 3 || drumTrigger === 4) {
+                            const snareOsc = ctx.createOscillator();
+                            const snareGain = ctx.createGain();
+                            snareOsc.type = 'triangle';
+                            snareOsc.frequency.setValueAtTime(205, t);
+                            snareOsc.frequency.linearRampToValueAtTime(105, t + 0.05);
+
+                            snareGain.gain.setValueAtTime(0.33, t);
+                            snareGain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+
+                            snareOsc.connect(snareGain); snareGain.connect(ctx.destination);
+                            snareOsc.start(t); snareOsc.stop(t + 0.10);
+
+                            const bufSize = Math.floor(ctx.sampleRate * 0.11);
+                            const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+                            const data = buf.getChannelData(0);
+                            for (let j = 0; j < bufSize; j++) { data[j] = Math.random() * 2 - 1; }
+                            const noise = ctx.createBufferSource(); noise.buffer = buf;
+                            const filter = ctx.createBiquadFilter();
+                            filter.type = 'bandpass'; filter.frequency.setValueAtTime(1250, t);
+                            const noiseGain = ctx.createGain();
+                            noiseGain.gain.setValueAtTime(0.18, t);
+                            noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                            noise.connect(filter); filter.connect(noiseGain);
+                            noiseGain.connect(ctx.destination);
+                            noise.start(t); noise.stop(t + 0.13);
+                        }
+
+                        // --- 4. ELECTRONIC OPEN HAT ---
+                        if (drumTrigger === 4 || i % 2 === 1) {
+                            const bufSize = Math.floor(ctx.sampleRate * 0.04);
+                            const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+                            const data = buf.getChannelData(0);
+                            for (let j = 0; j < bufSize; j++) { data[j] = Math.random() * 2 - 1; }
+                            const hatNoise = ctx.createBufferSource(); hatNoise.buffer = buf;
+                            const highPass = ctx.createBiquadFilter();
+                            highPass.type = 'highpass'; highPass.frequency.setValueAtTime(7000, t);
+                            const hatGain = ctx.createGain();
+                            hatGain.gain.setValueAtTime(0.07, t);
+                            hatGain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+
+                            hatNoise.connect(highPass);
+                            highPass.connect(hatGain);
+                            hatGain.connect(ctx.destination);
+
+                            hatNoise.start(t); hatNoise.stop(t + 0.04);
+                        }
+                    }
+
 
                 } else if (mode === 'blade') {
                     // 4. ПРЕСЕТ: Звон клинков (Высокочастотный металлический лязг)
@@ -855,14 +976,11 @@ const InitiativeManager = {
                             </div>
                             
                             <select id="initSelectAudioPreset" style="background: #090f0b; border: 1px solid #543e0d; color: #ebd291; height: 50px; padding: 4px 10px; font-weight: bold; font-size: 14px; border-radius: 4px; cursor: pointer;">
-                                <option value="gong">🔔 Звук: Гонг</option>
-                                <option value="bell">💎 Звук: Тройной Колокольчик</option>
-                                <option value="drum">🥁 Звук: Барабан</option>
-                                <option value="magic">🔮 Звук: Волшебный Импульс</option>
+                                <option value="bell">💎 Звук: Колокольчик</option>
+                                <option value="drum">🥁 Звук: Drum&Bass</option>
+                                <option value="magic">🔮 Звук: Techno</option>
                                 <option value="horn">📯 Звук: Боевой Рог</option>
-                                <option value="thunder">⚡ Звук: Раскат Грома</option>
-                                <option value="blade">⚔️ Звук: Звон Клинков</option>
-                                <option value="anvil">🔨 Звук: Удар по Наковальне</option>
+                                <option value="thunder">⚡ Звук: Combat</option>
                                 <option value="none">🔇 Без звука (Только вспышка)</option>
                             </select>
 
