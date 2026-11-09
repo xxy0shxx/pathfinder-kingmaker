@@ -4887,7 +4887,7 @@ canvas[style*="position: fixed"] {
     box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
 }
 /* ============================================================================
-   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА МАГИЧЕСКИХ ТОКЕНОВ
+   СТИЛИЗАЦИЯ И ПОДГОНКА МАГИЧЕСКИХ ТОКЕНОВ
    ============================================================================ */
 
 /* Таинственный фиолетовый кант по умолчанию для карточек магов */
@@ -4901,7 +4901,7 @@ canvas[style*="position: fixed"] {
     box-shadow: 0 0 14px rgba(155, 89, 182, 0.85) !important;
 }
 /* ============================================================================
-   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА БАРДОВСКИХ ТОКЕНОВ
+   СТИЛИЗАЦИЯ И ПОДГОНКА БАРДОВСКИХ ТОКЕНОВ
    ============================================================================ */
 
 /* Пурпурный кант по умолчанию для карточек бардов */
@@ -4915,7 +4915,7 @@ canvas[style*="position: fixed"] {
     box-shadow: 0 0 14px rgba(232, 67, 147, 0.9) !important;
 }
 /* ============================================================================
-   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА КОШАЧЬИХ ТОКЕНОВ
+   СТИЛИЗАЦИЯ И ПОДГОНКА КОШАЧЬИХ ТОКЕНОВ
    ============================================================================ */
 
 /* Огненно-оранжевый кант по умолчанию для карточек котов */
@@ -4927,4 +4927,144 @@ canvas[style*="position: fixed"] {
 .init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
     border-color: #ffd875 !important;
     box-shadow: 0 0 14px rgba(230, 126, 34, 0.9) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА ОЛЕНЬИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Орехово-золотой кант по умолчанию для карточек оленей */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #dfbc6f !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем сочное золотое свечение во время хода оленя */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(223, 188, 111, 0.9) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА КАБАНЬИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Глубокий буро-рыжий кант по умолчанию для карточек кабанов */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #8c5319 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем кроваво-красный неоновый ореол во время хода вепря */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(192, 57, 43, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА МЕДВЕЖЬИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Глубокий каштановый кант по умолчанию для карточек медведей */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #5c4033 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем увесистое янтарно-золотое свечение во время хода медведя */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(213, 128, 18, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА ТОКЕНОВ ЭЛЬФИЙКИ-ЛУЧНИЦЫ
+   ============================================================================ */
+
+/* Светло-изумрудный кант по умолчанию для карточек эльфиек-лучниц */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #2ecc71 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем ослепительный изумрудно-серебряный неон во время её хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 16px 2px rgba(46, 204, 113, 0.9) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА ТОКЕНОВ ЖРИЦЫ / ПРИСТА
+   ============================================================================ */
+
+/* Небесно-голубой кант по умолчанию для карточек женщин-жриц */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #00cef7 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем ослепительное лазурно-белое свечение во время её хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 16px 2px rgba(0, 206, 247, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА ТОКЕНОВ ХАЛФЛИНГА / ПОЛУРОСЛИКА
+   ============================================================================ */
+
+/* Осенний янтарный кант по умолчанию для карточек женщин-халфлингов */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #e67e22 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем теплое янтарное свечение во время её хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 16px 2px rgba(230, 126, 34, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА ТОКЕНОВ МУЖЧИНЫ-ХАЛФЛИНГА
+   ============================================================================ */
+
+/* Перекрашиваем кант злого мужчины-полурослика в тревожный багровый цвет */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #823030 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем алое свечение во время его хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(231, 76, 60, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА КОБОЛЬДСКИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Драконий темно-красный кант по умолчанию для карточек кобольдов */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #962d2d !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем яростный багрово-желтый неон во время его хода */
+.init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(150, 45, 45, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА ЗЕЛЕНЫХ КОБОЛЬДСКИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Плотный болотный кант по умолчанию для карточек кобольдов в профиль */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #27ae60 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем сочный изумрудно-желтый неон во время его хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(46, 204, 113, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА ТИГРИНЫХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Огненно-рыжий кант по умолчанию для карточек тигров в профиль */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #e67e22 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем сочный оранжево-желтый неон во время его хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(230, 126, 34, 0.95) !important;
 }
