@@ -7,7 +7,7 @@ const InitiativeManager = {
         selectedUnitId: null,
         round: 1,
         viewMode: 'classic', // Режимы: 'classic' (список) или 'bg3' (горизонт)
-        phraseSeed: 0        // Сид для случайного выбора фраз на каждый ход
+        phraseSeed: 0
     },
     mapDataRef: null,
     onSaveCallback: null,
