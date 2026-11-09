@@ -224,58 +224,45 @@ const CampingManager = {
         if (totEl) totEl.textContent = this.state.totalChecks;
         if (modEl) modEl.textContent = this.state.checkMod;
 
-        const appendSkillLabel = (rowId, skillText) => {
-            const row = document.getElementById(rowId);
-            if (!row) return;
-            const nameCell = row.querySelector('.camp-act-cell') || row.querySelector('td');
-            if (nameCell && !nameCell.querySelector('.skill-name-large')) {
-                const skillLabel = document.createElement('span');
-                skillLabel.className = 'skill-name-large';
-                skillLabel.textContent = skillText;
-                nameCell.appendChild(skillLabel);
-            }
-        };
-
-        appendSkillLabel('row_prepare', 'Выживание');
-        appendSkillLabel('row_camouflage', 'Скрытность');
-        appendSkillLabel('row_hunt', 'Выживание');
-
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
+        // 🟢 ЦВЕТОВЫЕ МАРКЕРЫ СИТУАЦИЙ (СТРОГИЙ ИМЕНИТЕЛЬНЫЙ ПАДЕЖ И НЕОН)
         if (prepareRes === 'crit_success') {
-            this.addLogLine(effectsList, "Подготовка: Критический успех: вы нашли идеальное место для лагеря. Чистые проверки для сцен во время стоянки в течении следующих 24 часов проводятся со СЛ +2, а первый час, проведённый в лагере, не влечёт за собой обычную проверку на случайную сцену.", "good");
+            this.addLogLine(effectsList, "Подготовка: <span class='outcome-crit-success'>Критический успех</span>: вы нашли идеальное место для лагеря. Чистые проверки для сцен во время стоянки в течении следующих 24 часов проводятся со СЛ +2, а первый час, проведённый в лагере, не влечёт за собой обычную проверку на случайную сцену.", "good");
         } else if (prepareRes === 'success') {
-            this.addLogLine(effectsList, "Подготовка: Успех: вы нашли подходящее место для лагеря и занятий в лагере.", "good");
+            this.addLogLine(effectsList, "Подготовка: <span class='outcome-success'>Успех</span>: вы нашли подходящее место для лагеря и занятий в лагере.", "good");
         } else if (prepareRes === 'failure') {
-            this.addLogLine(effectsList, "Подготовка: Провал: место для лагеря не самое лучшее. Занятия в лагере требующие проверки, получают штраф -2.", "bad");
+            this.addLogLine(effectsList, "Подготовка: <span class='outcome-failure'>Провал</span>: место для лагеря не самое лучшее. Занятия в лагере требующие проверки, получают штраф -2.", "bad");
         } else if (isCampHorrible) {
-            this.addLogLine(effectsList, `Подготовка: Критический провал: Это ужасное место для лагеря. Вы можете в нём отдохнуть и провести ежедневную подготовку, но вы не можете совершать в нём занятия. Более того, ваша попытка защитить лагерь, возможно, привлекла нежелательное внимание - пройдите чистую проверку со СЛ сцены региона ${this.state.encounterDc}. В случае успеха произойдет случайная сцена.`, "bad");
+            this.addLogLine(effectsList, `Подготовка: <span class='outcome-crit-failure'>Критический провал</span>: Это ужасное место для лагеря. Вы можете в нём отдохнуть и провести ежедневную подготовку, но вы не можете совершать в нём занятия. Более того, ваша попытка защитить лагерь, возможно, привлекла нежелательное внимание - пройдите чистую проверку со СЛ сцены региона ${this.state.encounterDc}. В случае успеха произойдет случайная сцена.`, "bad");
         }
 
         if (!isCampHorrible) {
             if (camoRes === 'crit_success') {
-                this.addLogLine(effectsList, "Маскировка: Критический успех: вы превзошли все ожидания. В первый раз, когда чистая проверка приведёт к сцене во время этой стоянки, сцена не произойдёт. Сложность случайной сцены увеличена на +2.", "good");
+                this.addLogLine(effectsList, "Маскировка: <span class='outcome-crit-success'>Критический успех</span>: вы превзошли все ожидания. В первый раз, когда чистая проверка приведёт к сцене во время этой стоянки, сцена не произойдёт. Сложность случайной сцены увеличена на +2.", "good");
             } else if (camoRes === 'success') {
-                this.addLogLine(effectsList, "Маскировка: Успех: ваша работа помогает скрыть ваш лагерь от чужих глаз. Сложность случайной сцены увеличена на +1.", "good");
+                this.addLogLine(effectsList, "Маскировка: <span class='outcome-success'>Успех</span>: ваша работа помогает скрыть ваш лагерь от чужих глаз. Сложность случайной сцены увеличена на +1.", "good");
             } else if (camoRes === 'crit_failure') {
-                this.addLogLine(effectsList, "Маскировка: Критический провал: вы считаете, что хорошо справились, но забыли что-то важное или на самом деле нечаянно сделали лагерь более заметным. Сложность обнаружения лагеря снижена на -2. Проверки для случайных сцен приводят к критическому успеху при 19 или 20.", "bad");
+                this.addLogLine(effectsList, "Маскировка: <span class='outcome-crit-failure'>Критический провал</span>: вы считаете, что хорошо справились, но забыли что-то важное или на самом деле нечаянно сделали лагерь более заметным. Сложность обнаружения лагеря снижена на -2. Проверки для случайных сцен приводят к критическому успеху при 19 или 20.", "bad");
             }
         }
 
         if (!isCampHorrible) {
             if (huntRes === 'success') {
-                this.addLogLine(effectsList, `Охота: Успех: охота (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента.`, "good");
+                this.addLogLine(effectsList, `Охота: <span class='outcome-success'>Успех</span>: охота (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента.`, "good");
             } else if (huntRes === 'crit_success') {
-                this.addLogLine(effectsList, `Охота: Критический успех (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном удвоенной СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента. Если охота в регионе уровнем не ниже 7, то особых ингредиентов 8; если in регионе уровнем не ниже 14, то особых ингредиентов 12.`, "good");
+                this.addLogLine(effectsList, `Охота: <span class='outcome-crit-success'>Критический успех</span> (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном удвоенной СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента. Если охота в регионе уровнем не ниже 7, то особых ингредиентов 8; если в регионе уровнем не ниже 14, то особых ингредиентов 12.`, "good");
             } else if (huntRes === 'failure') {
-                this.addLogLine(effectsList, `Охота: Провал: вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт.`, "generic");
+                this.addLogLine(effectsList, `Охота: <span class='outcome-failure'>Провал</span>: вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт.`, "generic");
             } else if (huntRes === 'crit_failure') {
-                this.addLogLine(effectsList, `Охота: Критический провал: вы находите ${this.state.normalIngredients} обычных ингредиента, максимум ${this.state.encounterDc}. Кроме того вы привлекли внимание. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc}, чтобы определить, произойдет ли случайная сцена в вашем лагере после этого занятия.`, "bad");
+                this.addLogLine(effectsList, `Охота: <span class='outcome-crit-failure'>Критический провал</span>: вы находите ${this.state.normalIngredients} обычных ингредиента, максимум ${this.state.encounterDc}. Кроме того вы привлекли внимание. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc}, чтобы определить, произойдет ли случайная сцена в вашем лагере после этого занятия.`, "bad");
             }
         }
     },
+
+
 
     // Интеллектуальный парсер: красит в красный при минусах ИЛИ если тип лога "bad" (провал/крит)
     addLogLine(container, text, type) {
