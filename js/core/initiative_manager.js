@@ -143,6 +143,9 @@ const InitiativeManager = {
         }
     },
 
+
+
+
     triggerRoundFlashEffect() {
         const oldFlash = document.getElementById('initTvRoundFlashOverlay');
         if (oldFlash) oldFlash.remove();
@@ -168,21 +171,37 @@ const InitiativeManager = {
                 const now = ctx.currentTime;
                 const mode = this.state.audioPreset || 'gong';
 
+                // РЕЖИМ ТИШИНЫ
+                if (mode === 'none') {
+                    setTimeout(() => { if (flashOverlay.parentNode) flashOverlay.remove(); }, 600);
+                    return;
+                }
+
                 if (mode === 'bell') {
-                    const osc = ctx.createOscillator();
-                    const osc2 = ctx.createOscillator();
-                    const gainNode = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, now);
-                    osc2.type = 'sine';
-                    osc2.frequency.setValueAtTime(1200, now);
-                    gainNode.gain.setValueAtTime(0.2, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
-                    osc.connect(gainNode);
-                    osc2.connect(gainNode);
-                    gainNode.connect(ctx.destination);
-                    osc.start(now); osc2.start(now);
-                    osc.stop(now + 2.0); osc2.stop(now + 2.0);
+                    // ИСПРАВЛЕНО: Тройной кристальный колокольчик (3 удара с интервалом в 0.22 сек)
+                    [0, 0.22, 0.44].forEach((delay) => {
+                        const t = now + delay;
+                        const osc = ctx.createOscillator();
+                        const osc2 = ctx.createOscillator();
+                        const gainNode = ctx.createGain();
+
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(987.77, t); // Си 2-й октавы
+
+                        osc2.type = 'sine';
+                        osc2.frequency.setValueAtTime(1318.51, t); // Ми 3-й октавы
+
+                        gainNode.gain.setValueAtTime(0.15, t);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+
+                        osc.connect(gainNode);
+                        osc2.connect(gainNode);
+                        gainNode.connect(ctx.destination);
+
+                        osc.start(t); osc2.start(t);
+                        osc.stop(t + 0.6); osc2.stop(t + 0.6);
+                    });
+
                 } else if (mode === 'drum') {
                     const osc = ctx.createOscillator();
                     const gainNode = ctx.createGain();
@@ -193,26 +212,96 @@ const InitiativeManager = {
                     gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
                     osc.connect(gainNode);
                     gainNode.connect(ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else {
+                    osc.start(now); osc.stop(now + 0.25);
+
+                } else if (mode === 'magic') {
+                    // 1. ПРЕСЕТ: Волшебный импульс (Каскад частот вверх)
                     const osc = ctx.createOscillator();
-                    const subOsc = ctx.createOscillator();
                     const gainNode = ctx.createGain();
-                    const subGain = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(90, now);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(1600, now + 0.4);
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    osc.start(now); osc.stop(now + 0.4);
+
+                } else if (mode === 'horn') {
+                    // 2. ПРЕСЕТ: Сигнальный боевой рог (Хриплый низкий гул)
+                    const osc = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(110, now); // Ля большой октавы
+                    osc2.type = 'triangle';
+                    osc2.frequency.setValueAtTime(111.5, now); // Микро-детюн для плотности
+                    gainNode.gain.setValueAtTime(0.25, now);
+                    gainNode.gain.linearRampToValueAtTime(0.2, now + 0.2);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    osc.connect(gainNode); osc2.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    osc.start(now); osc2.start(now);
+                    osc.stop(now + 0.8); osc2.stop(now + 0.8);
+
+                } else if (mode === 'thunder') {
+                    // 3. ПРЕСЕТ: Раскат грома (Синтез белого шума фильтром низких частот)
+                    const bufferSize = ctx.sampleRate * 0.6;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(250, now);
+                    filter.frequency.exponentialRampToValueAtTime(40, now + 0.5);
+                    const gainNode = ctx.createGain();
+                    gainNode.gain.setValueAtTime(0.6, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                    noise.connect(filter); filter.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    noise.start(now); noise.stop(now + 0.6);
+
+                } else if (mode === 'blade') {
+                    // 4. ПРЕСЕТ: Звон клинков (Высокочастотный металлический лязг)
+                    const osc = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(2400, now);
+                    osc.frequency.linearRampToValueAtTime(1800, now + 0.05);
+                    gainNode.gain.setValueAtTime(0.18, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass'; filter.frequency.value = 2000;
+                    osc.connect(filter); filter.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    osc.start(now); osc.stop(now + 0.35);
+
+                } else if (mode === 'anvil') {
+                    // 5. ПРЕСЕТ: Удар по наковальне (Тяжелый щелчок + яркий шлейф)
+                    const osc = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(620, now);
+                    gainNode.gain.setValueAtTime(0.4, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    osc.connect(gainNode); gainNode.connect(ctx.destination);
+                    osc.start(now); osc.stop(now + 0.5);
+
+                } else {
+                    // Дефолтный Гонг
+                    const osc = ctx.createOscillator(); const subOsc = ctx.createOscillator();
+                    const gainNode = ctx.createGain(); const subGain = ctx.createGain();
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(90, now);
                     osc.frequency.exponentialRampToValueAtTime(45, now + 1.2);
                     gainNode.gain.setValueAtTime(0.35, now);
                     gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
-                    subOsc.type = 'sine';
-                    subOsc.frequency.setValueAtTime(180, now);
+                    subOsc.type = 'sine'; subOsc.frequency.setValueAtTime(180, now);
                     subGain.gain.setValueAtTime(0.08, now);
                     subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-                    osc.connect(gainNode);
-                    subOsc.connect(subGain);
-                    gainNode.connect(ctx.destination);
-                    subGain.connect(ctx.destination);
+                    osc.connect(gainNode); subOsc.connect(subGain);
+                    gainNode.connect(ctx.destination); subGain.connect(ctx.destination);
                     osc.start(now); subOsc.start(now);
                     osc.stop(now + 1.4); subOsc.stop(now + 1.4);
                 }
@@ -221,6 +310,7 @@ const InitiativeManager = {
 
         setTimeout(() => { if (flashOverlay.parentNode) flashOverlay.remove(); }, 600);
     },
+
 
     toggleNat20(id) {
         const unit = this.state.combatants.find(c => c.id === id);
@@ -515,8 +605,14 @@ const InitiativeManager = {
                             
                             <select id="initSelectAudioPreset" style="background: #090f0b; border: 1px solid #543e0d; color: #ebd291; height: 50px; padding: 4px 10px; font-weight: bold; font-size: 14px; border-radius: 4px; cursor: pointer;">
                                 <option value="gong">🔔 Звук: Гонг</option>
-                                <option value="bell">💎 Звук: Колокольчик</option>
+                                <option value="bell">💎 Звук: Тройной Колокольчик</option>
                                 <option value="drum">🥁 Звук: Барабан</option>
+                                <option value="magic">🔮 Звук: Волшебный Импульс</option>
+                                <option value="horn">📯 Звук: Боевой Рог</option>
+                                <option value="thunder">⚡ Звук: Раскат Грома</option>
+                                <option value="blade">⚔️ Звук: Звон Клинков</option>
+                                <option value="anvil">🔨 Звук: Удар по Наковальне</option>
+                                <option value="none">🔇 Без звука (Только вспышка)</option>
                             </select>
 
                             <button type="button" id="initBtnToggleView" class="init-btn-view-toggle" title="Сменить стиль отображения">⚔️ Режим: Список / Горизонт</button>

@@ -56,7 +56,8 @@ const SettingsManager = {
             });
         });
 
-        // СИНХРОНИЗАЦИЯ НОВОГО СЕЛЕКТА: Звуковое оповещение нового раунда боевой сцены
+
+        // СИНХРОНИЗАЦИЯ СЕЛЕКТА: Звуковое оповещение нового раунда боевой сцены (Расширенная)
         const audioContainer = document.getElementById('customSelectRoundAudioMode');
         const audioHiddenInput = document.getElementById('settingRoundAudioMode');
         if (audioContainer && audioHiddenInput) {
@@ -65,6 +66,14 @@ const SettingsManager = {
 
             if (window.UiSelectManager && typeof window.UiSelectManager.setCustomSelectValue === 'function') {
                 window.UiSelectManager.setCustomSelectValue('customSelectRoundAudioMode', savedAudio);
+            } else {
+                const activeOption = audioContainer.querySelector(`.custom-option[data-value="${savedAudio}"]`);
+                if (activeOption) {
+                    audioContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+                    activeOption.classList.add('selected');
+                    const trigger = audioContainer.querySelector('.custom-select-trigger');
+                    if (trigger) trigger.textContent = activeOption.textContent;
+                }
             }
 
             audioContainer.querySelectorAll('.custom-option').forEach(option => {
@@ -75,6 +84,7 @@ const SettingsManager = {
                 });
             });
         }
+
         // 1. СИНХРОНИЗАЦИЯ КАСТОМНОГО СЕЛЕКТА (Скин токена отряда)
         const container = document.getElementById('customSelectSquadTokenSkin');
         const hiddenInput = document.getElementById('settingSquadTokenSkin');
