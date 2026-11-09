@@ -4858,3 +4858,73 @@ canvas[style*="position: fixed"] {
     border-color: #ffd875 !important;
     box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
 }
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА ПАЛАДИНСКИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Позолоченный кант по умолчанию для паладинских карточек */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #ffd875 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем ослепительный неон, если идет ход паладина */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 16px 2px rgba(255, 216, 117, 0.95) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА ЛУЧНИЧЬИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Изумрудно-зеленый кант по умолчанию для карточек лучников */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #27ae60 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем золотой неон, если идет ход лучника */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА МАГИЧЕСКИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Таинственный фиолетовый кант по умолчанию для карточек магов */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #9b59b6 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем неоновый фиолетовый взрыв света, если идет ход мага */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(155, 89, 182, 0.85) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА БАРДОВСКИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Пурпурный кант по умолчанию для карточек бардов */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #e84393 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем сочный неоновый пурпурный ореол, если идет ход барда */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(232, 67, 147, 0.9) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА КОШАЧЬИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Огненно-оранжевый кант по умолчанию для карточек котов */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #e67e22 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем золотой неон, если идет ход кота */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 14px rgba(230, 126, 34, 0.9) !important;
+}
