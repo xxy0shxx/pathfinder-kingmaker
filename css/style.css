@@ -4753,7 +4753,7 @@ canvas[style*="position: fixed"] {
     box-shadow: inset 0 0 15px rgba(255, 216, 117, 0.1), 0 4px 15px rgba(0,0,0,0.7) !important;
 }
 /* ============================================================================
-   СТИЛИЗАЦИЯ И ПОДГОНКА АВАТАРОК ТРЕКЕРА ИНИЦИАТИВЫ ПОД ТВ
+   СТИЛИЗАЦИЯ И ПОДГОНКА АВАТАРОК ТРЕКЕРА ИНИЦИАТИВЫ
    ============================================================================ */
 
 /* 1. Эффект неонового золотого канта для активного круглого щита аватарки */
@@ -4792,7 +4792,7 @@ canvas[style*="position: fixed"] {
 }
 
 /* ============================================================================
-   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА ДВАРФИЙСКИХ ТОКЕНОВ
+   СТИЛИЗАЦИЯ И ПОДГОНКА ДВАРФИЙСКИХ ТОКЕНОВ
    ============================================================================ */
 
 /* Легкое контурное тиснение для стального шлема и рыжей бороды дварфа */
@@ -4801,6 +4801,59 @@ canvas[style*="position: fixed"] {
 }
 
 /* В режиме Горизонт (mode-bg3) красим ободок под золото, если токен в фокусе хода */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА ГОБЛИНСКИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Гнилой болотный кант по умолчанию для гоблинских карточек */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #5c8a47 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем золотой неон, если идет ход гоблина */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
+}
+/* Стальной серый кант по умолчанию для волчьих карточек */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #4a5568 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем золотой неон, если идет ход волка */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
+}
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ПОДГОНКА ПАУЧЬИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Глубокий фиолетовый кант по умолчанию для паучьих карточек */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #5a198c !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем золотой неон, если идет ход паука */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
+}
+
+/* ============================================================================
+   СТИЛИЗАЦИЯ И ТВ-ПОДГОНКА РАЗБОЙНИЧЬИХ ТОКЕНОВ
+   ============================================================================ */
+
+/* Плотный кожаный кант по умолчанию для разбойничьих карточек */
+.init-avatar-shield-circle:has(img[src*="data:image/png"]) {
+    border-color: #5c3e26 !important;
+}
+
+/* В режиме Горизонт (mode-bg3) форсируем золотой неон, если идет ход разбойника */
 .init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-avatar-shield-circle {
     border-color: #ffd875 !important;
     box-shadow: 0 0 14px rgba(255, 216, 117, 0.8) !important;
