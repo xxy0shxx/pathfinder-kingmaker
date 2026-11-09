@@ -303,6 +303,8 @@ const InitiativeManager = {
             this._isInputsBound = true;
         }
 
+        // Конец метода renderUi() внутри InitiativeManager.js
+
         const listContainer = document.getElementById('initiativeCombatantsList');
         if (!listContainer) return;
         listContainer.innerHTML = '';
@@ -318,11 +320,38 @@ const InitiativeManager = {
         const roundNumEl = document.getElementById('initRoundCounterNum');
         if (roundNumEl) roundNumEl.textContent = this.state.round;
 
+        // Физически удаляем старый блок фразы из DOM перед пересчетом, чтобы избежать дублирования
+        const oldShield = container.querySelector('.init-focus-quote-shield');
+        if (oldShield) oldShield.remove();
+
         if (this.state.combatants.length === 0) {
             listContainer.innerHTML = `<div class="quest-log-empty">Бой не начат. Добавьте участников.</div>`;
             return;
         }
 
+        // 1. Поиск имени существа, чей сейчас ход
+        const activeUnit = this.state.combatants.find(c => c.id === this.state.selectedUnitId) || this.state.combatants[0];
+        const activeName = activeUnit ? activeUnit.name : 'Неизвестно';
+
+        // 2. Реестр из 10 эпических вариантов фраз для акцента на ходе ГМа
+        const epicPhrases = [
+            `Судьба замерла в ожидании... <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span> готовит сокрушительный удар!`,
+            `Внимание на поле боя! Сквозь пламя и хаос вперед рвется <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+            `Инициатива переходит в руки мастера. <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span> диктует свои условия!`,
+            `Смертоносная сталь жаждет крови. Секунда триумфа принадлежит <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `Воздух пропитан яростью. <span class="gold-unit-focus-name">💀 ${activeName} 💀</span> вступает в игру, меняя ход истории!`,
+            `Клинок обнажен, заклинание сорвалось с губ! Время замерло для <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span>!`,
+            `Каждый шаг может стать последним. Великий финал или крах — решать только <span class="gold-unit-focus-name">🦅 ${activeName} 🦅</span>!`,
+            `Вспышка магии озаряет арену! Исход схватки теперь полностью зависит от <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+            `Тени сгущаются, враги затаили дыхание. На острие атаки оказывается <span class="gold-unit-focus-name">🐺 ${activeName} 🐺</span>!`,
+            `Эпическая битва Kingmaker требует героев. Судьба отряда в руках <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`
+        ];
+
+        // Индекс фразы меняется в зависимости от раунда, страхуя систему от дерганья текста при кликах по карточкам
+        const phraseIndex = (this.state.round - 1) % epicPhrases.length;
+        const currentQuoteHTML = epicPhrases[phraseIndex];
+
+        // 3. Генерация карточек юнитов
         this.state.combatants.forEach((unit, index) => {
             const card = document.createElement('div');
             const isActive = this.state.selectedUnitId === unit.id;
@@ -335,7 +364,7 @@ const InitiativeManager = {
                 <div class="init-card-left" style="pointer-events: none;">
                     <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
                     <div class="init-badge-index">${index + 1}</div>
-                    <div class="init-card-name-text">${unit.name}</div>
+                    <div class="init-card-name-textрамка">${unit.name}</div>
                     ${unit.isNat20 ? '<span class="init-crown-badge" title="Натуральная 20! Крит успех">👑</span>' : ''}
                 </div>
                 <div class="init-card-right">
@@ -403,6 +432,12 @@ const InitiativeManager = {
 
             listContainer.appendChild(card);
         });
+
+        // 4. Инжект сформированного массивного блока фразы под контейнер скролла
+        const quoteShield = document.createElement('div');
+        quoteShield.className = 'init-focus-quote-shield';
+        quoteShield.innerHTML = `<div class="init-focus-phrase-text">${currentQuoteHTML}</div>`;
+        listContainer.parentNode.appendChild(quoteShield);
     }
 };
 

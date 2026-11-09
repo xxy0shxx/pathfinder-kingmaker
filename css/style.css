@@ -4338,3 +4338,67 @@ canvas[style*="position: fixed"] {
     font-size: 16px !important;
     animation: none !important;
 }
+
+/* ============================================================================
+   БОЕВОЙ ФОКУС: ЭПИЧЕСКИЙ БЛОК ПОД ОЧЕРЕДЬЮ ИНИЦИАТИВЫ
+   ============================================================================ */
+
+/* Контейнер рамки — скрыт по умолчанию, плавно проявляется только в режиме Горизонт */
+.init-focus-quote-shield {
+    display: none;
+    margin: 30px auto 0 auto;
+    width: calc(100% - 90px);
+    background: linear-gradient(135deg, rgba(9, 17, 11, 0.95) 0%, rgba(4, 9, 5, 0.98) 100%);
+    border: 3px solid transparent;
+    border-image: linear-gradient(to right, #543e0d, #b89445, #543e0d) 3 round;
+    border-radius: 6px;
+    padding: 24px 40px;
+    text-align: center;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 8px 25px rgba(0,0,0,0.5);
+    box-sizing: border-box;
+}
+
+/* Переключаем видимость блока через класс-модификатор родительской ленты */
+.init-cards-scroll-list.mode-bg3 + .init-focus-quote-shield {
+    display: block !important;
+    animation: initQuoteFadeIn 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Главный текст фразы */
+.init-focus-phrase-text {
+    font-family: "Tinos", serif;
+    font-size: 36px;
+    font-style: italic;
+    font-weight: bold;
+    color: #ebd291;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
+    animation: initQuoteBreathe 4s ease-in-out infinite alternate;
+}
+
+/* ⚜️ ЗОЛОТОЙ ГЕРАЛЬДИЧЕСКИЙ АКЦЕНТ НА ИМЕНИ ТЕКУЩЕГО ЮНИТА */
+.init-focus-phrase-text span.gold-unit-focus-name {
+    color: #ffd875 !important;
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal !important;
+    font-size: 38px;
+    font-weight: 900;
+    text-transform: uppercase;
+    padding: 0 10px;
+    text-shadow:
+            0 0 10px rgba(255, 216, 117, 0.85),
+            0 0 25px rgba(184, 148, 69, 0.4),
+            0 2px 4px rgba(0, 0, 0, 0.95) !important;
+}
+
+/* Системные анимации */
+@keyframes initQuoteFadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes initQuoteBreathe {
+    0% { filter: brightness(0.95); }
+    100% { filter: brightness(1.15); }
+}
