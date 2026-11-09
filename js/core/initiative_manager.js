@@ -178,54 +178,272 @@ const InitiativeManager = {
                 }
 
                 if (mode === 'bell') {
-                    // ИСПРАВЛЕНО: Тройной кристальный колокольчик (3 удара с интервалом в 0.22 сек)
-                    [0, 0.22, 0.44].forEach((delay) => {
-                        const t = now + delay;
+                    // 💎 ПРЕСЕТ: DnB Bell Breakbeat (16 резких ломаных звонов в темпе 174 BPM)
+                    const totalBells = 16;
+
+                    // Скорость dnb: 174 BPM. Один шаг сетки (шестнадцатая нота) равен ~0.086 секунды
+                    const step = 0.086;
+
+                    // Синкопированная сетка шагов (ломаный DnB брейкбит паттерн на 16 долей)
+                    const dnbPatternSteps = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14.5, 15, 15.5];
+
+                    // Мажорный восходящий и прыгающий звукоряд для качающего перелива
+                    const dnbPitchScale = [1.0, 1.2, 1.5, 1.0, 1.8, 1.5, 2.0, 2.4, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 2.0, 4.5];
+
+                    for (let i = 0; i < totalBells; i++) {
+                        // Рассчитываем точное время старта по ломаной dnb-сетке
+                        const t = now + (dnbPatternSteps[i] * step);
+
                         const osc = ctx.createOscillator();
                         const osc2 = ctx.createOscillator();
                         const gainNode = ctx.createGain();
 
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(987.77, t); // Си 2-й октавы
+                        // Базовая частота 587.33 Гц (Нота Ре 2-й октавы) для пробивного, яркого тона
+                        const freq = 587.33 * dnbPitchScale[i];
 
+                        // Используем прямоугольную волну (square) с фильтром для металлического, электронного щелчка
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(freq, t);
+
+                        // Добавляем синусоиду на октаву выше для пронзительного хрусталя
                         osc2.type = 'sine';
-                        osc2.frequency.setValueAtTime(1318.51, t); // Ми 3-й октавы
+                        osc2.frequency.setValueAtTime(freq * 2.0, t);
 
-                        gainNode.gain.setValueAtTime(0.15, t);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+                        // ЭКСТРЕМАЛЬНО РЕЗКАЯ АТАКА И КОРОТКИЙ СРЕЗ (Стиль стаккато/электронного триггера)
+                        gainNode.gain.setValueAtTime(0.18, t); // Мгновенный взрывной старт звука
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.14); // Ультра-короткий резкий хвост
 
-                        osc.connect(gainNode);
-                        osc2.connect(gainNode);
+                        // Срезаем лишнюю грязь полосовым фильтром, оставляя только сочный «днб-звон»
+                        const filter = ctx.createBiquadFilter();
+                        filter.type = 'bandpass';
+                        filter.frequency.setValueAtTime(2500, t);
+
+                        // Сборка аудио-графа
+                        osc.connect(filter);
+                        osc2.connect(filter);
+                        filter.connect(gainNode);
                         gainNode.connect(ctx.destination);
 
-                        osc.start(t); osc2.start(t);
-                        osc.stop(t + 0.6); osc2.stop(t + 0.6);
-                    });
+                        // Старт и стоп в микро-кванты времени
+                        osc.start(t);
+                        osc2.start(t);
+                        osc.stop(t + 0.15);
+                        osc2.stop(t + 0.15);
+                    }
 
                 } else if (mode === 'drum') {
-                    const osc = ctx.createOscillator();
-                    const gainNode = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(130, now);
-                    osc.frequency.linearRampToValueAtTime(10, now + 0.15);
-                    gainNode.gain.setValueAtTime(0.4, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                    osc.connect(gainNode);
-                    gainNode.connect(ctx.destination);
-                    osc.start(now); osc.stop(now + 0.25);
+                    const totalSteps = 32;
+                    const stepTime = 0.086;
+
+                    const dnbMatrix = [
+                        4, 0, 3, 0, 2, 0, 3, 1, // Такт 1
+                        3, 0, 4, 0, 2, 0, 3, 0, // Такт 2
+                        4, 1, 3, 0, 2, 0, 3, 0, // Такт 3
+                        3, 0, 4, 1, 2, 3, 2, 3  // Такт 4
+                    ];
+
+                    for (let i = 0; i < totalSteps; i++) {
+                        const trigger = dnbMatrix[i];
+                        if (trigger === 0) continue;
+
+                        const t = now + (i * stepTime);
+
+                        // --- 1. СИНТЕЗ КИКА (БОЧКИ) ---
+                        if (trigger === 1 || trigger === 4) {
+                            const kickOsc = ctx.createOscillator();
+                            const kickGain = ctx.createGain();
+                            kickOsc.type = 'triangle';
+                            kickOsc.frequency.setValueAtTime(150, t);
+                            kickOsc.frequency.exponentialRampToValueAtTime(45, t + 0.07);
+
+                            kickGain.gain.setValueAtTime(0.45, t);
+                            kickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+                            kickOsc.connect(kickGain);
+                            kickGain.connect(ctx.destination);
+                            kickOsc.start(t);
+                            kickOsc.stop(t + 0.13);
+                        }
+
+                        // --- 2. СИНТЕЗ СНЕЙРА (РАБОЧЕГО БАРАБАНА С ШУМОВОЙ ПРУЖИНОЙ) ---
+                        if (trigger === 2) {
+                            // Низкочастотный тон пластика снейра
+                            const snareOsc = ctx.createOscillator();
+                            const snareGain = ctx.createGain();
+                            snareOsc.type = 'triangle';
+                            snareOsc.frequency.setValueAtTime(180, t);
+                            snareOsc.frequency.linearRampToValueAtTime(100, t + 0.06);
+
+                            snareGain.gain.setValueAtTime(0.35, t);
+                            snareGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+                            snareOsc.connect(snareGain);
+                            snareGain.connect(ctx.destination);
+                            snareOsc.start(t);
+                            snareOsc.stop(t + 0.09);
+
+                            const bufferSize = Math.floor(ctx.sampleRate * 0.12);
+                            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                            const data = buffer.getChannelData(0);
+                            for (let j = 0; j < bufferSize; j++) {
+                                data[j] = Math.random() * 2 - 1;
+                            }
+
+                            const snareNoise = ctx.createBufferSource();
+                            snareNoise.buffer = buffer;
+
+                            const snareFilter = ctx.createBiquadFilter();
+                            snareFilter.type = 'bandpass';
+                            snareFilter.frequency.setValueAtTime(1200, t);
+
+                            const noiseGain = ctx.createGain();
+                            noiseGain.gain.setValueAtTime(0.25, t);
+                            noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+
+                            snareNoise.connect(snareFilter);
+                            snareFilter.connect(noiseGain);
+                            noiseGain.connect(ctx.destination);
+                            snareNoise.start(t);
+                            snareNoise.stop(t + 0.13);
+                        }
+
+                        // --- 3. СИНТЕЗ ХЭТА (ОСТРОЕ ЦЫКАНЬЕ ТАРЕЛОК) ---
+                        if (trigger === 3 || trigger === 4) {
+                            const bufferSize = Math.floor(ctx.sampleRate * 0.03);
+                            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                            const data = buffer.getChannelData(0);
+                            for (let j = 0; j < bufferSize; j++) {
+                                data[j] = Math.random() * 2 - 1;
+                            }
+
+                            const hatNoise = ctx.createBufferSource();
+                            hatNoise.buffer = buffer;
+
+                            const hatFilter = ctx.createBiquadFilter();
+                            hatFilter.type = 'highpass';
+                            hatFilter.frequency.setValueAtTime(7500, t);
+
+                            const hatGain = ctx.createGain();
+                            hatGain.gain.setValueAtTime(0.10, t);
+                            hatGain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+
+                            hatNoise.connect(hatFilter);
+                            hatFilter.connect(hatGain);
+                            hatGain.connect(ctx.destination);
+                            hatNoise.start(t);
+                            hatNoise.stop(t + 0.04);
+                        }
+                    }
 
                 } else if (mode === 'magic') {
-                    // 1. ПРЕСЕТ: Волшебный импульс (Каскад частот вверх)
-                    const osc = ctx.createOscillator();
-                    const gainNode = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.exponentialRampToValueAtTime(1600, now + 0.4);
-                    gainNode.gain.setValueAtTime(0.2, now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-                    osc.connect(gainNode);
-                    gainNode.connect(ctx.destination);
-                    osc.start(now); osc.stop(now + 0.4);
+                    // ⚡ ПРЕСЕТ: Industrial Straight Techno (Прямой жесткий берлинский кач, 160 BPM)
+                    const totalSteps = 32;
+                    // Идеальный темп 160 BPM: один шаг 16-й ноты равен ровно 0.093 секунды
+                    const stepTime = 0.093;
+
+                    // Матрица паттерна (1 - Прямой Кик, 2 - Off-Beat Бас, 3 - Кик + Бас, 4 - Гидравлический Хлопок)
+                    const technoMatrix = [
+                        3, 0, 2, 0, 4, 0, 2, 0, // Такт 1 (Строгий, гипнотический прямой ритм)
+                        3, 0, 2, 1, 4, 0, 2, 0, // Такт 2
+                        3, 0, 2, 0, 4, 0, 2, 1, // Такт 3
+                        3, 2, 4, 2, 4, 4, 4, 0  // Такт 4 (Индустриальная пулеметная сбивка в конце)
+                    ];
+
+                    for (let i = 0; i < totalSteps; i++) {
+                        const trigger = technoMatrix[i];
+                        if (trigger === 0) continue;
+
+                        const t = now + (i * stepTime);
+
+                        // --- 1. INDUSTRIAL HEAVY KICK (ПЛОТНАЯ БОЧКА С МОЩНЫМ КЛИППИНГОМ) ---
+                        if (trigger === 1 || trigger === 3 || trigger === 4) {
+                            const kickOsc = ctx.createOscillator();
+                            const kickGain = ctx.createGain();
+                            const waveShaper = ctx.createWaveShaper();
+
+                            // Фирменное плотное насыщение низов для тяжелого, грязного удара
+                            const makeTechnoDistortion = (amount) => {
+                                const k = typeof amount === 'number' ? amount : 50;
+                                const n_samples = 44100;
+                                const curve = new Float32Array(n_samples);
+                                const deg = Math.PI / 180;
+                                for (let j = 0; j < n_samples; ++j) {
+                                    const x = (j * 2) / n_samples - 1;
+                                    curve[j] = ((3 + k) * x * 15 * deg) / (Math.PI + k * Math.abs(x));
+                                }
+                                return curve;
+                            };
+                            waveShaper.curve = makeTechnoDistortion(50);
+
+                            kickOsc.type = 'triangle';
+                            kickOsc.frequency.setValueAtTime(140, t); // Ударный пинок
+                            kickOsc.frequency.exponentialRampToValueAtTime(35, t + 0.08); // Мрачный суббас
+
+                            kickGain.gain.setValueAtTime(0.6, t);
+                            kickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+
+                            kickOsc.connect(waveShaper);
+                            waveShaper.connect(kickGain);
+                            kickGain.connect(ctx.destination);
+
+                            kickOsc.start(t);
+                            kickOsc.stop(t + 0.15);
+                        }
+
+                        // --- 2. OFF-BEAT TECHNO BASS (КАЧАЮЩИЙ СИНКОПИРОВАННЫЙ БАС) ---
+                        if (trigger === 2 || trigger === 3) {
+                            const bassOsc = ctx.createOscillator();
+                            const bassFilter = ctx.createBiquadFilter();
+                            const bassGain = ctx.createGain();
+
+                            // Мягкий синус для раскатистого подвального баса, бьющего между ударами бочки
+                            bassOsc.type = 'sine';
+                            bassOsc.frequency.setValueAtTime(65.41, t); // Глубокая нота До большой октавы
+
+                            // Лоу-пасс фильтр намертво зажимает свист, оставляя чистый кач (всего 450 Гц)
+                            bassFilter.type = 'lowpass';
+                            bassFilter.Q.setValueAtTime(5, t);
+                            bassFilter.frequency.setValueAtTime(180, t);
+                            bassFilter.frequency.exponentialRampToValueAtTime(450, t + 0.07);
+
+                            bassGain.gain.setValueAtTime(0.3, t);
+                            bassGain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+
+                            bassOsc.connect(bassFilter);
+                            bassFilter.connect(bassGain);
+                            bassGain.connect(ctx.destination);
+
+                            bassOsc.start(t);
+                            bassOsc.stop(t + 0.11);
+                        }
+
+                        // --- 3. HYDRAULIC PRESS CLAP (ГЛУХОЙ ХЛОПОК-ЗАВОДСКОЙ ПРЕСС) ---
+                        if (trigger === 4) {
+                            const bufferSize = Math.floor(ctx.sampleRate * 0.12);
+                            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                            const data = buffer.getChannelData(0);
+                            for (let j = 0; j < bufferSize; j++) { data[j] = Math.random() * 2 - 1; }
+
+                            const clapNoise = ctx.createBufferSource();
+                            clapNoise.buffer = buffer;
+
+                            // Фильтр низких частот убирает песок, делая хлопок глухим и тяжелым
+                            const lowPassFilter = ctx.createBiquadFilter();
+                            lowPassFilter.type = 'lowpass';
+                            lowPassFilter.frequency.setValueAtTime(950, t);
+
+                            const clapGain = ctx.createGain();
+                            clapGain.gain.setValueAtTime(0.22, t);
+                            clapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+
+                            clapNoise.connect(lowPassFilter);
+                            lowPassFilter.connect(clapGain);
+                            clapGain.connect(ctx.destination);
+
+                            clapNoise.start(t);
+                            clapNoise.stop(t + 0.12);
+                        }
+                    }
 
                 } else if (mode === 'horn') {
                     // 2. ПРЕСЕТ: Сигнальный боевой рог (Благородный, плотный и протяжный мажорный призыв)
