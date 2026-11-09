@@ -338,12 +338,26 @@ const CampingManager = {
 
         modalBody.innerHTML = '';
 
-        // Блок 1: Крупные цифры-статы
+        // ОПРЕДЕЛЕНИЕ УСЛОВИЙ ДЛЯ ТВ-ПОДСВЕТКИ ШАПКИ
+        // 1. Проверки: если итоговых проверок больше, чем базовая ставка игрока — это штраф (красный)
+        const isChecksBad = this.state.totalChecks > this.state.baseChecks;
+        const checksClass = isChecksBad ? 'class="negative"' : '';
+
+        // 2. Ингредиенты: если добыто меньше пайков, чем СЛ региона (базовая норма) — это провал (красный)
+        // Для этого нам нужно узнать базовую СЛ, которая хранится в checkMod до модификаторов или высчитывается из нормальных yield
+        // По умолчанию базовое пропитание при успехе равно СЛ региона. Если оно меньше — красим.
+        const squadHex = Object.values(this.mapDataRef.hexes).find(h => h.squadHere === true);
+        const baseRegionDc = squadHex && squadHex.difficulty ? parseInt(squadHex.difficulty, 10) : 14;
+
+        const isIngredientsBad = this.state.normalIngredients < baseRegionDc;
+        const ingredientsClass = isIngredientsBad ? 'class="negative"' : '';
+
+        // Блок 1: Крупные цифры-статы с динамическими классами подсветки
         const summaryStats = document.createElement('div');
         summaryStats.innerHTML = `
             <div>🎲 СЛ Сцены: <span>${this.state.encounterDc}</span></div>
-            <div>⏱ Проверок: <span>${this.state.totalChecks}</span></div>
-            <div>🥩 Ингредиенты: <span>${this.state.normalIngredients}</span></div>
+            <div>⏱ Проверок: <span ${checksClass}>${this.state.totalChecks}</span></div>
+            <div>🥩 Ингредиенты: <span ${ingredientsClass}>${this.state.normalIngredients}</span></div>
             <div>🌿 Особые: <span>${this.state.specialIngredients}</span></div>
         `;
         modalBody.appendChild(summaryStats);

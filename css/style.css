@@ -4189,6 +4189,7 @@ canvas[style*="position: fixed"] {
 }
 
 /* КРУПНЫЙ ТВ-АКЦЕНТ: Красный цвет для штрафов ИЛИ для любых чисел внутри строк провала (.bad) */
+#campResultModalBody > div:first-child span.negative,
 #campResultModalBody .camp-effect-line span.negative,
 #campResultModalBody .camp-effect-line.bad span,
 .camp-result-text-container .camp-effect-line span.negative,
@@ -4196,5 +4197,5 @@ canvas[style*="position: fixed"] {
 .camp-effect-line span.negative,
 .camp-effect-line.bad span {
     color: #e74c3c !important; /* Насыщенный рубиново-красный */
-    text-shadow: 0 0 8px rgba(231, 76, 60, 0.7) !important; /* Красный неон */
+    text-shadow: 0 0 10px rgba(231, 76, 60, 0.85) !important; /* Более мощное красное свечение для ТВ */
 }
