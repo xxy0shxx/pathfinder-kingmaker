@@ -3914,6 +3914,11 @@ canvas[style*="position: fixed"] {
     padding-top: 0 !important;
     margin-top: 0 !important;
 }
+
+/* ============================================================================
+   ФИКС МОДАЛЬНЫХ ОКНО И КУБИКА ПРИВАЛА ДЛЯ КОРНЯ BODY
+   ============================================================================ */
+
 /* Полноэкранный оверлей трехмерной анимации кубика D20 */
 #campDiceOverlay {
     position: fixed !important;
@@ -3922,28 +3927,7 @@ canvas[style*="position: fixed"] {
     width: 100vw !important;
     height: 100vh !important;
     background: rgba(0, 0, 0, 0.85) !important;
-    z-index: 9999999 !important; /* Максимальный приоритет над всеми окнами */
-    display: none;
-    align-items: center !important;
-    justify-content: center !important;
-    transform: none !important; /* Убираем любые унаследованные сдвиги */
-    clip-path: none !important; /* Снимаем обрезку краев карты */
-}
-
-#campDiceOverlay.open {
-    display: flex !important;
-}
-
-/* Финальное модальное окно с результатами привала */
-#campResultModal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background: rgba(10, 15, 10, 0.75) !important;
-    backdrop-filter: blur(6px) !important;
-    z-index: 10000000 !important;
+    z-index: 9999999 !important;
     display: none;
     align-items: center !important;
     justify-content: center !important;
@@ -3951,41 +3935,147 @@ canvas[style*="position: fixed"] {
     clip-path: none !important;
 }
 
+#campDiceOverlay.open {
+    display: flex !important;
+}
+
+/* Финальное модальное окно с результатами привала —
+   делаем саму обертку единой центрированной карточкой */
+#campResultModal {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+
+    /* Параметры золотого планшета Kingmaker */
+    background: linear-gradient(135deg, #0f2215 0%, #050b07 100%) !important;
+    border: 4px solid #dfbc6f !important;
+    border-radius: 8px !important;
+    padding: 30px !important;
+    width: 580px !important;
+    max-width: 95vw !important;
+    height: auto !important;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.95), 0 0 40px rgba(223, 188, 111, 0.5) !important;
+    z-index: 10000000 !important;
+
+    /* Жесткая вертикальная колонка: все внутренние блоки строго друг под другом */
+    display: none;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+    transform-origin: center center !important;
+    clip-path: none !important;
+}
+
 #campResultModal.open {
     display: flex !important;
 }
 
-#campResultModalBody,
-.camp-result-modal-content {
-    background: #101711 !important; /* Тематический темно-зеленый фон */
-    border: 2px solid #543e0d !important;
-    border-radius: 6px !important;
-    padding: 30px !important;
-    max-width: 680px !important; /* Защита от растягивания вширь */
-    width: 90% !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
-    display: block !important; /* Убираем флекс с контента, чтобы вернуть блоки на свои места */
-    margin: 0 auto !important;
+/* Сбрасываем любые рамки, фоны и флексы с прямых дочерних контейнеров,
+   чтобы они не плодили тройные карточки */
+#campResultModal > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    display: block !important;
+    transform: none !important;
 }
 
+/* Заголовок «Итоги ночного привала» — ШАПКА ОКНА */
+#campResultModal h2,
+#campResultModal .camp-res-modal-title,
+#campResultModal > div[class*="title"],
+#campResultModal > div:first-child {
+    width: 100% !important;
+    font-size: 24px !important;
+    color: #ffd875 !important;
+    text-transform: uppercase !important;
+    text-align: center !important;
+    border-bottom: 2px solid #543e0d !important;
+    padding-bottom: 12px !important;
+    margin: 0 0 5px 0 !important;
+    letter-spacing: 2px !important;
+    text-shadow: 0 0 6px #ffd875, 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+    display: block !important;
+}
+
+/* Блок результатов лога (наш главный ориентир) — СЕРЕДИНА ОКНА */
+#campResultModalBody,
+.camp-res-modal-body {
+    width: 100% !important;
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-height: 42vh !important;
+    overflow-y: auto !important;
+}
+
+/* Сетка базовых числовых показателей внутри лога */
 #campResultModalBody > div:first-child {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 16px !important;
-    font-size: 24px !important; /* Делаем шрифт чуть компактнее, чтобы текст не вылетал */
-    text-transform: uppercase;
-    color: #ffd875;
-    margin-bottom: 20px !important;
+    gap: 12px 20px !important;
+    margin-bottom: 15px !important;
+    padding: 12px !important;
+    font-size: 18px !important;
+    text-transform: uppercase !important;
+    color: #ffd875 !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid #543e0d !important;
+    border-radius: 4px !important;
 }
 
-/* Внутреннее окно с контентом */
-.camp-result-modal-content {
-    background: #1a1a1a;
-    border: 3px solid #dfbc6f;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
-    max-width: 650px;
-    width: 90%;
-    padding: 25px;
-    border-radius: 6px;
-    color: #fff;
+/* Строки литературных эффектов привала */
+#campResultModalBody .camp-effect-line,
+.camp-effect-line {
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    text-align: left !important;
+    padding-left: 28px !important;
+    margin-top: 10px !important;
+    text-transform: none !important;
+    font-weight: normal !important;
+    letter-spacing: normal !important;
+    color: #ebd291 !important;
+    display: block !important;
+}
+
+#campResultModalBody .camp-effect-line::before,
+.camp-effect-line::before {
+    font-size: 16px !important;
+    top: 2px !important;
+}
+
+/* Нижний блок под кнопку (футер) — НИЗ ОКНА */
+#campResultModal [class*="footer"],
+#campResultModal > div:last-child {
+    margin-top: 10px !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+/* Кнопка «Принять» */
+#campResultModal button,
+#campResultModal .btn,
+.camp-res-modal-footer .btn {
+    padding: 12px 40px !important;
+    font-size: 16px !important;
+    min-width: 180px !important;
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    color: #dfbc6f !important;
+    border: 1px solid #3e6349 !important;
+    border-radius: 3px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    display: inline-block !important;
 }
