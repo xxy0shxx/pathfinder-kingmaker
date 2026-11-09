@@ -78,6 +78,11 @@ const CampingManager = {
     // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
     // ============================================================================
 
+
+    // ============================================================================
+    // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
+    // ============================================================================
+
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -181,8 +186,9 @@ const CampingManager = {
                     else if (currentRegionLevel >= 7 && currentRegionLevel <= 14) specialYieldText = "2d4";
                     else if (currentRegionLevel > 14) specialYieldText = "3d4";
                 }
+                // ИСПРАВЛЕНО: Теперь при критическом успехе охоты количество обычных ингредиентов удваивается (baseRegionDc * 2)
                 else if (huntRes === 'crit_success') {
-                    normalYield = baseRegionDc;
+                    normalYield = baseRegionDc * 2;
                     if (currentRegionLevel < 7) specialYieldText = "4";
                     else if (currentRegionLevel >= 7 && currentRegionLevel <= 14) specialYieldText = "8";
                     else if (currentRegionLevel > 14) specialYieldText = "12";
@@ -203,6 +209,8 @@ const CampingManager = {
             this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, currentRegionLevel, specialYieldText);
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
+
+
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
         const specEl = document.getElementById('campSpecialIngredients');
@@ -260,7 +268,7 @@ const CampingManager = {
             if (huntRes === 'success') {
                 this.addLogLine(effectsList, `Охота: Успех: охота (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента.`, "good");
             } else if (huntRes === 'crit_success') {
-                this.addLogLine(effectsList, `Охота: Критический успех (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном удвоенной СЛ региона ${this.state.normalIngredients*2} шт., плюс ${specialYieldText} особых ингредиента. Если охота в регионе уровнем не ниже 7, то особых ингредиентов 8; если в регионе уровнем не ниже 14, то особых ингредиентов 12.`, "good");
+                this.addLogLine(effectsList, `Охота: Критический успех (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном удвоенной СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента. Если охота в регионе уровнем не ниже 7, то особых ингредиентов 8; если in регионе уровнем не ниже 14, то особых ингредиентов 12.`, "good");
             } else if (huntRes === 'failure') {
                 this.addLogLine(effectsList, `Охота: Провал: вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт.`, "generic");
             } else if (huntRes === 'crit_failure') {
