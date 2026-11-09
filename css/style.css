@@ -3914,8 +3914,9 @@ canvas[style*="position: fixed"] {
     padding-top: 0 !important;
     margin-top: 0 !important;
 }
+
 /* ============================================================================
-   ФИКС МОДАЛЬНЫХ ОКНО И КУБИКА ПРИВАЛА ДЛЯ КОРНЯ BODY (ТВ-МАСШТАБ x2)
+   ФИКС МОДАЛЬНЫХ ОКНО И КУБИКА ПРИВАЛА ДЛЯ КОРНЯ BODY (ТВ-ВЕРСИЯ С АКЦЕНТАМИ)
    ============================================================================ */
 
 /* Полноэкранный оверлей трехмерной анимации кубика D20 */
@@ -3945,23 +3946,22 @@ canvas[style*="position: fixed"] {
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
 
-    /* УВЕЛИЧЕНО ПОД ТВ: Делаем монументальный широкий планшет Kingmaker */
     background: linear-gradient(135deg, #0f2215 0%, #050b07 100%) !important;
-    border: 5px solid #dfbc6f !important; /* Утолщенная золотая рамка */
+    border: 5px solid #dfbc6f !important;
     border-radius: 12px !important;
-    padding: 45px 50px !important; /* Больше свободного пространства внутри */
+    padding: 30px 50px 35px 50px !important;
 
-    width: 1100px !important; /* Радикально увеличили ширину под длинные строки (было 580px) */
+    width: 1150px !important;
     max-width: 95vw !important;
     height: auto !important;
-    max-height: 92vh !important; /* Позволяем окну занять почти всю высоту ТВ при обилии текста */
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95), 0 0 60px rgba(223, 188, 111, 0.6) !important;
+    max-height: 96vh !important;
+    box-shadow: 0 35px 90px rgba(0, 0, 0, 0.95), 0 0 70px rgba(223, 188, 111, 0.65) !important;
     z-index: 10000000 !important;
 
     display: none;
     flex-direction: column !important;
     align-items: center !important;
-    gap: 30px !important; /* Увеличенный зазор между блоками шапки, тела и кнопки */
+    gap: 20px !important;
     transform-origin: center center !important;
     clip-path: none !important;
 }
@@ -3982,25 +3982,26 @@ canvas[style*="position: fixed"] {
     transform: none !important;
 }
 
-/* Заголовок «Итоги ночного привала» — ГИГАНТСКИЙ ТВ-ШРИФТ */
+/* Уменьшенная шапка окна результатов */
 #campResultModal h2,
 #campResultModal .camp-res-modal-title,
 #campResultModal > div[class*="title"],
 #campResultModal > div:first-child {
     width: 100% !important;
-    font-size: 38px !important; /* Экстремально крупный размер (было 24px) */
+    font-size: 28px !important;
     color: #ffd875 !important;
     text-transform: uppercase !important;
     text-align: center !important;
-    border-bottom: 3px solid #543e0d !important; /* Толще разделитель */
-    padding-bottom: 16px !important;
-    margin: 0 0 10px 0 !important;
-    letter-spacing: 3px !important;
-    text-shadow: 0 0 10px #ffd875, 0 3px 6px rgba(0, 0, 0, 0.95) !important;
+    border-bottom: 2px solid #543e0d !important;
+    padding-bottom: 10px !important;
+    margin: 0 0 5px 0 !important;
+    letter-spacing: 2px !important;
+    text-shadow: 0 0 8px #ffd875, 0 2px 4px rgba(0, 0, 0, 0.95) !important;
     display: block !important;
+    flex-shrink: 0 !important;
 }
 
-/* Блок результатов лога (наш главный ориентир) — СЕРЕДИНА ОКНА */
+/* Блок результатов лога — Середина окна */
 #campResultModalBody,
 .camp-res-modal-body {
     width: 100% !important;
@@ -4009,70 +4010,88 @@ canvas[style*="position: fixed"] {
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    max-height: 60vh !important; /* Расширили лимит высоты под текстовые логи без обрезки */
-    overflow: visible !important; /* Полное уничтожение внутренних полос прокрутки */
+    flex-grow: 1 !important;
+    max-height: none !important;
+    overflow: visible !important;
 }
 
-/* Сетка базовых числовых показателей (СЛ Сцены, Проверки, Пайки) — ВЕЛИЧЕСТВЕННЫЙ ТВ-СТИЛЬ */
+/* Сетка базовых числовых показателей (СЛ Сцены, Проверки, Пайки) */
 #campResultModalBody > div:first-child {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 16px 40px !important;
-    margin-bottom: 25px !important;
-    padding: 20px 30px !important;
+    margin-bottom: 20px !important;
+    padding: 16px 30px !important;
 
-    font-size: 28px !important; /* Массивный, отлично читаемый шрифт параметров (было 18px) */
+    font-size: 32px !important;
     font-weight: 900 !important;
     text-transform: uppercase !important;
     color: #ffd875 !important;
-    background: rgba(0, 0, 0, 0.45) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
     border: 2px solid #543e0d !important;
     border-radius: 6px !important;
 }
 
-/* Крупные текстовые строки литературных эффектов привала (Успехи, Провалы) */
+/* ⚜️ ЦВЕТОВЫЕ ТВ-АКЦЕНТЫ: Оформляем числовые значения в золотые рамочки-плашки с неоновым изумрудным текстом */
+#campResultModalBody > div:first-child span,
+#campResultModalBody > div:first-child b,
+#campResultModalBody > div:first-child strong {
+    display: inline-block !important;
+    color: #2ecc71 !important; /* Насыщенный изумрудно-зеленый цвет для цифр */
+    background: #020503 !important; /* Глубокий темный фон плашки */
+    border: 1px solid #dfbc6f !important; /* Тонкая золотая геральдическая рамка */
+    padding: 2px 14px !important;
+    border-radius: 4px !important;
+    margin-left: 8px !important;
+    font-family: monospace !important; /* Моноширинный шрифт для ровных цифр */
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.8) !important;
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.6) !important; /* Мягкое неоновое свечение */
+}
+
+/* Крупные текстовые строки литературных эффектов привала */
 #campResultModalBody .camp-effect-line,
 .camp-effect-line {
-    font-size: 22px !important; /* Увеличено до 22px для мгновенного чтения с экрана ТВ */
-    line-height: 1.6 !important;
+    font-size: 24px !important;
+    line-height: 1.5 !important;
     text-align: left !important;
-    padding-left: 40px !important; /* Больше отступ для крупных геральдических лилий */
-    margin-top: 16px !important;
+    padding-left: 45px !important;
+    margin-top: 18px !important;
     text-transform: none !important;
-    font-weight: bold !important; /* Делаем текст плотнее */
+    font-weight: bold !important;
     letter-spacing: 0.5px !important;
     color: #ebd291 !important;
     display: block !important;
 }
 
-/* Специфические иконки геральдических лилий перед строками лога */
+/* Иконки геральдических лилий перед строками лога */
 #campResultModalBody .camp-effect-line::before,
 .camp-effect-line::before {
-    font-size: 24px !important; /* Крупная лилия */
-    top: 2px !important;
+    font-size: 26px !important;
+    top: 3px !important;
     left: 4px !important;
 }
 
-/* Нижний блок под кнопку (футер) — НИЗ ОКНА */
+/* Нижняя кнопка футера */
 #campResultModal [class*="footer"],
 #campResultModal > div > div:last-child {
     margin-top: 15px !important;
     display: flex !important;
     justify-content: center !important;
     width: 100% !important;
+    flex-shrink: 0 !important;
 }
 
 /* Массивная Кнопка «Принять» под ТВ-стандарты */
 #campResultModal button,
 #campResultModal .btn,
 .camp-res-modal-footer .btn {
-    padding: 16px 65px !important; /* Крупная, легко нажимаемая кнопка */
-    font-size: 22px !important; /* Массивный интерфейсный шрифт (было 16px) */
+    padding: 16px 70px !important;
+    font-size: 24px !important;
     min-width: 260px !important;
     background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
     color: #dfbc6f !important;
-    border: 2px solid #dfbc6f !important; /* Выделенный кант кнопки */
-    border-radius: 5px !important;
+    border: 2px solid #dfbc6f !important;
+    border-radius: 6px !important;
     font-weight: 900 !important;
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
@@ -4085,6 +4104,6 @@ canvas[style*="position: fixed"] {
 #campResultModal button:hover,
 #campResultModal .btn:hover {
     filter: brightness(1.2) !important;
-    box-shadow: 0 0 15px rgba(223, 188, 111, 0.4), 0 8px 20px rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 0 20px rgba(223, 188, 111, 0.5), 0 8px 25px rgba(0, 0, 0, 0.6) !important;
     transform: scale(1.02) !important;
 }
