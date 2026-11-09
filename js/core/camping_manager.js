@@ -277,18 +277,18 @@ const CampingManager = {
         }
     },
 
-    // Обновленный парсер регулярных выражений: разделяет подсветку на зеленую и красную
+    // Интеллектуальный парсер: красит в красный при минусах ИЛИ если тип лога "bad" (провал/крит)
     addLogLine(container, text, type) {
         const line = document.createElement('div');
         line.className = `camp-effect-line ${type}`;
 
-        // Сначала базово оборачиваем все числа и кубики в span
-        let formattedText = text.replace(/([+-]?\d+d\d+|[+-]?\d+\s*(?:шт\.)?|[+-]\d+)/g, '<span>$1</span>');
-
+        // Оборачиваем все числа, кости и текстовые маркеры в span
+        const formattedText = text.replace(/([+-]?\d+d\d+|[+-]?\d+\s*(?:шт\.)?|[+-]\d+|девятнадцать|двадцать)/g, '<span>$1</span>');
         line.innerHTML = formattedText;
 
-        // Находим все созданные span и если внутри есть минус, вешаем класс negative
+        // Обработка цвета плашек внутри созданной строки
         line.querySelectorAll('span').forEach(span => {
+            // Если в самом числе есть минус, помечаем как negative
             if (span.textContent.includes('-')) {
                 span.classList.add('negative');
             }
@@ -296,6 +296,7 @@ const CampingManager = {
 
         container.appendChild(line);
     },
+
 
     attachInputListeners() {
         const grid = document.querySelector('.camp-gm-inputs-grid');

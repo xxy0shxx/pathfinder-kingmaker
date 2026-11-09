@@ -4174,7 +4174,7 @@ canvas[style*="position: fixed"] {
 .camp-effect-line span {
     display: inline-block !important;
     vertical-align: middle !important;
-    color: #2ecc71 !important; /* Изумрудный для успеха и плюсов */
+    color: #2ecc71 !important; /* По умолчанию — изумрудно-зеленый */
     background: #020503 !important;
     border: 1px solid #dfbc6f !important;
     padding: 0px 8px !important;
@@ -4188,10 +4188,13 @@ canvas[style*="position: fixed"] {
     white-space: nowrap !important;
 }
 
-/* КРИТИЧЕСКИЙ ТВ-АКЦЕНТ: Красное свечение для отрицательных чисел и штрафов */
+/* КРУПНЫЙ ТВ-АКЦЕНТ: Красный цвет для штрафов ИЛИ для любых чисел внутри строк провала (.bad) */
 #campResultModalBody .camp-effect-line span.negative,
+#campResultModalBody .camp-effect-line.bad span,
 .camp-result-text-container .camp-effect-line span.negative,
-.camp-effect-line span.negative {
+.camp-result-text-container .camp-effect-line.bad span,
+.camp-effect-line span.negative,
+.camp-effect-line.bad span {
     color: #e74c3c !important; /* Насыщенный рубиново-красный */
     text-shadow: 0 0 8px rgba(231, 76, 60, 0.7) !important; /* Красный неон */
 }
