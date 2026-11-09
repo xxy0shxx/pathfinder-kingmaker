@@ -3943,7 +3943,7 @@ canvas[style*="position: fixed"] {
     height: 100vh !important;
     background: rgba(10, 15, 10, 0.75) !important;
     backdrop-filter: blur(6px) !important;
-    z-index: 10000000 !important; /* На один уровень выше кубика */
+    z-index: 10000000 !important;
     display: none;
     align-items: center !important;
     justify-content: center !important;
@@ -3953,6 +3953,29 @@ canvas[style*="position: fixed"] {
 
 #campResultModal.open {
     display: flex !important;
+}
+
+#campResultModalBody,
+.camp-result-modal-content {
+    background: #101711 !important; /* Тематический темно-зеленый фон */
+    border: 2px solid #543e0d !important;
+    border-radius: 6px !important;
+    padding: 30px !important;
+    max-width: 680px !important; /* Защита от растягивания вширь */
+    width: 90% !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+    display: block !important; /* Убираем флекс с контента, чтобы вернуть блоки на свои места */
+    margin: 0 auto !important;
+}
+
+#campResultModalBody > div:first-child {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    font-size: 24px !important; /* Делаем шрифт чуть компактнее, чтобы текст не вылетал */
+    text-transform: uppercase;
+    color: #ffd875;
+    margin-bottom: 20px !important;
 }
 
 /* Внутреннее окно с контентом */

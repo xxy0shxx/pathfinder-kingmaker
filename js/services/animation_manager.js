@@ -24,15 +24,20 @@ const AnimationManager = {
         setTimeout(() => { burstContainer.remove(); }, 250);
     },
 
+
     spawnBeamsBurst(cx, cy, scale = 1.0) {
         const beamsContainer = document.createElement('div');
         beamsContainer.className = 'hex-beams-burst';
-        beamsContainer.style.left = `${cx}px`;
-        beamsContainer.style.top = `${cy}px`;
 
-        if (scale !== 1.0) {
-            beamsContainer.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        }
+        // ПРИНУДИТЕЛЬНЫЙ ФИКС: ставим фиксированное позиционирование для отображения поверх куба
+        beamsContainer.style.cssText = `
+            position: fixed !important;
+            z-index: 99999999 !important;
+            left: ${cx}px;
+            top: ${cy}px;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(${scale});
+        `;
 
         for (let i = 0; i < 6; i++) {
             const beam = document.createElement('div');
@@ -44,6 +49,7 @@ const AnimationManager = {
         document.body.appendChild(beamsContainer);
         setTimeout(() => { beamsContainer.remove(); }, 1200);
     },
+
 
     warmUpAudioContext() {
         try {
