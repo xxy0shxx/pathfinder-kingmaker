@@ -2555,11 +2555,11 @@ body {
 }
 
 #d20Canvas {
-    width: 400px;
-    height: 400px;
-    max-width: 100%;
-    max-height: 100%;
     display: block;
+    margin: 0 auto;
+    background: transparent;
+    max-width: 400px;
+    max-height: 400px;
 }
 
 .camp-result-modal {
@@ -3913,4 +3913,56 @@ canvas[style*="position: fixed"] {
 .initiative-tablet-content {
     padding-top: 0 !important;
     margin-top: 0 !important;
+}
+/* Полноэкранный оверлей трехмерной анимации кубика D20 */
+#campDiceOverlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.85) !important;
+    z-index: 9999999 !important; /* Максимальный приоритет над всеми окнами */
+    display: none;
+    align-items: center !important;
+    justify-content: center !important;
+    transform: none !important; /* Убираем любые унаследованные сдвиги */
+    clip-path: none !important; /* Снимаем обрезку краев карты */
+}
+
+#campDiceOverlay.open {
+    display: flex !important;
+}
+
+/* Финальное модальное окно с результатами привала */
+#campResultModal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(10, 15, 10, 0.75) !important;
+    backdrop-filter: blur(6px) !important;
+    z-index: 10000000 !important; /* На один уровень выше кубика */
+    display: none;
+    align-items: center !important;
+    justify-content: center !important;
+    transform: none !important;
+    clip-path: none !important;
+}
+
+#campResultModal.open {
+    display: flex !important;
+}
+
+/* Внутреннее окно с контентом */
+.camp-result-modal-content {
+    background: #1a1a1a;
+    border: 3px solid #dfbc6f;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+    max-width: 650px;
+    width: 90%;
+    padding: 25px;
+    border-radius: 6px;
+    color: #fff;
 }

@@ -280,16 +280,25 @@ const AnimationManager = {
         const overlay = document.getElementById('campDiceOverlay');
         const canvas = document.getElementById('d20Canvas');
         if (!overlay || !canvas) { if (typeof onCompleteCallback === 'function') onCompleteCallback(); return; }
-        overlay.classList.add('open');
 
-        // Исправленный запуск процедурного каскада звуков вращения кости
+        // Гарантируем перенос в корень body, чтобы избежать багов с масштабом карты
+        if (overlay.parentNode !== document.body) {
+            document.body.appendChild(overlay);
+        }
+
+        overlay.classList.add('open');
         this._playDiceSoundEffects();
 
-        const ctx = canvas.getContext('2d'), t = (1.0 + Math.sqrt(5.0)) / 2.0;
+        const ctx = canvas.getContext('2d');
+        const t = (1.0 + Math.sqrt(5.0)) / 2.0;
+
         const vertices = [
             [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t],
             [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
-        ].map(v => { const l = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); return [v[0]/l * 120, v[1]/l * 120, v[2]/l * 120]; });
+        ].map(v => {
+            const l = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+            return [v[0]/l * 120, v[1]/l * 120, v[2]/l * 120];
+        });
 
         const faces = [
             [0, 11, 5, "⚜"], [0, 5, 1, "2"], [0, 1, 7, "3"], [0, 7, 10, "4"], [0, 10, 11, "5"],
@@ -298,13 +307,6 @@ const AnimationManager = {
             [4, 9, 5, "16"], [2, 4, 11, "17"], [6, 2, 10, "18"], [8, 6, 7, "19"], [9, 8, 1, "20"]
         ];
 
-        const fWinBase = faces[11];
-        let nx = (vertices[fWinBase[0]][0] + vertices[fWinBase[1]][0] + vertices[fWinBase[2]][0]) / 3;
-        let ny = (vertices[fWinBase[0]][1] + vertices[fWinBase[1]][1] + vertices[fWinBase[2]][1]) / 3;
-        let nz = (vertices[fWinBase[0]][2] + vertices[fWinBase[1]][2] + vertices[fWinBase[2]][2]) / 3;
-        const nl = Math.sqrt(nx*nx + ny*ny + nz*nz); nx /= nl; ny /= nl; nz /= nl;
-
-        const rotY = -Math.atan2(nx, nz); const nzR = -nx * Math.sin(rotY) + nz * Math.cos(rotY); const rotX = Math.atan2(ny, nzR);
         const dcMap = { "⚜":0, "1":0, "2":1, "3":2, "4":3, "5":4, "6":5, "7":6, "8":7, "9":8, "10":9, "11":10, "12":11, "13":12, "14":13, "15":14, "16":15, "17":16, "18":17, "19":18, "20":19 };
         let realWinIdx = 11;
         if (targetDc !== undefined && targetDc !== null) {
@@ -312,20 +314,43 @@ const AnimationManager = {
             if (dcMap[k] !== undefined) realWinIdx = dcMap[k];
         }
 
+        const fWinBase = faces[realWinIdx];
+        let nx = (vertices[fWinBase[0]][0] + vertices[fWinBase[1]][0] + vertices[fWinBase[2]][0]) / 3;
+        let ny = (vertices[fWinBase[0]][1] + vertices[fWinBase[1]][1] + vertices[fWinBase[2]][1]) / 3;
+        let nz = (vertices[fWinBase[0]][2] + vertices[fWinBase[1]][2] + vertices[fWinBase[2]][2]) / 3;
+        const nl = Math.sqrt(nx*nx + ny*ny + nz*nz); nx /= nl; ny /= nl; nz /= nl;
+
+        const rotY = -Math.atan2(nx, nz);
+        const nzR = -nx * Math.sin(rotY) + nz * Math.cos(rotY);
+        const rotX = Math.atan2(ny, nzR);
+
         const dynamicTextValue = faces[realWinIdx][3];
         let aX = Math.random() * 5, aY = Math.random() * 5, aZ = Math.random() * 5;
         let sc = 0.1, sTime = performance.now(), frameId, snapX = null, snapY = null, snapZ = null, flashed = false;
 
         const draw3D = () => {
             const elapsed = performance.now() - sTime;
-            if (elapsed >= 3000) { cancelAnimationFrame(frameId); overlay.classList.remove('open'); if (onCompleteCallback) onCompleteCallback(); return; }
+            if (elapsed >= 3000) {
+                cancelAnimationFrame(frameId);
+                overlay.classList.remove('open');
+                if (onCompleteCallback) onCompleteCallback();
+                return;
+            }
 
             let cX = aX += 0.12, cY = aY += 0.18, cZ = aZ += 0.06;
             if (elapsed >= 1000 && elapsed < 1400) {
-                if (snapX === null) { snapX = (aX - 0.12) % (Math.PI * 2); snapY = (aY - 0.18) % (Math.PI * 2); snapZ = (aZ - 0.06) % (Math.PI * 2); }
+                if (snapX === null) {
+                    snapX = (aX - 0.12) % (Math.PI * 2);
+                    snapY = (aY - 0.18) % (Math.PI * 2);
+                    snapZ = (aZ - 0.06) % (Math.PI * 2);
+                }
                 const p = (elapsed - 1000) / 400, ease = p * p * (3 - 2 * p);
-                cX = snapX + (rotX - snapX) * ease; cY = snapY + (rotY - snapY) * ease; cZ = snapZ + (0 - snapZ) * ease;
-            } else if (elapsed >= 1400) { cX = rotX; cY = rotY; cZ = 0; }
+                cX = snapX + (rotX - snapX) * ease;
+                cY = snapY + (rotY - snapY) * ease;
+                cZ = snapZ + (0 - snapZ) * ease;
+            } else if (elapsed >= 1400) {
+                cX = rotX; cY = rotY; cZ = 0;
+            }
 
             sc = elapsed < 200 ? 0.1 + 0.9 * (elapsed / 200) : (elapsed > 2700 ? 1.0 - 0.9 * ((elapsed - 2700) / 300) : 1.0);
             ctx.clearRect(0, 0, 400, 400);
@@ -338,9 +363,14 @@ const AnimationManager = {
                 return [x3 * sc + 200, y3 * sc + 200, z2];
             });
 
-            const renderOrder = faces.map(f => ({ face: f, z: (rotated[f[0]][2] + rotated[f[1]][2] + rotated[f[2]][2]) / 3 })).sort((a, b) => a.z - b.z);
+            const renderOrder = faces.map(f => ({
+                face: f,
+                z: (rotated[f[0]][2] + rotated[f[1]][2] + rotated[f[2]][2]) / 3
+            })).sort((a, b) => a.z - b.z);
+
             renderOrder.forEach(item => {
                 const f = item.face, p0 = rotated[f[0]], p1 = rotated[f[1]], p2 = rotated[f[2]];
+
                 if ((p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]) > 0) {
                     const ax = vertices[f[1]][0] - vertices[f[0]][0], ay = vertices[f[1]][1] - vertices[f[0]][1], az = vertices[f[1]][2] - vertices[f[0]][2];
                     const bx = vertices[f[2]][0] - vertices[f[0]][0], by = vertices[f[2]][1] - vertices[f[0]][1], bz = vertices[f[2]][2] - vertices[f[0]][2];
@@ -354,14 +384,24 @@ const AnimationManager = {
                     ctx.fillStyle = `rgb(${Math.floor(180 + 75 * brightness)}, ${Math.floor(135 + 80 * brightness)}, ${Math.floor(35 + 40 * brightness)})`; ctx.fill();
                     ctx.strokeStyle = "rgba(255, 230, 150, 0.85)"; ctx.lineWidth = 1.5; ctx.stroke();
 
-                    if (elapsed >= 1400 && f[0] === faces[11][0] && f[1] === faces[11][1] && f[2] === faces[11][2]) {
-                        ctx.save(); if (!flashed) { this.spawnBeamsBurst(canvas.getBoundingClientRect().left + 200, canvas.getBoundingClientRect().top + 200, 1.4); flashed = true; }
+                    if (elapsed >= 1400 && f[0] === faces[realWinIdx][0] && f[1] === faces[realWinIdx][1] && f[2] === faces[realWinIdx][2]) {
+                        ctx.save();
+                        if (!flashed) {
+                            const screenCenterX = window.innerWidth / 2;
+                            const screenCenterY = window.innerHeight / 2;
+                            this.spawnBeamsBurst(screenCenterX, screenCenterY, 1.4);
+                            flashed = true;
+                        }
                         const opacity = Math.min(1, (elapsed - 1400) / 150);
                         let sz = Math.floor(54 * sc), sCol = `rgba(255,162,0,${opacity})`, tCol = `rgba(255,255,255,${opacity})`;
                         if (dynamicTextValue === "20") { sz = Math.floor(68 * sc); sCol = `rgba(46,204,113,${opacity})`; tCol = `rgba(235,255,240,${opacity})`; }
                         else if (dynamicTextValue === "1" || dynamicTextValue === "⚜") { sz = Math.floor(68 * sc); sCol = `rgba(231,76,60,${opacity})`; tCol = `rgba(255,210,210,${opacity})`; }
                         ctx.fillStyle = tCol; ctx.font = `900 ${sz}px 'Times New Roman', serif`; ctx.shadowColor = sCol; ctx.shadowBlur = 18; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                        ctx.fillText(dynamicTextValue, (p0[0] + p1[0] + p2[0]) / 3, (p0[0] + p1[0] + p2[0]) / 3); ctx.restore();
+
+                        const centerX = (p0[0] + p1[0] + p2[0]) / 3;
+                        const centerY = (p0[1] + p1[1] + p2[1]) / 3;
+                        ctx.fillText(dynamicTextValue, centerX, centerY);
+                        ctx.restore();
                     }
                 }
             });
@@ -369,6 +409,8 @@ const AnimationManager = {
         };
         draw3D();
     }
+
+
 };
 
 window.AnimationManager = AnimationManager;
