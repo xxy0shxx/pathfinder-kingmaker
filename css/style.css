@@ -4005,12 +4005,14 @@ canvas[style*="position: fixed"] {
 #campResultModalBody,
 .camp-res-modal-body {
     width: 100% !important;
+
+    /* НАМЕРТВО УБИРАЕМ ФЛЕКС С КОНТЕЙНЕРА СПИСКА ЛОГОВ */
     display: block !important;
+
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    flex-grow: 1 !important;
     max-height: none !important;
     overflow: visible !important;
 }
@@ -4052,15 +4054,21 @@ canvas[style*="position: fixed"] {
 #campResultModalBody .camp-effect-line,
 .camp-effect-line {
     font-size: 24px !important;
-    line-height: 1.5 !important;
+    line-height: 1.6 !important;
     text-align: left !important;
     padding-left: 45px !important;
-    margin-top: 18px !important;
+    margin-top: 20px !important;
     text-transform: none !important;
     font-weight: bold !important;
     letter-spacing: 0.5px !important;
     color: #ebd291 !important;
+
+    /* ФОРСИРУЕМ РЕЖИМ ЛИНЕЙНОГО ТЕКСТА: Строка занимает всю ширину окна */
     display: block !important;
+    width: 100% !important;
+    float: none !important;
+    clear: both !important;
+    white-space: normal !important;
 }
 
 /* Иконки геральдических лилий перед строками лога */
@@ -4111,16 +4119,71 @@ canvas[style*="position: fixed"] {
 /* Подсветка чисел и костей внутри литературного текста эффектов */
 #campResultModalBody .camp-effect-line span,
 .camp-effect-line span {
+    /* inline-block в обычном текстовом потоке работает как слово */
     display: inline-block !important;
+    vertical-align: middle !important;
     color: #2ecc71 !important; /* Изумрудный акцент */
-    background: #020503 !important; /* Глубокий темный фон */
+    background: #020503 !important; /* Глубокий темный фон плашки */
     border: 1px solid #dfbc6f !important; /* Золотая рамочка */
-    padding: 1px 8px !important; /* Чуть компактнее, чем в шапке, чтобы не ломать строки */
-    border-radius: 4px !important;
+
+    /* Микро-размеры, не расталкивающие текст */
+    padding: 0px 8px !important;
     margin: 0 4px !important;
+    line-height: 1.3 !important;
+    height: auto !important;
+
     font-family: monospace !important;
     font-weight: 900 !important;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.85) !important;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.85) !important;
     text-shadow: 0 0 8px rgba(46, 204, 113, 0.6) !important;
+    white-space: nowrap !important; /* Защита от разрыва "14 шт." */
+}
+
+/* Изолирующий контейнер для текстового лога эффектов */
+.camp-result-text-container {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    background: transparent !important;
+    margin-top: 15px !important;
+    overflow: visible !important;
+}
+
+/* Крупные текстовые строки литературных эффектов привала */
+#campResultModalBody .camp-effect-line,
+.camp-result-text-container .camp-effect-line,
+.camp-effect-line {
+    display: block !important; /* Строка обязана быть полноценным блоком */
+    width: 100% !important; /* Во всю ширину экрана */
+    font-size: 24px !important;
+    line-height: 1.6 !important;
+    text-align: left !important;
+    padding-left: 45px !important;
+    margin-top: 20px !important;
+    margin-bottom: 0 !important;
+    text-transform: none !important;
+    font-weight: bold !important;
+    letter-spacing: 0.5px !important;
+    color: #ebd291 !important;
+    white-space: normal !important; /* Разрешаем тексту естественно переноситься по словам */
+}
+
+/* Подсветка чисел и костей внутри литературного текста эффектов */
+#campResultModalBody .camp-effect-line span,
+.camp-result-text-container .camp-effect-line span,
+.camp-effect-line span {
+    display: inline-block !important; /* Внутри строки ведет себя как слитное слово */
     vertical-align: middle !important;
+    color: #2ecc71 !important;
+    background: #020503 !important;
+    border: 1px solid #dfbc6f !important;
+    padding: 0px 8px !important;
+    margin: 0 4px !important;
+    line-height: 1.3 !important;
+    height: auto !important;
+    font-family: monospace !important;
+    font-weight: 900 !important;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.85) !important;
+    text-shadow: 0 0 8px rgba(46, 204, 113, 0.6) !important;
+    white-space: nowrap !important; /* Никаких разрывов связок типа "14 шт." */
 }

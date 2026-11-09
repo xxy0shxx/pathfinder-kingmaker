@@ -309,6 +309,7 @@ const CampingManager = {
         if (isFinished) this.triggerDiceAndResultModal();
     },
 
+
     triggerDiceAndResultModal() {
         const resultModal = document.getElementById('campResultModal');
         const modalBody = document.getElementById('campResultModalBody');
@@ -316,6 +317,8 @@ const CampingManager = {
         if (!resultModal || !modalBody || !effectsList) return;
 
         modalBody.innerHTML = '';
+
+        // Блок 1: Крупные цифры-статы
         const summaryStats = document.createElement('div');
         summaryStats.innerHTML = `
             <div>🎲 СЛ Сцены: <span>${this.state.encounterDc}</span></div>
@@ -325,10 +328,17 @@ const CampingManager = {
         `;
         modalBody.appendChild(summaryStats);
 
+        // Блок 2: ИЗОЛИРУЮЩИЙ КОНТЕЙНЕР ДЛЯ ЛИТЕРАТУРНОГО ТЕКСТА
+        const textContainer = document.createElement('div');
+        textContainer.className = 'camp-result-text-container';
+
+        // Копируем строки внутрь изолированного текстового блока
         Array.from(effectsList.children).forEach(child => {
             const clone = child.cloneNode(true);
-            modalBody.appendChild(clone);
+            textContainer.appendChild(clone);
         });
+
+        modalBody.appendChild(textContainer);
 
         if (window.AnimationManager) {
             window.AnimationManager.playCampDiceAnimation(this.state.encounterDc, () => {
@@ -338,6 +348,8 @@ const CampingManager = {
             resultModal.classList.add('open');
         }
     },
+
+
 
     saveFromUi() {
         try {
