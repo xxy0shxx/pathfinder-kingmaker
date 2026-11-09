@@ -4199,11 +4199,11 @@ canvas[style*="position: fixed"] {
     color: #e74c3c !important; /* Насыщенный рубиново-красный */
     text-shadow: 0 0 10px rgba(231, 76, 60, 0.85) !important; /* Красный неон */
 }
+
 /* ============================================================================
-   BG3-СТИЛЬ: ГОРИЗОНТАЛЬНАЯ ОЧЕРЕДЬ ИНИЦИАТИВЫ
+   BG3-СТИЛЬ: ГОРИЗОНТАЛЬНАЯ ОЧЕРЕДЬ ИНИЦИАТИВЫ (ОБНОВЛЕННЫЙ)
    ============================================================================ */
 
-/* Кнопка переключения режимов (между Раундом и Следующим ходом) */
 .init-btn-view-toggle {
     background: linear-gradient(180deg, #42351f 0%, #292011 100%) !important;
     border: 1px solid #543e0d !important;
@@ -4211,7 +4211,7 @@ canvas[style*="position: fixed"] {
     font-family: 'Montserrat', sans-serif !important;
     font-size: 14px !important;
     font-weight: bold !important;
-    padding: 0 12px !important;
+    padding: 0 16px !important;
     height: 50px !important;
     border-radius: 4px !important;
     cursor: pointer !important;
@@ -4226,129 +4226,115 @@ canvas[style*="position: fixed"] {
     border-color: #dfbc6f !important;
     color: #fff !important;
     background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
-    box-shadow: 0 0 8px rgba(184, 148, 69, 0.4) !important;
 }
 
-/* Переключение списка в горизонтальный режим BG3 */
 .init-cards-scroll-list.mode-bg3 {
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    max-height: 160px !important;
-    height: 160px !important;
+    max-height: 180px !important;
+    height: 180px !important;
     padding: 20px 30px !important;
-    gap: 16px !important;
+    gap: 14px !important;
     justify-content: flex-start !important;
 }
 
-/* Компактный квадратный блок существа в стиле BG3 */
+/* Увеличили высоту карточки, чтобы имя гарантированно влезало по центру */
 .init-cards-scroll-list.mode-bg3 .init-combatant-card {
     flex-direction: column !important;
-    width: 90px !important;
-    height: 90px !important;
-    min-width: 90px !important;
-    padding: 6px !important;
+    width: 95px !important;
+    height: 115px !important;
+    min-width: 95px !important;
+    padding: 8px 6px !important;
     position: relative !important;
     justify-content: space-between !important;
     align-items: center !important;
     border-width: 2px !important;
 }
 
-/* Контейнеры элементов внутри BG3-карточки */
 .init-cards-scroll-list.mode-bg3 .init-card-left {
     flex-direction: column !important;
-    gap: 4px !important;
+    gap: 6px !important;
     width: 100% !important;
     align-items: center !important;
 }
 
 .init-cards-scroll-list.mode-bg3 .init-card-right {
-    gap: 4px !important;
+    gap: 0 !important;
     width: 100% !important;
     justify-content: center !important;
 }
 
-/* Показываем имя ТОЛЬКО при наведении на карточку в виде парящего тултипа */
+/* Компактный, легко читаемый шрифт для имени внутри карточки */
 .init-cards-scroll-list.mode-bg3 .init-card-name-text {
-    position: absolute !important;
-    bottom: 105% !important;
-    left: 50% !important;
-    transform: translateX(-50%) scale(0.9) !important;
-    background: rgba(13, 30, 19, 0.95) !important;
-    border: 1px solid #dfbc6f !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
     color: #fff !important;
-    padding: 4px 8px !important;
-    font-size: 14px !important;
-    border-radius: 4px !important;
+    text-align: center !important;
+    width: 100% !important;
     white-space: nowrap !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    z-index: 1000000 !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.8) !important;
-    transition: opacity 0.15s ease, transform 0.15s ease !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important; /* Обрезка длинных имен аккуратными точками */
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9) !important;
 }
 
+/* Отключаем старые тултипы при наведении */
 .init-cards-scroll-list.mode-bg3 .init-combatant-card:hover .init-card-name-text {
+    position: static !important;
     opacity: 1 !important;
     visibility: visible !important;
-    transform: translateX(-50%) scale(1) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
 }
 
-/* Скрываем лишние элементы в режиме BG3 для чистоты интерфейса */
 .init-cards-scroll-list.mode-bg3 .init-turn-pointer-arrow,
 .init-cards-scroll-list.mode-bg3 .init-btn-delete-card,
 .init-cards-scroll-list.mode-bg3 .init-btn-toggle-d20-inline {
     display: none !important;
 }
 
-/* Миниатюрное отображение значения инициативы по центру */
 .init-cards-scroll-list.mode-bg3 .init-inline-score-input {
-    width: 44px !important;
+    width: 50px !important;
     height: 26px !important;
-    font-size: 16px !important;
+    font-size: 15px !important;
     border-radius: 4px !important;
     border-width: 1px !important;
 }
 
-/* Превращаем выпадающий список фракции в ультракомпактную цветную кнопку-точку */
 .init-cards-scroll-list.mode-bg3 .init-select-wrapper {
     position: absolute !important;
-    top: 4px !important;
-    right: 4px !important;
-    width: 14px !important;
-    height: 14px !important;
+    top: 6px !important;
+    right: 6px !important;
+    width: 12px !important;
+    height: 12px !important;
     overflow: hidden !important;
     border-radius: 50% !important;
-    border: 1px solid #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
 .init-cards-scroll-list.mode-bg3 .init-inline-faction-select {
     position: absolute !important;
     top: -5px !important;
     left: -5px !important;
-    width: 30px !important;
-    height: 30px !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    width: 25px !important;
+    height: 25px !important;
     cursor: pointer !important;
-    opacity: 0.01 !important; /* Делаем невидимым родной селект, но кликабельным */
+    opacity: 0.01 !important;
     z-index: 5 !important;
 }
 
-/* Цветовые маркеры-подложки фракций для псевдо-выпадашки в режиме BG3 */
 .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-friend .init-select-wrapper { background: #2ecc71 !important; }
 .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-enemy .init-select-wrapper { background: #e74c3c !important; }
 .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-neutral .init-select-wrapper { background: #f1c40f !important; }
 
-/* Тонкая настройка короны крит-успеха для BG3 формата */
 .init-cards-scroll-list.mode-bg3 .init-crown-badge {
     position: absolute !important;
-    top: -12px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
+    top: -11px !important;
+    left: 6px !important;
     margin: 0 !important;
-    font-size: 18px !important;
+    font-size: 16px !important;
     animation: none !important;
 }

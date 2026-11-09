@@ -6,7 +6,7 @@ const InitiativeManager = {
         combatants: [],
         selectedUnitId: null,
         round: 1,
-        viewMode: 'classic' // Добавляем поддержку режимов: 'classic' или 'bg3'
+        viewMode: 'classic' // Режимы отображения: 'classic' (список) или 'bg3' (горизонт)
     },
     mapDataRef: null,
     onSaveCallback: null,
@@ -236,7 +236,8 @@ const InitiativeManager = {
                                 <button type="button" id="initBtnResetRoundOnly" class="init-btn-reset-round-inline" title="Сбросить раунды до 1">🔄</button>
                             </div>
                             
-                            <button type="button" id="initBtnToggleView" class="init-btn-view-toggle" title="Сменить стиль отображения">⚔️ Режим: Списки / BG3</button>
+                            <!-- ТЕКСТ ОБНОВЛЕН: Убрана аббревиатура BG3 -->
+                            <button type="button" id="initBtnToggleView" class="init-btn-view-toggle" title="Сменить стиль отображения">⚔️ Режим: Список / Горизонт</button>
                             
                             <button type="button" class="btn ok" id="initBtnNextTurn" style="flex-grow: 1; height: 50px; font-size: 18px; font-weight: 900; letter-spacing: 1px;">🛡️ СЛЕДУЮЩИЙ ХОД</button>
                             
@@ -308,10 +309,10 @@ const InitiativeManager = {
 
         if (this.state.viewMode === 'bg3') {
             listContainer.classList.add('mode-bg3');
-            document.getElementById('initBtnToggleView').textContent = '🏹 Режим: BG3 (Горизонт)';
+            document.getElementById('initBtnToggleView').textContent = '🏹 Режим: Горизонт';
         } else {
             listContainer.classList.remove('mode-bg3');
-            document.getElementById('initBtnToggleView').textContent = '📜 Режим: Списки (Вертикаль)';
+            document.getElementById('initBtnToggleView').textContent = '📜 Режим: Список';
         }
 
         const roundNumEl = document.getElementById('initRoundCounterNum');
