@@ -1259,8 +1259,9 @@ const InitiativeManager = {
         return canvas.toDataURL();
     },
 
+
     /**
-     * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ЭЛЬФА НА CANVAS
+     * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ЭЛЬФА НА CANVAS (ВЕРСИЯ 3.0 — КАНOНИЧНЫЙ СЕРЕБРЯНЫЙ ЭЛЬФ)
      * Возвращает строку Data-URL для мгновенного рендеринга
      */
     generateElfAvatarDataUrl() {
@@ -1273,82 +1274,97 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Изумрудный благородный щит
+        // 1. ФОН: Глубокий королевский лазурный щит
         ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#112918'; ctx.strokeStyle = '#8a6421'; ctx.lineWidth = 2;
+        ctx.fillStyle = '#0f1a24'; ctx.strokeStyle = '#dfbc6f'; ctx.lineWidth = 2;
         ctx.fill(); ctx.stroke();
 
-        // 2. ДЛИННЫЕ ЭЛЬФИЙСКИЕ УШИ (Экстремально вытянутые вверх и в стороны)
-        ctx.fillStyle = '#cbdcd0'; // Теневой цвет ушей (чуть темнее кожи)
-        ctx.beginPath(); ctx.moveTo(44, 65); ctx.lineTo(4, 30); ctx.lineTo(42, 78); ctx.fill(); // Левое
-        ctx.beginPath(); ctx.moveTo(84, 65); ctx.lineTo(124, 30); ctx.lineTo(86, 78); ctx.fill(); // Правое
-
-        // Внутренняя розовая часть ушей
-        ctx.fillStyle = '#e8c4c4';
-        ctx.beginPath(); ctx.moveTo(42, 66); ctx.lineTo(14, 36); ctx.lineTo(40, 74); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(86, 66); ctx.lineTo(114, 36); ctx.lineTo(88, 74); ctx.fill();
-
-        // 3. ШЕЯ И ДЛИННЫЕ ВОЛОСЫ
-        ctx.fillStyle = '#e5eff2'; // Серебряные волосы на заднем плане
-        ctx.beginPath(); ctx.moveTo(35, 70); ctx.lineTo(25, 128); ctx.lineTo(103, 128); ctx.lineTo(93, 70); ctx.fill();
-
-        ctx.fillStyle = '#daeae1'; // Изящная шея
-        ctx.beginPath(); ctx.moveTo(50, 85); ctx.lineTo(44, 120); ctx.lineTo(84, 120); ctx.lineTo(78, 85); ctx.fill();
-
-        // 4. ЛИЦО (Заостренный подбородок, идеальные эльфийские пропорции)
-        ctx.fillStyle = '#eaf5ee'; // Бледная благородная кожа
+        // 2. ЗАДНИЙ ПЛАН: Прямые серебряные волосы (спадение за плечи)
+        ctx.fillStyle = '#dcdde1';
         ctx.beginPath();
-        ctx.moveTo(45, 50); // Левая скула
-        ctx.lineTo(64, 34); // Макушка
-        ctx.lineTo(83, 50); // Правая скула
-        ctx.lineTo(82, 80); // Правая челюсть
-        ctx.lineTo(64, 102); // Заостренный подбородок
-        ctx.lineTo(46, 80); // Левая челюсть
+        ctx.moveTo(35, 50);
+        ctx.lineTo(25, 128);
+        ctx.lineTo(103, 128);
+        ctx.lineTo(93, 50);
         ctx.closePath(); ctx.fill();
 
-        // 5. РАСКОСЫЕ МИСТИЧЕСКИЕ ГЛАЗА (Золотое свечение)
-        ctx.fillStyle = '#b89445'; // Благородный золотой
-        ctx.beginPath(); ctx.ellipse(54, 58, 5, 2, -Math.PI / 10, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(74, 58, 5, 2, Math.PI / 10, 0, Math.PI * 2); ctx.fill();
-
-        // Магический зрачок
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath(); ctx.arc(55, 58, 1.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(73, 58, 1.5, 0, Math.PI * 2); ctx.fill();
-
-        // Изящные тонкие брови стрелами
-        ctx.strokeStyle = '#543e0d'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(46, 52); ctx.lineTo(58, 54); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(82, 52); ctx.lineTo(70, 54); ctx.stroke();
-
-        // 6. МАГИЧЕСКИЙ РИТУАЛЬНЫЙ ТАТУАЖ (Синие линии на щеках)
-        ctx.strokeStyle = '#2980b9'; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(48, 68); ctx.lineTo(56, 76); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(80, 68); ctx.lineTo(72, 76); ctx.stroke();
-
-        // 7. АККУРАТНЫЙ ТОНКИЙ НОС И АККУРАТНЫЕ ГУБЫ
-        ctx.strokeStyle = '#b4cfc0'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(64, 55); ctx.lineTo(62, 74); ctx.lineTo(66, 74); ctx.stroke();
-
-        ctx.fillStyle = '#e77f7f'; // Утонченные розовые губы
-        ctx.beginPath(); ctx.ellipse(64, 86, 6, 2, 0, 0, Math.PI * 2); ctx.fill();
-
-        // 8. СЕРЕБРЯНАЯ ДИАДЕМА ВЛАСТИТЕЛЯ (На лбу)
-        ctx.fillStyle = '#b89445'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
+        // 3. АКУРАТНЫЕ ЭЛЬФИЙСКИЕ УШИ (Тонкие, не очень длинные, направлены строго ВВЕРХ-НАЗАД)
+        ctx.fillStyle = '#ebd6be'; // Теневой цвет ушей
         ctx.beginPath();
-        ctx.moveTo(48, 45); ctx.lineTo(64, 50); ctx.lineTo(80, 45); ctx.lineTo(76, 41); ctx.lineTo(64, 44); ctx.lineTo(52, 41);
-        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.moveTo(48, 60);
+        ctx.lineTo(34, 32); // Изящный, короткий и аккуратный пик вверх-влево
+        ctx.lineTo(46, 70);
+        ctx.closePath(); ctx.fill();
 
-        // Кристалл в центре короны
-        ctx.fillStyle = '#3498db';
-        ctx.beginPath(); ctx.arc(64, 47, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(80, 60);
+        ctx.lineTo(94, 32); // Изящный, короткий и аккуратный пик вверх-вправо
+        ctx.lineTo(82, 70);
+        ctx.closePath(); ctx.fill();
 
-        // 9. ТЕНЕВАЯ ПОЛОВИНА FLAT-ОБЪЕМА
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        ctx.beginPath(); ctx.moveTo(64, 34); ctx.lineTo(45, 50); ctx.lineTo(46, 80); ctx.lineTo(64, 102); ctx.closePath(); ctx.fill();
+        // Внутреннее розовое основание ушной раковины
+        ctx.fillStyle = '#dfbeab';
+        ctx.beginPath(); ctx.moveTo(46, 61); ctx.lineTo(38, 42); ctx.lineTo(44, 68); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(82, 61); ctx.lineTo(90, 42); ctx.lineTo(80, 68); ctx.fill();
+
+        // 4. ИЗЯЩНАЯ ШЕЯ (Чистая, без бороды)
+        ctx.fillStyle = '#f3dec2';
+        ctx.beginPath(); ctx.moveTo(52, 85); ctx.lineTo(48, 128); ctx.lineTo(80, 128); ctx.lineTo(76, 85); ctx.fill();
+
+        ctx.fillStyle = '#1b3a4b'; // Аккуратный воротник мантии
+        ctx.beginPath(); ctx.moveTo(42, 128); ctx.lineTo(54, 112); ctx.lineTo(64, 118); ctx.lineTo(74, 112); ctx.lineTo(86, 128); ctx.closePath(); ctx.fill();
+
+        // 5. ЛИЦО (Утонченный овал, гладкая кожа без бороды и усов)
+        ctx.fillStyle = '#fff0d9'; // Благородный кремовый тон
+        ctx.beginPath();
+        ctx.moveTo(46, 50); // Левая скула
+        ctx.lineTo(64, 34); // Лоб
+        ctx.lineTo(82, 50); // Правая скула
+        ctx.lineTo(80, 78); // Правая челюсть
+        ctx.lineTo(64, 96); // Заостренный гладкий подбородок
+        ctx.lineTo(48, 78); // Левая челюсть
+        ctx.closePath(); ctx.fill();
+
+        // ПЕРЕДНИЕ СЕРЕБРЯНЫЕ ПРЯДИ ВОЛОС (Ровное каре, обрамляющее лицо)
+        ctx.fillStyle = '#f5f6fa'; // Светлое сияющее серебро
+        ctx.beginPath(); ctx.moveTo(46, 34); ctx.quadraticCurveTo(42, 60, 44, 80); ctx.lineTo(49, 78); ctx.quadraticCurveTo(47, 56, 51, 37); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(82, 34); ctx.quadraticCurveTo(86, 60, 84, 80); ctx.lineTo(79, 78); ctx.quadraticCurveTo(81, 56, 77, 37); ctx.fill();
+
+        // 6. МИНДАЛЕВИДНЫЕ ГЛАЗА (Магический золотой разрез глаз)
+        ctx.fillStyle = '#d4af37';
+        ctx.beginPath(); ctx.ellipse(55, 58, 4.5, 1.8, -Math.PI / 14, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(73, 58, 4.5, 1.8, Math.PI / 14, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff'; // Блики зрачков
+        ctx.beginPath(); ctx.arc(56, 57.5, 1, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(72, 57.5, 1, 0, Math.PI * 2); ctx.fill();
+
+        // Изящные тонкие ниточки бровей
+        ctx.strokeStyle = '#8a6421'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(48, 52); ctx.quadraticCurveTo(54, 51, 59, 54); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(80, 52); ctx.quadraticCurveTo(74, 51, 69, 54); ctx.stroke();
+
+        // 7. СЛУЖЕБНЫЕ ЛИНИИ НОСА И УТОНЧЕННЫЕ РОЗОВЫЕ ГУБЫ
+        ctx.strokeStyle = '#e0cbba'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(64, 54); ctx.lineTo(62, 73); ctx.lineTo(66, 73); ctx.stroke();
+
+        ctx.fillStyle = '#e07a7a';
+        ctx.beginPath(); ctx.ellipse(64, 83, 4.5, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+
+        // 8. СЕРЕБРЯНАЯ ДИАДЕМА (Тонкий ровный ободок без выступов)
+        ctx.strokeStyle = '#dcdde1'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(49, 44); ctx.lineTo(64, 47); ctx.lineTo(79, 44); ctx.stroke();
+
+        // 9. МЯГКАЯ ТЕНЬ FLAT-СТИЛЯ (Для эффекта объема лица)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+        ctx.beginPath();
+        ctx.moveTo(64, 34);
+        ctx.lineTo(45, 50); ctx.lineTo(48, 78); ctx.lineTo(64, 96);
+        ctx.closePath(); ctx.fill();
 
         return canvas.toDataURL();
     },
+
 
 
     /**
