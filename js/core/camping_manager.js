@@ -277,12 +277,23 @@ const CampingManager = {
         }
     },
 
-    // Парсер регулярных выражений для оборачивания цифр и костей в текстовые плашки
+    // Обновленный парсер регулярных выражений: разделяет подсветку на зеленую и красную
     addLogLine(container, text, type) {
         const line = document.createElement('div');
         line.className = `camp-effect-line ${type}`;
-        const formattedText = text.replace(/([+-]?\d+d\d+|[+-]?\d+\s*(?:шт\.)?|[+-]\d+|девятнадцать|двадцать)/g, '<span>$1</span>');
+
+        // Сначала базово оборачиваем все числа и кубики в span
+        let formattedText = text.replace(/([+-]?\d+d\d+|[+-]?\d+\s*(?:шт\.)?|[+-]\d+)/g, '<span>$1</span>');
+
         line.innerHTML = formattedText;
+
+        // Находим все созданные span и если внутри есть минус, вешаем класс negative
+        line.querySelectorAll('span').forEach(span => {
+            if (span.textContent.includes('-')) {
+                span.classList.add('negative');
+            }
+        });
+
         container.appendChild(line);
     },
 
