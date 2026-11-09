@@ -4230,15 +4230,17 @@ canvas[style*="position: fixed"] {
 
 /* Увеличиваем общую высоту контейнера прокрутки под новые пропорции квадратов */
 .init-cards-scroll-list.mode-bg3 {
-    flex-direction: row !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     max-height: 210px !important;
     height: 210px !important;
-    padding: 25px 45px 35px 45px !important;
-    gap: 16px !important;
     justify-content: flex-start !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 24px !important;
+    padding: 20px !important;
 }
 
 /* ФОРМИРУЕМ ИДЕАЛЬНЫЙ КВАДРАТ 115px на 115px */
@@ -4252,6 +4254,9 @@ canvas[style*="position: fixed"] {
     justify-content: space-between !important;
     align-items: center !important;
     border-width: 2px !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    flex-shrink: 0 !important;
 }
 
 /* Корректируем верхнюю зону внутри квадрата */
@@ -5351,3 +5356,83 @@ canvas[style*="position: fixed"] {
     box-shadow: 0 0 16px 2px rgba(192, 57, 43, 0.95) !important;
 }
 
+/* ============================================================================
+   МOНОЛИТНЫЙ ЗOЛОТОЙ ГРАДИЕНТ В ЖЁЛТЫХ ТОНАХ (БЕЗ ПРОЗРАЧНОСТИ И ЧЕРНОТЫ)
+   ============================================================================ */
+
+/* Убираем rgba-прозрачность, чтобы сквозь карточку не просвечивал черный фон трекера */
+.init-cards-scroll-list .init-combatant-card[data-faction="neutral"],
+.init-cards-scroll-list .init-combatant-card.faction-neutral {
+    /* Плотный, непрозрачный перелив от кованого золота к темному медовому янтарю */
+    background: linear-gradient(90deg, #d4af37 0%, #855e13 100%) !important;
+    border: 2px solid #ffd875 !important; /* Яркий солнечный кант */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Оптимальный цвет текста для максимального контраста на плотном золотом фоне */
+.init-cards-scroll-list .init-combatant-card.faction-neutral .init-card-name-text,
+.init-cards-scroll-list .init-combatant-card[data-faction="neutral"] .init-card-name-text {
+    color: #ffffff !important; /* Чистый белый текст */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9) !important; /* Жирная тень, чтобы буквы не сливались */
+    font-weight: bold !important;
+}
+
+/* Стилизуем инлайновые селекторы внутри желтой карточки */
+.init-cards-scroll-list .init-combatant-card.faction-neutral select,
+.init-cards-scroll-list .init-combatant-card[data-faction="neutral"] select {
+    background: rgba(0, 0, 0, 0.4) !important; /* Темная полупрозрачная плашка под селекторы */
+    color: #ffffff !important;
+    border: 1px solid #ffd875 !important;
+}
+
+/* ============================================================================
+   ЖЕСТКОЕ ИСПРАВЛЕНИЕ НАПЛЫВА И СИНХРОНИЗАЦИЯ ГОРИЗОНТА (MODE-BG3)
+   ============================================================================ */
+.init-cards-scroll-list .init-combatant-card {
+    box-sizing: border-box !important;
+    position: relative !important;
+    margin-bottom: 2px !important; /* Карточки теперь сидят очень плотно */
+    margin-top: 2px !important;
+    height: auto !important;
+    /* Плавный переход для всех трансформаций и маргинов */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    margin 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s ease !important;
+    z-index: 1;
+}
+/* Идеальное выравнивание горизонтальной ленты (первый блок больше не прыгает) */
+.init-cards-scroll-list.mode-bg3 {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 24px !important;
+    padding: 20px !important;
+}
+
+.init-cards-scroll-list.mode-bg3 .init-combatant-card {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Крупное масштабирование карточки текущего хода в горизонте (+25%) */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold {
+    transform: scale(1.25) !important;
+    z-index: 999 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.8), 0 0 25px #d4af37 !important;
+}
+
+/* ЭФФЕКТ ОТДОЛКНОВЕНИЯ: Когда карточка становится активной */
+.init-cards-scroll-list .init-combatant-card.selected-turn-gold {
+    z-index: 10 !important; /* Приподнимаем над соседями */
+    transform: scale(1.02) !important; /* Сама активная карточка едва заметно укрупняется */
+    /* Создаем искусственный силовой зазор вокруг активной карточки */
+    margin-top: 10px !important;   /* Отодвигает верхнего соседа */
+    margin-bottom: 10px !important; /* Отодвигает нижнего соседа */
+}
+
+/* Дополнительно сдвигаем следующую сразу за активной карточку вниз через CSS-селектор соседства */
+.init-cards-scroll-list .init-combatant-card.selected-turn-gold + .init-combatant-card {
+    transform: translateY(4px) !important; /* Мягкий дополнительный толчок вниз для плавности */
+}
