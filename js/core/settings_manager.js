@@ -9,6 +9,7 @@ const SettingsManager = {
         squadAnimMode: 'classic',
         squadTokenSkin: 'flag',
         squadTokenColor: 'gold',
+        roundAudioMode: 'gong', // НОВОЕ: Способ оповещения раунда ('gong', 'bell', 'drum')
         hideDc: false,
         hideLevel: false,
         hideObjTitle: false,
@@ -55,6 +56,25 @@ const SettingsManager = {
             });
         });
 
+        // СИНХРОНИЗАЦИЯ НОВОГО СЕЛЕКТА: Звуковое оповещение нового раунда боевой сцены
+        const audioContainer = document.getElementById('customSelectRoundAudioMode');
+        const audioHiddenInput = document.getElementById('settingRoundAudioMode');
+        if (audioContainer && audioHiddenInput) {
+            const savedAudio = this.state.roundAudioMode || 'gong';
+            audioHiddenInput.value = savedAudio;
+
+            if (window.UiSelectManager && typeof window.UiSelectManager.setCustomSelectValue === 'function') {
+                window.UiSelectManager.setCustomSelectValue('customSelectRoundAudioMode', savedAudio);
+            }
+
+            audioContainer.querySelectorAll('.custom-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    this.state.roundAudioMode = option.dataset.value;
+                    audioHiddenInput.value = option.dataset.value;
+                    this.saveAndApply();
+                });
+            });
+        }
         // 1. СИНХРОНИЗАЦИЯ КАСТОМНОГО СЕЛЕКТА (Скин токена отряда)
         const container = document.getElementById('customSelectSquadTokenSkin');
         const hiddenInput = document.getElementById('settingSquadTokenSkin');
@@ -83,17 +103,14 @@ const SettingsManager = {
             });
         }
 
-        // 2. ИСПРАВЛЕННАЯ СИНХРОНИЗАЦИЯ ГРУППЫ РАДИОКНОПОК (Режим эффектов прибытия)
+        // 2. СИНХРОНИЗАЦИЯ ГРУППЫ РАДИОКНОПОК (Режим эффектов прибытия)
         const savedAnimMode = this.state.squadAnimMode;
         const animRadioButtons = document.querySelectorAll('input[name="squadAnimMode"]');
 
         animRadioButtons.forEach(radio => {
-            // Подсвечиваем сохраненную в LocalStorage радиокнопку при загрузке страницы
             if (radio.value === savedAnimMode) {
                 radio.checked = true;
             }
-
-            // Слушаем клики ГМа для мгновенного сохранения режима эффекта
             radio.addEventListener('change', () => {
                 if (radio.checked) {
                     this.state.squadAnimMode = radio.value;
@@ -101,6 +118,7 @@ const SettingsManager = {
                 }
             });
         });
+
         // 3. Управление ползунком плотности Тумана Войны
         const sldFog = document.getElementById('settingFogOpacity');
         const lblFog = document.getElementById('settingFogOpacityVal');
@@ -147,6 +165,11 @@ const SettingsManager = {
         window.CURRENT_SQUAD_TOKEN_COLOR = this.state.squadTokenColor;
         window.GLOBAL_FOG_OPACITY = this.state.fogOpacity / 100;
         MAP_CONFIG.ENABLE_FPS_MONITOR = this.state.enableFpsMonitor;
+
+        // Передаем выбранный пресет звука раунда в трекер инициативы
+        if (window.InitiativeManager) {
+            window.InitiativeManager.state.audioPreset = this.state.roundAudioMode || 'gong';
+        }
 
         window.MAP_HIDE_DC = this.state.hideDc;
         window.MAP_HIDE_LEVEL = this.state.hideLevel;
