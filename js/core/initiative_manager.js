@@ -5,7 +5,8 @@ const InitiativeManager = {
     state: {
         combatants: [],
         selectedUnitId: null,
-        round: 1
+        round: 1,
+        viewMode: 'classic' // Добавляем поддержку режимов: 'classic' или 'bg3'
     },
     mapDataRef: null,
     onSaveCallback: null,
@@ -21,6 +22,7 @@ const InitiativeManager = {
                 this.state = this.mapDataRef.initiative;
                 if (!Array.isArray(this.state.combatants)) this.state.combatants = [];
                 if (this.state.round === undefined || isNaN(this.state.round)) this.state.round = 1;
+                if (this.state.viewMode === undefined) this.state.viewMode = 'classic';
             } else {
                 this.mapDataRef.initiative = this.state;
             }
@@ -54,6 +56,11 @@ const InitiativeManager = {
         this.renderUi();
     },
 
+    toggleViewMode() {
+        this.state.viewMode = this.state.viewMode === 'classic' ? 'bg3' : 'classic';
+        this._saveWithoutSort();
+    },
+
     addCombatant(name, score, faction, isNat20) {
         const cleanName = String(name).trim();
         let parsedScore = isNat20 ? 20 : parseInt(score, 10);
@@ -81,12 +88,9 @@ const InitiativeManager = {
 
         const currentIndex = this.state.combatants.findIndex(c => c.id === this.state.selectedUnitId);
 
-        // Если это конец раунда — переключаем на индекс 0
         if (currentIndex === -1 || currentIndex === this.state.combatants.length - 1) {
             this.state.selectedUnitId = this.state.combatants[0].id;
             this.state.round += 1;
-
-            // Вызов нашей новой независимой вспышки
             this.triggerRoundFlashEffect();
         } else {
             this.state.selectedUnitId = this.state.combatants[currentIndex + 1].id;
@@ -95,19 +99,13 @@ const InitiativeManager = {
         this._saveWithoutSort();
     },
 
-    /**
-     * НЕУБИВАЕМАЯ ТВ-ВСПЫШКА: Создание независимого оверлея поверх всего экрана
-     */
     triggerRoundFlashEffect() {
-        // Удаляем старый оверлей, если ГМ слишком быстро нажал пробел
         const oldFlash = document.getElementById('initTvRoundFlashOverlay');
         if (oldFlash) oldFlash.remove();
 
-        // Создаем абсолютно чистый независимый элемент
         const flashOverlay = document.createElement('div');
         flashOverlay.id = 'initTvRoundFlashOverlay';
 
-        // Жесткие инлайновые стили, чтобы его не перекрыли другие блоки планшета
         flashOverlay.style.cssText = `
             position: fixed !important;
             left: 0 !important;
@@ -115,7 +113,7 @@ const InitiativeManager = {
             width: 100vw !important;
             height: 100vh !important;
             pointer-events: none !important;
-            z-index: 299999999 !important; /* Выше всех HUD и окон */
+            z-index: 299999999 !important;
             box-shadow: inset 0 0 200px 50px rgba(255, 216, 117, 0.6) !important;
             background-color: rgba(255, 216, 117, 0.12) !important;
             opacity: 1 !important;
@@ -124,19 +122,14 @@ const InitiativeManager = {
 
         document.body.appendChild(flashOverlay);
 
-        // Через кадр запускаем плавное затухание в ноль
         requestAnimationFrame(() => {
             flashOverlay.style.opacity = '0';
         });
 
-        // Полное физическое удаление из памяти после завершения анимации
         setTimeout(() => {
             if (flashOverlay.parentNode) flashOverlay.remove();
         }, 600);
     },
-
-
-
     toggleNat20(id) {
         const unit = this.state.combatants.find(c => c.id === id);
         if (unit) {
@@ -174,13 +167,12 @@ const InitiativeManager = {
     },
 
     resetRound() {
-        if (this.state.round === 1) return; // Если уже 1, ничего не делаем
+        if (this.state.round === 1) return;
 
         if (confirm("Сбросить счетчик текущих раундов боя до 1?")) {
             this.state.round = 1;
             this._saveWithoutSort();
 
-            // Запускаем легкий визуальный импульс на счетчике
             const badge = document.querySelector('.init-round-counter-badge');
             if (badge) {
                 badge.style.setProperty('filter', 'brightness(1.5)', 'important');
@@ -239,11 +231,13 @@ const InitiativeManager = {
                     <div class="init-header-zone">
                         <div class="init-master-battle-control-bar">
                        
-                            <!-- ИСПРАВЛЕНО: Добавлена кнопка экспресс-обнуления раундов внутри плашки -->
                             <div class="init-round-counter-badge">
                                 РАУНД <span id="initRoundCounterNum">1</span>
                                 <button type="button" id="initBtnResetRoundOnly" class="init-btn-reset-round-inline" title="Сбросить раунды до 1">🔄</button>
                             </div>
+                            
+                            <button type="button" id="initBtnToggleView" class="init-btn-view-toggle" title="Сменить стиль отображения">⚔️ Режим: Списки / BG3</button>
+                            
                             <button type="button" class="btn ok" id="initBtnNextTurn" style="flex-grow: 1; height: 50px; font-size: 18px; font-weight: 900; letter-spacing: 1px;">🛡️ СЛЕДУЮЩИЙ ХОД</button>
                             
                         </div>
@@ -284,9 +278,10 @@ const InitiativeManager = {
             const nat20Inp = document.getElementById('initInputNat20');
 
             document.getElementById('initBtnNextTurn').addEventListener('click', () => this.nextTurn());
+            document.getElementById('initBtnToggleView').addEventListener('click', () => this.toggleViewMode());
 
             document.getElementById('initBtnResetRoundOnly').addEventListener('click', (e) => {
-                e.stopPropagation(); // Защита от ложных срабатываний
+                e.stopPropagation();
                 this.resetRound();
             });
 
@@ -311,11 +306,19 @@ const InitiativeManager = {
         if (!listContainer) return;
         listContainer.innerHTML = '';
 
+        if (this.state.viewMode === 'bg3') {
+            listContainer.classList.add('mode-bg3');
+            document.getElementById('initBtnToggleView').textContent = '🏹 Режим: BG3 (Горизонт)';
+        } else {
+            listContainer.classList.remove('mode-bg3');
+            document.getElementById('initBtnToggleView').textContent = '📜 Режим: Списки (Вертикаль)';
+        }
+
         const roundNumEl = document.getElementById('initRoundCounterNum');
         if (roundNumEl) roundNumEl.textContent = this.state.round;
 
         if (this.state.combatants.length === 0) {
-            listContainer.innerHTML = `<div class="quest-log-empty">Бой не начат. Добавьте участников или монстров через верхнюю панель.</div>`;
+            listContainer.innerHTML = `<div class="quest-log-empty">Бой не начат. Добавьте участников.</div>`;
             return;
         }
 
@@ -331,10 +334,8 @@ const InitiativeManager = {
                 <div class="init-card-left" style="pointer-events: none;">
                     <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
                     <div class="init-badge-index">${index + 1}</div>
-                    <div class="init-card-name-text">
-                        ${unit.name} 
-                        ${unit.isNat20 ? '<span class="init-crown-badge" title="Натуральная 20! Крит успех">👑</span>' : ''}
-                    </div>
+                    <div class="init-card-name-text">${unit.name}</div>
+                    ${unit.isNat20 ? '<span class="init-crown-badge" title="Натуральная 20! Крит успех">👑</span>' : ''}
                 </div>
                 <div class="init-card-right">
                     <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 ? 'active' : ''}" data-id="${unit.id}">🎲</button>
@@ -390,7 +391,7 @@ const InitiativeManager = {
             card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('init-drag-over'); });
             card.addEventListener('dragleave', () => card.classList.remove('init-drag-over'));
             card.addEventListener('drop', (e) => {
-                e.preventDefault(); const draggedId = e.dataTransfer.getData('text/plain'); if (draggedId === unit.id) return;
+                e.preventDefault(); const draggedId = e.dataTransfer.setData('text/plain'); if (draggedId === unit.id) return;
                 const draggedIdx = this.state.combatants.findIndex(c => c.id === draggedId);
                 const targetIdx = this.state.combatants.findIndex(c => c.id === unit.id);
                 if (draggedIdx !== -1 && targetIdx !== -1) {
