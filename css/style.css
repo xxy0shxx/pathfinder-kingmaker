@@ -4228,24 +4228,25 @@ canvas[style*="position: fixed"] {
     background: linear-gradient(180deg, #b89445 0%, #6e4e14 100%) !important;
 }
 
+/* Увеличиваем общую высоту контейнера прокрутки под новые пропорции квадратов */
 .init-cards-scroll-list.mode-bg3 {
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    max-height: 180px !important;
-    height: 180px !important;
-    padding: 20px 30px !important;
-    gap: 14px !important;
+    max-height: 210px !important;
+    height: 210px !important;
+    padding: 25px 45px 35px 45px !important;
+    gap: 16px !important;
     justify-content: flex-start !important;
 }
 
-/* Увеличили высоту карточки, чтобы имя гарантированно влезало по центру */
+/* ФОРМИРУЕМ ИДЕАЛЬНЫЙ КВАДРАТ 115px на 115px */
 .init-cards-scroll-list.mode-bg3 .init-combatant-card {
     flex-direction: column !important;
-    width: 95px !important;
-    height: 115px !important;
-    min-width: 95px !important;
+    width: 115px !important;  /* Увеличено с 95px — теперь это строгий квадрат */
+    height: 115px !important; /* Высота совпадает с шириной */
+    min-width: 115px !important;
     padding: 8px 6px !important;
     position: relative !important;
     justify-content: space-between !important;
@@ -4253,30 +4254,41 @@ canvas[style*="position: fixed"] {
     border-width: 2px !important;
 }
 
+/* Корректируем верхнюю зону внутри квадрата */
 .init-cards-scroll-list.mode-bg3 .init-card-left {
     flex-direction: column !important;
-    gap: 6px !important;
+    gap: 4px !important;
     width: 100% !important;
     align-items: center !important;
+    justify-content: flex-start !important;
 }
 
+/* Центрируем блок инициативы в самом низу квадрата */
 .init-cards-scroll-list.mode-bg3 .init-card-right {
     gap: 0 !important;
     width: 100% !important;
     justify-content: center !important;
+    margin-top: auto !important; /* Прижимает инпут к нижнему краю */
 }
 
-/* Компактный, легко читаемый шрифт для имени внутри карточки */
+/* ИСПРАВЛЕНО: Разрешаем именам переноситься на 2 строки внутри квадрата */
 .init-cards-scroll-list.mode-bg3 .init-card-name-text {
-    font-size: 13px !important;
-    font-weight: bold !important;
-    color: #fff !important;
+    font-size: 14px !important; /* Ювелирный размер для двух строк */
+    font-weight: 900 !important;
+    color: #ffffff !important;
     text-align: center !important;
     width: 100% !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important; /* Обрезка длинных имен аккуратными точками */
-    text-shadow: 0 1px 3px rgba(0,0,0,0.9) !important;
+
+    /* Отменяем скрытие и строгую обрезку в одну строку */
+    white-space: normal !important;      /* Разрешаем естественный перенос слов */
+    overflow: visible !important;        /* Текст больше не зажимается */
+    text-overflow: clip !important;      /* Убираем троеточие */
+    line-height: 1.2 !important;         /* Плотный межстрочный интервал */
+    display: -webkit-box !important;     /* Ограничиваем максимум двумя строками на всякий случай */
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95) !important;
 }
 
 /* Отключаем старые тултипы при наведении */
@@ -4436,11 +4448,11 @@ canvas[style*="position: fixed"] {
 /* 2. ЭФФЕКТ ДИНАМИЧЕСКОГО СДВИГА И УВЕЛИЧЕНИЯ ДЛЯ ХОДЯЩЕГО ПЕРСОНАЖА */
 .init-combatant-card.selected-turn-gold {
     /* Сдвигаем карточку на 10px вниз и одновременно увеличиваем масштаб на 1.12x */
-    transform: translateY(10px) scale(1.12) !important;
+    transform: translateY(12px) scale(1.12) !important;
     z-index: 99999 !important; /* Выносим карточку поверх соседей, чтобы края не перекрывались */
     border-color: #ffffff !important;
 
-    /* Сочное многослойное ТВ-свечение для фокуса */
+    /* Сочное многослойное свечение для фокуса */
     box-shadow:
             0 8px 25px 6px rgba(255, 216, 117, 0.95),
             0 12px 40px 10px rgba(223, 188, 111, 0.5),
@@ -4455,7 +4467,7 @@ canvas[style*="position: fixed"] {
 }
 
 /* ============================================================================
-   ЮВЕЛИРНАЯ КОРРЕКЦИЯ ШРИФТОВ В ГОРИЗОНТАЛЬНОМ РЕЖИМЕ
+   КОРРЕКЦИЯ ШРИФТОВ В ГОРИЗОНТАЛЬНОМ РЕЖИМЕ
    ============================================================================ */
 
 /* Порядковый номер: делаем существенно меньше и аккуратнее */
