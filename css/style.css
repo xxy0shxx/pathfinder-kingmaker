@@ -4415,3 +4415,71 @@ canvas[style*="position: fixed"] {
     0% { transform: rotate(-5deg); }
     100% { transform: rotate(5deg); }
 }
+
+/* ============================================================================
+   ФИКС НЕОНА НЕЙТРАЛОВ И ДИНАМИЧЕСКИЙ МАСШТАБ ТЕКУЩЕГО ХОДА
+   ============================================================================ */
+
+/* 1. Намертво чиним и перекрашиваем рамку и неоновое свечение нейтралов во всех режимах */
+.init-combatant-card.faction-neutral {
+    border: 3px solid #f1c40f !important; /* Яркий геральдический желтый */
+    background: linear-gradient(90deg, #1c1a07 0%, #112417 100%) !important;
+    box-shadow: inset 0 0 15px rgba(241, 196, 15, 0.4) !important; /* Внутреннее свечение */
+}
+
+/* Фикс точки-выпадашки для нейтралов в режиме Горизонт */
+.init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-neutral .init-select-wrapper {
+    background: #f1c40f !important;
+    border-color: #ffd875 !important;
+}
+
+/* 2. ЭФФЕКТ ДИНАМИЧЕСКОГО СДВИГА И УВЕЛИЧЕНИЯ ДЛЯ ХОДЯЩЕГО ПЕРСОНАЖА */
+.init-combatant-card.selected-turn-gold {
+    /* Сдвигаем карточку на 10px вниз и одновременно увеличиваем масштаб на 1.12x */
+    transform: translateY(10px) scale(1.12) !important;
+    z-index: 99999 !important; /* Выносим карточку поверх соседей, чтобы края не перекрывались */
+    border-color: #ffffff !important;
+
+    /* Сочное многослойное ТВ-свечение для фокуса */
+    box-shadow:
+            0 8px 25px 6px rgba(255, 216, 117, 0.95),
+            0 12px 40px 10px rgba(223, 188, 111, 0.5),
+            inset 0 0 15px rgba(255, 216, 117, 0.6) !important;
+}
+
+/* Защитный отступ для контейнера, чтобы уходящей вниз карточке хватало воздуха и не резался неон */
+.init-cards-scroll-list.mode-bg3 {
+    height: 200px !important;
+    max-height: 200px !important;
+    padding: 20px 45px 35px 45px !important; /* Увеличили нижнее поле прокрутки */
+}
+
+/* ============================================================================
+   ЮВЕЛИРНАЯ КОРРЕКЦИЯ ШРИФТОВ В ГОРИЗОНТАЛЬНОМ РЕЖИМЕ
+   ============================================================================ */
+
+/* Порядковый номер: делаем существенно меньше и аккуратнее */
+.init-cards-scroll-list.mode-bg3 .init-badge-index {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 13px !important; /* Был крупный шрифт */
+    border-width: 1px !important;
+    border-color: rgba(184, 148, 69, 0.6) !important;
+}
+
+/* Имя персонажа: увеличиваем размер для легкого чтения с экрана телевизора */
+.init-cards-scroll-list.mode-bg3 .init-card-name-text {
+    font-size: 16px !important; /* Было 13px */
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Значение инициативы (инпут-плашка): укрупняем цифру */
+.init-cards-scroll-list.mode-bg3 .init-inline-score-input {
+    width: 55px !important;
+    height: 28px !important;
+    font-size: 18px !important; /* Было 15px */
+    font-weight: 900 !important;
+    color: #ffd875 !important;
+    border: 1px solid #dfbc6f !important;
+}
