@@ -5702,3 +5702,62 @@ canvas[style*="position: fixed"] {
 #questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-card-name-text {
     font-size: 28px !important;
 }
+/* ============================================================================
+   ЦВЕТНЫЕ ФОНЫ ФРАКЦИЙ, РАМКА ХОДА ПО ЦВЕТУ И ЗОЛОТЫЕ ИМЕНА (MODE-BG3)
+   ============================================================================ */
+
+/* 1. Золотой цвет имени с четкой черной обводкой для читаемости на любом фоне */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card .init-card-name-text {
+    color: #ffd875 !important;
+    text-shadow:
+            0 1.5px 2px #000000,
+            0 -1.5px 2px #000000,
+            1.5px 0 2px #000000,
+            -1.5px 0 2px #000000,
+            0 3px 6px rgba(0, 0, 0, 0.95) !important;
+}
+
+/* 2. Прозрачная подложка контейнера аватарки, чтобы виден был фон карточки */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-avatar-shield-circle {
+    background: transparent !important;
+}
+
+/* 3. ФОНЫ КАРТОЧЕК ПО ФРАКЦИЯМ В ГОРИЗОНТЕ */
+
+/* 🟢 Союзник — насыщенный изумрудно-зеленый фон */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-friend {
+    background: linear-gradient(180deg, #1b4d2b 0%, #0d2b16 100%) !important;
+    border-color: #2ecc71 !important;
+}
+
+/* 🔴 Враг — глубокий рубиново-красный фон */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-enemy {
+    background: linear-gradient(180deg, #591818 0%, #2e0a0a 100%) !important;
+    border-color: #e74c3c !important;
+}
+
+/* 💛 Нейтрал — плотный золотисто-желтый фон */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-neutral {
+    background: linear-gradient(180deg, #b89428 0%, #6e520c 100%) !important;
+    border-color: #f1c40f !important;
+}
+
+/* 4. ЦВЕТНАЯ РАМКА И СВЕЧЕНИЕ ПРИ АКТИВНОМ ХОДЕ (ВМЕСТО БЕЛОЙ) */
+
+/* Активный Союзник — яркая зеленая рамка и зеленый неон */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-friend.selected-turn-gold {
+    border: 3px solid #2ecc71 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 25px rgba(46, 204, 113, 0.85) !important;
+}
+
+/* Активный Враг — яркая красная рамка и красный неон */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-enemy.selected-turn-gold {
+    border: 3px solid #e74c3c !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 25px rgba(231, 76, 60, 0.85) !important;
+}
+
+/* Активный Нейтрал — яркая желтая рамка и золотой неон */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.faction-neutral.selected-turn-gold {
+    border: 3px solid #f1c40f !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 25px rgba(241, 196, 15, 0.85) !important;
+}
