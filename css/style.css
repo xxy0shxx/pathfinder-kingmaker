@@ -5636,7 +5636,7 @@ canvas[style*="position: fixed"] {
     bottom: 4px !important;
     left: 4px !important;
     margin: 0 !important;
-    font-size: 24px !important;
+    font-size: 16px !important;
     line-height: 1 !important;
     z-index: 5 !important;
     filter: drop-shadow(0 1px 3px #000) !important;
@@ -5655,8 +5655,8 @@ canvas[style*="position: fixed"] {
 
 /* 5. Делаем рамку инициативы компактной (строго под двузначное число) */
 .init-cards-scroll-list.mode-bg3 .init-inline-score-input {
-    width: 32px !important;
-    height: 22px !important;
+    width: 34px !important;
+    height: 24px !important;
     padding: 0 2px !important;
     font-size: 24px !important;
     font-weight: 900 !important;
