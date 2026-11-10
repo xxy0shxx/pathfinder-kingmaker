@@ -1324,10 +1324,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. УШИ ОРКА
         ctx.fillStyle = '#1e3d24';
         ctx.beginPath(); ctx.moveTo(35, 60); ctx.lineTo(10, 48); ctx.lineTo(38, 72); ctx.fill(); // Левое
@@ -1387,10 +1383,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Прямые серебряные волосы (спадение за плечи)
         ctx.fillStyle = '#dcdde1';
@@ -1494,10 +1486,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ДВАРФИЙСКИЙ РОГАТЫЙ ШЛЕМ И СТАЛЬНЫЕ НАПЛЕЧНИКИ
         ctx.fillStyle = '#1e272c'; // Наплечники
         ctx.beginPath(); ctx.moveTo(25, 128); ctx.lineTo(40, 105); ctx.lineTo(88, 105); ctx.lineTo(103, 128); ctx.fill();
@@ -1575,10 +1563,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ОГРОМНЫЕ ГОБЛИНСКИЕ УШИ (Широкие, направленные в стороны и слегка вниз)
         ctx.fillStyle = '#4c6e35'; // Болотный зеленый (цвет ушей в тени)
@@ -1663,10 +1647,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощный наклонный загривок (Шерсть дыбом)
         ctx.fillStyle = '#1a202c'; // Ультра-темный мех спины
@@ -1770,10 +1750,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ИЗОГНУТЫЕ ЖЕСТКИЕ ЛАПЫ (Угрожающе обрамляют круг по бокам)
         ctx.strokeStyle = '#1e252b'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'miter';
 
@@ -1845,10 +1821,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Плечи и кожаный воротник плаща
         ctx.fillStyle = '#1c1612';
         ctx.beginPath(); ctx.moveTo(25, 128); ctx.lineTo(40, 105); ctx.lineTo(88, 105); ctx.lineTo(103, 128); ctx.fill();
@@ -1919,10 +1891,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Тяжелые стальные наплечники
         ctx.fillStyle = '#57606f';
         ctx.beginPath(); ctx.moveTo(20, 128); ctx.lineTo(35, 95); ctx.lineTo(93, 95); ctx.lineTo(108, 128); ctx.fill();
@@ -1990,10 +1958,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи и кожаный ремень колчана со стрелами
         ctx.fillStyle = '#1c2d22';
@@ -2076,10 +2040,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Длинная, клиновидная серебряная борода и воротник мантии
         ctx.fillStyle = '#090d16'; // Мантия
         ctx.beginPath(); ctx.moveTo(20, 128); ctx.lineTo(40, 100); ctx.lineTo(88, 100); ctx.lineTo(103, 128); ctx.fill();
@@ -2156,10 +2116,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Щегольской воротник и длинные ухоженные каштановые волосы
         ctx.fillStyle = '#4a2f13'; // Волосы
@@ -2256,10 +2212,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. БОЛЬШИЕ КОШАЧЬИ УШИ (Заостренные треугольники, направленные строго вверх)
         ctx.fillStyle = '#d35400'; // Теневой рыжий мех ушей
         ctx.beginPath(); ctx.moveTo(42, 50); ctx.lineTo(32, 12); ctx.lineTo(58, 42); ctx.fill(); // Левое
@@ -2345,10 +2297,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. МАССИВНЫЕ ВЕТВИСТЫЕ РОГА (Королевская лесная крона на заднем плане)
         ctx.strokeStyle = '#5c4033'; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
@@ -2432,10 +2380,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Массивная шерстяная холка (Грубый загривок вепря)
         ctx.fillStyle = '#2c221e'; // Темно-бурый мех холки
         ctx.beginPath();
@@ -2512,10 +2456,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Мощный загривок и пушистые уши
         ctx.fillStyle = '#3a271d'; // Темно-бурый мех холки
         ctx.beginPath();
@@ -2591,10 +2531,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи и прямые длинные серебряные волосы
         ctx.fillStyle = '#1c2d22'; // Одежда
@@ -2679,10 +2615,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Плечи и мягкие платиновые локоны волос
         ctx.fillStyle = '#112233'; // Мантия
         ctx.beginPath(); ctx.moveTo(20, 128); ctx.lineTo(38, 102); ctx.lineTo(90, 102); ctx.lineTo(108, 128); ctx.fill();
@@ -2766,10 +2698,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Пышные каштановые кудрявые волосы
         ctx.fillStyle = '#4a2f13'; // Базовый цвет кудрей
@@ -2857,10 +2785,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Короткий рубленый каштановый ежик (Волосы сильно уменьшены)
         ctx.fillStyle = '#3a2512';
         ctx.beginPath();
@@ -2941,10 +2865,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Острые рожки рептилии (Загнуты назад вдоль черепа)
         ctx.fillStyle = '#1e331c'; // Темный роговой цвет в тени
@@ -3040,10 +2960,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Округлые пушистые уши тигра
         ctx.fillStyle = '#11161b'; // Тыльная сторона ушей (черная с белым пятном по канону)
@@ -3145,10 +3061,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Пышная копна волос из переплетенных лоз и дубовой листвы
         ctx.fillStyle = '#1e4620'; // Темно-зеленый лиственный объем волос
         ctx.beginPath();
@@ -3228,10 +3140,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Дикие растрепанные волосы и меховой воротник
         ctx.fillStyle = '#2d1f18'; // Дикие каштановые волосы
@@ -3314,10 +3222,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Изящный, изогнутый силуэт птичьей шеи
         ctx.fillStyle = '#090d16'; // Ультра-черный
         ctx.beginPath();
@@ -3395,10 +3299,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Массивное, расплывчатое тело амфибии (Плечи и горб)
         ctx.fillStyle = '#1e331e'; // Болотный темно-зеленый
@@ -3478,10 +3378,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Мощные кольца кольчатого тела (Вздымается снизу вверх)
         ctx.fillStyle = '#2c1a4d'; // Теневой фиолетовый сегмент тела
         ctx.beginPath();
@@ -3558,10 +3454,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Собранные темные волосы и чешуйчатые наплечники
         ctx.fillStyle = '#1c1613'; // Волосы
@@ -3646,10 +3538,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Густой загривок и меховой воротник на плечах
         ctx.fillStyle = '#3a2d29'; // Тяжелый мех на плечах атамана
         ctx.beginPath(); ctx.moveTo(18, 128); ctx.lineTo(34, 100); ctx.lineTo(94, 100); ctx.lineTo(110, 128); ctx.fill();
@@ -3730,10 +3618,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЧЛЕНИСТЫЕ ЖЕСТКИЕ ЛАПЫ (Угловые суставы цепляются по бокам)
         ctx.strokeStyle = '#1a110b'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'miter';
 
@@ -3799,10 +3683,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощные золотые рога (Идут вдоль черепа назад-вверх)
         ctx.fillStyle = '#d4af37'; // Базовое золото
@@ -3899,10 +3779,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Спутанный моховой загривок и сгорбленные плечи
         ctx.fillStyle = '#222d19'; // Моховые грязные волосы
         ctx.beginPath();
@@ -3974,10 +3850,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Могучие плечи в шкурах полярного медведя
         ctx.fillStyle = '#f1f2f6'; // Белый пушистый мех
@@ -4054,10 +3926,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи в простой холщовой рубахе и жилете
         ctx.fillStyle = '#f5f6fa'; // Белая рубаха
@@ -4140,10 +4008,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи в дорогом парчовом камзоле
         ctx.fillStyle = '#4b1528'; // Бордовый шелк
@@ -4229,10 +4093,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Пышная копна черных кудрявых волос
         ctx.fillStyle = '#11141a';
@@ -4320,10 +4180,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Плечи в плотной кожаной куртке с ремнями портупеи
         ctx.fillStyle = '#2c221e'; // Кожаная куртка
         ctx.beginPath(); ctx.moveTo(25, 128); ctx.lineTo(44, 105); ctx.lineTo(84, 105); ctx.lineTo(103, 128); ctx.fill();
@@ -4407,10 +4263,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Мощные латные наплечники
         ctx.fillStyle = '#2f3542'; // Базовая сталь лат
         ctx.beginPath(); ctx.moveTo(20, 128); ctx.lineTo(36, 96); ctx.lineTo(92, 96); ctx.lineTo(108, 128); ctx.fill();
@@ -4485,10 +4337,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Длинные белые волосы и тяжелые стальные наплечники
         ctx.fillStyle = '#cbd5e1'; // Серебряно-белые волосы на фоне
@@ -4577,10 +4425,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи в мантии и длинные платиновые волосы
         ctx.fillStyle = '#1e1135'; // Темно-фиолетовая мантия
@@ -4671,10 +4515,6 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
-
         // 2. ЗАДНИЙ ПЛАН: Мощные стальные латные наплечники
         ctx.fillStyle = '#57606f';
         ctx.beginPath(); ctx.moveTo(20, 128); ctx.lineTo(36, 100); ctx.lineTo(92, 100); ctx.lineTo(108, 128); ctx.fill();
@@ -4760,10 +4600,6 @@ const InitiativeManager = {
 
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
-
-// 1. ФОН: Полноразмерный квадратный портрет
-        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
-        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощная шея и тяжелые стальные наплечники
         ctx.fillStyle = '#1e3d24'; // Зеленая шея в тени
