@@ -2540,13 +2540,47 @@ canvas[style*="position: fixed"] {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
-    margin-bottom: 8px !important;
-    color: #ffffff !important;
-    font-size: 24px !important;
+    margin-bottom: 10px !important;
+    color: #ffd875 !important; /* Золотой цвет названия действия */
+    font-size: 28px !important; /* Укрупненный шрифт */
     font-weight: 900 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.8px !important;
-    text-shadow: 0 0 8px rgba(255, 216, 117, 0.35) !important;
+    text-shadow: 0 0 10px rgba(255, 216, 117, 0.45), 0 2px 4px #000 !important;
+}
+
+/* Вложенная внутрь блока рамка-плашка для навыка и СЛ */
+.camp-invisible-table td.camp-act-cell > span:not(.act-name),
+.camp-invisible-table td.camp-act-cell > div:not(.act-name),
+.camp-invisible-table .skill-name-large,
+[id^="label_dc_"] {
+    display: inline-block !important;
+    background: #09140d !important;
+    border: 1.5px solid #8a6421 !important;
+    border-radius: 5px !important;
+    padding: 5px 14px !important;
+    margin-top: 2px !important;
+    font-size: 22px !important; /* Укрупненный шрифт навыка и СЛ */
+    font-weight: 800 !important;
+    color: #ebd291 !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9) !important;
+    text-shadow: 0 0 6px rgba(255, 216, 117, 0.35) !important;
+}
+
+/* Защита от двойной рамки, если внутри .skill-name-large вложен еще один тег */
+.camp-invisible-table .skill-name-large > * {
+    display: inline !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.camp-invisible-table td.camp-act-cell br,
+.camp-invisible-table td.camp-act-cell .skill-name-large + .skill-name-large {
+    display: none !important;
 }
 
 .camp-invisible-table .skill-name-large {
