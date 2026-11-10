@@ -3,6 +3,1263 @@
  */
 export const NpcAvatars = {
 
+    cat() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. ПУШИСТАЯ ГРУДКА, ПЛЕЧИ И ОШЕЙНИК С ЗОЛОТЫМ БУБЕНЧИКОМ (Задний план)
+        ctx.fillStyle = '#c2591b';
+        ctx.beginPath();
+        ctx.moveTo(22, 128);
+        ctx.quadraticCurveTo(32, 86, 64, 86);
+        ctx.quadraticCurveTo(96, 86, 106, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Белоснежно-кремовый пушистый воротник на груди
+        ctx.fillStyle = '#f8f5ee';
+        ctx.beginPath();
+        ctx.moveTo(42, 96);
+        ctx.quadraticCurveTo(64, 106, 86, 96);
+        ctx.lineTo(90, 128);
+        ctx.lineTo(38, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Изумрудный кожаный ошейник и золотой бубенчик-колокольчик
+        ctx.strokeStyle = '#15803d';
+        ctx.lineWidth = 4.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(39, 95);
+        ctx.quadraticCurveTo(64, 107, 89, 95);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffd875';
+        ctx.strokeStyle = '#8a6421';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(64, 105, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#3b2414';
+        ctx.beginPath(); ctx.arc(64, 106.5, 1.4, 0, Math.PI * 2); ctx.fill();
+
+        // 2. ОСТРЫЕ КОШАЧЬИ УШИ С КИСТОЧКАМИ И РОЗОВОЙ РАКОВИНОЙ
+        ctx.fillStyle = '#d96b27';
+        // Левое ухо
+        ctx.beginPath();
+        ctx.moveTo(38, 48);
+        ctx.lineTo(26, 14);
+        ctx.lineTo(55, 36);
+        ctx.closePath();
+        ctx.fill();
+
+        // Правое ухо
+        ctx.beginPath();
+        ctx.moveTo(90, 48);
+        ctx.lineTo(102, 14);
+        ctx.lineTo(73, 36);
+        ctx.closePath();
+        ctx.fill();
+
+        // Пушистая розовато-кремовая раковина внутри ушей
+        ctx.fillStyle = '#f2b8ad';
+        ctx.beginPath(); ctx.moveTo(40, 45); ctx.lineTo(31, 22); ctx.lineTo(51, 37); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(88, 45); ctx.lineTo(97, 22); ctx.lineTo(77, 37); ctx.fill();
+
+        // Лёгкие рысьи кисточки на кончиках ушей
+        ctx.strokeStyle = '#9a3412';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(26, 14); ctx.lineTo(23, 8);
+        ctx.moveTo(102, 14); ctx.lineTo(105, 8);
+        ctx.stroke();
+
+        // 3. ОКРУГЛАЯ ПУШИСТАЯ МОРДОЧКА С ТИГРОВЫМИ ПОЛОСКАМИ И БАКЕНБАРДАМИ
+        ctx.fillStyle = '#ea7b30';
+        ctx.beginPath();
+        ctx.moveTo(40, 40);
+        ctx.quadraticCurveTo(64, 30, 88, 40);
+        ctx.lineTo(98, 66); // Пушистая правая бакенбарда
+        ctx.lineTo(84, 88);
+        ctx.quadraticCurveTo(64, 100, 44, 88);
+        ctx.lineTo(30, 66);  // Пушистая левая бакенбарда
+        ctx.closePath();
+        ctx.fill();
+
+        // Тёмно-рыжие табби-полоски (буква «М» на лбу и полосы на щеках)
+        ctx.strokeStyle = '#9a3412';
+        ctx.lineWidth = 2.2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(54, 45); ctx.lineTo(58, 38); ctx.lineTo(64, 44); ctx.lineTo(70, 38); ctx.lineTo(74, 45);
+        ctx.moveTo(35, 62); ctx.lineTo(43, 64);
+        ctx.moveTo(36, 68); ctx.lineTo(44, 69);
+        ctx.moveTo(93, 62); ctx.lineTo(85, 64);
+        ctx.moveTo(92, 68); ctx.lineTo(84, 69);
+        ctx.stroke();
+
+        // Белые пушистые подусники и подбородок
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(55, 79, 8.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(73, 79, 8.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(52, 85);
+        ctx.quadraticCurveTo(64, 97, 76, 85);
+        ctx.closePath();
+        ctx.fill();
+
+        // 4. БОЛЬШИЕ ИЗУМРУДНО-ЗЕЛЁНЫЕ КОШАЧЬИ ГЛАЗА С БЛИКАМИ
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath(); ctx.ellipse(50, 58, 6.5, 4.4, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(78, 58, 6.5, 4.4, 0, 0, Math.PI * 2); ctx.fill();
+
+        // Вертикальные кошачьи зрачки
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath(); ctx.ellipse(50, 58, 1.7, 3.8, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(78, 58, 1.7, 3.8, 0, 0, Math.PI * 2); ctx.fill();
+
+        // Живые белые блики в глазах
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(52, 56.2, 1.3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(76, 56.2, 1.3, 0, Math.PI * 2); ctx.fill();
+
+        // 5. РОЗОВЫЙ КОШАЧИЙ НОСИК, МОРДОЧКА «:3» И БЕЛЫЕ УСЫ-ВИБРИССЫ
+        ctx.fillStyle = '#f472b6';
+        ctx.beginPath();
+        ctx.moveTo(59, 71);
+        ctx.lineTo(69, 71);
+        ctx.lineTo(64, 76);
+        ctx.closePath();
+        ctx.fill();
+
+        // Уютная кошачья улыбка
+        ctx.strokeStyle = '#5c2310';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(64, 76); ctx.lineTo(64, 80);
+        ctx.quadraticCurveTo(58, 85, 53, 81);
+        ctx.moveTo(64, 80);
+        ctx.quadraticCurveTo(70, 85, 75, 81);
+        ctx.stroke();
+
+        // Длинные белые усы-вибриссы
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(47, 77); ctx.lineTo(14, 72);
+        ctx.moveTo(47, 80); ctx.lineTo(16, 82);
+        ctx.moveTo(48, 83); ctx.lineTo(20, 91);
+        ctx.moveTo(81, 77); ctx.lineTo(114, 72);
+        ctx.moveTo(81, 80); ctx.lineTo(112, 82);
+        ctx.moveTo(80, 83); ctx.lineTo(108, 91);
+        ctx.stroke();
+
+        // 6. ЭФФЕКТ FLAT-ОБЪЕМА (Мягкая тень на левую половину)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.beginPath();
+        ctx.moveTo(64, 30);
+        ctx.quadraticCurveTo(50, 34, 40, 40);
+        ctx.lineTo(30, 66);
+        ctx.lineTo(44, 88);
+        ctx.lineTo(64, 97);
+        ctx.lineTo(64, 128);
+        ctx.lineTo(22, 128);
+        ctx.quadraticCurveTo(32, 86, 64, 86);
+        ctx.closePath();
+        ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+    halfling_male() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. ОДЕЖДА: Роскошный фиолетовый камзол чародея с высоким стоячим воротником
+        ctx.fillStyle = '#3b0764';
+        ctx.beginPath();
+        ctx.moveTo(16, 128);
+        ctx.lineTo(34, 96);
+        ctx.lineTo(94, 96);
+        ctx.lineTo(112, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Высокий стоячий воротник с пурпурной подкладкой
+        ctx.fillStyle = '#581c87';
+        ctx.beginPath();
+        ctx.moveTo(32, 96);
+        ctx.lineTo(38, 78);
+        ctx.lineTo(54, 96);
+        ctx.lineTo(74, 96);
+        ctx.lineTo(90, 78);
+        ctx.lineTo(96, 96);
+        ctx.lineTo(90, 114);
+        ctx.lineTo(38, 114);
+        ctx.closePath();
+        ctx.fill();
+
+        // Золотая вышивка на воротнике и жабо
+        ctx.strokeStyle = '#ffd875';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(33, 96);
+        ctx.lineTo(38, 78);
+        ctx.lineTo(64, 124);
+        ctx.lineTo(90, 78);
+        ctx.lineTo(95, 96);
+        ctx.stroke();
+
+        // Аметистовый медальон на груди
+        ctx.fillStyle = '#c084fc';
+        ctx.strokeStyle = '#ffd875';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(64, 112, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 2. КРУПНЫЕ ЗАОСТРЁННЫЕ УШИ (Характерная черта гнома/полурослика)
+        ctx.fillStyle = '#e5b8a1';
+        ctx.beginPath(); ctx.moveTo(43, 60); ctx.lineTo(22, 46); ctx.lineTo(42, 72); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(85, 60); ctx.lineTo(106, 46); ctx.lineTo(86, 72); ctx.closePath(); ctx.fill();
+
+        // 3. ШЕЯ И ВЫРАЗИТЕЛЬНОЕ ЕХИДНОЕ ЛИЦО
+        ctx.fillStyle = '#dfb098';
+        ctx.fillRect(55, 84, 18, 16);
+
+        ctx.fillStyle = '#f5d2be';
+        ctx.beginPath();
+        ctx.moveTo(44, 48);
+        ctx.lineTo(84, 48);
+        ctx.lineTo(82, 78);
+        ctx.lineTo(64, 96);
+        ctx.lineTo(46, 78);
+        ctx.closePath();
+        ctx.fill();
+
+        // Лёгкие тёмные круги под глазами
+        ctx.fillStyle = 'rgba(30, 27, 75, 0.14)';
+        ctx.beginPath(); ctx.ellipse(53, 63, 5.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(75, 63, 5.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+
+        // 4. ЧЁРНЫЕ ВОЛОСЫ БЕЗ ШАПКИ (Зачёсанные назад с острым мысом на лбу и графитовым бликом)
+        ctx.fillStyle = '#14171f';
+        ctx.beginPath();
+        ctx.moveTo(41, 56);
+        ctx.quadraticCurveTo(40, 22, 64, 18);
+        ctx.quadraticCurveTo(88, 22, 87, 56);
+        ctx.lineTo(84, 46);
+        ctx.lineTo(74, 40);
+        ctx.lineTo(64, 48); // Острый «мыс вдовы» на лбу
+        ctx.lineTo(54, 40);
+        ctx.lineTo(44, 46);
+        ctx.closePath();
+        ctx.fill();
+
+        // Холодный стальной блик на чёрных волосах (чтобы причёска не сливалась с тёмным фоном)
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(48, 36); ctx.quadraticCurveTo(54, 24, 62, 22);
+        ctx.moveTo(80, 36); ctx.quadraticCurveTo(74, 24, 66, 22);
+        ctx.stroke();
+
+        // Тонкие чёрные щегольские усы и заострённая бородка-клинышек
+        ctx.fillStyle = '#14171f';
+        ctx.beginPath();
+        ctx.moveTo(53, 77);
+        ctx.quadraticCurveTo(64, 73, 75, 77);
+        ctx.lineTo(73, 79);
+        ctx.quadraticCurveTo(64, 76, 55, 79);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(58, 88);
+        ctx.lineTo(64, 100);
+        ctx.lineTo(70, 88);
+        ctx.quadraticCurveTo(64, 90, 58, 88);
+        ctx.closePath();
+        ctx.fill();
+
+        // 5. РОВНЫЙ, НАДМЕННЫЙ ВЗГЛЯД И ГАДЕНЬКАЯ УХМЫЛКА
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.ellipse(53, 60, 4.6, 2.1, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(75, 60, 4.6, 2.1, 0, 0, Math.PI * 2); ctx.fill();
+
+        // Пронзительная изумрудно-зелёная радужка
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath(); ctx.arc(53, 60, 1.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75, 60, 1.9, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath(); ctx.arc(53, 60, 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75, 60, 0.9, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(53.8, 59.2, 0.65, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75.8, 59.2, 0.65, 0, Math.PI * 2); ctx.fill();
+
+        // Высокомерно изогнутые чёрные брови
+        ctx.strokeStyle = '#14171f';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(47, 55); ctx.quadraticCurveTo(53, 52.5, 59, 56);
+        ctx.moveTo(81, 53.5); ctx.quadraticCurveTo(75, 51.5, 69, 55.5);
+        ctx.stroke();
+
+        // Острый хищный нос и самодовольная ухмылка набок
+        ctx.strokeStyle = '#c48d72';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath(); ctx.moveTo(64, 57); ctx.lineTo(62.5, 72); ctx.lineTo(66.5, 72); ctx.stroke();
+
+        ctx.strokeStyle = '#7e22ce';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(55, 82);
+        ctx.quadraticCurveTo(65, 86, 74, 80);
+        ctx.stroke();
+
+        // 6. СГУСТОК АРКАННОГО ПЛАМЕНИ НА ПЕРЕДНЕМ ПЛАНЕ (Слева снизу)
+        ctx.fillStyle = 'rgba(192, 132, 252, 0.32)';
+        ctx.beginPath(); ctx.arc(24, 108, 14, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#a855f7';
+        ctx.beginPath();
+        ctx.moveTo(24, 92);
+        ctx.quadraticCurveTo(34, 104, 29, 116);
+        ctx.quadraticCurveTo(24, 120, 19, 116);
+        ctx.quadraticCurveTo(14, 104, 24, 92);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#f3e8ff';
+        ctx.beginPath();
+        ctx.moveTo(24, 99);
+        ctx.quadraticCurveTo(29, 106, 26, 114);
+        ctx.quadraticCurveTo(24, 116, 22, 114);
+        ctx.quadraticCurveTo(19, 106, 24, 99);
+        ctx.closePath();
+        ctx.fill();
+
+        // 7. ЭФФЕКТ FLAT-ОБЪЕМА (Мягкая тень на левую половину)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.beginPath();
+        ctx.moveTo(64, 18);
+        ctx.quadraticCurveTo(40, 22, 41, 56);
+        ctx.lineTo(46, 78);
+        ctx.lineTo(64, 96);
+        ctx.lineTo(64, 128);
+        ctx.lineTo(16, 128);
+        ctx.lineTo(34, 96);
+        ctx.closePath();
+        ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+    bandit_captain() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. ВЕТВИСТЫЕ РОГА ОЛЕНЕГО ЧЕРЕПА И ДЛИННЫЙ ЛУК ЗА СПИНОЙ (Задний план)
+        // Изогнутый композитный лук за правым плечом
+        ctx.strokeStyle = '#5c3a21';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(96, 20);
+        ctx.bezierCurveTo(122, 48, 122, 92, 98, 124);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(226, 232, 240, 0.65)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(96, 22);
+        ctx.lineTo(98, 122);
+        ctx.stroke();
+
+        // Мощные костяные рога маска-шлема Рогача
+        ctx.strokeStyle = '#d6ceb8';
+        ctx.lineWidth = 4.2;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        // Левый рог
+        ctx.moveTo(46, 36);
+        ctx.quadraticCurveTo(28, 24, 24, 6);
+        ctx.moveTo(37, 27);
+        ctx.lineTo(18, 22);
+        ctx.moveTo(31, 18);
+        ctx.lineTo(16, 10);
+        ctx.moveTo(27, 12);
+        ctx.lineTo(34, 4);
+        // Правый рог
+        ctx.moveTo(82, 36);
+        ctx.quadraticCurveTo(100, 24, 104, 6);
+        ctx.moveTo(91, 27);
+        ctx.lineTo(110, 22);
+        ctx.moveTo(97, 18);
+        ctx.lineTo(112, 10);
+        ctx.moveTo(101, 12);
+        ctx.lineTo(94, 4);
+        ctx.stroke();
+
+        // 2. ТЯЖЁЛАЯ МЕХОВАЯ ШКУРА И КОЖАНАЯ БРОНЯ НА ПЛЕЧАХ
+        ctx.fillStyle = '#29221e';
+        ctx.beginPath();
+        ctx.moveTo(12, 128);
+        ctx.quadraticCurveTo(24, 88, 64, 88);
+        ctx.quadraticCurveTo(104, 88, 116, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Взъерошенные клочья серо-бурого меха на плечах
+        ctx.fillStyle = '#473c35';
+        ctx.beginPath();
+        ctx.moveTo(20, 96); ctx.lineTo(10, 86); ctx.lineTo(28, 86);
+        ctx.lineTo(42, 94); ctx.lineTo(86, 94); ctx.lineTo(100, 86);
+        ctx.lineTo(118, 86); ctx.lineTo(108, 96);
+        ctx.lineTo(114, 114); ctx.lineTo(14, 114);
+        ctx.closePath();
+        ctx.fill();
+
+        // Костяные пряжки-клыки на меховом плаще
+        ctx.fillStyle = '#e8e0cf';
+        ctx.beginPath(); ctx.moveTo(36, 102); ctx.lineTo(42, 114); ctx.lineTo(44, 101); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(92, 102); ctx.lineTo(86, 114); ctx.lineTo(84, 101); ctx.fill();
+
+        // 3. НИЖНЯЯ ПОЛОВИНА ЛИЦА И ВЗЪЕРОШЕННАЯ БОРОДА СО ШРАМАМИ
+        ctx.fillStyle = '#cf9778';
+        ctx.beginPath();
+        ctx.moveTo(42, 52);
+        ctx.lineTo(86, 52);
+        ctx.lineTo(84, 84);
+        ctx.lineTo(64, 102);
+        ctx.lineTo(44, 84);
+        ctx.closePath();
+        ctx.fill();
+
+        // Длинные спутанные пряди тёмных волос из-под шлема
+        ctx.fillStyle = '#1f1814';
+        ctx.beginPath();
+        ctx.moveTo(41, 48); ctx.quadraticCurveTo(34, 72, 38, 98); ctx.lineTo(44, 92);
+        ctx.moveTo(87, 48); ctx.quadraticCurveTo(94, 72, 90, 98); ctx.lineTo(84, 92);
+        ctx.fill();
+
+        // Густая, грубая, нечёсаная борода и усы
+        ctx.fillStyle = '#2b211b';
+        ctx.beginPath();
+        ctx.moveTo(42, 74);
+        ctx.lineTo(36, 98);
+        ctx.lineTo(48, 122);
+        ctx.lineTo(64, 126);
+        ctx.lineTo(80, 122);
+        ctx.lineTo(92, 98);
+        ctx.lineTo(86, 74);
+        ctx.quadraticCurveTo(64, 86, 42, 74);
+        ctx.closePath();
+        ctx.fill();
+
+        // Суровые опущенные усы и угрюмый рот
+        ctx.fillStyle = '#1c1511';
+        ctx.beginPath();
+        ctx.moveTo(48, 78);
+        ctx.quadraticCurveTo(64, 73, 80, 78);
+        ctx.lineTo(82, 87);
+        ctx.quadraticCurveTo(64, 81, 46, 87);
+        ctx.closePath();
+        ctx.fill();
+
+        // 4. РОВНЫЙ, ТЯЖЁЛЫЙ И МРАЧНЫЙ ВЗГЛЯД (Без раскосости)
+        // Тёмные круги-тени под глазами
+        ctx.fillStyle = 'rgba(28, 20, 16, 0.42)';
+        ctx.beginPath(); ctx.ellipse(52, 62, 6.5, 3.8, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(76, 62, 6.5, 3.8, 0, 0, Math.PI * 2); ctx.fill();
+
+        // Глаза строго на одной горизонтальной оси
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath(); ctx.ellipse(52, 61, 4.6, 2, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(76, 61, 4.6, 2, 0, 0, Math.PI * 2); ctx.fill();
+
+        // Холодная стальная радужка
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath(); ctx.arc(52, 61, 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(76, 61, 1.8, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath(); ctx.arc(52, 61, 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(76, 61, 0.9, 0, Math.PI * 2); ctx.fill();
+
+        // Боевой шрам через левую щеку
+        ctx.strokeStyle = '#8f2d2d';
+        ctx.lineWidth = 1.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(47, 64);
+        ctx.lineTo(54, 76);
+        ctx.stroke();
+
+        // Обветренный нос
+        ctx.fillStyle = '#b57b5c';
+        ctx.beginPath();
+        ctx.moveTo(64, 58);
+        ctx.lineTo(68, 73);
+        ctx.quadraticCurveTo(64, 76, 60, 73);
+        ctx.closePath();
+        ctx.fill();
+
+        // 5. КОСТЯНОЙ ОЛЕНИЙ ЧЕРЕП-ШЛЕМ РОГАЧА (На верхней половине головы)
+        ctx.fillStyle = '#ede6d6';
+        ctx.strokeStyle = '#5c5343';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(39, 54);
+        ctx.quadraticCurveTo(42, 26, 64, 24); // Купол черепа
+        ctx.quadraticCurveTo(86, 26, 89, 54);
+        ctx.lineTo(83, 58);
+        ctx.lineTo(72, 53);
+        ctx.lineTo(64, 62); // Костяной наносник черепа между глаз
+        ctx.lineTo(56, 53);
+        ctx.lineTo(45, 58);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Чёрные глазницы оленьего черепа на лбу шлема и трещина кости
+        ctx.fillStyle = '#1c1713';
+        ctx.beginPath(); ctx.ellipse(52, 43, 5, 3.6, -0.25, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(76, 43, 5, 3.6, 0.25, 0, Math.PI * 2); ctx.fill();
+
+        // Черепной шов по центру лба
+        ctx.strokeStyle = '#786e5c';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(64, 25);
+        ctx.lineTo(63, 34);
+        ctx.lineTo(65, 42);
+        ctx.lineTo(64, 58);
+        ctx.stroke();
+
+        // 6. ЭФФЕКТ FLAT-ОБЪЕМА (Мягкая тень на левую половину)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+        ctx.beginPath();
+        ctx.moveTo(64, 24);
+        ctx.quadraticCurveTo(42, 26, 39, 54);
+        ctx.lineTo(44, 84);
+        ctx.lineTo(36, 98);
+        ctx.lineTo(48, 122);
+        ctx.lineTo(64, 126);
+        ctx.lineTo(64, 128);
+        ctx.lineTo(12, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+    farmer() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. КРЕСТЬЯНСКИЕ ВИЛЫ ЗА ПРАВЫМ ПЛЕЧОМ (Задний план)
+        ctx.save();
+        ctx.translate(102, 46);
+        ctx.rotate((Math.PI / 180) * 24);
+
+        // Деревянный черенок вил
+        ctx.strokeStyle = '#6e472b';
+        ctx.lineWidth = 4.2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, 2);
+        ctx.lineTo(0, 92);
+        ctx.stroke();
+
+        // Стальная втулка крепления
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(-3, -2, 6, 7);
+
+        // Изогнутая перекладина и 3 острых зубца вил
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2.4;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-9, -22);
+        ctx.lineTo(-9, -6);
+        ctx.quadraticCurveTo(-9, 0, 0, 0);
+        ctx.quadraticCurveTo(9, 0, 9, -6);
+        ctx.lineTo(9, -22);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -23);
+        ctx.stroke();
+
+        // Светлые заточенные кончики зубцов
+        ctx.fillStyle = '#e2e8f0';
+        [-9, 0, 9].forEach(px => {
+            const tipY = px === 0 ? -25 : -24;
+            ctx.beginPath();
+            ctx.moveTo(px - 1.5, tipY + 4.5);
+            ctx.lineTo(px, tipY);
+            ctx.lineTo(px + 1.5, tipY + 4.5);
+            ctx.closePath();
+            ctx.fill();
+        });
+        ctx.restore();
+
+        // 2. РАБОЧАЯ ЛЬНЯНАЯ РУБАХА И КОМБИНЕЗОН НА МЕДНЫХ ПУГОВИЦАХ
+        ctx.fillStyle = '#d6ccc2';
+        ctx.beginPath();
+        ctx.moveTo(16, 128);
+        ctx.lineTo(36, 98);
+        ctx.lineTo(92, 98);
+        ctx.lineTo(112, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Отложной воротник рубахи
+        ctx.fillStyle = '#ede0d4';
+        ctx.beginPath();
+        ctx.moveTo(42, 98);
+        ctx.lineTo(54, 112);
+        ctx.lineTo(64, 102);
+        ctx.lineTo(74, 112);
+        ctx.lineTo(86, 98);
+        ctx.closePath();
+        ctx.fill();
+
+        // Грубый рабочий комбинезон-фартук с лямками
+        ctx.fillStyle = '#3b5266';
+        ctx.beginPath();
+        ctx.moveTo(32, 128);
+        ctx.lineTo(38, 100);
+        ctx.lineTo(48, 100);
+        ctx.lineTo(50, 114);
+        ctx.lineTo(78, 114);
+        ctx.lineTo(80, 100);
+        ctx.lineTo(90, 100);
+        ctx.lineTo(96, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Медные пуговицы на лямках комбинезона
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath(); ctx.arc(44, 115, 2.3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(84, 115, 2.3, 0, Math.PI * 2); ctx.fill();
+
+        // 3. ШЕЯ, УШИ И ОБВЕТРЕННОЕ ДОБРОДУШНОЕ ЛИЦО ФЕРМЕРА
+        ctx.fillStyle = '#d99e7c';
+        ctx.fillRect(55, 86, 18, 16);
+
+        ctx.fillStyle = '#e8b496';
+        ctx.beginPath();
+        ctx.moveTo(44, 50);
+        ctx.lineTo(84, 50);
+        ctx.lineTo(82, 81);
+        ctx.lineTo(64, 98);
+        ctx.lineTo(46, 81);
+        ctx.closePath();
+        ctx.fill();
+
+        // Лёгкая русая щетина на подбородке и щеках
+        ctx.fillStyle = 'rgba(120, 75, 42, 0.22)';
+        ctx.beginPath();
+        ctx.moveTo(46, 75);
+        ctx.lineTo(64, 98);
+        ctx.lineTo(82, 75);
+        ctx.lineTo(81, 82);
+        ctx.lineTo(64, 98);
+        ctx.lineTo(47, 82);
+        ctx.closePath();
+        ctx.fill();
+
+        // Непослушные пшенично-русые пряди волос на висках из-под шляпы
+        ctx.fillStyle = '#854d27';
+        ctx.beginPath();
+        ctx.moveTo(43, 48); ctx.lineTo(46, 62); ctx.lineTo(50, 50);
+        ctx.moveTo(85, 48); ctx.lineTo(82, 62); ctx.lineTo(78, 50);
+        ctx.fill();
+
+        // 4. РОВНЫЙ, ПРИВЕТЛИВЫЙ ВЗГЛЯД И УЛЫБКА С КОЛОСКОМ ПШЕНИЦЫ
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.ellipse(53, 62, 4.6, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(75, 62, 4.6, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+
+        // Ясные голубые глаза
+        ctx.fillStyle = '#0284c7';
+        ctx.beginPath(); ctx.arc(53, 62, 1.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75, 62, 1.9, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath(); ctx.arc(53, 62, 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75, 62, 0.9, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(53.8, 61.2, 0.65, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75.8, 61.2, 0.65, 0, Math.PI * 2); ctx.fill();
+
+        // Ровные добродушные брови
+        ctx.strokeStyle = '#5c3416';
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(47, 56.5); ctx.quadraticCurveTo(53, 55, 59, 57);
+        ctx.moveTo(81, 56.5); ctx.quadraticCurveTo(75, 55, 69, 57);
+        ctx.stroke();
+
+        // Крупный обветренный нос
+        ctx.fillStyle = '#d49674';
+        ctx.beginPath(); ctx.arc(64, 70, 4.5, 0, Math.PI * 2); ctx.fill();
+
+        // Широкая тёплая улыбка
+        ctx.strokeStyle = '#7c3f2c';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(55, 82);
+        ctx.quadraticCurveTo(64, 87, 73, 82);
+        ctx.stroke();
+
+        // Золотистый колосок пшеницы, зажатый в левом уголке рта
+        ctx.strokeStyle = '#eab308';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(56, 83);
+        ctx.lineTo(36, 92);
+        ctx.stroke();
+
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.ellipse(39, 90.5, 4.5, 2.2, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 5. ПЛЕТЁНАЯ СОЛОМЕННАЯ ШЛЯПА С СИНЕЙ ЛЕНТОЙ И ЗАЗУБРИНОЙ
+        ctx.save();
+        ctx.translate(64, 46);
+        ctx.rotate((Math.PI / 180) * -4);
+        ctx.translate(-64, -46);
+
+        // Широкие поля соломенной шляпы (с небольшой крестьянской выемкой справа)
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath();
+        ctx.ellipse(64, 48, 46, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.ellipse(64, 47, 44, 9.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Округлая тулья шляпы
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.moveTo(41, 46);
+        ctx.quadraticCurveTo(44, 22, 64, 21);
+        ctx.quadraticCurveTo(84, 22, 87, 46);
+        ctx.closePath();
+        ctx.fill();
+
+        // Текстура соломенного плетения (штрихи)
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(48, 32); ctx.lineTo(54, 32);
+        ctx.moveTo(68, 28); ctx.lineTo(75, 28);
+        ctx.moveTo(56, 37); ctx.lineTo(63, 37);
+        ctx.stroke();
+
+        // Синяя тканевая лента вокруг тульи
+        ctx.fillStyle = '#1d4ed8';
+        ctx.fillRect(41.5, 41, 45, 4.5);
+        ctx.restore();
+
+        // 6. ЭФФЕКТ FLAT-ОБЪЕМА (Мягкая тень на левую половину)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.beginPath();
+        ctx.moveTo(64, 21);
+        ctx.quadraticCurveTo(44, 22, 41, 46);
+        ctx.lineTo(18, 48);
+        ctx.lineTo(46, 81);
+        ctx.lineTo(64, 98);
+        ctx.lineTo(64, 128);
+        ctx.lineTo(16, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+    merchant() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. БОГАТЫЙ КУПЕЧЕСКИЙ КАФТАН С МЕХОВОЙ ОТОРОЧКОЙ И ЗОЛОТОЙ ЦЕПЬЮ
+        ctx.fillStyle = '#1e4620';
+        ctx.beginPath();
+        ctx.moveTo(14, 128);
+        ctx.quadraticCurveTo(30, 96, 64, 96);
+        ctx.quadraticCurveTo(98, 96, 114, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Тёплый соболиный меховой воротник кафтана
+        ctx.fillStyle = '#4a3219';
+        ctx.beginPath();
+        ctx.moveTo(28, 102);
+        ctx.quadraticCurveTo(64, 118, 100, 102);
+        ctx.lineTo(94, 92);
+        ctx.quadraticCurveTo(64, 106, 34, 92);
+        ctx.closePath();
+        ctx.fill();
+
+        // Светлая льняная рубаха в вырезе и массивная золотая купеческая цепь
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.moveTo(48, 100);
+        ctx.lineTo(64, 126);
+        ctx.lineTo(80, 100);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffd875';
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        ctx.moveTo(42, 102);
+        ctx.quadraticCurveTo(64, 122, 86, 102);
+        ctx.stroke();
+
+        // 2. УШИ И КРУГЛОЕ РУМЯНОЕ ЛИЦО КУПЦА
+        ctx.fillStyle = '#e5b293';
+        ctx.beginPath(); ctx.ellipse(41, 66, 4.5, 7, -0.1, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(87, 66, 4.5, 7, 0.1, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#fbd2b8';
+        ctx.beginPath();
+        ctx.moveTo(43, 48);
+        ctx.lineTo(85, 48);
+        ctx.bezierCurveTo(92, 62, 90, 84, 78, 92);
+        ctx.quadraticCurveTo(64, 102, 50, 92);
+        ctx.bezierCurveTo(38, 84, 36, 62, 43, 48);
+        ctx.closePath();
+        ctx.fill();
+
+        // Лёгкий румянец на щеках
+        ctx.fillStyle = 'rgba(225, 29, 72, 0.14)';
+        ctx.beginPath(); ctx.arc(47, 72, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(81, 72, 5.5, 0, Math.PI * 2); ctx.fill();
+
+        // 3. УХОЖЕННАЯ КАШТАНОВАЯ БОРОДКА И ЩЕГОЛЬСКИЕ УСЫ
+        ctx.fillStyle = '#5c3a21';
+        ctx.beginPath();
+        ctx.moveTo(44, 75);
+        ctx.quadraticCurveTo(44, 96, 64, 103);
+        ctx.quadraticCurveTo(84, 96, 84, 75);
+        ctx.quadraticCurveTo(64, 85, 44, 75);
+        ctx.closePath();
+        ctx.fill();
+
+        // Пышные закрученные усы
+        ctx.fillStyle = '#422816';
+        ctx.beginPath();
+        ctx.moveTo(48, 78);
+        ctx.quadraticCurveTo(64, 72, 80, 78);
+        ctx.quadraticCurveTo(85, 75, 83, 81);
+        ctx.quadraticCurveTo(64, 79, 45, 81);
+        ctx.quadraticCurveTo(43, 75, 48, 78);
+        ctx.closePath();
+        ctx.fill();
+
+        // Хитрая добродушная улыбка под усами
+        ctx.strokeStyle = '#8f4738';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(56, 84);
+        ctx.quadraticCurveTo(64, 88, 72, 84);
+        ctx.stroke();
+
+        // 4. РОВНЫЙ, ЛУКАВЫЙ ВЗГЛЯД И ПРИПОДНЯТАЯ БРОВЬ
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.ellipse(53, 61, 4.6, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(75, 61, 4.6, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+
+        // Тёплая орехово-каряя радужка
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath(); ctx.arc(53, 61, 1.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75, 61, 1.9, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath(); ctx.arc(53, 61, 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75, 61, 0.9, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(53.8, 60.2, 0.65, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(75.8, 60.2, 0.65, 0, Math.PI * 2); ctx.fill();
+
+        // Ровные брови (правая лукаво приподнята)
+        ctx.strokeStyle = '#422816';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(47, 56); ctx.quadraticCurveTo(53, 54.5, 59, 56.5);
+        ctx.moveTo(69, 56); ctx.quadraticCurveTo(75, 52, 81, 55);
+        ctx.stroke();
+
+        // Округлый нос купца
+        ctx.fillStyle = '#e5ad8c';
+        ctx.beginPath(); ctx.arc(64, 69, 4.8, 0, Math.PI * 2); ctx.fill();
+
+        // 5. БАРХАТНЫЙ КУПЕЧЕСКИЙ БЕРЕТ С ЗОЛОТОЙ БРОШЬЮ
+        ctx.save();
+        ctx.translate(64, 44);
+        ctx.rotate((Math.PI / 180) * -6);
+        ctx.translate(-64, -44);
+
+        // Пышный тёмно-багровый берет
+        ctx.fillStyle = '#7f1d1d';
+        ctx.beginPath();
+        ctx.ellipse(64, 34, 33, 15, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Световая складка сверху берета
+        ctx.fillStyle = '#991b1b';
+        ctx.beginPath();
+        ctx.ellipse(68, 32, 24, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Золотой ободок-околыш и драгоценная брошь
+        ctx.fillStyle = '#d4af37';
+        ctx.beginPath();
+        ctx.moveTo(39, 44);
+        ctx.quadraticCurveTo(64, 39, 89, 44);
+        ctx.lineTo(87, 49);
+        ctx.quadraticCurveTo(64, 44, 41, 49);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#10b981';
+        ctx.strokeStyle = '#ffd875';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(80, 44, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        // 6. ТУГОЙ КОЖАНЫЙ КОШЕЛЬ С ЗОЛОТЫМИ МОНЕТАМИ НА ПЕРЕДНЕМ ПЛАНЕ (Слева снизу)
+        ctx.save();
+        ctx.translate(27, 108);
+        ctx.rotate((Math.PI / 180) * -10);
+
+        // Тело кожаного мешочка-кошеля
+        ctx.fillStyle = '#78350f';
+        ctx.strokeStyle = '#3b1c0a';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-7, -10);
+        ctx.bezierCurveTo(-16, -2, -16, 16, 0, 17);
+        ctx.bezierCurveTo(16, 16, 16, -2, 7, -10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Стянутая горловина и золотой шнурок
+        ctx.fillStyle = '#92400e';
+        ctx.beginPath();
+        ctx.moveTo(-6, -10);
+        ctx.lineTo(-10, -18);
+        ctx.lineTo(0, -15);
+        ctx.lineTo(10, -18);
+        ctx.lineTo(6, -10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffd875';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-7.5, -10);
+        ctx.lineTo(7.5, -10);
+        ctx.stroke();
+
+        // Выглядывающие золотые монеты сбоку
+        ctx.fillStyle = '#ffd875';
+        ctx.strokeStyle = '#8a6421';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(11, 12, 4.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(14, 15, 4.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.restore();
+
+        // 7. ЭФФЕКТ FLAT-ОБЪЕМА (Мягкая тень на левую половину)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.beginPath();
+        ctx.moveTo(64, 19);
+        ctx.lineTo(31, 34);
+        ctx.lineTo(38, 76);
+        ctx.lineTo(50, 96);
+        ctx.lineTo(14, 128);
+        ctx.lineTo(64, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
+    courtesan() {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+
+        // 1. ЯРКИЕ МЕДНО-РЫЖИЕ ЛОКОНЫ НА ЗАДНЕМ ПЛАНЕ (Хорошо читаются на тёмном фоне)
+        ctx.fillStyle = '#a8431b';
+        ctx.beginPath();
+        ctx.arc(64, 26, 22, 0, Math.PI * 2); // Высокий пучок на макушке
+        ctx.arc(34, 54, 17, 0, Math.PI * 2);
+        ctx.arc(94, 54, 17, 0, Math.PI * 2);
+        ctx.arc(30, 80, 16, 0, Math.PI * 2);
+        ctx.arc(98, 80, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Золотисто-рыжий контурный отблеск на правой стороне локонов (чтобы не сливались с фоном)
+        ctx.fillStyle = '#c95626';
+        ctx.beginPath();
+        ctx.arc(96, 54, 14, 0, Math.PI * 2);
+        ctx.arc(100, 80, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. ОДЕЖДА: Выдвинута выше в кадр, с глубоким открытым декольте
+        // Открытые плечи, грудь и глубокий вырез декольте
+        ctx.fillStyle = '#fbd2b8';
+        ctx.beginPath();
+        ctx.moveTo(18, 128);
+        ctx.quadraticCurveTo(28, 88, 64, 88);
+        ctx.quadraticCurveTo(100, 88, 110, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Мягкие тени контура декольте (аккуратный flat-объём)
+        ctx.strokeStyle = 'rgba(181, 116, 82, 0.45)';
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(52, 108);
+        ctx.quadraticCurveTo(60, 116, 62, 124);
+        ctx.moveTo(76, 108);
+        ctx.quadraticCurveTo(68, 116, 66, 124);
+        ctx.stroke();
+
+        // Пышные белые рукава-фонарики на спущенных плечах
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.ellipse(23, 106, 16, 11, -0.35, 0, Math.PI * 2);
+        ctx.ellipse(105, 106, 16, 11, 0.35, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Бордово-алый бархатный корсет с глубоким V-образным вырезом
+        ctx.fillStyle = '#881337';
+        ctx.beginPath();
+        ctx.moveTo(32, 104);
+        ctx.quadraticCurveTo(46, 100, 56, 116); // Левая чашка корсета
+        ctx.lineTo(64, 124);                    // Глубокая точка выреза по центру
+        ctx.lineTo(72, 116);                    // Правая чашка корсета
+        ctx.quadraticCurveTo(82, 100, 96, 104);
+        ctx.lineTo(104, 128);
+        ctx.lineTo(24, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Золотая окантовка глубокого выреза корсета
+        ctx.strokeStyle = '#ffd875';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(32, 104);
+        ctx.quadraticCurveTo(46, 100, 56, 116);
+        ctx.lineTo(64, 124);
+        ctx.lineTo(72, 116);
+        ctx.quadraticCurveTo(82, 100, 96, 104);
+        ctx.stroke();
+
+        // 3. ШЕЯ, ЧОКЕР С РУБИНОМ И ЗОЛОТЫЕ СЕРЬГИ-ПОДВЕСКИ
+        ctx.fillStyle = '#e8b598';
+        ctx.fillRect(55, 76, 18, 16);
+
+        // Тонкий бархатный чокер с золотой оправой и рубином
+        ctx.fillStyle = '#4c0519';
+        ctx.fillRect(54, 82, 20, 3);
+        ctx.fillStyle = '#e11d48';
+        ctx.strokeStyle = '#ffd875';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(64, 83.5, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Золотые серьги-капли у мочек ушей
+        ctx.fillStyle = '#ffd875';
+        ctx.beginPath();
+        ctx.arc(43, 66, 2.3, 0, Math.PI * 2);
+        ctx.arc(85, 66, 2.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. МИЛОВИДНОЕ ЛИЦО С РУМЯНЦЕМ И ЯРКИМИ ПРЯДЯМИ ВОЛОС
+        ctx.fillStyle = '#ffedd8';
+        ctx.beginPath();
+        ctx.moveTo(45, 40);
+        ctx.quadraticCurveTo(64, 26, 83, 40);
+        ctx.lineTo(81, 70);
+        ctx.lineTo(64, 87);
+        ctx.lineTo(47, 70);
+        ctx.closePath();
+        ctx.fill();
+
+        // Мягкий персиково-розовый румянец на щеках
+        ctx.fillStyle = 'rgba(225, 29, 72, 0.16)';
+        ctx.beginPath(); ctx.arc(50, 63, 5.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(78, 63, 5.5, 0, Math.PI * 2); ctx.fill();
+
+        // Кокетливая маленькая родинка (мушка) на правой щеке
+        ctx.fillStyle = '#3b1c14';
+        ctx.beginPath(); ctx.arc(76, 68, 1.1, 0, Math.PI * 2); ctx.fill();
+
+        // Передние волны медно-рыжих волос и чёлка на пробор
+        ctx.fillStyle = '#b84a1e';
+        ctx.beginPath();
+        ctx.moveTo(42, 44);
+        ctx.quadraticCurveTo(46, 24, 64, 30);
+        ctx.quadraticCurveTo(82, 24, 86, 44);
+        ctx.quadraticCurveTo(84, 22, 64, 20);
+        ctx.quadraticCurveTo(44, 22, 42, 44);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ниспадающие яркие локоны по бокам лица
+        ctx.fillStyle = '#c95626';
+        ctx.beginPath();
+        ctx.moveTo(44, 38); ctx.quadraticCurveTo(37, 60, 42, 84); ctx.lineTo(48, 79); ctx.quadraticCurveTo(44, 58, 49, 40);
+        ctx.moveTo(84, 38); ctx.quadraticCurveTo(91, 60, 86, 84); ctx.lineTo(80, 79); ctx.quadraticCurveTo(84, 58, 79, 40);
+        ctx.fill();
+
+        // 5. АЛАЯ РОЗА В ПРИЧЁСКЕ (Справа на виске)
+        ctx.fillStyle = '#16a34a';
+        ctx.beginPath();
+        ctx.ellipse(81, 27, 6, 3, -0.5, 0, Math.PI * 2);
+        ctx.ellipse(89, 35, 6, 3, 0.7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#be123c';
+        ctx.beginPath(); ctx.arc(85, 31, 6.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath(); ctx.arc(84.5, 30.5, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#881337';
+        ctx.beginPath(); ctx.arc(85, 31, 1.8, 0, Math.PI * 2); ctx.fill();
+
+        // 6. РОВНЫЕ, ВЫРАЗИТЕЛЬНЫЕ ГЛАЗА С РЕСНИЦАМИ И ОЧАРОВАТЕЛЬНАЯ УЛЫБКА
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.ellipse(54, 53, 4.8, 2.3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(74, 53, 4.8, 2.3, 0, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#92400e';
+        ctx.beginPath(); ctx.arc(54, 53, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(74, 53, 2, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#1c1917';
+        ctx.beginPath(); ctx.arc(54, 53, 1, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(74, 53, 1, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(54.8, 52.2, 0.7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(74.8, 52.2, 0.7, 0, Math.PI * 2); ctx.fill();
+
+        // Выразительные тёмные стрелки и ресницы
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 1.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(47.5, 51.5); ctx.quadraticCurveTo(54, 50, 59, 52.5);
+        ctx.moveTo(80.5, 51.5); ctx.quadraticCurveTo(74, 50, 69, 52.5);
+        ctx.stroke();
+
+        // Изящные приподнятые брови
+        ctx.strokeStyle = '#5c2314';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(48, 47.5); ctx.quadraticCurveTo(54, 45.5, 59, 47.5);
+        ctx.moveTo(69, 47.5); ctx.quadraticCurveTo(74, 45.5, 80, 47.5);
+        ctx.stroke();
+
+        // Изящный носик и алые пухлые губы в улыбке
+        ctx.strokeStyle = '#d9a786';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(64, 50); ctx.lineTo(62.5, 64); ctx.lineTo(65.5, 64); ctx.stroke();
+
+        ctx.fillStyle = '#e11d48';
+        ctx.beginPath();
+        ctx.moveTo(58, 73);
+        ctx.quadraticCurveTo(64, 70, 70, 73);
+        ctx.quadraticCurveTo(64, 78.5, 58, 73);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#881337';
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(58.5, 73); ctx.quadraticCurveTo(64, 74.5, 69.5, 73);
+        ctx.stroke();
+
+        // 7. ЭФФЕКТ FLAT-ОБЪЕМА (Мягкая тень на левую половину)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.beginPath();
+        ctx.moveTo(64, 4);
+        ctx.arc(64, 26, 22, Math.PI * 1.5, Math.PI, true);
+        ctx.lineTo(47, 70);
+        ctx.lineTo(64, 87);
+        ctx.lineTo(64, 128);
+        ctx.lineTo(18, 128);
+        ctx.lineTo(34, 54);
+        ctx.closePath();
+        ctx.fill();
+
+        return canvas.toDataURL();
+    },
+
     townsman() {
         const size = 128;
         const canvas = document.createElement('canvas');
