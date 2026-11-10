@@ -3526,3 +3526,97 @@ canvas[style*="position: fixed"] {
 .init-cards-scroll-list.mode-bg3 + .init-focus-quote-shield { display: block !important; }
 .init-focus-phrase-text { font-family: "Tinos", serif; font-size: 40px; font-style: italic; font-weight: bold; color: #ebd291; line-height: 1.5; text-shadow: 0 3px 6px rgba(0, 0, 0, 0.95); }
 .init-focus-quote-shield span.gold-unit-focus-name { color: #ffd875 !important; font-family: 'Montserrat', sans-serif; font-style: normal !important; font-size: 44px; font-weight: 900; text-transform: uppercase; padding: 0 12px; text-shadow: 0 0 15px #ffd875, 0 0 30px rgba(212, 175, 55, 0.6), 0 3px 6px #000 !important; }
+
+/* ============================================================================
+   КОМПАКТНАЯ ТВ-УПАКОВКА ЛЕВОЙ КОЛОНКИ ПРИВАЛА БЕЗ ПРОКРУТКИ
+   ============================================================================ */
+
+/* 1. Уменьшаем зазоры между верхними блоками левой колонки */
+#campingTabletContainer .camping-left-col {
+    gap: 8px !important;
+    justify-content: space-between !important;
+}
+
+#campingTabletContainer .camp-current-hex-banner {
+    padding: 8px 14px !important;
+    font-size: 20px !important;
+}
+
+#campingTabletContainer .camping-region-bar {
+    padding: 8px 14px !important;
+    gap: 8px !important;
+}
+
+#campingTabletContainer .camp-param-label {
+    font-size: 20px !important;
+}
+
+/* 2. Делаем таблицу действий и радиокнопки более компактными по высоте */
+#campingTabletContainer .camp-gm-inputs-grid {
+    padding: 6px 14px !important;
+}
+
+#campingTabletContainer .camp-invisible-table th {
+    padding: 4px 2px 6px 2px !important;
+    font-size: 18px !important;
+}
+
+#campingTabletContainer .camp-invisible-table tr {
+    border-bottom: 8px solid transparent !important;
+}
+
+#campingTabletContainer .camp-invisible-table td.camp-act-cell {
+    padding: 7px 95px 7px 12px !important;
+}
+
+#campingTabletContainer .camp-invisible-table .act-name {
+    font-size: 21px !important;
+    margin-bottom: 4px !important;
+}
+
+#campingTabletContainer [id^="label_dc_"],
+#campingTabletContainer .camp-invisible-table .skill-name-large {
+    font-size: 16px !important;
+    padding: 3px 10px !important;
+}
+
+/* Уменьшаем мини-аватарку внутри карточки действия под новую высоту блока */
+#campingTabletContainer .camp-assigned-ally-img {
+    width: 42px !important;
+    height: 42px !important;
+}
+
+#campingTabletContainer .camp-assigned-ally-name {
+    font-size: 10px !important;
+}
+
+/* Делаем радиокнопки аккуратнее (30px), чтобы не растягивали строки */
+#campingTabletContainer .camp-invisible-table td:not(.camp-act-cell) {
+    width: 52px !important;
+    padding: 4px 2px !important;
+}
+
+#campingTabletContainer .camp-invisible-table input[type="radio"] {
+    width: 30px !important;
+    height: 30px !important;
+}
+
+#campingTabletContainer .camp-invisible-table input[type="radio"]:checked::before {
+    font-size: 17px !important;
+}
+
+/* 3. Делаем нижний док с 6 союзниками компактным по высоте */
+#campingTabletContainer .camp-allies-dock {
+    padding: 8px 12px !important;
+    gap: 6px !important;
+    margin-top: 0 !important;
+}
+
+#campingTabletContainer .camp-allies-dock-title {
+    font-size: 14px !important;
+    padding-bottom: 4px !important;
+}
+
+#campingTabletContainer .camp-allies-grid {
+    gap: 8px !important;
+}

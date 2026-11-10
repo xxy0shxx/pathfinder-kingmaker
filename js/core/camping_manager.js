@@ -456,6 +456,7 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при сбросе параметров привала:", e); }
     },
 
+
     renderAlliesDock() {
         const campContainer = document.getElementById('campingTabletContainer');
         if (!campContainer) return;
@@ -491,6 +492,12 @@ const CampingManager = {
                     const allyId = e.dataTransfer.getData('text/plain');
                     const found = allies.find(a => a.id === allyId);
                     if (found) {
+                        // Если герой уже был назначен на другое действие — снимаем его оттуда
+                        for (const key in this.state.assignments) {
+                            if (this.state.assignments[key]?.id === found.id) {
+                                delete this.state.assignments[key];
+                            }
+                        }
                         this.state.assignments[idx] = {
                             id: found.id,
                             name: found.name,
@@ -508,7 +515,7 @@ const CampingManager = {
             if (assigned) {
                 const badge = document.createElement('div');
                 badge.className = 'camp-assigned-ally-badge';
-                badge.title = `${assigned.name} (нажмите, чтобы снять)`;
+                badge.title = `${assigned.name} (нажмите, чтобы вернуть в отряд)`;
 
                 const imgHtml = assigned.avatar
                     ? `<img class="camp-assigned-ally-img" src="${assigned.avatar}" alt="${assigned.name}">`
@@ -529,7 +536,10 @@ const CampingManager = {
             }
         });
 
-        // 2. Нижняя панель из 6 слотов союзников
+        // 2. Фильтруем: в нижнем доке остаются только свободные (не назначенные) союзники
+        const assignedIds = Object.values(this.state.assignments).map(a => a && a.id);
+        const availableAllies = allies.filter(a => !assignedIds.includes(a.id));
+
         let dock = leftCol.querySelector('.camp-allies-dock');
         if (!dock) {
             dock = document.createElement('div');
@@ -539,7 +549,7 @@ const CampingManager = {
 
         let slotsHtml = '';
         for (let i = 0; i < 6; i++) {
-            const ally = allies[i];
+            const ally = availableAllies[i];
             if (ally) {
                 const visual = ally.avatar
                     ? `<img src="${ally.avatar}" alt="${ally.name}">`
