@@ -1199,9 +1199,9 @@ const InitiativeManager = {
             // НОВОЕ: Отрисовка аватарки (если установлена — выводим Canvas-картинку, иначе — пустой щит с номером)
             let avatarHtml = '';
             if (unit.avatar) {
-                avatarHtml = `<div class="init-avatar-shield-circle active" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #543e0d; background: #020503; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;"><img src="${unit.avatar}" style="width: 100%; height: 100%; object-fit: cover;"></div>`;
+                avatarHtml = `<div class="init-avatar-shield-circle active"><img src="${unit.avatar}"></div>`;
             } else {
-                avatarHtml = `<div class="init-avatar-shield-circle" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid #543e0d; background: #020503; display: flex; align-items: center; justify-content: center; color: #b89445; font-size: 16px; font-weight: 900; font-family: monospace; flex-shrink: 0;">${index + 1}</div>`;
+                avatarHtml = `<div class="init-avatar-shield-circle">${index + 1}</div>`;
             }
 
             card.innerHTML = `
@@ -1324,10 +1324,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Круглая плашка щита
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#2c1313'; ctx.strokeStyle = '#543e0d'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. УШИ ОРКА
         ctx.fillStyle = '#1e3d24';
@@ -1389,10 +1388,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий королевский лазурный щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0f1a24'; ctx.strokeStyle = '#dfbc6f'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Прямые серебряные волосы (спадение за плечи)
         ctx.fillStyle = '#dcdde1';
@@ -1496,10 +1494,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий каменный щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#2c2c2c'; ctx.strokeStyle = '#7f8c8d'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ДВАРФИЙСКИЙ РОГАТЫЙ ШЛЕМ И СТАЛЬНЫЕ НАПЛЕЧНИКИ
         ctx.fillStyle = '#1e272c'; // Наплечники
@@ -1579,10 +1576,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Гнилой болотный геральдический щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c2014'; ctx.strokeStyle = '#3d2e14'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ОГРОМНЫЕ ГОБЛИНСКИЕ УШИ (Широкие, направленные в стороны и слегка вниз)
         ctx.fillStyle = '#4c6e35'; // Болотный зеленый (цвет ушей в тени)
@@ -1668,10 +1664,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий лесной геральдический щит (Темная хвоя)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0f1c14'; ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощный наклонный загривок (Шерсть дыбом)
         ctx.fillStyle = '#1a202c'; // Ультра-темный мех спины
@@ -1775,10 +1770,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Сумеречный пещерный геральдический щит (Мрачный фиолетовый)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1b1424'; ctx.strokeStyle = '#5a198c'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ИЗОГНУТЫЕ ЖЕСТКИЕ ЛАПЫ (Угрожающе обрамляют круг по бокам)
         ctx.strokeStyle = '#1e252b'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'miter';
@@ -1851,10 +1845,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Суровый подвальный щит воровской гильдии
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#251b14'; ctx.strokeStyle = '#543e0d'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи и кожаный воротник плаща
         ctx.fillStyle = '#1c1612';
@@ -1926,10 +1919,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Праведный золотой геральдический щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#112217'; ctx.strokeStyle = '#ffd875'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Тяжелые стальные наплечники
         ctx.fillStyle = '#57606f';
@@ -1999,10 +1991,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий лесной геральдический щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a1a12'; ctx.strokeStyle = '#27ae60'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи и кожаный ремень колчана со стрелами
         ctx.fillStyle = '#1c2d22';
@@ -2085,10 +2076,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Мистический фиолетовый щит тайных знаний
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#130f24'; ctx.strokeStyle = '#9b59b6'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Длинная, клиновидная серебряная борода и воротник мантии
         ctx.fillStyle = '#090d16'; // Мантия
@@ -2167,10 +2157,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Жизнерадостный рубиново-розовый щит вдохновения
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#2c111d'; ctx.strokeStyle = '#e84393'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Щегольской воротник и длинные ухоженные каштановые волосы
         ctx.fillStyle = '#4a2f13'; // Волосы
@@ -2267,10 +2256,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Уютный полуночно-синий геральдический щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a1128'; ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. БОЛЬШИЕ КОШАЧЬИ УШИ (Заостренные треугольники, направленные строго вверх)
         ctx.fillStyle = '#d35400'; // Теневой рыжий мех ушей
@@ -2357,10 +2345,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий изумрудный щит чащи леса
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a2316'; ctx.strokeStyle = '#dfbc6f'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. МАССИВНЫЕ ВЕТВИСТЫЕ РОГА (Королевская лесная крона на заднем плане)
         ctx.strokeStyle = '#5c4033'; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -2445,10 +2432,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Суровый грязно-коричневый геральдический щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c1410'; ctx.strokeStyle = '#8c5319'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Массивная шерстяная холка (Грубый загривок вепря)
         ctx.fillStyle = '#2c221e'; // Темно-бурый мех холки
@@ -2526,10 +2512,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий таежный геральдический щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0d1811'; ctx.strokeStyle = '#5c4033'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощный загривок и пушистые уши
         ctx.fillStyle = '#3a271d'; // Темно-бурый мех холки
@@ -2607,10 +2592,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий королевский лазурно-зеленый щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0b1e14'; ctx.strokeStyle = '#27ae60'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи и прямые длинные серебряные волосы
         ctx.fillStyle = '#1c2d22'; // Одежда
@@ -2695,10 +2679,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Безмятежный небесно-голубой щит святого исцеления
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a192f'; ctx.strokeStyle = '#ffd875'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи и мягкие платиновые локоны волос
         ctx.fillStyle = '#112233'; // Мантия
@@ -2784,10 +2767,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Жизнерадостный янтарно-оранжевый щит приключений
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c140a'; ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Пышные каштановые кудрявые волосы
         ctx.fillStyle = '#4a2f13'; // Базовый цвет кудрей
@@ -2875,10 +2857,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Тревожный темно-багровый щит наемной гильдии
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#211010'; ctx.strokeStyle = '#541c1c'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Короткий рубленый каштановый ежик (Волосы сильно уменьшены)
         ctx.fillStyle = '#3a2512';
@@ -2961,10 +2942,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Мрачный подземный геральдический щит (Глубокий малахит)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a1411'; ctx.strokeStyle = '#27ae60'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Острые рожки рептилии (Загнуты назад вдоль черепа)
         ctx.fillStyle = '#1e331c'; // Темный роговой цвет в тени
@@ -3061,10 +3041,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Плотный щит джунглей (Глубокий изумруд)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a1a12'; ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Округлые пушистые уши тигра
         ctx.fillStyle = '#11161b'; // Тыльная сторона ушей (черная с белым пятном по канону)
@@ -3166,10 +3145,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Волшебный изумрудно-зеленый щит древнего леса
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#06170d'; ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Пышная копна волос из переплетенных лоз и дубовой листвы
         ctx.fillStyle = '#1e4620'; // Темно-зеленый лиственный объем волос
@@ -3251,10 +3229,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Кроваво-багровый щит ярости битвы
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#2c0c0c'; ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Дикие растрепанные волосы и меховой воротник
         ctx.fillStyle = '#2d1f18'; // Дикие каштановые волосы
@@ -3337,14 +3314,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Светлый туманный щит для максимального контраста
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        const bgGrad = ctx.createLinearGradient(0, 0, 0, size);
-        bgGrad.addColorStop(0, '#f5f6fa');
-        bgGrad.addColorStop(1, '#dcdde1');
-        ctx.fillStyle = bgGrad;
-        ctx.strokeStyle = '#2f3542'; ctx.lineWidth = 2.5;
-        ctx.fill(); ctx.stroke();
+        // 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Изящный, изогнутый силуэт птичьей шеи
         ctx.fillStyle = '#090d16'; // Ультра-черный
@@ -3424,10 +3396,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Гнилой сумеречный болотный щит (Ряска и тина)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0f1710'; ctx.strokeStyle = '#27ae60'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Массивное, расплывчатое тело амфибии (Плечи и горб)
         ctx.fillStyle = '#1e331e'; // Болотный темно-зеленый
@@ -3507,10 +3478,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Бездонный пещерный провал (Мрачный подземный индиго)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0b0914'; ctx.strokeStyle = '#8e44ad'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощные кольца кольчатого тела (Вздымается снизу вверх)
         ctx.fillStyle = '#2c1a4d'; // Теневой фиолетовый сегмент тела
@@ -3589,10 +3559,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Гордый стальной геральдический щит
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#161d26'; ctx.strokeStyle = '#7f8c8d'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Собранные темные волосы и чешуйчатые наплечники
         ctx.fillStyle = '#1c1613'; // Волосы
@@ -3677,10 +3646,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Суровый багрово-черный щит разбойничьего притона
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1a0d0d'; ctx.strokeStyle = '#9c2a2a'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Густой загривок и меховой воротник на плечах
         ctx.fillStyle = '#3a2d29'; // Тяжелый мех на плечах атамана
@@ -3762,10 +3730,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Гнилой, скверный щит чумных земель (Грязный болотно-коричневый)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c1510'; ctx.strokeStyle = '#634731'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЧЛЕНИСТЫЕ ЖЕСТКИЕ ЛАПЫ (Угловые суставы цепляются по бокам)
         ctx.strokeStyle = '#1a110b'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'miter';
@@ -3833,10 +3800,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Вулканический щит Бездны (Мрачная застывшая лава)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c0d0d'; ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощные золотые рога (Идут вдоль черепа назад-вверх)
         ctx.fillStyle = '#d4af37'; // Базовое золото
@@ -3933,10 +3899,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Гнилой пещерный щит упадка (Мрачный болотный хаки)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#141a11'; ctx.strokeStyle = '#4b6536'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Спутанный моховой загривок и сгорбленные плечи
         ctx.fillStyle = '#222d19'; // Моховые грязные волосы
@@ -4010,10 +3975,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Скованный льдом северный щит (Глубокий полуночный индиго)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a1424'; ctx.strokeStyle = '#00cef7'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Могучие плечи в шкурах полярного медведя
         ctx.fillStyle = '#f1f2f6'; // Белый пушистый мех
@@ -4091,10 +4055,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Мирный золотистый щит урожая (Цвет спелой пшеницы)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#261b0a'; ctx.strokeStyle = '#dfbc6f'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи в простой холщовой рубахе и жилете
         ctx.fillStyle = '#f5f6fa'; // Белая рубаха
@@ -4178,10 +4141,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Богатый бархатный щит гильдии купцов (Глубокий изумрудно-золотой)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0f2419'; ctx.strokeStyle = '#ffd875'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи в дорогом парчовом камзоле
         ctx.fillStyle = '#4b1528'; // Бордовый шелк
@@ -4268,10 +4230,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Таинственный бархатно-пурпурный щит ночного города
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c0f1e'; ctx.strokeStyle = '#e84393'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Пышная копна черных кудрявых волос
         ctx.fillStyle = '#11141a';
@@ -4359,10 +4320,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Суровый таежный щит (Цвет глухого осеннего леса)
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#111a14'; ctx.strokeStyle = '#8c5319'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи в плотной кожаной куртке с ремнями портупеи
         ctx.fillStyle = '#2c221e'; // Кожаная куртка
@@ -4447,10 +4407,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий королевский синий щит воинской чести
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0a1424'; ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощные латные наплечники
         ctx.fillStyle = '#2f3542'; // Базовая сталь лат
@@ -4527,10 +4486,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Торжественный лазурно-золотой щит праведного ордена
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#0b162a'; ctx.strokeStyle = '#ffd875'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Длинные белые волосы и тяжелые стальные наплечники
         ctx.fillStyle = '#cbd5e1'; // Серебряно-белые волосы на фоне
@@ -4620,10 +4578,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Мистический глубокий фиолетовый щит тайных сил
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#110a24'; ctx.strokeStyle = '#9b59b6'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Плечи в мантии и длинные платиновые волосы
         ctx.fillStyle = '#1e1135'; // Темно-фиолетовая мантия
@@ -4714,10 +4671,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Глубокий праведный багрово-золотой щит подземного ордена
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#1c110a'; ctx.strokeStyle = '#ffd875'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощные стальные латные наплечники
         ctx.fillStyle = '#57606f';
@@ -4805,10 +4761,9 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 1. ФОН: Мрачный багрово-черный геральдический щит орды
-        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#221111'; ctx.strokeStyle = '#57606f'; ctx.lineWidth = 2;
-        ctx.fill(); ctx.stroke();
+// 1. ФОН: Полноразмерный квадратный портрет
+        ctx.fillStyle = '#2c1313'; // (Сохраняйте свой цвет фона для каждого персонажа)
+        ctx.fillRect(0, 0, size, size);
 
         // 2. ЗАДНИЙ ПЛАН: Мощная шея и тяжелые стальные наплечники
         ctx.fillStyle = '#1e3d24'; // Зеленая шея в тени
