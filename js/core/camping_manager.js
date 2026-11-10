@@ -211,6 +211,20 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
+    formatActionActors(actionIdx) {
+        const list = (this.state.assignments && Array.isArray(this.state.assignments[actionIdx]))
+            ? this.state.assignments[actionIdx]
+            : [];
+        if (list.length === 0) return '';
+
+        const leader = `<span class="camp-actor-highlight">${list[0].name}</span>`;
+        if (list.length === 1) {
+            return ` (${leader})`;
+        }
+        const helper = `<span class="camp-actor-highlight">${list[1].name}</span>`;
+        return ` (${leader}, помощник: ${helper})`;
+    },
+
 
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
@@ -229,55 +243,67 @@ const CampingManager = {
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
-        // 🟢 ЦВЕТОВЫЕ МАРКЕРЫ СИТУАЦИЙ (СТРОГИЙ ИМЕНИТЕЛЬНЫЙ ПАДЕЖ И НЕОН)
+        const prepActors = this.formatActionActors(0);
+        const camoActors = this.formatActionActors(1);
+        const huntActors = this.formatActionActors(2);
+
         if (prepareRes === 'crit_success') {
-            this.addLogLine(effectsList, "Подготовка: <span class='outcome-crit-success'>Критический успех</span>: вы нашли идеальное место для лагеря. Чистые проверки для сцен во время стоянки в течении следующих 24 часов проводятся со СЛ +2, а первый час, проведённый в лагере, не влечёт за собой обычную проверку на случайную сцену.", "good");
+            this.addLogLine(effectsList, `Подготовка${prepActors}: <span class='outcome-crit-success'>Критический успех</span>: вы нашли идеальное место для лагеря. Чистые проверки для сцен во время стоянки в течении следующих 24 часов проводятся со СЛ +2, а первый час, проведённый в лагере, не влечёт за собой обычную проверку на случайную сцену.`, "good");
         } else if (prepareRes === 'success') {
-            this.addLogLine(effectsList, "Подготовка: <span class='outcome-success'>Успех</span>: вы нашли подходящее место для лагеря и занятий в лагере.", "good");
+            this.addLogLine(effectsList, `Подготовка${prepActors}: <span class='outcome-success'>Успех</span>: вы нашли подходящее место для лагеря и занятий в лагере.`, "good");
         } else if (prepareRes === 'failure') {
-            this.addLogLine(effectsList, "Подготовка: <span class='outcome-failure'>Провал</span>: место для лагеря не самое лучшее. Занятия в лагере требующие проверки, получают штраф -2.", "bad");
+            this.addLogLine(effectsList, `Подготовка${prepActors}: <span class='outcome-failure'>Провал</span>: место для лагеря не самое лучшее. Занятия в лагере требующие проверки, получают штраф -2.`, "bad");
         } else if (isCampHorrible) {
-            this.addLogLine(effectsList, `Подготовка: <span class='outcome-crit-failure'>Критический провал</span>: Это ужасное место для лагеря. Вы можете в нём отдохнуть и провести ежедневную подготовку, но вы не можете совершать в нём занятия. Более того, ваша попытка защитить лагерь, возможно, привлекла нежелательное внимание - пройдите чистую проверку со СЛ сцены региона ${this.state.encounterDc}. В случае успеха произойдет случайная сцена.`, "bad");
+            this.addLogLine(effectsList, `Подготовка${prepActors}: <span class='outcome-crit-failure'>Критический провал</span>: Это ужасное место для лагеря. Вы можете в нём отдохнуть и провести ежедневную подготовку, но вы не можете совершать в нём занятия. Более того, ваша попытка защитить лагерь, возможно, привлекла нежелательное внимание - пройдите чистую проверку со СЛ сцены региона ${this.state.encounterDc}. В случае успеха произойдет случайная сцена.`, "bad");
         }
 
         if (!isCampHorrible) {
             if (camoRes === 'crit_success') {
-                this.addLogLine(effectsList, "Маскировка: <span class='outcome-crit-success'>Критический успех</span>: вы превзошли все ожидания. В первый раз, когда чистая проверка приведёт к сцене во время этой стоянки, сцена не произойдёт. Сложность случайной сцены увеличена на +2.", "good");
+                this.addLogLine(effectsList, `Маскировка${camoActors}: <span class='outcome-crit-success'>Критический успех</span>: вы превзошли все ожидания. В первый раз, когда чистая проверка приведёт к сцене во время этой стоянки, сцена не произойдёт. Сложность случайной сцены увеличена на +2.`, "good");
             } else if (camoRes === 'success') {
-                this.addLogLine(effectsList, "Маскировка: <span class='outcome-success'>Успех</span>: ваша работа помогает скрыть ваш лагерь от чужих глаз. Сложность случайной сцены увеличена на +1.", "good");
+                this.addLogLine(effectsList, `Маскировка${camoActors}: <span class='outcome-success'>Успех</span>: ваша работа помогает скрыть ваш лагерь от чужих глаз. Сложность случайной сцены увеличена на +1.`, "good");
             } else if (camoRes === 'crit_failure') {
-                this.addLogLine(effectsList, "Маскировка: <span class='outcome-crit-failure'>Критический провал</span>: вы считаете, что хорошо справились, но забыли что-то важное или на самом деле нечаянно сделали лагерь более заметным. Сложность обнаружения лагеря снижена на -2. Проверки для случайных сцен приводят к критическому успеху при 19 или 20.", "bad");
+                this.addLogLine(effectsList, `Маскировка${camoActors}: <span class='outcome-crit-failure'>Критический провал</span>: вы считаете, что хорошо справились, но забыли что-то важное или на самом деле нечаянно сделали лагерь более заметным. Сложность обнаружения лагеря снижена на -2. Проверки для случайных сцен приводят к критическому успеху при 19 или 20.`, "bad");
             }
         }
 
         if (!isCampHorrible) {
             if (huntRes === 'success') {
-                this.addLogLine(effectsList, `Охота: <span class='outcome-success'>Успех</span>: охота (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента.`, "good");
+                this.addLogLine(effectsList, `Охота${huntActors}: <span class='outcome-success'>Успех</span>: охота (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента.`, "good");
             } else if (huntRes === 'crit_success') {
-                this.addLogLine(effectsList, `Охота: <span class='outcome-crit-success'>Критический успех</span> (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном удвоенной СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента. Если охота в регионе уровнем не ниже 7, то особых ингредиентов 8; если в регионе уровнем не ниже 14, то особых ингредиентов 12.`, "good");
+                this.addLogLine(effectsList, `Охота${huntActors}: <span class='outcome-crit-success'>Критический успех</span> (Уровень региона: ${lvl}): вы находите обычные ингредиенты в количесте, равном удвоенной СЛ региона ${this.state.normalIngredients} шт., плюс ${specialYieldText} особых ингредиента. Если охота в регионе уровнем не ниже 7, то особых ингредиентов 8; если в регионе уровнем не ниже 14, то особых ингредиентов 12.`, "good");
             } else if (huntRes === 'failure') {
-                this.addLogLine(effectsList, `Охота: <span class='outcome-failure'>Провал</span>: вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт.`, "generic");
+                this.addLogLine(effectsList, `Охота${huntActors}: <span class='outcome-failure'>Провал</span>: вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт.`, "generic");
             } else if (huntRes === 'crit_failure') {
-                this.addLogLine(effectsList, `Охота: <span class='outcome-crit-failure'>Критический провал</span>: вы находите ${this.state.normalIngredients} обычных ингредиента, максимум ${this.state.encounterDc}. Кроме того вы привлекли внимание. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc}, чтобы определить, произойдет ли случайная сцена в вашем лагере после этого занятия.`, "bad");
+                this.addLogLine(effectsList, `Охота${huntActors}: <span class='outcome-crit-failure'>Критический провал</span>: вы находите ${this.state.normalIngredients} обычных ингредиента, максимум ${this.state.encounterDc}. Кроме того вы привлекли внимание. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc}, чтобы определить, произойдет ли случайная сцена в вашем лагере после этого занятия.`, "bad");
             }
         }
+
         this.renderAlliesDock();
     },
 
 
-
-    // Интеллектуальный парсер: красит в красный при минусах ИЛИ если тип лога "bad" (провал/крит)
     addLogLine(container, text, type) {
         const line = document.createElement('div');
         line.className = `camp-effect-line ${type}`;
 
-        // Оборачиваем все числа, кости и текстовые маркеры в span
-        const formattedText = text.replace(/([+-]?\d+d\d+|[+-]?\d+\s*(?:шт\.)?|[+-]\d+|девятнадцать|двадцать)/g, '<span>$1</span>');
+        // Разбиваем строку по HTML-тегам, чтобы числа внутри имен и атрибутов не ломали верстку
+        const parts = text.split(/(<[^>]+>)/g);
+        let insideActorSpan = false;
+
+        const formattedText = parts.map(part => {
+            if (part.startsWith('<')) {
+                if (part.includes('camp-actor-highlight')) insideActorSpan = true;
+                else if (part === '</span>') insideActorSpan = false;
+                return part;
+            }
+            if (insideActorSpan) return part;
+            return part.replace(/([+-]?\d+d\d+|[+-]?\d+\s*(?:шт\.)?|[+-]\d+|девятнадцать|двадцать)/g, '<span>$1</span>');
+        }).join('');
+
         line.innerHTML = formattedText;
 
-        // Обработка цвета плашек внутри созданной строки
-        line.querySelectorAll('span').forEach(span => {
-            // Если в самом числе есть минус, помечаем как negative
+        line.querySelectorAll('span:not(.camp-actor-highlight)').forEach(span => {
             if (span.textContent.includes('-')) {
                 span.classList.add('negative');
             }

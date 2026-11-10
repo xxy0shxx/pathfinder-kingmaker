@@ -3679,3 +3679,24 @@ canvas[style*="position: fixed"] {
 #campingTabletContainer .camp-invisible-table td.camp-act-cell {
     padding-right: 108px !important;
 }
+
+/* ============================================================================
+   ЗОЛОТАЯ ПОДСВЕТКА ИМЕН ГЕРОЕВ В ЛОГАХ И ИТОГОВОМ ОКНЕ ПРИВАЛА
+   ============================================================================ */
+
+#campingTabletContainer .camp-effect-line span.camp-actor-highlight,
+#campResultModalBody .camp-effect-line span.camp-actor-highlight,
+.camp-result-text-container .camp-effect-line span.camp-actor-highlight {
+    display: inline !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 2px !important;
+    margin: 0 !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    color: #ffd875 !important;
+    text-shadow: 0 0 10px rgba(255, 216, 117, 0.8), 0 1px 3px #000000 !important;
+}
