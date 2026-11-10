@@ -4696,8 +4696,8 @@ const InitiativeManager = {
     },
 
     /**
-     * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ДВАРФА-ПАЛАДИНА БЕЗ ШЛЕМA НА CANVAS
-     * Возвращает строку Data-URL для мгновенного рендеринга
+     * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ДВАРФА-ПАЛАДИНА БЕЗ ШЛЕМА (ЖЕЛЕЗНЫЙ МОЛОТ И КАПЛЕВИДНЫЙ ЩИТ)
+     * Возвращает строку Data-URL для мгновенного рендеринга (прозрачный фон)
      */
     generateDwarfPaladinAvatarDataUrl() {
         const size = 128;
@@ -4709,77 +4709,205 @@ const InitiativeManager = {
         ctx.clearRect(0, 0, size, size);
         ctx.imageSmoothingEnabled = true;
 
-        // 2. ЗАДНИЙ ПЛАН: Мощные стальные латные наплечники
+        // 1. МАССИВНЫЙ ЖЕЛЕЗНЫЙ БОЕВОЙ МОЛОТ ЗА ПРАВЫМ ПЛЕЧОМ (По диагонали вверх)
+        ctx.save();
+        ctx.translate(100, 46);
+        ctx.rotate((Math.PI / 180) * 22);
+
+        // Деревянно-стальная рукоять молота
+        ctx.strokeStyle = '#4a3219';
+        ctx.lineWidth = 4.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, -14);
+        ctx.lineTo(0, 86);
+        ctx.stroke();
+
+        // Острая стальная пика-навершие сверху молота
+        ctx.fillStyle = '#95a5a6';
+        ctx.beginPath();
+        ctx.moveTo(-4, -14);
+        ctx.lineTo(0, -26);
+        ctx.lineTo(4, -14);
+        ctx.closePath();
+        ctx.fill();
+
+        // Тяжёлый кованый железный боёк молота
         ctx.fillStyle = '#57606f';
-        ctx.beginPath(); ctx.moveTo(20, 128); ctx.lineTo(36, 100); ctx.lineTo(92, 100); ctx.lineTo(108, 128); ctx.fill();
+        ctx.strokeStyle = '#2f3542';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.roundRect(-16, -14, 32, 18, 2);
+        ctx.fill();
+        ctx.stroke();
 
-        // Золотой рыцарский горжет (воротник лат)
+        // Светлая металлическая грань и золотой крест на бойке
+        ctx.fillStyle = '#a4b0be';
+        ctx.fillRect(-14, -12, 28, 4.5);
+        ctx.fillStyle = '#ffd875';
+        ctx.fillRect(-1.5, -11, 3, 12);
+        ctx.fillRect(-5, -6.5, 10, 3);
+        ctx.restore();
+
+        // 2. ЗАДНИЙ ПЛАН: Мощные стальные латные наплечники и золотой горжет
+        ctx.fillStyle = '#4b5563';
+        ctx.beginPath();
+        ctx.moveTo(16, 128);
+        ctx.lineTo(34, 96);
+        ctx.lineTo(94, 96);
+        ctx.lineTo(112, 128);
+        ctx.closePath();
+        ctx.fill();
+
+        // Золотая окантовка лат и горжет
         ctx.fillStyle = '#b89445';
-        ctx.beginPath(); ctx.moveTo(42, 98); ctx.lineTo(54, 88); ctx.lineTo(74, 88); ctx.lineTo(84, 98); ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(42, 98);
+        ctx.lineTo(54, 88);
+        ctx.lineTo(74, 88);
+        ctx.lineTo(86, 98);
+        ctx.closePath();
+        ctx.fill();
 
-        // 3. ЛИЦО (Широкое, суровое, дварфийской квадратной формы)
+        // 3. ЛИЦО ДВАРФА (Широкое, суровое, открытое без шлема)
         ctx.fillStyle = '#d39e82';
         ctx.beginPath();
-        ctx.moveTo(42, 54); ctx.lineTo(86, 54); ctx.lineTo(84, 86);
-        ctx.lineTo(64, 104); ctx.lineTo(44, 86); ctx.closePath(); ctx.fill();
+        ctx.moveTo(42, 50);
+        ctx.quadraticCurveTo(64, 36, 86, 50);
+        ctx.lineTo(84, 86);
+        ctx.lineTo(64, 104);
+        ctx.lineTo(44, 86);
+        ctx.closePath();
+        ctx.fill();
 
-        // 4. ДВАРФИЙСКАЯ ОСКЛАДИСТАЯ РЫЖАЯ БОРОДА (Перекрывает нижнюю часть лица)
-        ctx.fillStyle = '#e67e22'; // Пышный рыжий мех бороды паладина
+        // Короткие рыжие волосы на висках и макушке (без шлема)
+        ctx.fillStyle = '#c05315';
         ctx.beginPath();
-        ctx.moveTo(42, 78); ctx.lineTo(32, 102); ctx.lineTo(44, 128); ctx.lineTo(84, 128); ctx.lineTo(96, 102); ctx.lineTo(84, 78);
-        ctx.quadraticCurveTo(64, 90, 42, 78); ctx.closePath(); ctx.fill();
+        ctx.moveTo(40, 54);
+        ctx.quadraticCurveTo(42, 30, 64, 28);
+        ctx.quadraticCurveTo(86, 30, 88, 54);
+        ctx.lineTo(84, 48);
+        ctx.quadraticCurveTo(64, 40, 44, 48);
+        ctx.closePath();
+        ctx.fill();
 
-        // Усы (Тяжелые накладные плашки)
+        // 4. ГУСТАЯ ОКЛАДИСТАЯ РЫЖАЯ БОРОДА И ПЫШНЫЕ УСЫ
+        ctx.fillStyle = '#e67e22';
+        ctx.beginPath();
+        ctx.moveTo(42, 78);
+        ctx.lineTo(32, 102);
+        ctx.lineTo(44, 128);
+        ctx.lineTo(84, 128);
+        ctx.lineTo(96, 102);
+        ctx.lineTo(84, 78);
+        ctx.quadraticCurveTo(64, 90, 42, 78);
+        ctx.closePath();
+        ctx.fill();
+
+        // Усы
         ctx.fillStyle = '#d65d11';
-        ctx.beginPath(); ctx.moveTo(48, 79); ctx.lineTo(64, 84); ctx.lineTo(80, 79); ctx.lineTo(64, 91); ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(48, 79);
+        ctx.lineTo(64, 84);
+        ctx.lineTo(80, 79);
+        ctx.lineTo(64, 91);
+        ctx.closePath();
+        ctx.fill();
 
-        // Серебряные зажимы-кольца на косах бороды внизу
+        // Стальные кольца-зажимы на косах бороды внизу
         ctx.fillStyle = '#718093';
-        ctx.fillRect(44, 118, 8, 5); ctx.fillRect(76, 118, 8, 5);
+        ctx.fillRect(46, 118, 8, 5);
+        ctx.fillRect(74, 118, 8, 5);
 
-        // 5. СВЕТЯЩИЕСЯ ГЛАЗА ВЕРЫ И ЗОЛОТАЯ ДИДЕМA ТАНА (БЕЗ ШЛЕМA)
-        ctx.fillStyle = '#00cef7'; // Небесно-голубой праведный взгляд
-        ctx.beginPath(); ctx.arc(52, 66, 2.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(76, 66, 2.5, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(52.8, 65.2, 0.8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(76.8, 65.2, 0.8, 0, Math.PI * 2); ctx.fill();
+        // 5. СВЕТЯЩИЕСЯ ГЛАЗА ВЕРЫ, СУРОВЫЕ БРОВИ И ЗОЛОТАЯ ДИАДЕМА
+        ctx.fillStyle = '#00cef7';
+        ctx.beginPath(); ctx.arc(52, 65, 2.6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(76, 65, 2.6, 0, Math.PI * 2); ctx.fill();
 
-        // Густые суровые рыжие брови, сдвинутые к носу
-        ctx.fillStyle = '#d65d11';
-        ctx.fillRect(44, 58, 16, 4); ctx.fillRect(68, 58, 16, 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(52.8, 64.2, 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(76.8, 64.2, 0.9, 0, Math.PI * 2); ctx.fill();
+
+        // Густые рыжие брови
+        ctx.fillStyle = '#c05315';
+        ctx.fillRect(44, 57, 16, 4);
+        ctx.fillRect(68, 57, 16, 4);
 
         // Крупный дварфийский нос картошкой
         ctx.fillStyle = '#c2856a';
-        ctx.beginPath(); ctx.arc(64, 72, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(64, 71, 6, 0, Math.PI * 2); ctx.fill();
 
-        // ЗОЛОТАЯ РЫЦАРСКАЯ ДИАДЕМА (Венец веры прямо на лбу вместо шлема)
-        ctx.fillStyle = '#ffd875'; ctx.strokeStyle = '#b89445'; ctx.lineWidth = 1;
+        // Золотая рыцарская диадема паладина на лбу
+        ctx.fillStyle = '#ffd875';
+        ctx.strokeStyle = '#8a6421';
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(42, 54); ctx.lineTo(64, 46); ctx.lineTo(86, 54); ctx.lineTo(82, 50); ctx.lineTo(64, 42); ctx.lineTo(46, 50);
-        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.moveTo(42, 52);
+        ctx.lineTo(64, 45);
+        ctx.lineTo(86, 52);
+        ctx.lineTo(83, 47);
+        ctx.lineTo(64, 40);
+        ctx.lineTo(45, 47);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
-        // Сияющий рубин в центре венца паладина
-        ctx.fillStyle = '#e74c3c';
-        ctx.beginPath(); ctx.arc(64, 44, 2, 0, Math.PI * 2); ctx.fill();
+        // 6. ЖЕЛЕЗНЫЙ ЩИТ В ВИДЕ РОМБОВИДНОЙ КАПЛИ (На переднем плане слева снизу)
+        ctx.save();
+        ctx.translate(28, 102);
+        ctx.rotate((Math.PI / 180) * -10);
 
-        // 6. СВЯТОЙ МАЛЕНЬКИЙ ЩИТ ИЛИ СИМВОЛ СОЛНЦА (Парит по центру внизу, перекрывая бороду)
-        ctx.fillStyle = '#ffd875'; ctx.strokeStyle = '#b89445'; ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.arc(64, 110, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        // Внешний стальной контур ромбовидной капли (широкий верхний ромб + вытянутый острый низ)
+        ctx.fillStyle = '#718093';
+        ctx.strokeStyle = '#2f3542';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -28);   // Верхний острый угол ромба
+        ctx.lineTo(20, -8);   // Правый боковой угол ромба
+        ctx.lineTo(0, 32);    // Длинный нижний каплевидный острый край
+        ctx.lineTo(-20, -8);  // Левый боковой угол ромба
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
-        // Икона сияющего солнца внутри священного символа ордена
-        ctx.fillStyle = '#e67e22';
-        ctx.beginPath(); ctx.arc(64, 110, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 1.5;
-        for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-            ctx.beginPath(); ctx.moveTo(64, 110); ctx.lineTo(64 + 9 * Math.cos(a), 110 + 9 * Math.sin(a)); ctx.stroke();
-        }
+        // Внутреннее тёмно-железное поле щита
+        ctx.fillStyle = '#4b5563';
+        ctx.beginPath();
+        ctx.moveTo(0, -22);
+        ctx.lineTo(15, -7);
+        ctx.lineTo(0, 25);
+        ctx.lineTo(-15, -7);
+        ctx.closePath();
+        ctx.fill();
 
-        // 7. ЭФФЕКТ FLAT-ОБЪЕМА (Полупрозрачная тень на левую половину токена)
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        ctx.beginPath(); ctx.moveTo(64, 42); ctx.lineTo(42, 54); ctx.lineTo(32, 102); ctx.lineTo(44, 128); ctx.lineTo(64, 128); ctx.closePath(); ctx.fill();
+        // Центральное ребро жёсткости и золотой рыцарский крест на щите
+        ctx.fillStyle = '#ffd875';
+        ctx.fillRect(-1.5, -18, 3, 36);
+        ctx.fillRect(-10, -8.5, 20, 3);
+
+        // Стальные заклёпки по углам ромбовидной капли
+        ctx.fillStyle = '#dfe6e9';
+        ctx.beginPath(); ctx.arc(0, -24.5, 1.3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(17, -7.5, 1.3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-17, -7.5, 1.3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 27.5, 1.3, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        // 7. ЭФФЕКТ FLAT-ОБЪЕМА (Мягкая тень на левую половину)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+        ctx.beginPath();
+        ctx.moveTo(64, 28);
+        ctx.quadraticCurveTo(42, 30, 40, 54);
+        ctx.lineTo(44, 86);
+        ctx.lineTo(32, 102);
+        ctx.lineTo(44, 128);
+        ctx.lineTo(64, 128);
+        ctx.closePath();
+        ctx.fill();
 
         return canvas.toDataURL();
     },
+
 
     /**
      * ПРОЦЕДУРНЫЙ ГЕНЕРАТОР АВАТАРКИ ОРКА-ВОИНА НА CANVAS (ОТКРЫТЫЙ ШЛЕМ И ТОПОР НАИСКОСОК)
@@ -10158,6 +10286,7 @@ const InitiativeManager = {
 
         return canvas.toDataURL();
     },
+
 
 
 };
