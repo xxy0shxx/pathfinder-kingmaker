@@ -2518,53 +2518,73 @@ canvas[style*="position: fixed"] {
 }
 
 .camp-invisible-table td.camp-act-cell {
+    display: block !important;
+    width: calc(100% - 16px) !important; /* Отступ справа, чтобы не упираться в радиокнопки */
     background: #020503 !important;
     border: 2px solid #b89445 !important;
-    border-radius: 5px !important;
-    padding: 16px 20px !important;
+    border-radius: 6px !important;
+    padding: 12px 16px !important;
     text-align: left !important;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.95) !important;
-    text-shadow: 0 0 8px rgba(255, 216, 117, 0.35) !important;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.95), 0 4px 10px rgba(0, 0, 0, 0.5) !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .camp-invisible-table tr:hover td.camp-act-cell {
     border-color: #ffd875 !important;
-    box-shadow: inset 0 0 15px rgba(255, 216, 117, 0.1), 0 4px 15px rgba(0, 0, 0, 0.7) !important;
+    box-shadow: inset 0 0 15px rgba(255, 216, 117, 0.12), 0 4px 15px rgba(0, 0, 0, 0.7) !important;
 }
 
 .camp-invisible-table .act-name {
-    color: #fff;
-    font-size: 26px !important;
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 8px !important;
+    color: #ffffff !important;
+    font-size: 24px !important;
     font-weight: 900 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.8px !important;
-    display: block;
-    margin-bottom: 6px !important;
+    text-shadow: 0 0 8px rgba(255, 216, 117, 0.35) !important;
+}
+
+.camp-invisible-table .skill-name-large {
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 [id^="label_dc_"] {
-    display: block !important;
-    font-size: 21px !important;
+    display: inline-block !important;
+    background: #09140d !important;
+    border: 1.5px solid #8a6421 !important;
+    border-radius: 4px !important;
+    padding: 4px 12px !important;
+    margin-top: 2px !important;
+    font-size: 19px !important;
     font-weight: 800 !important;
     color: #ffd875 !important;
     letter-spacing: 0.5px !important;
-    margin-top: 5px !important;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.9) !important;
+    text-shadow: 0 0 6px rgba(255, 216, 117, 0.35) !important;
 }
-
 .camp-invisible-table td.camp-act-cell br,
 .camp-invisible-table td.camp-act-cell .skill-name-large + .skill-name-large {
     display: none !important;
 }
 
-/* Кастомные радиокнопки с золотой лилией */
+/* Укрупненные радиокнопки с золотой лилией для ТВ (38px) */
 .camp-invisible-table input[type="radio"] {
     appearance: none !important;
     -webkit-appearance: none !important;
     background: #020503 !important;
-    border: 2px solid #543e0d !important;
-    width: 24px !important;
-    height: 24px !important;
+    border: 2.5px solid #543e0d !important;
+    width: 38px !important;
+    height: 38px !important;
     border-radius: 50% !important;
     margin: 0 auto !important;
     display: block !important;
@@ -2572,17 +2592,18 @@ canvas[style*="position: fixed"] {
     cursor: pointer !important;
     outline: none !important;
     transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.9) !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9) !important;
 }
 
 .camp-invisible-table input[type="radio"]:hover {
     border-color: #b89445 !important;
-    box-shadow: 0 0 8px rgba(184, 148, 69, 0.6) !important;
+    box-shadow: 0 0 12px rgba(184, 148, 69, 0.6) !important;
+    transform: scale(1.06);
 }
 
 .camp-invisible-table input[type="radio"]:checked {
     border-color: #ffd875 !important;
-    box-shadow: 0 0 12px #ffd875, inset 0 0 4px rgba(255, 216, 117, 0.3) !important;
+    box-shadow: 0 0 16px #ffd875, inset 0 0 6px rgba(255, 216, 117, 0.4) !important;
     background: #112417 !important;
 }
 
@@ -2592,11 +2613,12 @@ canvas[style*="position: fixed"] {
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    font-size: 13px !important;
+    font-size: 22px !important;
     color: #ffd875 !important;
     font-weight: 900 !important;
-    text-shadow: 0 0 3px #dfbc6f !important;
+    text-shadow: 0 0 5px #dfbc6f !important;
 }
+
 /* ============================================================================
    14. ПЛАНШЕТ ПРИВАЛА (ЧАСТЬ 2: ИТОГИ, 3D-КУБИК D20 И МОДАЛЬНОЕ ОКНО)
    ============================================================================ */
