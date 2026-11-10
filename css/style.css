@@ -3620,3 +3620,62 @@ canvas[style*="position: fixed"] {
 #campingTabletContainer .camp-allies-grid {
     gap: 8px !important;
 }
+/* ============================================================================
+   ПАРНОЕ НАЗНАЧЕНИЕ ГЕРОЕВ НА ДЕЙСТВИЕ (ОСНОВНОЙ + ПОМОЩНИК БЕЗ ИМЕН)
+   ============================================================================ */
+
+/* Контейнер группы из 1-2 аватарок справа внутри блока действия */
+#campingTabletContainer .camp-assigned-allies-group {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+    z-index: 5 !important;
+}
+
+/* Сбрасываем старое абсолютное позиционирование одиночного бейджа */
+#campingTabletContainer .camp-assigned-ally-badge {
+    position: static !important;
+    transform: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: transform 0.15s ease !important;
+}
+
+#campingTabletContainer .camp-assigned-ally-badge:hover {
+    transform: scale(1.1) !important;
+}
+
+/* Основной герой (первый перетащенный) — крупный портрет */
+#campingTabletContainer .camp-assigned-ally-badge.is-leader .camp-assigned-ally-img {
+    width: 46px !important;
+    height: 46px !important;
+    border: 2px solid #2ecc71 !important;
+    border-radius: 6px !important;
+    font-size: 20px !important;
+}
+
+/* Помощник (второй перетащенный) — уменьшенный портрет с золотой окантовкой */
+#campingTabletContainer .camp-assigned-ally-badge.is-helper .camp-assigned-ally-img {
+    width: 32px !important;
+    height: 32px !important;
+    border: 1.5px solid #ffd875 !important;
+    border-radius: 5px !important;
+    font-size: 14px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Скрываем имена в блоках действий */
+#campingTabletContainer .camp-assigned-ally-name {
+    display: none !important;
+}
+
+/* Увеличиваем правый отступ в ячейке действия под два портрета */
+#campingTabletContainer .camp-invisible-table td.camp-act-cell {
+    padding-right: 108px !important;
+}

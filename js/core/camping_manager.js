@@ -467,13 +467,27 @@ const CampingManager = {
 
         if (!this.state.assignments) this.state.assignments = {};
 
+        // Нормализация формата (если в сохранении был старый одиночный объект, превращаем в массив)
+        for (const key in this.state.assignments) {
+            const val = this.state.assignments[key];
+            if (val && !Array.isArray(val)) {
+                this.state.assignments[key] = [val];
+            } else if (!val) {
+                this.state.assignments[key] = [];
+            }
+        }
+
         const allUnits = (window.InitiativeManager && window.InitiativeManager.state && Array.isArray(window.InitiativeManager.state.combatants))
             ? window.InitiativeManager.state.combatants
             : (this.mapDataRef?.initiative?.combatants || []);
         const allies = allUnits.filter(u => u && u.faction === 'friend').slice(0, 6);
 
-        // 1. Зоны сброса и мини-аватарки внутри блоков действий
+        // 1. Зоны сброса и отрисовка портретов (лидер + помощник) внутри блоков действий
         actionCells.forEach((cell, idx) => {
+            if (!Array.isArray(this.state.assignments[idx])) {
+                this.state.assignments[idx] = [];
+            }
+
             if (!cell.dataset.dropBound) {
                 cell.dataset.dropBound = '1';
 
@@ -491,53 +505,77 @@ const CampingManager = {
                     cell.classList.remove('camp-drop-hover');
                     const allyId = e.dataTransfer.getData('text/plain');
                     const found = allies.find(a => a.id === allyId);
-                    if (found) {
-                        // Если герой уже был назначен на другое действие — снимаем его оттуда
-                        for (const key in this.state.assignments) {
-                            if (this.state.assignments[key]?.id === found.id) {
-                                delete this.state.assignments[key];
-                            }
-                        }
-                        this.state.assignments[idx] = {
-                            id: found.id,
-                            name: found.name,
-                            avatar: found.avatar || null
-                        };
-                        this.renderAlliesDock();
+                    if (!found) return;
+
+                    if (!Array.isArray(this.state.assignments[idx])) {
+                        this.state.assignments[idx] = [];
                     }
+
+                    // Если герой уже стоит в ЭТОЙ же задаче — ничего не делаем
+                    if (this.state.assignments[idx].some(a => a.id === found.id)) return;
+
+                    // Лимит: строго не более 2 героев на одно действие
+                    if (this.state.assignments[idx].length >= 2) return;
+
+                    // Если герой был назначен на другое действие — снимаем его оттуда
+                    for (const key in this.state.assignments) {
+                        if (Array.isArray(this.state.assignments[key])) {
+                            this.state.assignments[key] = this.state.assignments[key].filter(a => a.id !== found.id);
+                        }
+                    }
+
+                    this.state.assignments[idx].push({
+                        id: found.id,
+                        name: found.name,
+                        avatar: found.avatar || null
+                    });
+
+                    this.renderAlliesDock();
                 });
             }
 
-            const oldBadge = cell.querySelector('.camp-assigned-ally-badge');
-            if (oldBadge) oldBadge.remove();
+            // Очищаем старые бейджи в ячейке
+            cell.querySelectorAll('.camp-assigned-allies-group, .camp-assigned-ally-badge').forEach(el => el.remove());
 
-            const assigned = this.state.assignments[idx];
-            if (assigned) {
-                const badge = document.createElement('div');
-                badge.className = 'camp-assigned-ally-badge';
-                badge.title = `${assigned.name} (нажмите, чтобы вернуть в отряд)`;
+            const assignedList = this.state.assignments[idx];
+            if (assignedList && assignedList.length > 0) {
+                const group = document.createElement('div');
+                group.className = 'camp-assigned-allies-group';
 
-                const imgHtml = assigned.avatar
-                    ? `<img class="camp-assigned-ally-img" src="${assigned.avatar}" alt="${assigned.name}">`
-                    : `<div class="camp-assigned-ally-img">${assigned.name.charAt(0).toUpperCase()}</div>`;
+                assignedList.forEach((hero, heroIdx) => {
+                    const isHelper = heroIdx === 1;
+                    const badge = document.createElement('div');
+                    badge.className = isHelper
+                        ? 'camp-assigned-ally-badge is-helper'
+                        : 'camp-assigned-ally-badge is-leader';
+                    badge.title = `${isHelper ? 'Помощник' : 'Основной'}: ${hero.name} (нажмите, чтобы снять)`;
 
-                badge.innerHTML = `
-                    ${imgHtml}
-                    <div class="camp-assigned-ally-name">${assigned.name}</div>
-                `;
+                    const imgHtml = hero.avatar
+                        ? `<img class="camp-assigned-ally-img" src="${hero.avatar}" alt="${hero.name}">`
+                        : `<div class="camp-assigned-ally-img">${hero.name.charAt(0).toUpperCase()}</div>`;
 
-                badge.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    delete this.state.assignments[idx];
-                    this.renderAlliesDock();
+                    badge.innerHTML = imgHtml;
+
+                    badge.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.state.assignments[idx] = this.state.assignments[idx].filter(a => a.id !== hero.id);
+                        this.renderAlliesDock();
+                    });
+
+                    group.appendChild(badge);
                 });
 
-                cell.appendChild(badge);
+                cell.appendChild(group);
             }
         });
 
-        // 2. Фильтруем: в нижнем доке остаются только свободные (не назначенные) союзники
-        const assignedIds = Object.values(this.state.assignments).map(a => a && a.id);
+        // 2. В нижнем доке оставляем только свободных союзников
+        const assignedIds = [];
+        Object.values(this.state.assignments).forEach(arr => {
+            if (Array.isArray(arr)) {
+                arr.forEach(a => { if (a && a.id) assignedIds.push(a.id); });
+            }
+        });
         const availableAllies = allies.filter(a => !assignedIds.includes(a.id));
 
         let dock = leftCol.querySelector('.camp-allies-dock');
@@ -566,7 +604,7 @@ const CampingManager = {
         }
 
         dock.innerHTML = `
-            <div class="camp-allies-dock-title">🛡️ Союзники отряда (перетащите на действие)</div>
+            <div class="camp-allies-dock-title">🛡️ Союзники отряда (до 2 на действие)</div>
             <div class="camp-allies-grid">${slotsHtml}</div>
         `;
 
