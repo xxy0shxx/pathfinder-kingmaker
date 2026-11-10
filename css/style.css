@@ -5597,3 +5597,108 @@ canvas[style*="position: fixed"] {
             -1px 0 2px #000000,
             0 2px 5px rgba(0, 0, 0, 0.95) !important;
 }
+/* ============================================================================
+   КОМПОНОВКА КАРТОЧЕК В ГОРИЗОНТАЛЬНОМ РЕЖИМЕ (MODE-BG3): ИМЯ ВВЕРХУ, УГЛЫ СНИЗУ
+   ============================================================================ */
+
+/* 1. Убираем кружок фракции — цвет команды уже виден по рамке всей карточки */
+.init-cards-scroll-list.mode-bg3 .init-select-wrapper {
+    display: none !important;
+}
+
+/* 2. Поднимаем имя персонажа в самый верх блока и делаем шрифт крупнее */
+.init-cards-scroll-list.mode-bg3 .init-card-name-text {
+    position: absolute !important;
+    top: 4px !important;
+    bottom: auto !important;
+    left: 4px !important;
+    right: 4px !important;
+    width: auto !important;
+    font-size: 16px !important; /* Укрупнили шрифт для легкого чтения с ТВ */
+    font-weight: 900 !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+    color: #ffffff !important;
+    z-index: 4 !important;
+    text-shadow:
+            0 1px 2px #000000,
+            0 -1px 2px #000000,
+            1px 0 2px #000000,
+            -1px 0 2px #000000,
+            0 2px 5px rgba(0, 0, 0, 0.95) !important;
+}
+
+/* 3. Переносим иконки D20 (корона) и D1 (череп) в левый нижний угол */
+.init-cards-scroll-list.mode-bg3 .init-crown-badge,
+.init-cards-scroll-list.mode-bg3 .init-nat1-skull-badge {
+    position: absolute !important;
+    top: auto !important;
+    bottom: 4px !important;
+    left: 4px !important;
+    margin: 0 !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    z-index: 5 !important;
+    filter: drop-shadow(0 1px 3px #000) !important;
+}
+
+/* 4. Сдвигаем значение инициативы в правый нижний угол */
+.init-cards-scroll-list.mode-bg3 .init-card-right {
+    position: absolute !important;
+    bottom: 4px !important;
+    right: 4px !important;
+    left: auto !important;
+    width: auto !important;
+    display: block !important;
+    z-index: 5 !important;
+}
+
+/* 5. Делаем рамку инициативы компактной (строго под двузначное число) */
+.init-cards-scroll-list.mode-bg3 .init-inline-score-input {
+    width: 32px !important;
+    height: 22px !important;
+    padding: 0 2px !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    background: rgba(2, 5, 3, 0.88) !important;
+    border: 1.5px solid #ffd875 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.9) !important;
+}
+/* ============================================================================
+   ЖЕСТКОЕ УВЕЛИЧЕНИЕ ИМЕНИ (24px) И ФИЗИЧЕСКИЙ РАЗМЕР АКТИВНОГО БЛОКА (x1.5)
+   ============================================================================ */
+
+/* 1. Расширяем ленту, чтобы карточка 172x172px свободно помещалась по высоте */
+#questLogContainer .init-cards-scroll-list.mode-bg3 {
+    height: 230px !important;
+    max-height: 230px !important;
+    padding: 20px 30px !important;
+    gap: 24px !important;
+    align-items: center !important;
+}
+
+/* 2. Жестко перебиваем шрифт имени на 24px (x1.5 от 16px) */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card .init-card-name-text {
+    font-size: 24px !important;
+    line-height: 1.05 !important;
+    top: 4px !important;
+}
+
+/* 3. Увеличиваем физические размеры активной карточки в 1.5 раза (115px * 1.5 = 172px) */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold {
+    width: 172px !important;
+    height: 172px !important;
+    min-width: 172px !important;
+    min-height: 172px !important;
+    transform: none !important; /* Отключаем scale, чтобы не было конфликтов и мыла */
+    z-index: 999 !important;
+    border: 3px solid #ffffff !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 25px #ffd875 !important;
+}
+
+/* Пропорционально увеличиваем имя внутри большой активной карточки */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-combatant-card.selected-turn-gold .init-card-name-text {
+    font-size: 28px !important;
+}
