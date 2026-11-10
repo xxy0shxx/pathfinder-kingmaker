@@ -27,6 +27,7 @@ const CampingManager = {
                 this.state = this.mapDataRef.camping;
                 if (this.state.baseChecks === undefined || isNaN(this.state.baseChecks)) this.state.baseChecks = 2;
                 if (this.state.checkMod === undefined || isNaN(this.state.checkMod) || this.state.checkMod === 0) this.state.checkMod = 12;
+                if (!this.state.assignments) this.state.assignments = {};
             } else {
                 this.mapDataRef.camping = this.state;
             }
@@ -260,6 +261,7 @@ const CampingManager = {
                 this.addLogLine(effectsList, `Охота: <span class='outcome-crit-failure'>Критический провал</span>: вы находите ${this.state.normalIngredients} обычных ингредиента, максимум ${this.state.encounterDc}. Кроме того вы привлекли внимание. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc}, чтобы определить, произойдет ли случайная сцена в вашем лагере после этого занятия.`, "bad");
             }
         }
+        this.renderAlliesDock();
     },
 
 
@@ -426,6 +428,7 @@ const CampingManager = {
             if (huntRow) huntRow.style.display = 'table-row';
             this.state.baseChecks = 2;
             this.state.checkMod = 12;
+            this.state.assignments = {};
             document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
             this.syncCountersUi();
             this.recalculateCamp();
@@ -451,6 +454,118 @@ const CampingManager = {
                 }, 450);
             }
         } catch (e) { console.error("Ошибка при сбросе параметров привала:", e); }
+    },
+
+    renderAlliesDock() {
+        const campContainer = document.getElementById('campingTabletContainer');
+        if (!campContainer) return;
+
+        const leftCol = campContainer.querySelector('.camping-left-col');
+        const actionCells = campContainer.querySelectorAll('.camp-invisible-table td.camp-act-cell');
+        if (!leftCol || actionCells.length === 0) return;
+
+        if (!this.state.assignments) this.state.assignments = {};
+
+        const allUnits = (window.InitiativeManager && window.InitiativeManager.state && Array.isArray(window.InitiativeManager.state.combatants))
+            ? window.InitiativeManager.state.combatants
+            : (this.mapDataRef?.initiative?.combatants || []);
+        const allies = allUnits.filter(u => u && u.faction === 'friend').slice(0, 6);
+
+        // 1. Зоны сброса и мини-аватарки внутри блоков действий
+        actionCells.forEach((cell, idx) => {
+            if (!cell.dataset.dropBound) {
+                cell.dataset.dropBound = '1';
+
+                cell.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    cell.classList.add('camp-drop-hover');
+                });
+
+                cell.addEventListener('dragleave', () => {
+                    cell.classList.remove('camp-drop-hover');
+                });
+
+                cell.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    cell.classList.remove('camp-drop-hover');
+                    const allyId = e.dataTransfer.getData('text/plain');
+                    const found = allies.find(a => a.id === allyId);
+                    if (found) {
+                        this.state.assignments[idx] = {
+                            id: found.id,
+                            name: found.name,
+                            avatar: found.avatar || null
+                        };
+                        this.renderAlliesDock();
+                    }
+                });
+            }
+
+            const oldBadge = cell.querySelector('.camp-assigned-ally-badge');
+            if (oldBadge) oldBadge.remove();
+
+            const assigned = this.state.assignments[idx];
+            if (assigned) {
+                const badge = document.createElement('div');
+                badge.className = 'camp-assigned-ally-badge';
+                badge.title = `${assigned.name} (нажмите, чтобы снять)`;
+
+                const imgHtml = assigned.avatar
+                    ? `<img class="camp-assigned-ally-img" src="${assigned.avatar}" alt="${assigned.name}">`
+                    : `<div class="camp-assigned-ally-img">${assigned.name.charAt(0).toUpperCase()}</div>`;
+
+                badge.innerHTML = `
+                    ${imgHtml}
+                    <div class="camp-assigned-ally-name">${assigned.name}</div>
+                `;
+
+                badge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    delete this.state.assignments[idx];
+                    this.renderAlliesDock();
+                });
+
+                cell.appendChild(badge);
+            }
+        });
+
+        // 2. Нижняя панель из 6 слотов союзников
+        let dock = leftCol.querySelector('.camp-allies-dock');
+        if (!dock) {
+            dock = document.createElement('div');
+            dock.className = 'camp-allies-dock';
+            leftCol.appendChild(dock);
+        }
+
+        let slotsHtml = '';
+        for (let i = 0; i < 6; i++) {
+            const ally = allies[i];
+            if (ally) {
+                const visual = ally.avatar
+                    ? `<img src="${ally.avatar}" alt="${ally.name}">`
+                    : `<div class="camp-ally-slot-fallback">${ally.name.charAt(0).toUpperCase()}</div>`;
+                slotsHtml += `
+                    <div class="camp-ally-slot" draggable="true" data-ally-id="${ally.id}" title="Перетащите ${ally.name} на действие">
+                        ${visual}
+                        <div class="camp-ally-slot-name">${ally.name}</div>
+                    </div>
+                `;
+            } else {
+                slotsHtml += `<div class="camp-ally-slot empty-slot"></div>`;
+            }
+        }
+
+        dock.innerHTML = `
+            <div class="camp-allies-dock-title">🛡️ Союзники отряда (перетащите на действие)</div>
+            <div class="camp-allies-grid">${slotsHtml}</div>
+        `;
+
+        dock.querySelectorAll('.camp-ally-slot[draggable="true"]').forEach(slot => {
+            slot.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', slot.dataset.allyId);
+            });
+        });
     }
+
 };
 export default CampingManager;
