@@ -1407,31 +1407,35 @@ body {
 .quest-item-title,
 #questLogList .quest-item-title {
     font-family: "Tinos", serif;
-    font-size: 22px !important;
+    font-size: 35px !important;
     font-weight: 900 !important;
+    line-height: 1.15 !important;
     color: #ffd875 !important;
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
-    margin-bottom: 6px;
+    margin-bottom: 10px !important;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9) !important;
 }
 
 .quest-item-location,
 #questLogList .quest-item-location {
     font-family: "Tinos", serif;
-    font-size: 16px !important;
+    font-size: 35px !important;
     color: #a4b0be !important;
-    margin-bottom: 10px;
+    margin-bottom: 14px !important;
 }
 
-.quest-item-desc {
+.quest-item-desc,
+#questLogList .quest-item-desc {
     font-family: "Tinos", serif;
-    font-size: 24px;
-    line-height: 1.5;
+    font-size: 45px !important;
+    line-height: 1.35 !important;
     font-style: italic;
-    border-top: 2px dashed rgba(84, 62, 13, 0.4);
-    padding-top: 12px;
-    margin-top: 10px;
-    color: #dfbc6f;
+    border-top: 2px dashed rgba(84, 62, 13, 0.5);
+    padding-top: 16px !important;
+    margin-top: 14px !important;
+    color: #dfbc6f !important;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9) !important;
 }
 
 .quest-log-empty {
