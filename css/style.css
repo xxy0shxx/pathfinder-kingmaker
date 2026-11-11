@@ -4649,3 +4649,43 @@ canvas[style*="position: fixed"] {
     border-color: #e74c3c;
     color: #ff7675;
 }
+/* ============================================================================
+   ТРЕКЕР ДЕЙСТВИЙ ЛИДЕРОВ (ФАЗА ДЕЯТЕЛЬНОСТИ КОРОЛЕВСТВА)
+   ============================================================================ */
+.k-act-pip {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: #0d2415;
+    border: 1px solid #2ecc71;
+    border-radius: 4px;
+    color: #2ecc71;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    box-shadow: 0 0 6px rgba(46, 204, 113, 0.25);
+}
+
+.k-act-pip:hover:not(.disabled) {
+    transform: scale(1.1);
+    border-color: #ffd875;
+}
+
+.k-act-pip.spent {
+    background: #2b1111;
+    border-color: #543e0d;
+    color: #5c4d3c;
+    box-shadow: none;
+}
+
+.k-act-pip.disabled {
+    background: #060907;
+    border-color: #2c3531;
+    color: #2c3531;
+    cursor: not-allowed;
+    box-shadow: none;
+}

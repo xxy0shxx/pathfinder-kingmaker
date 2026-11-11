@@ -48,14 +48,14 @@ const KingdomManager = {
             quarries: 0
         },
         leaders: {
-            ruler: { name: "", invested: false },
-            counselor: { name: "", invested: false },
-            general: { name: "", invested: false },
-            emissary: { name: "", invested: false },
-            magister: { name: "", invested: false },
-            treasurer: { name: "", invested: false },
-            viceroy: { name: "", invested: false },
-            warden: { name: "", invested: false }
+            ruler: { name: "", invested: false, actionsUsed: 0 },
+            counselor: { name: "", invested: false, actionsUsed: 0 },
+            general: { name: "", invested: false, actionsUsed: 0 },
+            emissary: { name: "", invested: false, actionsUsed: 0 },
+            magister: { name: "", invested: false, actionsUsed: 0 },
+            treasurer: { name: "", invested: false, actionsUsed: 0 },
+            viceroy: { name: "", invested: false, actionsUsed: 0 },
+            warden: { name: "", invested: false, actionsUsed: 0 }
         },
         skills: {
             agriculture: { prof: 0, status: 0, circ: 0, item: 0, other: 0 },
@@ -167,9 +167,13 @@ const KingdomManager = {
         for (let role in base.leaders) {
             const val = saved.leaders ? saved.leaders[role] : null;
             if (typeof val === 'string') {
-                merged.leaders[role] = { name: val, invested: false };
+                merged.leaders[role] = { name: val, invested: false, actionsUsed: 0 };
             } else if (val && typeof val === 'object') {
-                merged.leaders[role] = { name: val.name || "", invested: !!val.invested };
+                merged.leaders[role] = {
+                    name: val.name || "",
+                    invested: !!val.invested,
+                    actionsUsed: parseInt(val.actionsUsed, 10) || 0
+                };
             }
         }
 
@@ -198,6 +202,35 @@ const KingdomManager = {
         this.renderUi();
     },
 
+    toggleLeaderAction(role, actionIndex) {
+        if (!this.state.leaders) this.state.leaders = {};
+        let leader = this.state.leaders[role];
+
+        if (typeof leader !== 'object' || leader === null) {
+            leader = { name: typeof leader === 'string' ? leader : '', invested: false, actionsUsed: 0 };
+            this.state.leaders[role] = leader;
+        }
+
+        const current = parseInt(leader.actionsUsed, 10) || 0;
+        leader.actionsUsed = (current === actionIndex) ? (actionIndex - 1) : actionIndex;
+
+        this._persist();
+        this.renderUi();
+    },
+
+    resetAllLeaderActions() {
+        if (!this.state?.leaders) return;
+        for (let role in this.roleNames) {
+            const val = this.state.leaders[role];
+            if (typeof val !== 'object' || val === null) {
+                this.state.leaders[role] = { name: typeof val === 'string' ? val : '', invested: false, actionsUsed: 0 };
+            } else {
+                val.actionsUsed = 0;
+            }
+        }
+        this._persist();
+        this.renderUi();
+    },
 
 
     // Связь характеристик с типами упадка (Ruins) и ролями лидеров (Invested +1)
@@ -566,6 +599,7 @@ const KingdomManager = {
             s.xp = nextXp;
             overlay.remove();
             this.recalculateModifiers();
+            this.resetAllLeaderActions();
             this._persist();
             this.renderUi();
 
@@ -1060,6 +1094,7 @@ const KingdomManager = {
         return el ? el.checked : fallback;
     },
 
+
     saveFromUi() {
         try {
             const s = this.state;
@@ -1091,6 +1126,9 @@ const KingdomManager = {
                 });
 
                 Object.keys(this.roleNames).forEach(role => {
+                    if (typeof s.leaders[role] !== 'object' || s.leaders[role] === null) {
+                        s.leaders[role] = { name: '', invested: false, actionsUsed: 0 };
+                    }
                     s.leaders[role].invested = this._readBool(`k_leader_inv_${role}`, s.leaders[role].invested);
                     s.leaders[role].name = this._readStr(`k_leader_name_${role}`, s.leaders[role].name);
                 });
@@ -1163,6 +1201,7 @@ const KingdomManager = {
         }
     },
 
+
     renderUi() {
         const container = document.getElementById('kingdomTabletContainer');
         if (!container) return;
@@ -1179,6 +1218,7 @@ const KingdomManager = {
 
         this._bindEvents(container);
     },
+
 
 
 
@@ -1371,6 +1411,22 @@ const KingdomManager = {
                 el.addEventListener('change', () => {
                     this.saveFromUi();
                 });
+            });
+        }
+
+        // Трекер действий лидеров (фаза деятельности)
+        container.querySelectorAll('.k-act-pip:not([disabled])').forEach(pip => {
+            pip.addEventListener('click', () => {
+                this.saveFromUi();
+                this.toggleLeaderAction(pip.dataset.leaderRole, parseInt(pip.dataset.actIdx, 10));
+            });
+        });
+
+        const btnResetAct = container.querySelector('#kBtnResetActions');
+        if (btnResetAct) {
+            btnResetAct.addEventListener('click', () => {
+                this.saveFromUi();
+                this.resetAllLeaderActions();
             });
         }
 

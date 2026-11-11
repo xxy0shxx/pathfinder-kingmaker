@@ -34,6 +34,7 @@ const KingdomSheetRenderer = {
     },
 
 
+
     renderSheetTab(s, { roleNames, skillConfig, getSkillTotal }) {
         const ctrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
 
@@ -81,18 +82,45 @@ const KingdomSheetRenderer = {
 
 
 
+
         const leadersHtml = Object.keys(roleNames).map(role => {
-            const l = s.leaders[role] || { name: '', invested: false };
+            const l = s.leaders[role] || { name: '', invested: false, actionsUsed: 0 };
+            const used = parseInt(l.actionsUsed, 10) || 0;
+            const hasName = (l.name || '').trim().length > 0;
+            const maxActions = hasName ? 3 : 2;
+
+            let pipsHtml = '';
+            for (let i = 1; i <= 3; i++) {
+                const isDisabled = i > maxActions;
+                const isSpent = i <= used;
+                const title = isDisabled
+                    ? 'Недоступно (должность вакантна — максимум 2 действия)'
+                    : (isSpent ? `Действие ${i} использовано (нажмите, чтобы вернуть)` : `Отметить действие ${i}`);
+
+                pipsHtml += `
+                    <button type="button"
+                            class="k-act-pip ${isSpent ? 'spent' : ''} ${isDisabled ? 'disabled' : ''}"
+                            data-leader-role="${role}"
+                            data-act-idx="${i}"
+                            ${isDisabled ? 'disabled' : ''}
+                            title="${title}">◆</button>
+                `;
+            }
+
             return `
                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-                    <label title="Вложенная роль (+1 к связанным навыкам)" style="display:flex; align-items:center; gap:3px; font-size:12px;">
-                        <input type="checkbox" id="k_leader_inv_${role}" ${l.invested ? 'checked' : ''}>
+                    <label title="Вложенная роль (+1 к связанным навыкам)" style="display:flex; align-items:center; gap:3px; font-size:12px; cursor:pointer;">
+                        <input type="checkbox" id="k_leader_inv_${role}" ${l.invested ? 'checked' : ''}> ВКЛ
                     </label>
-                    <span style="width:155px; font-size:13px; font-weight:bold; color:#dfbc6f;">${roleNames[role]}</span>
-                    <input type="text" id="k_leader_name_${role}" class="k-inp" value="${l.name}" placeholder="Имя персонажа..." style="flex:1;">
+                    <span style="width:115px; font-size:13px; font-weight:bold; color:#dfbc6f;">${roleNames[role]}</span>
+                    <input type="text" id="k_leader_name_${role}" class="k-inp" value="${l.name}" placeholder="Имя..." style="flex:1; min-width:90px;">
+                    <div class="k-leader-pips" style="display:flex; gap:3px; flex-shrink:0;" title="Действия лидера в фазу деятельности (${used}/${maxActions})">
+                        ${pipsHtml}
+                    </div>
                 </div>
             `;
         }).join('');
+
 
 
         const abilityShortRu = {
@@ -169,7 +197,10 @@ const KingdomSheetRenderer = {
 
 
                     <div class="k-panel" style="margin-top:12px;">
-                        <div class="k-sec-title">ПРАВИТЕЛИ И СОВЕТНИКИ</div>
+                        <div class="k-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>ПРАВИТЕЛИ И СОВЕТНИКИ</span>
+                            <button type="button" class="btn cc" id="kBtnResetActions" style="padding:2px 8px; font-size:11px;" title="Сбросить использованные действия всех лидеров">🔄 Сбросить действия</button>
+                        </div>
                         ${leadersHtml}
                     </div>
                 </div>
