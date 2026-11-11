@@ -12,15 +12,16 @@ export const Buildings4Lot = {
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, w, h);
 
-        // Шестиугольные опорные вершины крепости (боковые башни вытянуты наружу)
-        const cTL = { x: w * 0.17, y: h * 0.14 };
-        const cTR = { x: w * 0.83, y: h * 0.14 };
-        const cMR = { x: w * 0.885, y: h * 0.45 };
-        const cBR = { x: w * 0.84, y: h * 0.77 };
-        const cBL = { x: w * 0.16, y: h * 0.77 };
-        const cML = { x: w * 0.115, y: h * 0.45 };
+        // Шестиугольные опорные вершины крепости (чуть опущены сверху, чтобы сверху поместился ров и трава)
+        const cTL = { x: w * 0.18, y: h * 0.18 };
+        const cTR = { x: w * 0.82, y: h * 0.18 };
+        const cMR = { x: w * 0.87, y: h * 0.48 };
+        const cBR = { x: w * 0.82, y: h * 0.78 };
+        const cBL = { x: w * 0.18, y: h * 0.78 };
+        const cML = { x: w * 0.13, y: h * 0.48 };
 
         const hexPts = [cTL, cTR, cMR, cBR, cBL, cML];
+        const tRad = w * 0.065;
 
         const traceHexCastle = (includeBarbican = false) => {
             ctx.beginPath();
@@ -29,18 +30,52 @@ export const Buildings4Lot = {
             ctx.lineTo(cMR.x, cMR.y);
             ctx.lineTo(cBR.x, cBR.y);
             if (includeBarbican) {
-                ctx.lineTo(w * 0.60, h * 0.79);
-                ctx.lineTo(w * 0.42, h * 0.79);
+                ctx.lineTo(w * 0.58, h * 0.80);
+                ctx.lineTo(w * 0.44, h * 0.80);
             }
             ctx.lineTo(cBL.x, cBL.y);
             ctx.lineTo(cML.x, cML.y);
             ctx.closePath();
         };
 
-        // 2. Фигурный ров с водой, повторяющий шестиугольный контур замка и башен
+        // Хелпер для рисования равномерного рва вокруг стен, башен и барбакана
+        const strokeMoatLayer = (color, wallStrokeW, towerExtraR) => {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = wallStrokeW;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            traceHexCastle(true);
+            ctx.stroke();
+
+            hexPts.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, tRad + towerExtraR, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            [
+                [w * 0.445, h * 0.80, w * 0.052 + towerExtraR],
+                [w * 0.575, h * 0.80, w * 0.052 + towerExtraR]
+            ].forEach(([bx, by, br]) => {
+                ctx.beginPath();
+                ctx.arc(bx, by, br, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        };
+
+
+
+
+
+
+        // 2. Равномерный фигурный ров одинаковой толщины вокруг всего силуэта замка
         ctx.save();
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
+        strokeMoatLayer('#99e9f2', 36, 14);
+        strokeMoatLayer('#22b8cf', 30, 11);
+        strokeMoatLayer('#0c8599', 22, 7);
+        ctx.restore();
 
         // Внешняя кромка мелководья рва
         traceHexCastle(true);
@@ -64,7 +99,7 @@ export const Buildings4Lot = {
         ctx.restore();
 
         // 3. Остров замка с зелёным берегом снаружи всех шести стен и башен
-        const yardGrad = ctx.createRadialGradient(w * 0.5, h * 0.50, w * 0.08, w * 0.5, h * 0.5, w * 0.46);
+        const yardGrad = ctx.createRadialGradient(w * 0.5, h * 0.50, w * 0.08, w * 0.5, h * 0.5, w * 0.44);
         yardGrad.addColorStop(0, '#dcd6b0');
         yardGrad.addColorStop(0.68, '#b8ba82');
         yardGrad.addColorStop(1, '#7c8549');
@@ -72,28 +107,25 @@ export const Buildings4Lot = {
         traceHexCastle(false);
         ctx.fillStyle = yardGrad;
         ctx.strokeStyle = '#7c8549';
-        ctx.lineWidth = 22;
+        ctx.lineWidth = 18;
         ctx.lineJoin = 'round';
         ctx.fill();
         ctx.stroke();
 
         // Зелёные мысы берега вокруг башен и южного барбакана
-        const tRadBank = w * 0.068 + 3.5;
+        const tRadBank = tRad + 3;
         ctx.fillStyle = '#7c8549';
         [
-            [cTL.x, cTL.y, tRadBank],
-            [cTR.x, cTR.y, tRadBank],
-            [cMR.x, cMR.y, tRadBank],
-            [cBR.x, cBR.y, tRadBank],
-            [cBL.x, cBL.y, tRadBank],
-            [cML.x, cML.y, tRadBank],
-            [w * 0.445, h * 0.80, w * 0.055 + 3.5],
-            [w * 0.575, h * 0.80, w * 0.055 + 3.5]
+            ...hexPts.map(p => [p.x, p.y, tRadBank]),
+            [w * 0.445, h * 0.80, w * 0.052 + 3],
+            [w * 0.575, h * 0.80, w * 0.052 + 3]
         ].forEach(([bx, by, br]) => {
             ctx.beginPath();
             ctx.arc(bx, by, br, 0, Math.PI * 2);
             ctx.fill();
         });
+
+
 
         // 4. Деревянный мост через ров снизу по центру
         const bridgeX = w * 0.48;
@@ -320,7 +352,7 @@ export const Buildings4Lot = {
             ctx.arc(tx, ty, 2.4, 0, Math.PI * 2);
             ctx.fill();
         };
-        const tRad = w * 0.068;
+//        const tRad = w * 0.068;
         hexPts.forEach(p => drawRoundTower(p.x, p.y, tRad));
     },
 
