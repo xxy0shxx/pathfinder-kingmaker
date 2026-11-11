@@ -63,6 +63,7 @@ const KingdomSheetRenderer = {
                 </div>
             `;
         }).join('');
+
         const skillsHtml = skillConfig.map(cfg => {
             const sk = s.skills[cfg.id];
             const total = getSkillTotal(cfg.id);
@@ -205,8 +206,6 @@ const KingdomSheetRenderer = {
         `;
     },
 
-
-
     renderUrbanTab(s) {
         const ug = s.urbanGrid;
 
@@ -226,22 +225,22 @@ const KingdomSheetRenderer = {
 
         const catalogHtml = groups.map(group => {
             const isCollapsed = !!collapsedState[group.key];
-
             const itemsHtml = group.items.map(b => {
                 const thumb = KingdomBuildings.getBuildingDataUrl(b.id);
-                const infoText = KingdomBuildings.getBuildingInfoText(b.id);
+                const infoText = typeof KingdomBuildings.getBuildingInfoText === 'function'
+                    ? KingdomBuildings.getBuildingInfoText(b.id)
+                    : '';
                 return `
-                    <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${b.name} — ${infoText}">
+                    <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${b.name}${infoText ? ' — ' + infoText : ''}">
                         <img src="${thumb}" class="k-bld-thumb" alt="${b.name}">
                         <div class="k-bld-info">
                             <div class="k-bld-name">${b.name}</div>
                             <div class="k-bld-meta">Размер: ${b.cols}×${b.rows} • Ур. ${b.level}</div>
-                            <div class="k-bld-bonus-tag">${infoText}</div>
+                            ${infoText ? `<div class="k-bld-bonus-tag">${infoText}</div>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
-
 
             return `
                 <div class="k-catalog-group ${isCollapsed ? 'collapsed' : ''}" data-group-key="${group.key}">
@@ -256,6 +255,40 @@ const KingdomSheetRenderer = {
                 </div>
             `;
         }).join('');
+
+        // Расчёт эффектов поселения
+        const effects = typeof KingdomBuildings.calculateSettlementEffects === 'function'
+            ? KingdomBuildings.calculateSettlementEffects(ug.buildings)
+            : { usedLots: 0, totalConsumption: 0, maxSkillBonuses: {}, totalRuins: {}, buildingCount: ug.buildings.length };
+
+        const skillBadgesHtml = Object.keys(effects.maxSkillBonuses).length === 0
+            ? `<span style="color:#95a5a6; font-size:12px;">Нет активных бонусов к навыкам</span>`
+            : Object.entries(effects.maxSkillBonuses)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([skill, val]) => `<span class="k-eff-badge good">+${val} ${skill.charAt(0).toUpperCase() + skill.slice(1)}</span>`)
+                .join('');
+
+        const ruinBadgesHtml = Object.entries(effects.totalRuins)
+            .filter(([, val]) => val > 0)
+            .map(([ruin, val]) => `<span class="k-eff-badge bad">+${val} ${ruin.toUpperCase()}</span>`)
+            .join('');
+
+        const consSign = effects.totalConsumption > 0 ? `+${effects.totalConsumption}` : `${effects.totalConsumption}`;
+        const consClass = effects.totalConsumption > 0 ? 'bad' : (effects.totalConsumption < 0 ? 'good' : '');
+
+        const summaryHtml = `
+            <div class="k-urban-summary-box">
+                <div class="k-urban-summary-top">
+                    <span>🏘 Построек: <b>${effects.buildingCount}</b> (Участков: <b>${effects.usedLots} / 36</b>)</span>
+                    <span>🍖 Потребление от зданий: <span class="k-eff-badge ${consClass}">${consSign} Consumption</span></span>
+                    ${ruinBadgesHtml ? `<span>⚠ Упадок от построек: ${ruinBadgesHtml}</span>` : ''}
+                </div>
+                <div class="k-urban-summary-skills">
+                    <span style="color:#dfbc6f; font-size:12px; font-weight:bold; margin-right:6px;">Макс. Item-бонусы:</span>
+                    ${skillBadgesHtml}
+                </div>
+            </div>
+        `;
 
         let cellsHtml = '';
         for (let r = 0; r < 6; r++) {
@@ -306,40 +339,8 @@ const KingdomSheetRenderer = {
             return '2px solid #d4af37';
         };
 
-        // Подсчёт бонусов и занятых клеток поселения
-        const effects = KingdomBuildings.calculateSettlementEffects(ug.buildings);
-        const skillBadgesHtml = Object.keys(effects.maxSkillBonuses).length === 0
-            ? `<span style="color:#95a5a6; font-size:12px;">Нет активных бонусов к навыкам</span>`
-            : Object.entries(effects.maxSkillBonuses)
-                .sort((a, b) => a[0].localeCompare(b[0]))
-                .map(([skill, val]) => `<span class="k-eff-badge good">+${val} ${skill.charAt(0).toUpperCase() + skill.slice(1)}</span>`)
-                .join('');
-
-        const ruinBadgesHtml = Object.entries(effects.totalRuins)
-            .filter(([, val]) => val > 0)
-            .map(([ruin, val]) => `<span class="k-eff-badge bad">+${val} ${ruin.toUpperCase()}</span>`)
-            .join('');
-
-        const consSign = effects.totalConsumption > 0 ? `+${effects.totalConsumption}` : `${effects.totalConsumption}`;
-        const consClass = effects.totalConsumption > 0 ? 'bad' : (effects.totalConsumption < 0 ? 'good' : '');
-
-        const summaryHtml = `
-            <div class="k-urban-summary-box">
-                <div class="k-urban-summary-top">
-                    <span>🏘 Построек: <b>${effects.buildingCount}</b> (Участков: <b>${effects.usedLots} / 36</b>)</span>
-                    <span>🍖 Потребление от зданий: <span class="k-eff-badge ${consClass}">${consSign} Consumption</span></span>
-                    ${ruinBadgesHtml ? `<span>⚠ Упадок от построек: ${ruinBadgesHtml}</span>` : ''}
-                </div>
-                <div class="k-urban-summary-skills">
-                    <span style="color:#dfbc6f; font-size:12px; font-weight:bold; margin-right:6px;">Макс. Item-бонусы:</span>
-                    ${skillBadgesHtml}
-                </div>
-            </div>
-        `;
-
         return `
             <div style="display:flex; align-items:stretch; gap:0; width:100%;">
-            
                 <div class="k-panel k-catalog-panel" id="kCatalogPanel" style="width:${initialWidth}px; max-height:760px;">
                     <div class="k-sec-title" style="font-size:15px;">ПОСТРОЙКИ (Перетащите на карту)</div>
                     <div class="k-catalog-search-wrap">
@@ -348,7 +349,7 @@ const KingdomSheetRenderer = {
                     </div>
                     <div class="k-catalog-scroll">${catalogHtml}</div>
                 </div>
-                
+
                 <div class="k-catalog-resizer" id="kCatalogResizer" title="Потяните мышью, чтобы изменить ширину списка"></div>
 
                 <div class="k-panel" style="flex:1; min-width:540px;">
@@ -374,6 +375,8 @@ const KingdomSheetRenderer = {
                         <label><input type="checkbox" id="k_ug_sewer" ${ug.infraSewer ? 'checked' : ''}> Sewer System</label>
                     </div>
 
+                    ${summaryHtml}
+
                     <div style="display:flex; flex-direction:column; align-items:center; gap:8px; margin:10px 0;">
                         ${borderSelect('top', 'Север')}
                         <div style="display:flex; align-items:center; gap:10px;">
@@ -395,9 +398,6 @@ const KingdomSheetRenderer = {
             </div>
         `;
     }
-
-
-
 };
 
 export default KingdomSheetRenderer;
