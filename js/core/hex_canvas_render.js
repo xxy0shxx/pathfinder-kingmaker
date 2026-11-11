@@ -132,24 +132,27 @@ const HexCanvasRender = {
         return !!(data.kingdomClaimed || combined.includes('королевств') || combined.includes('владен'));
     },
 
+
     drawKingdomBorders(r) {
         const ctx = this.ctx;
         const { rows, cols } = MAP_CONFIG.grid;
 
-        const edgeNeighborsEven = [,
-            ,
-            [1, -1],
-            [0, -1],
-            [-1, -1],
-            [-1, 0]
+        const evenOffsets = [
+            { dr: 0,  dc: 1 },  // ребро 0 (-30° -> 30°): Вправо
+            { dr: 1,  dc: 0 },  // ребро 1 (30° -> 90°): Вниз-вправо
+            { dr: 1,  dc: -1 }, // ребро 2 (90° -> 150°): Вниз-влево
+            { dr: 0,  dc: -1 }, // ребро 3 (150° -> 210°): Влево
+            { dr: -1, dc: -1 }, // ребро 4 (210° -> 270°): Вверх-влево
+            { dr: -1, dc: 0 }   // ребро 5 (270° -> 330°): Вверх-вправо
         ];
 
-        const edgeNeighborsOdd = [,
-            ,
-            ,
-            [0, -1],
-            [-1, 0],
-            [-1, 1]
+        const oddOffsets = [
+            { dr: 0,  dc: 1 },  // ребро 0 (-30° -> 30°): Вправо
+            { dr: 1,  dc: 1 },  // ребро 1 (30° -> 90°): Вниз-вправо
+            { dr: 1,  dc: 0 },  // ребро 2 (90° -> 150°): Вниз-влево
+            { dr: 0,  dc: -1 }, // ребро 3 (150° -> 210°): Влево
+            { dr: -1, dc: 0 },  // ребро 4 (210° -> 270°): Вверх-влево
+            { dr: -1, dc: 1 }   // ребро 5 (270° -> 330°): Вверх-вправо
         ];
 
         ctx.save();
@@ -160,7 +163,7 @@ const HexCanvasRender = {
         let hasEdges = false;
 
         for (let row = 0; row < rows; row++) {
-            const offsets = (row % 2 === 0) ? edgeNeighborsEven : edgeNeighborsOdd;
+            const offsets = (row % 2 === 0) ? evenOffsets : oddOffsets;
             for (let col = 0; col < cols; col++) {
                 const hexKey = `hex_${row}_${col}`;
                 const data = this.hexesData[hexKey];
@@ -170,9 +173,8 @@ const HexCanvasRender = {
                 if (!coords) continue;
 
                 for (let i = 0; i < 6; i++) {
-                    const offset = offsets[i];
-                    if (!offset) continue;
-                    const nKey = `hex_${row + offset[0]}_${col + offset[1]}`;
+                    const step = offsets[i];
+                    const nKey = `hex_${row + step.dr}_${col + step.dc}`;
                     if (this.isHexClaimed(this.hexesData[nKey])) continue;
 
                     const a1 = (Math.PI / 180) * (60 * i - 30);
@@ -197,6 +199,7 @@ const HexCanvasRender = {
 
         ctx.restore();
     },
+
 
 
     render() {
