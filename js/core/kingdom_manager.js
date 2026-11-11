@@ -423,6 +423,130 @@ const KingdomManager = {
         });
     },
 
+
+    openSkillCheckModal(skillId) {
+        this.saveFromUi();
+
+        const cfg = this.skillConfig.find(item => item.id === skillId);
+        if (!cfg) return;
+
+        const existing = document.getElementById('kSkillCheckOverlay');
+        if (existing) existing.remove();
+
+        const s = this.state;
+        const skillMod = this.getSkillTotal(skillId);
+        const modStr = skillMod >= 0 ? `+${skillMod}` : `${skillMod}`;
+        const defaultDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kSkillCheckOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:460px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+                    <span style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase;">🎲 Проверка: ${cfg.label}</span>
+                    <span style="background:#040905; border:1px solid #ffd875; padding:3px 10px; border-radius:4px; font-family:monospace; font-size:18px; font-weight:bold; color:#2ecc71;">${modStr}</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label class="k-lbl">Сложность проверки (СЛ / DC)</label>
+                        <input type="number" id="kCheckDcInp" class="k-inp" value="${defaultDc}" style="font-size:18px; font-weight:bold; text-align:center;">
+                    </div>
+                    <div>
+                        <label class="k-lbl">Бросок d20 (1–20)</label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="number" id="kCheckRollInp" class="k-inp" min="1" max="20" placeholder="1–20" style="font-size:18px; font-weight:bold; text-align:center; border-color:#ffd875; color:#ffd875;">
+                            <button type="button" class="btn cc" id="kCheckAutoRollBtn" title="Бросить виртуальный d20" style="padding:0 12px; font-size:16px;">🎲</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="kCheckResultBox" style="background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:6px; padding:14px; margin-bottom:16px; text-align:center; min-height:76px; display:flex; flex-direction:column; justify-content:center; gap:4px;">
+                    <span style="color:#95a5a6; font-size:14px;">Введите результат броска d20 или нажмите 🎲</span>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn ok" id="kCheckCloseBtn" style="min-width:120px;">Закрыть</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const dcInp = overlay.querySelector('#kCheckDcInp');
+        const rollInp = overlay.querySelector('#kCheckRollInp');
+        const resBox = overlay.querySelector('#kCheckResultBox');
+
+        const evaluateOutcome = () => {
+            const dc = parseInt(dcInp.value, 10) || defaultDc;
+            const d20 = parseInt(rollInp.value, 10);
+
+            if (isNaN(d20) || d20 < 1 || d20 > 20) {
+                resBox.innerHTML = `<span style="color:#95a5a6; font-size:14px;">Введите число от 1 до 20</span>`;
+                resBox.style.borderColor = '#543e0d';
+                return;
+            }
+
+            const total = d20 + skillMod;
+            const diff = total - dc;
+
+            // Базовая степень успеха: 0 = Крит. провал, 1 = Провал, 2 = Успех, 3 = Крит. успех
+            let degree = 1;
+            if (diff >= 10) degree = 3;
+            else if (diff >= 0) degree = 2;
+            else if (diff <= -10) degree = 0;
+            else degree = 1;
+
+            // Правила натуральной 20 и натуральной 1 в Pathfinder 2e
+            let natNote = '';
+            if (d20 === 20) {
+                degree = Math.min(3, degree + 1);
+                natNote = ' (Натуральная 20 ↑)';
+            } else if (d20 === 1) {
+                degree = Math.max(0, degree - 1);
+                natNote = ' (Натуральная 1 ↓)';
+            }
+
+            const degreesMeta = [
+                { label: '💀 КРИТИЧЕСКИЙ ПРОВАЛ', color: '#e74c3c', bg: 'rgba(231, 76, 60, 0.16)' },
+                { label: '✖ ПРОВАЛ',              color: '#ff7675', bg: 'rgba(255, 118, 117, 0.12)' },
+                { label: '✔ УСПЕХ',               color: '#2ecc71', bg: 'rgba(46, 204, 113, 0.14)' },
+                { label: '👑 КРИТИЧЕСКИЙ УСПЕХ',  color: '#ffd875', bg: 'rgba(255, 216, 117, 0.2)' }
+            ];
+
+            const meta = degreesMeta[degree];
+            const diffStr = diff >= 0 ? `+${diff}` : `${diff}`;
+
+            resBox.style.borderColor = meta.color;
+            resBox.style.background = meta.bg;
+            resBox.innerHTML = `
+                <div style="font-size:20px; font-weight:900; color:${meta.color}; letter-spacing:0.6px;">${meta.label}</div>
+                <div style="font-size:15px; color:#ebd291; font-family:monospace;">
+                    Бросок: <b>${d20}</b> (${modStr}) = <b style="color:#fff; font-size:18px;">${total}</b> против СЛ <b>${dc}</b> (${diffStr})${natNote}
+                </div>
+            `;
+        };
+
+        dcInp.addEventListener('input', evaluateOutcome);
+        rollInp.addEventListener('input', evaluateOutcome);
+
+        overlay.querySelector('#kCheckAutoRollBtn').addEventListener('click', () => {
+            rollInp.value = Math.floor(Math.random() * 20) + 1;
+            evaluateOutcome();
+        });
+
+        const closeModal = () => overlay.remove();
+        overlay.querySelector('#kCheckCloseBtn').addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+        rollInp.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        setTimeout(() => rollInp.focus(), 50);
+    },
+
+
+
     // Связь характеристик с типами упадка (Ruins) и ролями лидеров (Invested +1)
     ruinAbilityMap: {
         corruption: 'culture',
@@ -1625,6 +1749,13 @@ const KingdomManager = {
                 this.resetAllLeaderActions();
             });
         }
+
+        // Калькулятор проверки навыка по клику на название навыка
+        container.querySelectorAll('.k-skill-roll-trigger').forEach(cell => {
+            cell.addEventListener('click', () => {
+                this.openSkillCheckModal(cell.dataset.rollSkill);
+            });
+        });
 
     }
 };

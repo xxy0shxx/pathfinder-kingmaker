@@ -130,6 +130,7 @@ const KingdomSheetRenderer = {
             stability: 'СТАБИЛЬНОСТЬ'
         };
 
+
         const skillsHtml = skillConfig.map(cfg => {
             const sk = s.skills[cfg.id];
             const total = getSkillTotal(cfg.id);
@@ -141,7 +142,9 @@ const KingdomSheetRenderer = {
 
             return `
                 <tr>
-                    <td style="font-weight:bold;">${cfg.label} <span style="font-size:11px; color:#95a5a6;">(${abilityShortRu[cfg.ability] || cfg.ability.slice(0,3).toUpperCase()})</span></td>
+                    <td class="k-skill-roll-trigger" data-roll-skill="${cfg.id}" title="Нажмите, чтобы проверить навык «${cfg.label}»" style="font-weight:bold; cursor:pointer; color:#ebd291;">
+                        🎲 ${cfg.label} <span style="font-size:11px; color:#95a5a6;">(${abilityShortRu[cfg.ability] || cfg.ability.slice(0,3).toUpperCase()})</span>
+                    </td>
                     <td id="k_skill_total_${cfg.id}" style="font-weight:900; color:#ffd875; text-align:center;">${totalStr}</td>
                     <td>
                         <select id="k_skill_prof_${cfg.id}" class="k-inp">
@@ -159,6 +162,8 @@ const KingdomSheetRenderer = {
                 </tr>
             `;
         }).join('');
+
+
 
 
         return `
