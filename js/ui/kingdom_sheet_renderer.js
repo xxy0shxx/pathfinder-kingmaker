@@ -226,18 +226,22 @@ const KingdomSheetRenderer = {
 
         const catalogHtml = groups.map(group => {
             const isCollapsed = !!collapsedState[group.key];
+
             const itemsHtml = group.items.map(b => {
                 const thumb = KingdomBuildings.getBuildingDataUrl(b.id);
+                const infoText = KingdomBuildings.getBuildingInfoText(b.id);
                 return `
-                    <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${b.name}">
+                    <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${b.name} — ${infoText}">
                         <img src="${thumb}" class="k-bld-thumb" alt="${b.name}">
                         <div class="k-bld-info">
                             <div class="k-bld-name">${b.name}</div>
                             <div class="k-bld-meta">Размер: ${b.cols}×${b.rows} • Ур. ${b.level}</div>
+                            <div class="k-bld-bonus-tag">${infoText}</div>
                         </div>
                     </div>
                 `;
             }).join('');
+
 
             return `
                 <div class="k-catalog-group ${isCollapsed ? 'collapsed' : ''}" data-group-key="${group.key}">
@@ -301,6 +305,37 @@ const KingdomSheetRenderer = {
             if (val === 'wall_stone') return '4px solid #95a5a6';
             return '2px solid #d4af37';
         };
+
+        // Подсчёт бонусов и занятых клеток поселения
+        const effects = KingdomBuildings.calculateSettlementEffects(ug.buildings);
+        const skillBadgesHtml = Object.keys(effects.maxSkillBonuses).length === 0
+            ? `<span style="color:#95a5a6; font-size:12px;">Нет активных бонусов к навыкам</span>`
+            : Object.entries(effects.maxSkillBonuses)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([skill, val]) => `<span class="k-eff-badge good">+${val} ${skill.charAt(0).toUpperCase() + skill.slice(1)}</span>`)
+                .join('');
+
+        const ruinBadgesHtml = Object.entries(effects.totalRuins)
+            .filter(([, val]) => val > 0)
+            .map(([ruin, val]) => `<span class="k-eff-badge bad">+${val} ${ruin.toUpperCase()}</span>`)
+            .join('');
+
+        const consSign = effects.totalConsumption > 0 ? `+${effects.totalConsumption}` : `${effects.totalConsumption}`;
+        const consClass = effects.totalConsumption > 0 ? 'bad' : (effects.totalConsumption < 0 ? 'good' : '');
+
+        const summaryHtml = `
+            <div class="k-urban-summary-box">
+                <div class="k-urban-summary-top">
+                    <span>🏘 Построек: <b>${effects.buildingCount}</b> (Участков: <b>${effects.usedLots} / 36</b>)</span>
+                    <span>🍖 Потребление от зданий: <span class="k-eff-badge ${consClass}">${consSign} Consumption</span></span>
+                    ${ruinBadgesHtml ? `<span>⚠ Упадок от построек: ${ruinBadgesHtml}</span>` : ''}
+                </div>
+                <div class="k-urban-summary-skills">
+                    <span style="color:#dfbc6f; font-size:12px; font-weight:bold; margin-right:6px;">Макс. Item-бонусы:</span>
+                    ${skillBadgesHtml}
+                </div>
+            </div>
+        `;
 
         return `
             <div style="display:flex; align-items:stretch; gap:0; width:100%;">

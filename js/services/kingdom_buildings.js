@@ -83,7 +83,131 @@ const KingdomBuildings = {
         { id: 'waterfront_side', name: 'Waterfront (side) (Набережная боковая)', cols: 2, rows: 2, level: 4 },
     ],
 
+    // Игровые бонусы и эффекты построек (Pathfinder 2e Kingmaker)
+    statsData: {
+        // 1-Lot Buildings (1x1)
+        alchemy_lab:       { bonuses: { engineering: 1, magic: 1 }, ruins: { corruption: 1 }, note: '+1 Engineering/Magic (алхимия); +1 Corruption' },
+        arcanist_tower:    { bonuses: { magic: 1, scholarship: 1 }, note: '+1 Magic/Scholarship (тайная магия)' },
+        bank:              { bonuses: { trade: 1 }, ruins: { corruption: 1 }, note: '+1 Trade; +1 Corruption' },
+        barracks:          { bonuses: { warfare: 1 }, consumption: 1, note: '+1 Warfare (гарнизон); +1 Consumption' },
+        brewery:           { bonuses: { agriculture: 1, trade: 1 }, ruins: { corruption: 1 }, note: '+1 Agriculture/Trade (напитки); +1 Corruption' },
+        cemetery:          { bonuses: { folklore: 1, magic: 1 }, note: '+1 Folklore/Magic (религия/некромантия); снижает Unrest' },
+        dump:              { bonuses: { industry: 1 }, ruins: { decay: 1 }, note: '+1 Industry (утилизация); +1 Decay' },
+        festival_hall:     { bonuses: { arts: 2, folklore: 2 }, consumption: 1, note: '+2 Arts/Folklore (праздники); +1 Consumption' },
+        general_store:     { bonuses: { trade: 1 }, note: '+1 Trade' },
+        granary:           { bonuses: { agriculture: 1 }, consumption: -1, note: '+1 Agriculture; -1 Consumption' },
+        herbalist:         { bonuses: { wilderness: 1 }, note: '+1 Wilderness (лечение/яды)' },
+        houses:            { note: 'Жилой квартал (снижает перенаселение)' },
+        illicit_market:    { bonuses: { intrigue: 1, trade: 1 }, ruins: { crime: 1 }, note: '+1 Intrigue/Trade; +1 Crime' },
+        inn:               { bonuses: { folklore: 1, trade: 1 }, ruins: { crime: 1 }, note: '+1 Folklore/Trade; +1 Crime' },
+        jail:              { bonuses: { intrigue: 1, warfare: 1 }, ruins: { strife: 1 }, note: '+1 Intrigue/Warfare; +1 Strife' },
+        library:           { bonuses: { scholarship: 1 }, note: '+1 Scholarship' },
+        luxury_store:      { bonuses: { trade: 2 }, ruins: { corruption: 1 }, note: '+2 Trade (роскошь); +1 Corruption' },
+        magic_shop:        { bonuses: { magic: 2, trade: 2 }, note: '+2 Magic/Trade (маг. предметы)' },
+        mansion:           { bonuses: { politics: 1, statecraft: 1 }, ruins: { corruption: 1 }, note: '+1 Politics/Statecraft; +1 Corruption' },
+        mill:              { bonuses: { agriculture: 1, industry: 1 }, consumption: -1, note: '+1 Agriculture/Industry; -1 Consumption' },
+        mint:              { bonuses: { industry: 2, trade: 2 }, ruins: { corruption: 1 }, note: '+2 Industry/Trade; +1 Corruption' },
+        monument:          { bonuses: { arts: 1, folklore: 1 }, note: '+1 Arts/Folklore; снижает Unrest' },
+        occult_shop:       { bonuses: { folklore: 3, magic: 3 }, ruins: { strife: 1 }, note: '+3 Folklore/Magic (оккультизм); +1 Strife' },
+        orphanage:         { bonuses: { folklore: 1 }, note: '+1 Folklore; снижает Unrest' },
+        park:              { bonuses: { wilderness: 1 }, note: '+1 Wilderness; снижает Unrest' },
+        pier:              { bonuses: { boating: 1, trade: 1 }, ruins: { crime: 1 }, note: '+1 Boating/Trade; +1 Crime' },
+        rubble:            { ruins: { decay: 1 }, note: 'Руины (занимают участок; +1 Decay)' },
+        sacred_grove:      { bonuses: { magic: 1, wilderness: 1 }, note: '+1 Magic/Wilderness (природная магия)' },
+        shrine:            { bonuses: { folklore: 1 }, note: '+1 Folklore (религия)' },
+        smithy:            { bonuses: { industry: 1, warfare: 1 }, note: '+1 Industry/Warfare (оружие/броня)' },
+        special_artisan:   { bonuses: { arts: 1, industry: 1 }, note: '+1 Arts/Industry (ремесло)' },
+        stable:            { bonuses: { exploration: 1, warfare: 1 }, note: '+1 Exploration/Warfare (верховые)' },
+        tannery:           { bonuses: { industry: 1 }, ruins: { decay: 1 }, note: '+1 Industry; +1 Decay' },
+        tavern_dive:       { bonuses: { intrigue: 1 }, ruins: { crime: 1 }, note: '+1 Intrigue; +1 Crime' },
+        tavern_popular:    { bonuses: { intrigue: 1, trade: 1 }, ruins: { crime: 1 }, note: '+1 Intrigue/Trade; +1 Crime' },
+        tenement:          { ruins: { decay: 1 }, note: 'Дешёвое жильё; +1 Decay' },
+        thieves_guild:     { bonuses: { intrigue: 2 }, ruins: { crime: 2 }, note: '+2 Intrigue; +2 Crime' },
+        trade_shop:        { bonuses: { trade: 1 }, note: '+1 Trade' },
+        watchtower:        { bonuses: { defense: 1 }, note: '+1 Defense' },
+
+        // 2-Lot Buildings (2x1)
+        academy:           { bonuses: { scholarship: 2 }, note: '+2 Scholarship (все знания)' },
+        embassy:           { bonuses: { politics: 2, statecraft: 2 }, note: '+2 Politics/Statecraft' },
+        foundry:           { bonuses: { engineering: 1, industry: 1 }, ruins: { decay: 1 }, note: '+1 Engineering/Industry; +1 Decay' },
+        garrison:          { bonuses: { warfare: 2 }, consumption: 1, note: '+2 Warfare; +1 Consumption' },
+        guildhall:         { bonuses: { industry: 2, trade: 2 }, note: '+2 Industry/Trade' },
+        hospital:          { bonuses: { wilderness: 2 }, consumption: 1, note: '+2 Wilderness (лечение болезней); +1 Consumption' },
+        keep:              { bonuses: { defense: 1, warfare: 1 }, consumption: 1, note: '+1 Defense/Warfare; +1 Consumption' },
+        lumberyard:        { bonuses: { engineering: 1, industry: 1 }, note: '+1 Engineering/Industry (дерево)' },
+        marketplace:       { bonuses: { trade: 2 }, ruins: { crime: 1 }, note: '+2 Trade; +1 Crime' },
+        military_academy:  { bonuses: { warfare: 3 }, consumption: 2, note: '+3 Warfare; +2 Consumption' },
+        museum:            { bonuses: { arts: 2, scholarship: 2 }, note: '+2 Arts/Scholarship' },
+        noble_villa:       { bonuses: { politics: 2, statecraft: 2 }, ruins: { corruption: 1 }, note: '+2 Politics/Statecraft; +1 Corruption' },
+        opera_house:       { bonuses: { arts: 3, folklore: 3 }, consumption: 1, note: '+3 Arts/Folklore; +1 Consumption' },
+        secure_warehouse:  { bonuses: { industry: 2, trade: 2 }, note: '+2 Industry/Trade (защита товаров)' },
+        stonemason:        { bonuses: { engineering: 1, industry: 1 }, note: '+1 Engineering/Industry (камень)' },
+        tavern_luxury:     { bonuses: { politics: 2, trade: 2 }, ruins: { corruption: 1 }, note: '+2 Politics/Trade; +1 Corruption' },
+        tavern_world_class:{ bonuses: { politics: 3, trade: 3 }, ruins: { corruption: 1 }, note: '+3 Politics/Trade; +1 Corruption' },
+        temple:            { bonuses: { folklore: 2 }, note: '+2 Folklore (религия); снижает Unrest' },
+        theater:           { bonuses: { arts: 1, folklore: 1 }, note: '+1 Arts/Folklore' },
+        town_hall:         { bonuses: { politics: 1, statecraft: 1 }, note: '+1 Politics/Statecraft' },
+
+        // 4-Lot Buildings (2x2)
+        arena:             { bonuses: { arts: 2, warfare: 2 }, consumption: 1, note: '+2 Arts/Warfare; +1 Consumption' },
+        castle:            { bonuses: { defense: 2, politics: 2, warfare: 2 }, consumption: 2, note: '+2 Defense/Politics/Warfare; +2 Consumption' },
+        cathedral:         { bonuses: { folklore: 3 }, note: '+3 Folklore (религия); снижает Unrest' },
+        construction_yard: { bonuses: { engineering: 1, industry: 1 }, note: '+1 Engineering/Industry (удешевляет стройку)' },
+        menagerie:         { bonuses: { wilderness: 3 }, consumption: 1, note: '+3 Wilderness; +1 Consumption' },
+        palace:            { bonuses: { politics: 3, statecraft: 3 }, consumption: 2, note: '+3 Politics/Statecraft; +2 Consumption' },
+        stockyard:         { bonuses: { agriculture: 1, industry: 1 }, consumption: -1, note: '+1 Agriculture/Industry; -1 Consumption' },
+        university:        { bonuses: { scholarship: 3 }, note: '+3 Scholarship (все знания)' },
+        waterfront_corner: { bonuses: { boating: 2, industry: 2, trade: 2 }, ruins: { crime: 1 }, note: '+2 Boating/Industry/Trade; +1 Crime' },
+        waterfront_side:   { bonuses: { boating: 2, industry: 2, trade: 2 }, ruins: { crime: 1 }, note: '+2 Boating/Industry/Trade; +1 Crime' }
+    },
+
     _cache: {},
+
+    getBuildingInfoText(id) {
+        const st = this.statsData[id];
+        return st ? st.note : 'Особая постройка';
+    },
+
+    // Расчёт суммарных эффектов и максимальных Item-бонусов по всем постройкам на сетке
+    calculateSettlementEffects(placedBuildings = []) {
+        const maxSkillBonuses = {};
+        const totalRuins = { corruption: 0, crime: 0, decay: 0, strife: 0 };
+        let totalConsumption = 0;
+        let usedLots = 0;
+
+        placedBuildings.forEach(bld => {
+            const meta = this.getBuildingMeta(bld.id);
+            const st = this.statsData[bld.id];
+            if (meta) {
+                usedLots += (meta.cols * meta.rows);
+            }
+            if (!st) return;
+
+            if (st.consumption) {
+                totalConsumption += st.consumption;
+            }
+            if (st.bonuses) {
+                for (const [skill, val] of Object.entries(st.bonuses)) {
+                    if (!maxSkillBonuses[skill] || val > maxSkillBonuses[skill]) {
+                        maxSkillBonuses[skill] = val;
+                    }
+                }
+            }
+            if (st.ruins) {
+                for (const [ruinKey, val] of Object.entries(st.ruins)) {
+                    totalRuins[ruinKey] = (totalRuins[ruinKey] || 0) + val;
+                }
+            }
+        });
+
+        return {
+            usedLots,
+            totalConsumption,
+            maxSkillBonuses,
+            totalRuins,
+            buildingCount: placedBuildings.length
+        };
+    },
 
     getBuildingMeta(id) {
         return this.catalog.find(b => b.id === id) || null;

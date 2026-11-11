@@ -4584,3 +4584,68 @@ canvas[style*="position: fixed"] {
 .k-catalog-search-clear:hover {
     filter: brightness(1.25);
 }
+/* ============================================================================
+   СВОДКА БОНУСОВ ПОСТРОЕК И БЕЙДЖИ В КАТАЛОГЕ
+   ============================================================================ */
+.k-bld-bonus-tag {
+    font-size: 12px;
+    color: #2ecc71;
+    margin-top: 3px;
+    line-height: 1.25;
+}
+
+.k-urban-summary-box {
+    background: #060b07;
+    border: 1px solid #8a6421;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.k-urban-summary-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    color: #ebd291;
+    border-bottom: 1px dashed rgba(138, 100, 33, 0.35);
+    padding-bottom: 6px;
+}
+
+.k-urban-summary-top b {
+    color: #ffd875;
+}
+
+.k-urban-summary-skills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.k-eff-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid #543e0d;
+    color: #ebd291;
+}
+
+.k-eff-badge.good {
+    background: rgba(46, 204, 113, 0.14);
+    border-color: #2ecc71;
+    color: #2ecc71;
+}
+
+.k-eff-badge.bad {
+    background: rgba(231, 76, 60, 0.15);
+    border-color: #e74c3c;
+    color: #ff7675;
+}
