@@ -17,7 +17,8 @@ const SettingsManager = {
         hideTerrain: false,
         hideExplored: false,
         hideMapped: false,
-        hideQuestMarkers: false
+        hideQuestMarkers: false,
+        hideKingdomBorders: false
     },
 
     init() {
@@ -43,8 +44,29 @@ const SettingsManager = {
             { id: 'settingHideTerrain', key: 'hideTerrain', type: 'check' },
             { id: 'settingHideExplored', key: 'hideExplored', type: 'check' },
             { id: 'settingHideMapped', key: 'hideMapped', type: 'check' },
-            { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' }
+            { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' },
+            { id: 'settingHideKingdomBorders', key: 'hideKingdomBorders', type: 'check' }
         ];
+
+        // Автоматически добавляем чекбокс «Скрыть границы королевства» в блок настроек карты
+        const anchorCb = document.getElementById('settingHideQuestMarkers');
+        if (anchorCb && !document.getElementById('settingHideKingdomBorders')) {
+            const anchorRow = anchorCb.closest('.checkbox-row') || anchorCb.parentElement;
+            if (anchorRow && anchorRow.parentNode) {
+                const newRow = anchorRow.cloneNode(true);
+                const newInput = newRow.querySelector('input[type="checkbox"]');
+                const newLabel = newRow.querySelector('label');
+                if (newInput) {
+                    newInput.id = 'settingHideKingdomBorders';
+                    newInput.checked = !!this.state.hideKingdomBorders;
+                }
+                if (newLabel) {
+                    newLabel.setAttribute('for', 'settingHideKingdomBorders');
+                    newLabel.textContent = '👑 Скрыть золотые границы королевства';
+                }
+                anchorRow.parentNode.insertBefore(newRow, anchorRow.nextSibling);
+            }
+        }
 
         ids.forEach(item => {
             const el = document.getElementById(item.id);
@@ -193,6 +215,8 @@ const SettingsManager = {
         if (window.HexCanvasRender) {
             window.HexCanvasRender.showQuestTooltips = !this.state.hideQuestMarkers;
         }
+        window.MAP_HIDE_KINGDOM_BORDERS = !!this.state.hideKingdomBorders;
+
 
         const fpsCounter = document.getElementById('fpsCounter') || document.querySelector('.fps-monitor');
         if (fpsCounter) fpsCounter.style.display = this.state.enableFpsMonitor ? 'block' : 'none';

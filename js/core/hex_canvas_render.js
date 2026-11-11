@@ -134,6 +134,7 @@ const HexCanvasRender = {
 
 
     drawKingdomBorders(r) {
+        if (window.MAP_HIDE_KINGDOM_BORDERS) return;
         const ctx = this.ctx;
         const { rows, cols } = MAP_CONFIG.grid;
 
