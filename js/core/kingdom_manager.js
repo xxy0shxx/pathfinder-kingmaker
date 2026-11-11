@@ -203,21 +203,37 @@ const KingdomManager = {
             const val = parseInt(this.state.stats[key].value, 10) || 10;
             this.state.stats[key].modifier = Math.floor((val - 10) / 2);
         }
-        this.syncBuildingItemBonuses();
+        this.syncSettlementStats();
     },
 
-    syncBuildingItemBonuses() {
-        if (!this.state || !this.state.skills || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
-        const buildings = this.state.urbanGrid?.buildings || [];
-        const effects = KingdomBuildings.calculateSettlementEffects(buildings);
-        const maxBonuses = effects.maxSkillBonuses || {};
+    syncSettlementStats() {
+        if (!this.state || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
 
-        this.skillConfig.forEach(cfg => {
-            if (!this.state.skills[cfg.id]) {
-                this.state.skills[cfg.id] = { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
-            }
-            this.state.skills[cfg.id].item = maxBonuses[cfg.id] || 0;
-        });
+        const ug = this.state.urbanGrid;
+        const buildings = ug?.buildings || [];
+        const effects = KingdomBuildings.calculateSettlementEffects(buildings);
+
+        // 1. Синхронизация максимальных Item-бонусов в таблицу навыков
+        if (this.state.skills) {
+            const maxBonuses = effects.maxSkillBonuses || {};
+            this.skillConfig.forEach(cfg => {
+                if (!this.state.skills[cfg.id]) {
+                    this.state.skills[cfg.id] = { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
+                }
+                this.state.skills[cfg.id].item = maxBonuses[cfg.id] || 0;
+            });
+        }
+
+        // 2. Синхронизация Consumption поселения и королевства
+        if (ug) {
+            const baseByType = { village: 1, town: 2, city: 4, metropolis: 6 };
+            const baseCons = baseByType[ug.settlementType] ?? 1;
+            const crowdPenalty = ug.overcrowded ? 2 : 0;
+            const totalSettlementCons = Math.max(0, baseCons + (effects.totalConsumption || 0) + crowdPenalty);
+
+            ug.consumption = totalSettlementCons;
+            this.state.consumption = totalSettlementCons;
+        }
     },
 
     getSkillTotal(skillId) {
@@ -278,7 +294,7 @@ const KingdomManager = {
             rotation
         });
 
-        this.syncBuildingItemBonuses();
+        this.syncSettlementStats();
 
         this._persist();
         this.renderUi();
@@ -309,7 +325,7 @@ const KingdomManager = {
     removeBuilding(uid) {
         this.state.urbanGrid.buildings = this.state.urbanGrid.buildings.filter(b => b.uid !== uid);
 
-        this.syncBuildingItemBonuses();
+        this.syncSettlementStats();
         this._persist();
         this.renderUi();
     },

@@ -117,7 +117,7 @@ const KingdomSheetRenderer = {
                             <div><label class="k-lbl">Size</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
                             <div><label class="k-lbl">RP</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
                             <div><label class="k-lbl">Unrest</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
-                            <div><label class="k-lbl">Consumption</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}"></div>
+                            <div><label class="k-lbl">Consumption</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="Автоматический расчёт: база поселения + постройки + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                             <div><label class="k-lbl">Fame</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
                             <div><label class="k-lbl">Control DC (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
                         </div>
@@ -370,7 +370,7 @@ const KingdomSheetRenderer = {
                             </select>
                         </div>
                         <div><label class="k-lbl">Level</label><input type="number" id="k_ug_level" class="k-inp" value="${ug.level}"></div>
-                        <div><label class="k-lbl">Consumption</label><input type="number" id="k_ug_cons" class="k-inp" value="${ug.consumption}"></div>
+                        <div><label class="k-lbl">Consumption</label><input type="number" id="k_ug_cons" class="k-inp" value="${ug.consumption}" readonly title="Автоматический расчёт: база типа поселения + модификатор зданий + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                     </div>
 
                     <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; font-size:12px;">
