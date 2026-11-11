@@ -371,10 +371,18 @@ const KingdomSheetRenderer = {
         const consSign = effects.totalConsumption > 0 ? `+${effects.totalConsumption}` : `${effects.totalConsumption}`;
         const consClass = effects.totalConsumption > 0 ? 'bad' : (effects.totalConsumption < 0 ? 'good' : '');
 
+
+        const housingStatusHtml = effects.activeBlocks === 0
+            ? `<span>🏠 Жильё: <b>0 / 0</b> блоков</span>`
+            : (effects.isOvercrowded
+                ? `<span>🏠 Жильё: <span class="k-eff-badge bad">${effects.residentialCount} / ${effects.activeBlocks} блоков (Перенаселение +2 Потребл.)</span></span>`
+                : `<span>🏠 Жильё: <span class="k-eff-badge good">${effects.residentialCount} / ${effects.activeBlocks} блоков (Норма)</span></span>`);
+
         const summaryHtml = `
             <div class="k-urban-summary-box">
                 <div class="k-urban-summary-top">
                     <span>🏘 Построек: <b>${effects.buildingCount}</b> (Участков: <b>${effects.usedLots} / 36</b>)</span>
+                    ${housingStatusHtml}
                     <span>🍖 Потребление от зданий: <span class="k-eff-badge ${consClass}">${consSign} Потребл.</span></span>
                     ${ruinBadgesHtml ? `<span>⚠ Упадок от построек: ${ruinBadgesHtml}</span>` : ''}
                 </div>
@@ -384,6 +392,7 @@ const KingdomSheetRenderer = {
                 </div>
             </div>
         `;
+
 
         let cellsHtml = '';
         for (let r = 0; r < 6; r++) {
@@ -464,12 +473,16 @@ const KingdomSheetRenderer = {
                         <div><label class="k-lbl">Потребление</label><input type="number" id="k_ug_cons" class="k-inp" value="${ug.consumption}" readonly title="Автоматический расчёт: база типа поселения + модификатор зданий + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                     </div>
 
-                    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; font-size:12px;">
-                        <label><input type="checkbox" id="k_ug_overcrowded" ${ug.overcrowded ? 'checked' : ''}> Перенаселение (+2 Потребл.)</label>
+
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; font-size:12px; align-items:center;">
+                        <label title="Рассчитывается автоматически: нужно минимум 1 жилое здание на каждый застроенный блок (2×2)" style="cursor:help;">
+                            <input type="checkbox" id="k_ug_overcrowded" ${ug.overcrowded ? 'checked' : ''} disabled> Перенаселение (+2 Потребл.)
+                        </label>
                         <label><input type="checkbox" id="k_ug_lamps" ${ug.infraStreetlamps ? 'checked' : ''}> Магические фонари</label>
                         <label><input type="checkbox" id="k_ug_paved" ${ug.infraPavedStreets ? 'checked' : ''}> Мощёные улицы</label>
                         <label><input type="checkbox" id="k_ug_sewer" ${ug.infraSewer ? 'checked' : ''}> Канализация</label>
                     </div>
+                    
 
                     ${summaryHtml}
 

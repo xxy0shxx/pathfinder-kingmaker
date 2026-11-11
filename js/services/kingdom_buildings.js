@@ -194,19 +194,43 @@ const KingdomBuildings = {
         }).join('<span style="color:#8a6421;">; </span>');
     },
 
-    // Расчёт суммарных эффектов и максимальных Item-бонусов по всем постройкам на сетке
+
+    // Расчёт суммарных эффектов, жилых кварталов и перенаселения по правилам Pathfinder 2e
     calculateSettlementEffects(placedBuildings = []) {
         const maxSkillBonuses = {};
         const totalRuins = { corruption: 0, crime: 0, decay: 0, strife: 0 };
         let totalConsumption = 0;
         let usedLots = 0;
+        let residentialCount = 0;
+        const occupiedBlocks = new Set();
+
+        const residentialIds = new Set(['houses', 'tenement', 'mansion', 'noble_villa']);
 
         placedBuildings.forEach(bld => {
             const meta = this.getBuildingMeta(bld.id);
             const st = this.statsData[bld.id];
-            if (meta) {
-                usedLots += (meta.cols * meta.rows);
+
+            if (residentialIds.has(bld.id)) {
+                residentialCount++;
             }
+
+            if (meta) {
+                const rot = bld.rotation || 0;
+                const isRotated = (rot % 180) !== 0;
+                const spanCols = isRotated ? meta.rows : meta.cols;
+                const spanRows = isRotated ? meta.cols : meta.rows;
+                usedLots += (spanCols * spanRows);
+
+                // Определяем, какие из 9 городских блоков (2x2) задеты постройкой
+                for (let dr = 0; dr < spanRows; dr++) {
+                    for (let dc = 0; dc < spanCols; dc++) {
+                        const blockR = Math.floor((bld.r + dr) / 2);
+                        const blockC = Math.floor((bld.c + dc) / 2);
+                        occupiedBlocks.add(`${blockR}_${blockC}`);
+                    }
+                }
+            }
+
             if (!st) return;
 
             if (st.consumption) {
@@ -226,14 +250,23 @@ const KingdomBuildings = {
             }
         });
 
+        const activeBlocks = occupiedBlocks.size;
+        const isOvercrowded = activeBlocks > 0 && residentialCount < activeBlocks;
+
         return {
             usedLots,
             totalConsumption,
             maxSkillBonuses,
             totalRuins,
-            buildingCount: placedBuildings.length
+            buildingCount: placedBuildings.length,
+            residentialCount,
+            activeBlocks,
+            isOvercrowded
         };
     },
+
+
+
 
     getBuildingMeta(id) {
         return this.catalog.find(b => b.id === id) || null;

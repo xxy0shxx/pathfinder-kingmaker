@@ -322,8 +322,11 @@ const KingdomManager = {
             });
         }
 
-        // 2. Синхронизация Consumption поселения и королевства
+        // 2. Автоматический расчёт перенаселения и Consumption поселения
         if (ug) {
+            const autoOvercrowded = !!effects.isOvercrowded;
+            ug.overcrowded = autoOvercrowded;
+
             const baseByType = { village: 1, town: 2, city: 4, metropolis: 6 };
             const baseCons = baseByType[ug.settlementType] ?? 1;
             const crowdPenalty = ug.overcrowded ? 2 : 0;
@@ -332,6 +335,7 @@ const KingdomManager = {
             ug.consumption = totalSettlementCons;
             this.state.consumption = totalSettlementCons;
         }
+
     },
 
     getResourceDieSides() {
