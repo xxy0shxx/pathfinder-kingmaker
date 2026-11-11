@@ -450,7 +450,7 @@ const InitiativeManager = {
 
             const statusSelectHtml = `
                 <select class="init-inline-status-select status-${unit.status || 'active'}" data-id="${unit.id}" title="Состояние бойца">
-                    <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>${isBg3 ? '⚔️' : '⚔️ В строю'}</option>
+                    <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>${isBg3 ? '⚔' : '⚔ В строю'}</option>
                     <option value="dying" ${unit.status === 'dying' ? 'selected' : ''}>${isBg3 ? '🩸' : '🩸 При смерти'}</option>
                     <option value="prone" ${unit.status === 'prone' ? 'selected' : ''}>${isBg3 ? '💫' : '💫 Распластан'}</option>
                     <option value="out" ${unit.status === 'out' ? 'selected' : ''}>${isBg3 ? '💀' : '💀 Выбыл'}</option>
