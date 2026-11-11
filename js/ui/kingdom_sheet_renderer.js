@@ -208,7 +208,10 @@ const KingdomSheetRenderer = {
                 <div>
                 
                     <div class="k-panel">
-                        <div class="k-sec-title">РЕСУРСЫ И РАБОЧИЕ ПЛОЩАДКИ</div>
+                        <div class="k-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>РЕСУРСЫ И РАБОЧИЕ УЧАСТКИ</span>
+                            <button type="button" class="btn cc" id="kBtnSyncHexMap" style="padding:2px 8px; font-size:11px;" title="Подсчитать захваченные гексы и добывающие участки с основной карты">🗺 С карты гексов</button>
+                        </div>
                         <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:8px;">
                             ${[
                                 { id: 'food', label: 'ЕДА' },
@@ -515,6 +518,7 @@ const KingdomSheetRenderer = {
                         <label><input type="checkbox" id="k_ug_lamps" ${ug.infraStreetlamps ? 'checked' : ''}> Магические фонари</label>
                         <label><input type="checkbox" id="k_ug_paved" ${ug.infraPavedStreets ? 'checked' : ''}> Мощёные улицы</label>
                         <label><input type="checkbox" id="k_ug_sewer" ${ug.infraSewer ? 'checked' : ''}> Канализация</label>
+                        <button type="button" class="btn cc" id="kBtnExportCityPng" style="margin-left:auto; padding:4px 10px; font-size:12px;" title="Сохранить изображение городской сетки в PNG">📸 Скачать PNG</button>
                     </div>
                     
 

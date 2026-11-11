@@ -232,6 +232,196 @@ const KingdomManager = {
         this.renderUi();
     },
 
+    syncFromHexMap() {
+        const hexes = this.mapDataRef?.hexes || {};
+        let claimedCount = 0;
+        let farmlands = 0;
+        let lumberCamps = 0;
+        let mines = 0;
+        let quarries = 0;
+
+        Object.values(hexes).forEach(h => {
+            if (!h || typeof h !== 'object') return;
+
+            const title = (h.title || '').toLowerCase();
+            const desc = (h.text || h.description || '').toLowerCase();
+            const combined = `${title} ${desc}`;
+
+            // Считаем гекс частью королевства, если стоит флаг, заливка цветом или упоминание владения
+            const hasColor = h.color && h.color !== 'transparent' && h.color !== '';
+            const isClaimed = !!(h.kingdomClaimed || hasColor || combined.includes('королевств') || combined.includes('владен'));
+
+            if (isClaimed) {
+                claimedCount++;
+            }
+
+            if (combined.includes('ферм') || combined.includes('farmland')) farmlands++;
+            if (combined.includes('лесопил') || combined.includes('lumber')) lumberCamps++;
+            if (combined.includes('шахт') || combined.includes('mine')) mines++;
+            if (combined.includes('каменолом') || combined.includes('quarr')) quarries++;
+        });
+
+        const s = this.state;
+        const sizeBefore = s.size;
+        if (claimedCount > 0) {
+            s.size = claimedCount;
+        }
+
+        s.workSites.farmlands = farmlands;
+        s.workSites.lumberCamps = lumberCamps;
+        s.workSites.mines = mines;
+        s.workSites.quarries = quarries;
+
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+
+        alert(
+            `🗺 Синхронизация с картой завершена:\n\n` +
+            `• Размер королевства (гексов): ${sizeBefore} → ${s.size}\n` +
+            `• Фермы: ${farmlands}\n` +
+            `• Лесопилки: ${lumberCamps}\n` +
+            `• Шахты: ${mines}\n` +
+            `• Каменоломни: ${quarries}`
+        );
+    },
+
+    exportCityToPng() {
+        this.saveFromUi();
+
+        const ug = this.state.urbanGrid;
+        const cellPx = 96;
+        const gridPx = cellPx * 6;
+        const pad = 28;
+        const headerH = 54;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = gridPx + pad * 2;
+        canvas.height = gridPx + pad * 2 + headerH;
+        const ctx = canvas.getContext('2d');
+
+        // 1. Фон карточки поселения
+        ctx.fillStyle = '#0d1e13';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 2. Шапка с названием, типом и уровнем города
+        const typeLabels = { village: 'Деревня', town: 'Городок', city: 'Город', metropolis: 'Мегаполис' };
+        const typeStr = typeLabels[ug.settlementType] || ug.settlementType;
+
+        ctx.fillStyle = '#ffd875';
+        ctx.font = 'bold 22px Tinos, Georgia, serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`🏰 ${ug.settlementName || 'Поселение'}`, pad, pad + 16);
+
+        ctx.fillStyle = '#dfbc6f';
+        ctx.font = 'bold 14px Montserrat, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${typeStr} • Уровень ${ug.level} • Потребление: ${ug.consumption}`, canvas.width - pad, pad + 18);
+
+        const boardX = pad;
+        const boardY = pad + headerH;
+
+        // 3. Поле сетки 6x6
+        ctx.fillStyle = '#2a3322';
+        ctx.fillRect(boardX, boardY, gridPx, gridPx);
+
+        for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 6; c++) {
+                const x = boardX + c * cellPx;
+                const y = boardY + r * cellPx;
+                ctx.strokeStyle = 'rgba(212, 175, 55, 0.32)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, cellPx, cellPx);
+            }
+        }
+
+        // Разделители 9 городских кварталов (2x2)
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 2.5;
+        [2, 4].forEach(idx => {
+            ctx.beginPath();
+            ctx.moveTo(boardX + idx * cellPx, boardY);
+            ctx.lineTo(boardX + idx * cellPx, boardY + gridPx);
+            ctx.moveTo(boardX, boardY + idx * cellPx);
+            ctx.lineTo(boardX + gridPx, boardY + idx * cellPx);
+            ctx.stroke();
+        });
+
+        // 4. Отрисовка всех размещённых построек с учётом поворота
+        const loadImg = (src) => new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+            img.src = src;
+        });
+
+        const tasks = (ug.buildings || []).map(async (bld) => {
+            const meta = KingdomBuildings.getBuildingMeta(bld.id);
+            const url = KingdomBuildings.getBuildingDataUrl(bld.id);
+            if (!meta || !url) return;
+
+            const img = await loadImg(url);
+            if (!img) return;
+
+            const rot = bld.rotation || 0;
+            const isRotated = (rot % 180) !== 0;
+            const spanCols = isRotated ? meta.rows : meta.cols;
+            const spanRows = isRotated ? meta.cols : meta.rows;
+
+            const centerX = boardX + (bld.c + spanCols / 2) * cellPx;
+            const centerY = boardY + (bld.r + spanRows / 2) * cellPx;
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate((rot * Math.PI) / 180);
+            ctx.drawImage(img, (-meta.cols * cellPx) / 2, (-meta.rows * cellPx) / 2, meta.cols * cellPx, meta.rows * cellPx);
+            ctx.restore();
+        });
+
+        Promise.all(tasks).then(() => {
+            // 5. Отрисовка 4 границ поселения (Вода, Мост, Стены)
+            const drawBorderSide = (side, x1, y1, x2, y2) => {
+                const val = ug.borders?.[side] || 'none';
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+
+                if (val === 'water') {
+                    ctx.strokeStyle = '#3498db';
+                    ctx.lineWidth = 8;
+                } else if (val === 'bridge') {
+                    ctx.strokeStyle = '#e67e22';
+                    ctx.lineWidth = 8;
+                    ctx.setLineDash([12, 8]);
+                } else if (val === 'wall_wood') {
+                    ctx.strokeStyle = '#a0522d';
+                    ctx.lineWidth = 8;
+                } else if (val === 'wall_stone') {
+                    ctx.strokeStyle = '#95a5a6';
+                    ctx.lineWidth = 8;
+                } else {
+                    ctx.strokeStyle = '#d4af37';
+                    ctx.lineWidth = 3;
+                }
+                ctx.stroke();
+                ctx.restore();
+            };
+
+            drawBorderSide('top', boardX, boardY, boardX + gridPx, boardY);
+            drawBorderSide('bottom', boardX, boardY + gridPx, boardX + gridPx, boardY + gridPx);
+            drawBorderSide('left', boardX, boardY, boardX, boardY + gridPx);
+            drawBorderSide('right', boardX + gridPx, boardY, boardX + gridPx, boardY + gridPx);
+
+            // 6. Скачивание PNG-файла
+            const link = document.createElement('a');
+            const safeName = (ug.settlementName || 'city').replace(/[^a-zA-Zа-яА-Я0-9_-]/g, '_');
+            link.download = `${safeName}_map.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    },
 
     // Связь характеристик с типами упадка (Ruins) и ролями лидеров (Invested +1)
     ruinAbilityMap: {
@@ -1244,6 +1434,12 @@ const KingdomManager = {
 
         const btnTrade = container.querySelector('#kBtnTradeComm');
         if (btnTrade) btnTrade.addEventListener('click', () => this.openTradeModal());
+
+        const btnSyncMap = container.querySelector('#kBtnSyncHexMap');
+        if (btnSyncMap) btnSyncMap.addEventListener('click', () => this.syncFromHexMap());
+
+        const btnExportCity = container.querySelector('#kBtnExportCityPng');
+        if (btnExportCity) btnExportCity.addEventListener('click', () => this.exportCityToPng());
 
 
         const btnAddEv = container.querySelector('#kBtnAddEvent');
