@@ -10,6 +10,7 @@ const KingdomSheetRenderer = {
                 <button type="button" class="btn ${activeSubTab === 'sheet' ? 'ok' : ''}" data-k-tab="sheet">📜 Лист и Навыки</button>
                 <button type="button" class="btn ${activeSubTab === 'events' ? 'ok' : ''}" data-k-tab="events">⚡ События</button>
                 <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : ''}" data-k-tab="urban">🏰 Постройки и Город</button>
+                <button type="button" class="btn cc" id="kBtnUpkeepTurn" style="margin-left:auto;">🎲 Сбор ресурсов (Upkeep)</button>
                 <button type="button" class="btn ok k-btn-save-small" style="margin-left:auto;">⚜ Сохранить</button>
             </div>
         `;

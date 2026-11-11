@@ -334,6 +334,191 @@ const KingdomManager = {
         }
     },
 
+    getResourceDieSides() {
+        const s = parseInt(this.state.size, 10) || 1;
+        if (s >= 100) return 12;
+        if (s >= 50) return 10;
+        if (s >= 25) return 8;
+        if (s >= 10) return 6;
+        return 4;
+    },
+
+    openUpkeepModal() {
+        this.saveFromUi();
+
+        const s = this.state;
+        const lvl = parseInt(s.level, 10) || 1;
+        const diceCount = lvl + 4;
+        const dieSides = this.getResourceDieSides();
+
+        const existing = document.getElementById('kUpkeepModalOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kUpkeepModalOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:460px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
+                <div style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+                    ⚜ Фаза содержания (Upkeep)
+                </div>
+
+                <div style="background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:15px; line-height:1.45;">
+                    <div>• Добыча со складов: <b>+${s.workSites.farmlands} Food</b>, <b>+${s.workSites.lumberCamps} Lumber</b>, <b>+${s.workSites.mines} Ore</b>, <b>+${s.workSites.quarries} Stone</b></div>
+                    <div>• Расход провизии (Consumption): <b style="color:#ff7675;">-${s.consumption} Food</b></div>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-size:15px; font-weight:bold; color:#ffd875; margin-bottom:6px;">
+                        🎲 Бросьте за столом <span style="color:#2ecc71; font-size:18px; font-family:monospace;">${diceCount}d${dieSides}</span> и введите сумму RP:
+                    </label>
+                    <input type="number" id="kUpkeepDiceInput" class="k-inp" min="0" placeholder="Например: ${diceCount * 2}" style="font-size:20px; font-weight:bold; text-align:center; padding:8px; border-color:#d4af37; color:#ffd875;">
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                    <button type="button" class="btn cc" id="kUpkeepCancelBtn">Отмена</button>
+                    <button type="button" class="btn ok" id="kUpkeepConfirmBtn">⚜ Применить ход</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const inputEl = overlay.querySelector('#kUpkeepDiceInput');
+        const btnCancel = overlay.querySelector('#kUpkeepCancelBtn');
+        const btnConfirm = overlay.querySelector('#kUpkeepConfirmBtn');
+
+        setTimeout(() => inputEl.focus(), 50);
+
+        const submit = () => {
+            const val = parseInt(inputEl.value, 10);
+            if (isNaN(val) || val < 0) {
+                inputEl.style.borderColor = '#e74c3c';
+                inputEl.focus();
+                return;
+            }
+            overlay.remove();
+            this.applyUpkeepWithRoll(val);
+        };
+
+        btnCancel.addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+        btnConfirm.addEventListener('click', submit);
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submit();
+            if (e.key === 'Escape') overlay.remove();
+        });
+    },
+
+
+
+
+    applyUpkeepWithRoll(rolledRp) {
+        const s = this.state;
+        const changes = [];
+
+        // 1. Сбор ресурсов с рабочих участков (Work Sites)
+        const harvests = [
+            { site: 'farmlands', comm: 'food', label: 'Food (Еда)' },
+            { site: 'lumberCamps', comm: 'lumber', label: 'Lumber (Дерево)' },
+            { site: 'mines', comm: 'ore', label: 'Ore (Руда)' },
+            { site: 'quarries', comm: 'stone', label: 'Stone (Камень)' }
+        ];
+
+        harvests.forEach(({ site, comm, label }) => {
+            const count = parseInt(s.workSites[site], 10) || 0;
+            if (count > 0) {
+                const before = parseInt(s.commodities[comm].value, 10) || 0;
+                const max = parseInt(s.commodities[comm].max, 10) || 4;
+                const after = Math.min(max, before + count);
+                const gained = after - before;
+                s.commodities[comm].value = after;
+
+                const capNote = (before + count > max) ? ` <span style="color:#f39c12;">(лимит склада ${max})</span>` : '';
+                changes.push(`<div>• <b>${label}:</b> ${before} → <b style="color:#2ecc71;">${after}</b> (+${gained})${capNote}</div>`);
+            }
+        });
+
+        // 2. Оплата потребления (Consumption) из запасов Food
+        const cons = parseInt(s.consumption, 10) || 0;
+        if (cons > 0) {
+            const foodBefore = parseInt(s.commodities.food.value, 10) || 0;
+            if (foodBefore >= cons) {
+                s.commodities.food.value = foodBefore - cons;
+                changes.push(`<div>• <b>Потребление (-${cons} Food):</b> ${foodBefore} → <b style="color:#ebd291;">${s.commodities.food.value}</b></div>`);
+            } else {
+                const deficit = cons - foodBefore;
+                const unrestBefore = parseInt(s.unrest, 10) || 0;
+                s.commodities.food.value = 0;
+                s.unrest = unrestBefore + deficit;
+                changes.push(`<div style="color:#ff7675;">• <b>⚠ Нехватка провизии!</b> Списано ${foodBefore} Food (остаток 0), <b>Unrest:</b> ${unrestBefore} → <b>${s.unrest}</b> (+${deficit})</div>`);
+            }
+        } else {
+            changes.push(`<div>• <b>Потребление:</b> 0 Food</div>`);
+        }
+
+        // 3. Начисление RP из введённого значения костей
+        const rpBefore = parseInt(s.rp, 10) || 0;
+        const addedRp = parseInt(rolledRp, 10) || 0;
+        s.rp = rpBefore + addedRp;
+        changes.push(`<div>• <b>Очки ресурсов (RP):</b> ${rpBefore} → <b style="color:#ffd875;">${s.rp}</b> (+${addedRp})</div>`);
+
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+
+        // Показываем стилизованное окно с результатами хода
+        this._showUpkeepResultModal(changes);
+    },
+
+    _showUpkeepResultModal(changesHtmlList) {
+        const existing = document.getElementById('kUpkeepResultOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kUpkeepResultOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #dfbc6f; border-radius:8px; padding:22px 26px; width:480px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 30px rgba(255,216,117,0.35); font-family:'Tinos', serif;">
+                <div style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+                    ⚜ Итоги фазы содержания
+                </div>
+
+                <div style="background:rgba(0,0,0,0.4); border:1px solid #543e0d; border-radius:6px; padding:14px 16px; margin-bottom:18px; font-size:16px; line-height:1.65; display:flex; flex-direction:column; gap:6px;">
+                    ${changesHtmlList.join('')}
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn ok" id="kUpkeepResultCloseBtn" style="min-width:130px;">⚜ Готово</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const closeBtn = overlay.querySelector('#kUpkeepResultCloseBtn');
+        const closeModal = () => {
+            overlay.remove();
+            window.removeEventListener('keydown', onKey);
+        };
+        const onKey = (e) => {
+            if (e.key === 'Enter' || e.key === 'Escape') closeModal();
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
+        });
+        window.addEventListener('keydown', onKey);
+        setTimeout(() => closeBtn.focus(), 50);
+    },
+
+
+
 
 
     addEventCard() {
@@ -576,6 +761,10 @@ const KingdomManager = {
 
         const btnSave = container.querySelector('.k-btn-save-small');
         if (btnSave) btnSave.addEventListener('click', () => this.saveFromUi());
+
+        const btnUpkeep = container.querySelector('#kBtnUpkeepTurn');
+        if (btnUpkeep) btnUpkeep.addEventListener('click', () => this.openUpkeepModal());
+
 
         const btnAddEv = container.querySelector('#kBtnAddEvent');
         if (btnAddEv) btnAddEv.addEventListener('click', () => this.addEventCard());
