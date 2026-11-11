@@ -33,6 +33,7 @@ const KingdomSheetRenderer = {
         return `<div class="kingdom-sheet-wrapper" style="color:#ebd291;">${tabButtons}${bodyHtml}</div>`;
     },
 
+
     renderSheetTab(s, { roleNames, skillConfig, getSkillTotal }) {
         const ctrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
 
@@ -93,6 +94,14 @@ const KingdomSheetRenderer = {
             `;
         }).join('');
 
+
+        const abilityShortRu = {
+            culture: 'КУЛ',
+            economy: 'ЭКО',
+            loyalty: 'ЛОЯ',
+            stability: 'СТА'
+        };
+
         const skillsHtml = skillConfig.map(cfg => {
             const sk = s.skills[cfg.id];
             const total = getSkillTotal(cfg.id);
@@ -104,15 +113,15 @@ const KingdomSheetRenderer = {
 
             return `
                 <tr>
-                    <td style="font-weight:bold;">${cfg.label} <span style="font-size:11px; color:#95a5a6;">(${cfg.ability.slice(0,3).toUpperCase()})</span></td>
+                    <td style="font-weight:bold;">${cfg.label} <span style="font-size:11px; color:#95a5a6;">(${abilityShortRu[cfg.ability] || cfg.ability.slice(0,3).toUpperCase()})</span></td>
                     <td id="k_skill_total_${cfg.id}" style="font-weight:900; color:#ffd875; text-align:center;">${totalStr}</td>
                     <td>
                         <select id="k_skill_prof_${cfg.id}" class="k-inp">
-                            <option value="0" ${sk.prof === 0 ? 'selected' : ''}>U (0)</option>
-                            <option value="2" ${sk.prof === 2 ? 'selected' : ''}>T (+2)</option>
-                            <option value="4" ${sk.prof === 4 ? 'selected' : ''}>E (+4)</option>
-                            <option value="6" ${sk.prof === 6 ? 'selected' : ''}>M (+6)</option>
-                            <option value="8" ${sk.prof === 8 ? 'selected' : ''}>L (+8)</option>
+                            <option value="0" ${sk.prof === 0 ? 'selected' : ''}>Н (0)</option>
+                            <option value="2" ${sk.prof === 2 ? 'selected' : ''}>О (+2)</option>
+                            <option value="4" ${sk.prof === 4 ? 'selected' : ''}>Э (+4)</option>
+                            <option value="6" ${sk.prof === 6 ? 'selected' : ''}>М (+6)</option>
+                            <option value="8" ${sk.prof === 8 ? 'selected' : ''}>Л (+8)</option>
                         </select>
                     </td>
                     <td><input type="number" id="k_skill_status_${cfg.id}" class="k-inp" value="${sk.status}"></td>
@@ -122,6 +131,7 @@ const KingdomSheetRenderer = {
                 </tr>
             `;
         }).join('');
+
 
         return `
             <div class="k-grid-2col" style="display:grid; grid-template-columns: 1.1fr 1fr; gap:16px;">
@@ -183,33 +193,33 @@ const KingdomSheetRenderer = {
                             `).join('')}
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
-                            <div><label class="k-lbl">Фермы (Farmlands)</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
-                            <div><label class="k-lbl">Лесопилки (Lumber)</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
-                            <div><label class="k-lbl">Шахты (Mines)</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
-                            <div><label class="k-lbl">Каменоломни (Quarries)</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
+                            <div><label class="k-lbl">Фермы</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
+                            <div><label class="k-lbl">Лесопилки</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
+                            <div><label class="k-lbl">Шахты</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
+                            <div><label class="k-lbl">Каменоломни</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
                         </div>
                     </div>
 
-                    
-
                     <div class="k-panel" style="margin-top:12px;">
-                        <div class="k-sec-title">KINGDOM SKILLS</div>
+                        <div class="k-sec-title">НАВЫКИ КОРОЛЕВСТВА</div>
                         <table class="k-table">
-                            <thead><tr><th>Skill</th><th>Total</th><th>Prof</th><th>Status</th><th>Circ</th><th>Item</th><th>Other</th></tr></thead>
+                            <thead><tr><th>Навык</th><th>Итог</th><th>Ранг</th><th>Статус</th><th>Обст.</th><th>Предм.</th><th>Проч.</th></tr></thead>
                             <tbody>${skillsHtml}</tbody>
                         </table>
                     </div>
 
                     <div class="k-panel" style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                         <div>
-                            <div class="k-sec-title">FEATS</div>
+                            <div class="k-sec-title">ЧЕРТЫ</div>
                             <textarea id="k_feats_text" class="k-inp" rows="4" placeholder="Список черт королевства...">${s.featsText || ''}</textarea>
                         </div>
                         <div>
-                            <div class="k-sec-title">ABILITIES</div>
+                            <div class="k-sec-title">СПОСОБНОСТИ</div>
                             <textarea id="k_abilities_text" class="k-inp" rows="4" placeholder="Особенности королевства...">${s.abilitiesText || ''}</textarea>
                         </div>
                     </div>
+                    
+                    
                 </div>
             </div>
         `;
