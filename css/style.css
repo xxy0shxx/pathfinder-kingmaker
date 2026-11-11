@@ -3527,9 +3527,10 @@ canvas[style*="position: fixed"] {
 .init-focus-phrase-text { font-family: "Tinos", serif; font-size: 40px; font-style: italic; font-weight: bold; color: #ebd291; line-height: 1.5; text-shadow: 0 3px 6px rgba(0, 0, 0, 0.95); }
 .init-focus-quote-shield span.gold-unit-focus-name { color: #ffd875 !important; font-family: 'Montserrat', sans-serif; font-style: normal !important; font-size: 44px; font-weight: 900; text-transform: uppercase; padding: 0 12px; text-shadow: 0 0 15px #ffd875, 0 0 30px rgba(212, 175, 55, 0.6), 0 3px 6px #000 !important; }
 
-/* Подсветка натуральной 20 (зелёный) и натуральной 1 (красный) в поле инициативы */
+
+/* 1. Подсветка натуральной 20 (зелёный) и натуральной 1 (красный) в поле инициативы */
 .init-inline-score-input.nat-20,
-#questLogContainer .init-cards-scroll-list.mode-bg3 .init-inline-score-input.nat-20 {
+#questLogContainer .mode-bg3 .init-inline-score-input.nat-20 {
     color: #2ecc71 !important;
     border-color: #2ecc71 !important;
     box-shadow: inset 0 0 8px rgba(46, 204, 113, 0.35), 0 0 8px rgba(46, 204, 113, 0.5) !important;
@@ -3537,14 +3538,14 @@ canvas[style*="position: fixed"] {
 }
 
 .init-inline-score-input.nat-1,
-#questLogContainer .init-cards-scroll-list.mode-bg3 .init-inline-score-input.nat-1 {
+#questLogContainer .mode-bg3 .init-inline-score-input.nat-1 {
     color: #ff4757 !important;
     border-color: #ff4757 !important;
     box-shadow: inset 0 0 8px rgba(255, 71, 87, 0.35), 0 0 8px rgba(255, 71, 87, 0.5) !important;
     text-shadow: 0 0 8px rgba(255, 71, 87, 0.8) !important;
 }
 
-/* Выпадающий список статусов в вертикальном списке */
+/* 2. Выпадающий список статусов в вертикальном списке */
 .init-inline-status-select {
     background: #040905;
     border: 1px solid #543e0d;
@@ -3559,43 +3560,78 @@ canvas[style*="position: fixed"] {
 .init-inline-status-select.status-prone { border-color: #f39c12; color: #f1c40f; }
 .init-inline-status-select.status-out   { border-color: #7f8c8d; color: #95a5a6; }
 
-/* Компактная выпадашка статусов в режиме «Горизонт» (нижний левый угол карточки) */
+/* 3. Правый контейнер в режиме Горизонт (прозрачный для кликов по карточке, но активный для кнопок) */
+#questLogContainer .mode-bg3 .init-card-right {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    pointer-events: none !important;
+    z-index: 20 !important;
+}
+
+/* 4. Выпадашка статусов в левом нижнем углу карточки (всегда видна поверх портрета) */
 #questLogContainer .mode-bg3 .init-inline-status-select {
-    position: fixed !important;
+    display: block !important;
+    position: absolute !important;
     bottom: 4px !important;
     left: 4px !important;
-    width: 34px !important;
+    width: 68px !important;
     height: 26px !important;
-    padding: 0 2px !important;
-    font-size: 15px !important;
-    background: rgba(2, 5, 3, 0.88) !important;
+    padding: 0 3px !important;
+    font-size: 13px !important;
+    font-weight: bold !important;
+    background: rgba(2, 5, 3, 0.94) !important;
     border: 1.5px solid #dfbc6f !important;
     border-radius: 4px !important;
     color: #ffd875 !important;
-    z-index: 6 !important;
-    text-align: center !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 25 !important;
 }
 
-/* Серое оформление выбывшего бойца */
-.init-combatant-card.status-out,
-#questLogContainer .mode-bg3 .init-combatant-card.status-out {
-    background: linear-gradient(180deg, #3a3f42 0%, #222629 100%) !important;
-    border-color: #636e72 !important;
-    box-shadow: none !important;
-    opacity: 0.78 !important;
-}
-.init-combatant-card.status-out img {
-    filter: grayscale(100%) contrast(0.9) !important;
+/* 5. Поле инициативы в правом нижнем углу карточки */
+#questLogContainer .mode-bg3 .init-score-massive-block {
+    display: block !important;
+    position: absolute !important;
+    bottom: 4px !important;
+    right: 4px !important;
+    pointer-events: auto !important;
+    z-index: 25 !important;
 }
 
-/* Отдельный блок выбывших бойцов строго под рамкой с цитатами */
+/* 6. Кнопка удаления в правом верхнем углу при наведении */
+#questLogContainer .mode-bg3 .init-btn-delete-card {
+    display: flex !important;
+    position: absolute !important;
+    top: 3px !important;
+    right: 3px !important;
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    background: rgba(92, 30, 30, 0.92) !important;
+    border: 1px solid #ff7675 !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+    opacity: 0 !important;
+    pointer-events: auto !important;
+    transition: opacity 0.15s ease !important;
+    z-index: 30 !important;
+}
+#questLogContainer .mode-bg3 .init-combatant-card:hover .init-btn-delete-card {
+    opacity: 1 !important;
+}
+
+/* 7. Нижний блок выбывших (в точности как верхний горизонт, только серый) */
 .init-out-combatants-zone {
     margin: 18px auto 0 auto;
     width: calc(100% - 60px);
-    background: rgba(20, 24, 26, 0.85);
+    background: rgba(18, 22, 24, 0.85);
     border: 2px dashed #636e72;
     border-radius: 8px;
-    padding: 12px 20px;
+    padding: 12px 24px;
 }
 .init-out-zone-title {
     font-family: 'Montserrat', sans-serif;
@@ -3604,26 +3640,32 @@ canvas[style*="position: fixed"] {
     color: #95a5a6;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
-.init-out-zone-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    align-items: center;
+#questLogContainer .init-out-zone-grid.mode-bg3 {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 135px !important;
+    padding: 8px 4px !important;
+    gap: 24px !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
 }
-.init-out-zone-grid .init-combatant-card {
-    position: relative !important;
-    overflow: hidden !important;
-    width: 96px !important;
-    height: 96px !important;
-    min-width: 96px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 6px !important;
-    border-width: 2px !important;
+
+/* Серое оформление выбывшего бойца */
+.init-combatant-card.status-out,
+#questLogContainer .mode-bg3 .init-combatant-card.status-out {
+    background: linear-gradient(180deg, #3a3f42 0%, #222629 100%) !important;
+    border-color: #636e72 !important;
+    box-shadow: none !important;
+    opacity: 0.85 !important;
 }
-.init-out-zone-grid .init-card-name-text { font-size: 18px !important; }
+.init-combatant-card.status-out img {
+    filter: grayscale(100%) contrast(0.9) !important;
+}
+.init-combatant-card.status-out .init-card-name-text {
+    color: #b2bec3 !important;
+}
 
 
 /* ============================================================================
@@ -3798,4 +3840,45 @@ canvas[style*="position: fixed"] {
     letter-spacing: 0.5px !important;
     color: #ffd875 !important;
     text-shadow: 0 0 10px rgba(255, 216, 117, 0.8), 0 1px 3px #000000 !important;
+}
+/* Принудительный вывод выпадашки статусов в левом нижнем углу карточки (Режим Горизонт) */
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-card-right {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    pointer-events: none !important;
+    z-index: 20 !important;
+}
+
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-inline-status-select {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    bottom: 4px !important;
+    left: 4px !important;
+    width: 42px !important;
+    height: 26px !important;
+    padding: 0 2px !important;
+    font-size: 14px !important;
+    text-align: center !important;
+    background: rgba(2, 5, 3, 0.94) !important;
+    border: 1.5px solid #dfbc6f !important;
+    border-radius: 4px !important;
+    color: #ffd875 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 30 !important;
+}
+
+
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-score-massive-block {
+    display: block !important;
+    position: absolute !important;
+    bottom: 4px !important;
+    right: 4px !important;
+    pointer-events: auto !important;
+    z-index: 30 !important;
 }

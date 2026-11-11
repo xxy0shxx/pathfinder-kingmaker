@@ -447,14 +447,17 @@ const InitiativeManager = {
             if (unit.isNat20) scoreClass += ' nat-20';
             if (unit.isNat1) scoreClass += ' nat-1';
 
+
             const statusSelectHtml = `
                 <select class="init-inline-status-select status-${unit.status || 'active'}" data-id="${unit.id}" title="Состояние бойца">
-                    <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>⚔️ В строю</option>
-                    <option value="dying" ${unit.status === 'dying' ? 'selected' : ''}>🩸 При смерти</option>
-                    <option value="prone" ${unit.status === 'prone' ? 'selected' : ''}>💫 Распластан</option>
-                    <option value="out" ${unit.status === 'out' ? 'selected' : ''}>💀 Выбыл</option>
+                    <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>${isBg3 ? '⚔️' : '⚔️ В строю'}</option>
+                    <option value="dying" ${unit.status === 'dying' ? 'selected' : ''}>${isBg3 ? '🩸' : '🩸 При смерти'}</option>
+                    <option value="prone" ${unit.status === 'prone' ? 'selected' : ''}>${isBg3 ? '💫' : '💫 Распластан'}</option>
+                    <option value="out" ${unit.status === 'out' ? 'selected' : ''}>${isBg3 ? '💀' : '💀 Выбыл'}</option>
                 </select>
             `;
+
+
 
             card.innerHTML = `
                 <div class="init-card-left" style="pointer-events: none;">
@@ -463,7 +466,12 @@ const InitiativeManager = {
                     <div class="init-card-name-text">${unit.name}</div>
                 </div>
                 <div class="init-card-right">
-                    ${statusSelectHtml}
+                    <select class="init-inline-status-select status-${unit.status || 'active'}" data-id="${unit.id}" title="Состояние бойца">
+                        <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>⚔️ В строю</option>
+                        <option value="dying" ${unit.status === 'dying' ? 'selected' : ''}>🩸 При смерти</option>
+                        <option value="prone" ${unit.status === 'prone' ? 'selected' : ''}>💫 Распластан</option>
+                        <option value="out" ${unit.status === 'out' ? 'selected' : ''}>💀 Выбыл</option>
+                    </select>
                     <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
                         <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
                             ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
@@ -484,6 +492,8 @@ const InitiativeManager = {
                 </div>
             `;
 
+
+
             this._bindCardEvents(card, unit);
             return card;
         };
@@ -497,15 +507,20 @@ const InitiativeManager = {
         quoteShield.innerHTML = `<div class="init-focus-phrase-text">${currentQuoteHTML}</div>`;
         listContainer.parentNode.appendChild(quoteShield);
 
-        // Зона выбывших бойцов строго под рамкой с цитатами (для режима Горизонт)
+
+        // Зона выбывших бойцов строго под рамкой с цитатами
         if (isBg3 && outUnits.length > 0) {
             const outZone = document.createElement('div');
-            outZone.className = 'init-out-combatants-zone mode-bg3';
-            outZone.innerHTML = `<div class="init-out-zone-title">💀 Выбыли из боя (${outUnits.length})</div><div class="init-out-zone-grid"></div>`;
+            outZone.className = 'init-out-combatants-zone';
+            outZone.innerHTML = `
+                <div class="init-out-zone-title">💀 Выбыли из боя (${outUnits.length})</div>
+                <div class="init-cards-scroll-list mode-bg3 init-out-zone-grid"></div>
+            `;
             const outGrid = outZone.querySelector('.init-out-zone-grid');
             outUnits.forEach((unit, idx) => outGrid.appendChild(createCardElement(unit, idx)));
             listContainer.parentNode.appendChild(outZone);
         }
+
     },
 
     _bindCardEvents(card, unit) {
