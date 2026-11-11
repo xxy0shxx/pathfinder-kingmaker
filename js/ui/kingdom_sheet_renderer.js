@@ -17,6 +17,7 @@ const KingdomSheetRenderer = {
                 <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : ''}" data-k-tab="urban">🏰 Постройки и Город</button>
                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
                     ${levelUpBtn}
+                    <button type="button" class="btn cc" id="kBtnTradeComm" title="Купить или продать ресурсы за RP">⚖ Обмен</button>
                     <button type="button" class="btn cc" id="kBtnUpkeepTurn" title="Сбор ресурсов (Upkeep)">🎲 Сбор ресурсов</button>
                     <button type="button" class="btn cc" id="kBtnEndTurn" title="Перевести остаток RP в опыт XP (макс. 120)">⏳ Конец хода</button>
                     <button type="button" class="btn ok k-btn-save-small">⚜ Сохранить</button>

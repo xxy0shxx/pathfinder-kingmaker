@@ -571,6 +571,8 @@ const KingdomManager = {
         });
     },
 
+
+
     openLevelUpModal() {
         this.saveFromUi();
 
@@ -669,6 +671,118 @@ const KingdomManager = {
             this.recalculateModifiers();
             this._persist();
             this.renderUi();
+        });
+    },
+
+
+    openTradeModal() {
+        this.saveFromUi();
+
+        const existing = document.getElementById('kTradeModalOverlay');
+        if (existing) existing.remove();
+
+        const rates = {
+            food:     { label: '🌾 Food (Еда)',         buy: 2, sell: 1 },
+            lumber:   { label: '🪵 Lumber (Дерево)',    buy: 2, sell: 1 },
+            ore:      { label: '⛏ Ore (Руда)',          buy: 2, sell: 1 },
+            stone:    { label: '🧱 Stone (Камень)',     buy: 2, sell: 1 },
+            luxuries: { label: '💎 Luxuries (Роскошь)', buy: 4, sell: 2 }
+        };
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kTradeModalOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        const renderModalContent = () => {
+            const s = this.state;
+            const curRp = parseInt(s.rp, 10) || 0;
+
+            const rowsHtml = Object.entries(rates).map(([key, info]) => {
+                const c = s.commodities[key] || { value: 0, max: 4 };
+                const canBuy = curRp >= info.buy && c.value < c.max;
+                const canSell = c.value > 0;
+
+                return `
+                    <tr>
+                        <td style="font-weight:bold; color:#ebd291; padding:8px 6px;">${info.label}</td>
+                        <td style="text-align:center; font-family:monospace; font-size:16px; color:#ffd875; font-weight:bold;">${c.value} / ${c.max}</td>
+                        <td style="text-align:center;">
+                            <button type="button" class="btn ok k-trade-buy" data-comm="${key}" ${canBuy ? '' : 'disabled'} style="padding:5px 10px; font-size:12px; opacity:${canBuy ? '1' : '0.4'};">
+                                +1 за ${info.buy} RP
+                            </button>
+                        </td>
+                        <td style="text-align:center;">
+                            <button type="button" class="btn cc k-trade-sell" data-comm="${key}" ${canSell ? '' : 'disabled'} style="padding:5px 10px; font-size:12px; opacity:${canSell ? '1' : '0.4'};">
+                                -1 → +${info.sell} RP
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            overlay.innerHTML = `
+                <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:540px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+                        <span style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px;">⚖ Обмен ресурсов (Commodities ↔ RP)</span>
+                        <span style="background:#040905; border:1px solid #ffd875; padding:4px 12px; border-radius:5px; font-family:monospace; font-size:17px; font-weight:bold; color:#ffd875;">Казна: ${curRp} RP</span>
+                    </div>
+
+                    <table class="k-table" style="margin-bottom:16px;">
+                        <thead>
+                            <tr>
+                                <th>Ресурс</th>
+                                <th style="text-align:center;">Склад</th>
+                                <th style="text-align:center;">Купить</th>
+                                <th style="text-align:center;">Продать</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+
+                    <div style="display:flex; justify-content:flex-end;">
+                        <button type="button" class="btn ok" id="kTradeCloseBtn" style="min-width:130px;">⚜ Закрыть</button>
+                    </div>
+                </div>
+            `;
+
+            overlay.querySelectorAll('.k-trade-buy').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.dataset.comm;
+                    const rate = rates[key];
+                    const c = s.commodities[key];
+                    if ((parseInt(s.rp, 10) || 0) >= rate.buy && c.value < c.max) {
+                        s.rp = (parseInt(s.rp, 10) || 0) - rate.buy;
+                        c.value += 1;
+                        this._persist();
+                        this.renderUi();
+                        renderModalContent();
+                    }
+                });
+            });
+
+            overlay.querySelectorAll('.k-trade-sell').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.dataset.comm;
+                    const rate = rates[key];
+                    const c = s.commodities[key];
+                    if (c.value > 0) {
+                        c.value -= 1;
+                        s.rp = (parseInt(s.rp, 10) || 0) + rate.sell;
+                        this._persist();
+                        this.renderUi();
+                        renderModalContent();
+                    }
+                });
+            });
+
+            overlay.querySelector('#kTradeCloseBtn').addEventListener('click', () => overlay.remove());
+        };
+
+        document.body.appendChild(overlay);
+        renderModalContent();
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
         });
     },
 
@@ -927,6 +1041,9 @@ const KingdomManager = {
 
         const btnLevelUp = container.querySelector('#kBtnLevelUp');
         if (btnLevelUp) btnLevelUp.addEventListener('click', () => this.openLevelUpModal());
+
+        const btnTrade = container.querySelector('#kBtnTradeComm');
+        if (btnTrade) btnTrade.addEventListener('click', () => this.openTradeModal());
 
 
         const btnAddEv = container.querySelector('#kBtnAddEvent');
