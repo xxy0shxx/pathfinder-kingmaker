@@ -82,8 +82,9 @@ const KingdomBuildings = {
 
         // 4-Lot Buildings (2x2)
         { id: 'arena', name: 'Arena (Арена)', cols: 2, rows: 2, level: 9 },
+        { id: 'castle', name: 'Castle (Замок)', cols: 2, rows: 2, level: 9 },
 
-        { id: 'castle', name: 'Castle (Замок)', cols: 2, rows: 2, level: 9 }
+
     ],
 
     _cache: {},

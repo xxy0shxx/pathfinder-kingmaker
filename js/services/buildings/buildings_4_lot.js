@@ -2,7 +2,317 @@
  * ГЕНЕРАТОРЫ ПОСТРОЕК НА 4 КЛЕТКИ (2x2)
  */
 export const Buildings4Lot = {
-    arena(ctx, w, h) {
+
+    castle(ctx, w, h) {
+        // 1. Внешний травянистый фон участка
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. Бирюзовый ров с водой вокруг замка
+        const moatGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.25, w * 0.5, h * 0.5, w * 0.60);
+        moatGrad.addColorStop(0, '#0284c7');
+        moatGrad.addColorStop(0.72, '#38bdf8');
+        moatGrad.addColorStop(1, '#bae6fd');
+
+        ctx.fillStyle = moatGrad;
+        ctx.beginPath();
+        ctx.roundRect(w * 0.03, h * 0.04, w * 0.94, h * 0.87, 20);
+        ctx.fill();
+
+        // Опорные точки крепостных стен
+        const cTL = { x: w * 0.16, y: h * 0.14 };
+        const cTR = { x: w * 0.84, y: h * 0.14 };
+        const cBR = { x: w * 0.88, y: h * 0.78 };
+        const cBL = { x: w * 0.15, y: h * 0.78 };
+
+
+        // 3. Остров замка с широкой зелёной береговой полосой снаружи всех стен и башен
+        const yardGrad = ctx.createRadialGradient(w * 0.5, h * 0.52, w * 0.08, w * 0.5, h * 0.5, w * 0.44);
+        yardGrad.addColorStop(0, '#dcd6b0');
+        yardGrad.addColorStop(0.68, '#b8ba82');
+        yardGrad.addColorStop(1, '#7c8549');
+
+        ctx.fillStyle = yardGrad;
+        ctx.strokeStyle = '#7c8549';
+        ctx.lineWidth = 24;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cTL.x, cTL.y);
+        ctx.lineTo(cTR.x, cTR.y);
+        ctx.lineTo(cBR.x, cBR.y);
+        ctx.lineTo(cBL.x, cBL.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Зелёные мысы берега вокруг башен и южного барбакана
+        const tRadBank = w * 0.068 + 4;
+        [
+            [cTL.x, cTL.y, tRadBank],
+            [cTR.x, cTR.y, tRadBank],
+            [cBL.x, cBL.y, tRadBank],
+            [cBR.x, cBR.y, tRadBank],
+            [(cTL.x + cBL.x) / 2 - 2, (cTL.y + cBL.y) / 2, tRadBank],
+            [(cTR.x + cBR.x) / 2 + 2, (cTR.y + cBR.y) / 2, tRadBank],
+            [w * 0.445, h * 0.81, w * 0.055 + 4],
+            [w * 0.575, h * 0.81, w * 0.055 + 4]
+        ].forEach(([bx, by, br]) => {
+            ctx.beginPath();
+            ctx.arc(bx, by, br, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+
+
+        // 4. Деревянный мост через ров снизу по центру
+        const bridgeX = w * 0.48;
+        const bridgeY = h * 0.80;
+        const bridgeW = w * 0.06;
+        const bridgeH = h * 0.20;
+
+        ctx.fillStyle = '#5c4328';
+        ctx.strokeStyle = '#17120c';
+        ctx.lineWidth = 1.6;
+        ctx.fillRect(bridgeX, bridgeY, bridgeW, bridgeH);
+        ctx.strokeRect(bridgeX, bridgeY, bridgeW, bridgeH);
+
+        // 5. Мощёные булыжником тропинки во дворе и центральный круглый фонтан
+        ctx.fillStyle = 'rgba(118, 116, 108, 0.72)';
+        const drawCobbleLine = (x1, y1, x2, y2) => {
+            const steps = 12;
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const px = w * (x1 + (x2 - x1) * t);
+                const py = h * (y1 + (y2 - y1) * t);
+                ctx.beginPath();
+                ctx.roundRect(px - 2, py - 2, 3.6, 3.0, 1);
+                ctx.roundRect(px + 2, py + 1, 3.2, 2.8, 1);
+                ctx.fill();
+            }
+        };
+
+        drawCobbleLine(0.51, 0.38, 0.51, 0.72);
+        drawCobbleLine(0.21, 0.44, 0.51, 0.52);
+        drawCobbleLine(0.80, 0.44, 0.51, 0.52);
+
+        const fx = w * 0.51;
+        const fy = h * 0.51;
+        ctx.fillStyle = '#5c5850';
+        ctx.strokeStyle = '#171512';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(fx, fy, 7.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(fx, fy, 4.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 6. Четыре небольших хозяйственных домика в углах двора
+        const drawYardHut = (hx, hy, hw, hh, ang, color) => {
+            ctx.save();
+            ctx.translate(w * hx, h * hy);
+            ctx.rotate(ang);
+            ctx.fillStyle = 'rgba(18, 15, 10, 0.46)';
+            ctx.fillRect(-hw / 2 + 1.5, -hh / 2 + 2, hw, hh);
+
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#1f160d';
+            ctx.lineWidth = 1.3;
+            ctx.fillRect(-hw / 2, -hh / 2, hw, hh);
+            ctx.strokeRect(-hw / 2, -hh / 2, hw, hh);
+
+            ctx.beginPath();
+            if (hw >= hh) {
+                ctx.moveTo(-hw / 2, 0);
+                ctx.lineTo(hw / 2, 0);
+            } else {
+                ctx.moveTo(0, -hh / 2);
+                ctx.lineTo(0, hh / 2);
+            }
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        drawYardHut(0.30, 0.25, 11, 15, 0.0, '#9c6e44');
+        drawYardHut(0.75, 0.27, 15, 12, -0.25, '#857868');
+        drawYardHut(0.29, 0.65, 19, 11, -0.15, '#7c5334');
+        drawYardHut(0.72, 0.66, 15, 10, -0.22, '#9c6e44');
+
+        // Хелпер для сплошной каменной булыжной кладки в любых координатах (включая повёрнутые)
+        const fillStoneMasonry = (drawClipFn, minX = 0, minY = 0, spanW = w, spanH = h) => {
+            ctx.save();
+            drawClipFn();
+            ctx.clip();
+
+            ctx.fillStyle = '#868b94';
+            ctx.fillRect(minX, minY, spanW, spanH);
+
+            for (let y = minY; y < minY + spanH; y += 3.6) {
+                const shift = (Math.floor(Math.abs(y) / 3.6) % 2) * 2.0;
+                for (let x = minX; x < minX + spanW; x += 4.2) {
+                    const tone = ((Math.floor(Math.abs(x + y))) % 3 === 0) ? '#adb2ba' : (((Math.floor(Math.abs(x))) % 2 === 0) ? '#686d75' : '#8f949c');
+                    ctx.fillStyle = tone;
+                    ctx.strokeStyle = '#2a2d33';
+                    ctx.lineWidth = 0.6;
+                    ctx.fillRect(x + shift, y, 3.6, 3.0);
+                    ctx.strokeRect(x + shift, y, 3.6, 3.0);
+                }
+            }
+            ctx.restore();
+        };
+
+        // 7. Сплошные каменные крепостные стены замка
+        const wallW = 12;
+        const drawWallSegment = (p1, p2) => {
+            const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+            const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+
+            ctx.save();
+            ctx.translate(p1.x, p1.y);
+            ctx.rotate(ang);
+
+            ctx.fillStyle = 'rgba(12, 16, 20, 0.52)';
+            ctx.fillRect(0, -wallW / 2 + 2.5, len, wallW + 1);
+
+            fillStoneMasonry(() => {
+                ctx.beginPath();
+                ctx.rect(0, -wallW / 2, len, wallW);
+            }, -4, -wallW, len + 8, wallW * 2);
+
+            ctx.strokeStyle = '#181a1d';
+            ctx.lineWidth = 2.0;
+            ctx.strokeRect(0, -wallW / 2, len, wallW);
+
+            ctx.strokeStyle = '#474b52';
+            ctx.lineWidth = 1.0;
+            ctx.strokeRect(1.5, -wallW / 2 + 1.8, len - 3, wallW - 3.6);
+            ctx.restore();
+        };
+
+        drawWallSegment(cTL, cTR);
+        drawWallSegment(cTR, cBR);
+        drawWallSegment(cBR, cBL);
+        drawWallSegment(cBL, cTL);
+
+        // 8. Центральный каменный донжон (цитадель) у северной стены
+        const drawKeepPolygon = () => {
+            ctx.beginPath();
+            ctx.moveTo(w * 0.35, h * 0.16);
+            ctx.lineTo(w * 0.68, h * 0.16);
+            ctx.lineTo(w * 0.68, h * 0.35);
+            ctx.lineTo(w * 0.56, h * 0.35);
+            ctx.lineTo(w * 0.54, h * 0.39);
+            ctx.lineTo(w * 0.49, h * 0.39);
+            ctx.lineTo(w * 0.47, h * 0.35);
+            ctx.lineTo(w * 0.35, h * 0.35);
+            ctx.closePath();
+        };
+
+        ctx.save();
+        ctx.translate(2, 3);
+        ctx.fillStyle = 'rgba(14, 16, 18, 0.55)';
+        drawKeepPolygon();
+        ctx.fill();
+        ctx.restore();
+
+        fillStoneMasonry(drawKeepPolygon);
+        ctx.strokeStyle = '#181a1d';
+        ctx.lineWidth = 2.2;
+        drawKeepPolygon();
+        ctx.stroke();
+
+        // Верхний ярус донжона
+        const topKeep = { x: w * 0.42, y: h * 0.18, w: w * 0.19, h: h * 0.09 };
+        ctx.fillStyle = 'rgba(14, 16, 18, 0.50)';
+        ctx.fillRect(topKeep.x + 1.5, topKeep.y + 2, topKeep.w, topKeep.h);
+
+        fillStoneMasonry(() => {
+            ctx.beginPath();
+            ctx.rect(topKeep.x, topKeep.y, topKeep.w, topKeep.h);
+        });
+        ctx.strokeStyle = '#181a1d';
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(topKeep.x, topKeep.y, topKeep.w, topKeep.h);
+
+        // 9. Южный двухбашенный барбакан (главные ворота)
+        const drawBarbican = () => {
+            ctx.beginPath();
+            ctx.moveTo(w * 0.39, h * 0.72);
+            ctx.lineTo(w * 0.63, h * 0.72);
+            ctx.lineTo(w * 0.63, h * 0.81);
+            ctx.arc(w * 0.575, h * 0.81, w * 0.055, 0, Math.PI, false);
+            ctx.lineTo(w * 0.50, h * 0.81);
+            ctx.arc(w * 0.445, h * 0.81, w * 0.055, 0, Math.PI, false);
+            ctx.closePath();
+        };
+
+        ctx.save();
+        ctx.translate(2, 3);
+        ctx.fillStyle = 'rgba(14, 16, 18, 0.56)';
+        drawBarbican();
+        ctx.fill();
+        ctx.restore();
+
+        fillStoneMasonry(drawBarbican);
+        ctx.strokeStyle = '#181a1d';
+        ctx.lineWidth = 2.2;
+        drawBarbican();
+        ctx.stroke();
+
+        // Деревянный люк на крыше барбакана
+        ctx.fillStyle = '#855e3c';
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.2;
+        ctx.fillRect(w * 0.49, h * 0.75, 8, 6);
+        ctx.strokeRect(w * 0.49, h * 0.75, 8, 6);
+
+        // 10. Шесть круглых сплошных каменных башен (4 угловые и 2 боковые)
+        const drawRoundTower = (tx, ty, r) => {
+            ctx.fillStyle = 'rgba(14, 16, 18, 0.56)';
+            ctx.beginPath();
+            ctx.arc(tx + 2, ty + 3, r + 1, 0, Math.PI * 2);
+            ctx.fill();
+
+            fillStoneMasonry(() => {
+                ctx.beginPath();
+                ctx.arc(tx, ty, r, 0, Math.PI * 2);
+            });
+
+            ctx.strokeStyle = '#181a1d';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.arc(tx, ty, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#474b52';
+            ctx.lineWidth = 1.1;
+            ctx.beginPath();
+            ctx.arc(tx, ty, r - 2.2, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = '#474b52';
+            ctx.beginPath();
+            ctx.arc(tx, ty, 2.4, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        const tRad = w * 0.068;
+        drawRoundTower(cTL.x, cTL.y, tRad);
+        drawRoundTower(cTR.x, cTR.y, tRad);
+        drawRoundTower(cBL.x, cBL.y, tRad);
+        drawRoundTower(cBR.x, cBR.y, tRad);
+        drawRoundTower((cTL.x + cBL.x) / 2 - 2, (cTL.y + cBL.y) / 2, tRad * 0.96);
+        drawRoundTower((cTR.x + cBR.x) / 2 + 2, (cTR.y + cBR.y) / 2, tRad * 0.96);
+    },
+
+        arena(ctx, w, h) {
         // 1. Фон травянистого участка
         const bgGrad = ctx.createLinearGradient(0, 0, w, h);
         bgGrad.addColorStop(0, '#969e60');
@@ -153,7 +463,6 @@ export const Buildings4Lot = {
 
         [0, Math.PI / 2, Math.PI, -Math.PI / 2].forEach(ang => drawGateBastion(ang));
     },
-
 
 
 };
