@@ -634,6 +634,15 @@ const KingdomManager = {
             });
         }
 
+        // Мгновенный пересчёт Consumption и сохранение при смене Type, Overcrowded или границ
+        ['#k_ug_type', '#k_ug_overcrowded', '#k_ug_border_top', '#k_ug_border_bottom', '#k_ug_border_left', '#k_ug_border_right'].forEach(selector => {
+            const el = container.querySelector(selector);
+            if (el) {
+                el.addEventListener('change', () => {
+                    this.saveFromUi();
+                });
+            }
+        });
 
     }
 };
