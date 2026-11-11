@@ -2,6 +2,2563 @@
  * ГЕНЕРАТОРЫ ПОСТРОЕК НА 1 КЛЕТКУ (1x1)
  */
 export const Buildings1Lot = {
+    watchtower(ctx, w, h) {
+        // 1. Фон травянистого участка и вертикальная дорога по центру
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Светлая песчаная дорога и булыжники сверху вниз по центру
+        ctx.fillStyle = 'rgba(218, 212, 174, 0.55)';
+        ctx.fillRect(w * 0.42, 0, w * 0.16, h);
+
+        ctx.fillStyle = 'rgba(118, 116, 108, 0.72)';
+        for (let y = 2; y < h - 2; y += 5) {
+            if (y > h * 0.30 && y < h * 0.72) continue;
+            for (let dx = -5; dx <= 4; dx += 4.5) {
+                const shift = (Math.floor(y / 5) % 2) * 1.8;
+                ctx.beginPath();
+                ctx.roundRect(w * 0.49 + dx + shift, y, 3.6, 3.2, 1);
+                ctx.fill();
+            }
+        }
+
+        // 2. Контур двухбашенной сторожевой заставы
+        const drawFortPath = () => {
+            ctx.beginPath();
+            ctx.moveTo(w * 0.10, h * 0.72);
+            ctx.lineTo(w * 0.10, h * 0.41);
+            ctx.arc(w * 0.25, h * 0.41, w * 0.15, Math.PI, 0, false);
+            ctx.lineTo(w * 0.60, h * 0.41);
+            ctx.arc(w * 0.75, h * 0.41, w * 0.15, Math.PI, 0, false);
+            ctx.lineTo(w * 0.90, h * 0.72);
+            ctx.closePath();
+        };
+
+        // Тень от укрепления
+        ctx.save();
+        ctx.translate(2.5, 3.5);
+        ctx.fillStyle = 'rgba(18, 18, 20, 0.56)';
+        drawFortPath();
+        ctx.fill();
+        ctx.restore();
+
+        // 3. Булыжная каменная кладка на крыше башен
+        ctx.save();
+        drawFortPath();
+        ctx.fillStyle = '#8b9098';
+        ctx.fill();
+        ctx.clip();
+
+        for (let y = h * 0.24; y < h * 0.73; y += 4.6) {
+            const shift = (Math.floor(y / 4.6) % 2) * 2.6;
+            for (let x = w * 0.09; x < w * 0.91; x += 5.2) {
+                const tone = ((Math.floor(x + y)) % 3 === 0) ? '#adb2ba' : (((Math.floor(x)) % 2 === 0) ? '#737880' : '#9499a1');
+                ctx.fillStyle = tone;
+                ctx.strokeStyle = '#26292e';
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.roundRect(x + shift, y, 4.4, 3.8, 1.1);
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+
+        // 4. Зубчатый каменный парапет по всему периметру башни
+        ctx.strokeStyle = '#1c1e21';
+        ctx.lineWidth = 3.6;
+        ctx.lineJoin = 'round';
+        drawFortPath();
+        ctx.stroke();
+
+        ctx.setLineDash([2.4, 2.4]);
+        ctx.strokeStyle = '#9ea3ab';
+        ctx.lineWidth = 1.8;
+        drawFortPath();
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Небольшой парапетный выступ над центральным проездом
+        ctx.fillStyle = '#474b52';
+        ctx.strokeStyle = '#1c1e21';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.43, h * 0.37, w * 0.14, h * 0.04);
+        ctx.strokeRect(w * 0.43, h * 0.37, w * 0.14, h * 0.04);
+
+        // 5. Центральная деревянная решётка (машикуль) и два боковых люка
+        const gx = w * 0.43;
+        const gy = h * 0.49;
+        const gw = w * 0.14;
+        const gh = h * 0.13;
+
+        ctx.fillStyle = '#3b2818';
+        ctx.strokeStyle = '#1a1109';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(gx, gy, gw, gh);
+        ctx.strokeRect(gx, gy, gw, gh);
+
+        ctx.strokeStyle = '#855e3c';
+        ctx.lineWidth = 1.1;
+        for (let lx = gx + 3.5; lx < gx + gw - 1; lx += 3.5) {
+            ctx.beginPath();
+            ctx.moveTo(lx, gy);
+            ctx.lineTo(lx, gy + gh);
+            ctx.stroke();
+        }
+        for (let ly = gy + 3.5; ly < gy + gh - 1; ly += 3.5) {
+            ctx.beginPath();
+            ctx.moveTo(gx, ly);
+            ctx.lineTo(gx + gw, ly);
+            ctx.stroke();
+        }
+
+        // Левый и правый деревянные люки в бастионах
+        [0.25, 0.75].forEach(bx => {
+            ctx.fillStyle = '#735334';
+            ctx.strokeStyle = '#1f160d';
+            ctx.lineWidth = 1.3;
+            ctx.fillRect(w * bx - 4, h * 0.51, 8, 8);
+            ctx.strokeRect(w * bx - 4, h * 0.51, 8, 8);
+
+            ctx.beginPath();
+            ctx.moveTo(w * bx - 4, h * 0.55);
+            ctx.lineTo(w * bx + 4, h * 0.55);
+            ctx.stroke();
+        });
+    },
+
+    trade_shop(ctx, w, h) {
+        // 1. Фон травянистого участка и мощёная дорожка справа по центру
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(122, 120, 112, 0.72)';
+        for (let x = w * 0.80; x < w - 2; x += 5) {
+            for (let dy = -6; dy <= 5; dy += 5) {
+                const shift = (Math.floor(x / 5) % 2) * 2;
+                ctx.beginPath();
+                ctx.roundRect(x, h * 0.48 + dy + shift, 3.8, 3.4, 1);
+                ctx.fill();
+            }
+        }
+
+        // 2. Реквизит у стен: ящики слева сверху и три бочки справа снизу
+        ctx.fillStyle = '#5c5346';
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 1.2;
+        ctx.fillRect(w * 0.05, h * 0.08, 9, 11);
+        ctx.strokeRect(w * 0.05, h * 0.08, 9, 11);
+        ctx.fillRect(w * 0.11, h * 0.21, 8, 7);
+        ctx.strokeRect(w * 0.11, h * 0.21, 8, 7);
+
+        [
+            [0.88, 0.65], [0.81, 0.76], [0.81, 0.88]
+        ].forEach(([bx, by]) => {
+            ctx.fillStyle = '#3b3730';
+            ctx.strokeStyle = '#171512';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(w * bx, h * by, 4.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        // 3. Крестообразный контур здания торговой лавки
+        const pts = [
+            { x: w * 0.21, y: h * 0.08 },
+            { x: w * 0.76, y: h * 0.08 },
+            { x: w * 0.76, y: h * 0.30 },
+            { x: w * 0.83, y: h * 0.30 },
+            { x: w * 0.83, y: h * 0.65 },
+            { x: w * 0.76, y: h * 0.65 },
+            { x: w * 0.76, y: h * 0.89 },
+            { x: w * 0.21, y: h * 0.89 },
+            { x: w * 0.21, y: h * 0.65 },
+            { x: w * 0.14, y: h * 0.65 },
+            { x: w * 0.14, y: h * 0.30 },
+            { x: w * 0.21, y: h * 0.30 }
+        ];
+
+        // Тень от здания
+        ctx.save();
+        ctx.translate(2.5, 3.5);
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.54)';
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Заливка многоскатной охристо-коричневой крыши
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+
+        // Базовый тёплый охристый цвет левого ската
+        ctx.fillStyle = '#a8844c';
+        ctx.fill();
+        ctx.clip();
+
+        // Более тёмный правый скат основного корпуса
+        ctx.fillStyle = '#755628';
+        ctx.fillRect(w * 0.485, h * 0.08, w * 0.35, h * 0.82);
+
+        // Тёмные нижние треугольные скаты обоих боковых крыльев
+        ctx.fillStyle = '#523b1a';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.14, h * 0.475);
+        ctx.lineTo(w * 0.485, h * 0.475);
+        ctx.lineTo(w * 0.21, h * 0.65);
+        ctx.lineTo(w * 0.14, h * 0.65);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(w * 0.83, h * 0.475);
+        ctx.lineTo(w * 0.485, h * 0.475);
+        ctx.lineTo(w * 0.76, h * 0.65);
+        ctx.lineTo(w * 0.83, h * 0.65);
+        ctx.closePath();
+        ctx.fill();
+
+        // Мелкая фактура черепицы
+        ctx.strokeStyle = 'rgba(32, 22, 10, 0.34)';
+        ctx.lineWidth = 1;
+        for (let y = h * 0.10; y < h * 0.88; y += 5) {
+            for (let x = w * 0.16; x < w * 0.81; x += 6) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + 3, y);
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+
+        // Внешний контур крыши
+        ctx.strokeStyle = '#22170a';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.stroke();
+
+        // 4. Пересекающиеся коньковые балки и диагональные стыки скатов
+        const cx = w * 0.485;
+        const cy = h * 0.475;
+
+        ctx.strokeStyle = '#2b1c0c';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        // Вертикальный и горизонтальный коньки
+        ctx.moveTo(cx, h * 0.06);
+        ctx.lineTo(cx, h * 0.91);
+        ctx.moveTo(w * 0.14, cy);
+        ctx.lineTo(w * 0.83, cy);
+
+        // Четыре диагональных ребра к углам боковых крыльев
+        ctx.moveTo(w * 0.21, h * 0.30);
+        ctx.lineTo(cx, cy);
+        ctx.moveTo(w * 0.76, h * 0.30);
+        ctx.lineTo(cx, cy);
+        ctx.moveTo(w * 0.21, h * 0.65);
+        ctx.lineTo(cx, cy);
+        ctx.moveTo(w * 0.76, h * 0.65);
+        ctx.lineTo(cx, cy);
+        ctx.stroke();
+
+        // 5. Квадратный каменный дымоход в нижней левой части крыши
+        ctx.fillStyle = '#9c988e';
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.29, h * 0.74, 8, 9);
+        ctx.strokeRect(w * 0.29, h * 0.74, 8, 9);
+
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(w * 0.31, h * 0.76, 4, 5);
+    },
+
+    thieves_guild(ctx, w, h) {
+        // 1. Фон травянистого участка с вытоптанным переулком между зданиями
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(182, 168, 134, 0.45)';
+        ctx.fillRect(w * 0.36, h * 0.28, w * 0.22, h * 0.45);
+
+        // 2. ДОМ 1 (Слева сверху — серо-бежевая соломенная крыша с вертикальным коньком)
+        const h1 = { x: w * 0.08, y: h * 0.08, w: w * 0.32, h: h * 0.45 };
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.50)';
+        ctx.fillRect(h1.x + 2.5, h1.y + 3, h1.w, h1.h);
+
+        // Боковой ящик/тамбур справа от левого верхнего дома
+        ctx.fillStyle = '#736c66';
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 1.3;
+        ctx.fillRect(h1.x + h1.w, h1.y + h1.h * 0.42, 4, 10);
+        ctx.strokeRect(h1.x + h1.w, h1.y + h1.h * 0.42, 4, 10);
+
+        const g1 = ctx.createLinearGradient(h1.x, h1.y, h1.x + h1.w, h1.y);
+        g1.addColorStop(0, '#857766');
+        g1.addColorStop(0.5, '#a89a88');
+        g1.addColorStop(1, '#756858');
+        ctx.fillStyle = g1;
+        ctx.strokeStyle = '#1f1912';
+        ctx.lineWidth = 1.7;
+        ctx.fillRect(h1.x, h1.y, h1.w, h1.h);
+        ctx.strokeRect(h1.x, h1.y, h1.w, h1.h);
+
+        // Вертикальный конёк, бахрома соломы и труба
+        ctx.beginPath();
+        ctx.moveTo(h1.x + h1.w * 0.5, h1.y);
+        ctx.lineTo(h1.x + h1.w * 0.5, h1.y + h1.h);
+        ctx.stroke();
+
+        ctx.fillStyle = '#6e6a62';
+        ctx.fillRect(h1.x + h1.w * 0.5 - 2, h1.y + h1.h * 0.48, 5, 8);
+        ctx.strokeRect(h1.x + h1.w * 0.5 - 2, h1.y + h1.h * 0.48, 5, 8);
+
+        // 3. ДОМ 2 (Справа сверху — янтарно-соломенная крыша с горизонтальным коньком)
+        const h2 = { x: w * 0.48, y: h * 0.08, w: w * 0.44, h: h * 0.27 };
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.50)';
+        ctx.fillRect(h2.x + 2.5, h2.y + 3, h2.w, h2.h);
+
+        ctx.fillStyle = '#b59242';
+        ctx.fillRect(h2.x, h2.y, h2.w, h2.h * 0.5);
+        ctx.fillStyle = '#73531c';
+        ctx.fillRect(h2.x, h2.y + h2.h * 0.5, h2.w, h2.h * 0.5);
+
+        ctx.strokeStyle = '#1f160a';
+        ctx.lineWidth = 1.7;
+        ctx.strokeRect(h2.x, h2.y, h2.w, h2.h);
+        ctx.beginPath();
+        ctx.moveTo(h2.x, h2.y + h2.h * 0.5);
+        ctx.lineTo(h2.x + h2.w, h2.y + h2.h * 0.5);
+        ctx.stroke();
+
+        ctx.fillStyle = '#6e6a62';
+        ctx.fillRect(h2.x + h2.w * 0.45, h2.y + h2.h * 0.52, 6, 6);
+        ctx.strokeRect(h2.x + h2.w * 0.45, h2.y + h2.h * 0.52, 6, 6);
+
+        // 4. ДОМ 3 (Слева снизу — компактный домик с янтарно-охристой крышей)
+        const h3 = { x: w * 0.09, y: h * 0.62, w: w * 0.36, h: h * 0.29 };
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.50)';
+        ctx.fillRect(h3.x + 2.5, h3.y + 3, h3.w, h3.h);
+
+        ctx.fillStyle = '#ab8a44';
+        ctx.fillRect(h3.x, h3.y, h3.w, h3.h * 0.45);
+        ctx.fillStyle = '#785a22';
+        ctx.fillRect(h3.x, h3.y + h3.h * 0.45, h3.w, h3.h * 0.55);
+
+        ctx.strokeStyle = '#1f160a';
+        ctx.lineWidth = 1.7;
+        ctx.strokeRect(h3.x, h3.y, h3.w, h3.h);
+        ctx.beginPath();
+        ctx.moveTo(h3.x, h3.y + h3.h * 0.45);
+        ctx.lineTo(h3.x + h3.w, h3.y + h3.h * 0.45);
+        ctx.stroke();
+
+        ctx.fillStyle = '#78736a';
+        ctx.fillRect(h3.x + h3.w * 0.48, h3.y + h3.h * 0.22, 6, 6);
+        ctx.strokeRect(h3.x + h3.w * 0.48, h3.y + h3.h * 0.22, 6, 6);
+
+        // 5. ДОМ 4 (Справа снизу — каменное ступенчатое логово с плоской крышей)
+        ctx.fillStyle = '#7c5c38';
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.48, h * 0.46, 8, 12);
+        ctx.strokeRect(w * 0.48, h * 0.46, 8, 12);
+        ctx.beginPath();
+        ctx.moveTo(w * 0.48, h * 0.52);
+        ctx.lineTo(w * 0.48 + 8, h * 0.52);
+        ctx.stroke();
+
+        const stonePts = [
+            { x: w * 0.55, y: h * 0.42 },
+            { x: w * 0.90, y: h * 0.42 },
+            { x: w * 0.90, y: h * 0.91 },
+            { x: w * 0.52, y: h * 0.91 },
+            { x: w * 0.52, y: h * 0.62 },
+            { x: w * 0.55, y: h * 0.62 }
+        ];
+
+        ctx.save();
+        ctx.translate(2.5, 3);
+        ctx.fillStyle = 'rgba(18, 18, 15, 0.54)';
+        ctx.beginPath();
+        stonePts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Внешние каменные стены
+        ctx.fillStyle = '#8b8880';
+        ctx.strokeStyle = '#1c1b18';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        stonePts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Углублённая светло-песочная крыша логова
+        const innerPts = [
+            { x: w * 0.60, y: h * 0.47 },
+            { x: w * 0.85, y: h * 0.47 },
+            { x: w * 0.85, y: h * 0.86 },
+            { x: w * 0.57, y: h * 0.86 },
+            { x: w * 0.57, y: h * 0.66 },
+            { x: w * 0.60, y: h * 0.66 }
+        ];
+
+        ctx.fillStyle = '#b8aa90';
+        ctx.strokeStyle = '#33302b';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        innerPts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Две круглые трубы/люка в центре плоской крыши
+        [
+            [0.68, 0.65, 3.4],
+            [0.72, 0.72, 3.0]
+        ].forEach(([cx, cy, r]) => {
+            ctx.fillStyle = '#5c5852';
+            ctx.strokeStyle = '#171512';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(w * cx, h * cy, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+    },
+
+    tenement(ctx, w, h) {
+        // 1. Фон травянистого участка и мощёная дорожка справа по центру
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(122, 120, 112, 0.74)';
+        for (let x = w * 0.72; x < w - 2; x += 5) {
+            for (let dy = -6; dy <= 5; dy += 5) {
+                const shift = (Math.floor(x / 5) % 2) * 2;
+                ctx.beginPath();
+                ctx.roundRect(x, h * 0.50 + dy + shift, 3.8, 3.4, 1);
+                ctx.fill();
+            }
+        }
+
+        // 2. Реквизит у стен: доски справа сверху, бочки справа снизу, ящик и бочка слева
+        const drawBeam = (x1, y1, x2, y2) => {
+            ctx.strokeStyle = '#1f1912';
+            ctx.lineWidth = 3.2;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(w * x1, h * y1);
+            ctx.lineTo(w * x2, h * y2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#6e624d';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(w * x1, h * y1);
+            ctx.lineTo(w * x2, h * y2);
+            ctx.stroke();
+        };
+
+        drawBeam(0.75, 0.34, 0.86, 0.19);
+        drawBeam(0.83, 0.34, 0.94, 0.19);
+
+        const drawBarrel = (bx, by, r = 4.0) => {
+            ctx.fillStyle = '#47423b';
+            ctx.strokeStyle = '#171512';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(w * bx, h * by, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        };
+
+        drawBarrel(0.79, 0.62, 4.4);
+        drawBarrel(0.85, 0.74, 3.6);
+        drawBarrel(0.11, 0.72, 4.0);
+
+        ctx.fillStyle = '#5c5850';
+        ctx.strokeStyle = '#171512';
+        ctx.lineWidth = 1.2;
+        ctx.fillRect(w * 0.06, h * 0.48, 8, 9);
+        ctx.strokeRect(w * 0.06, h * 0.48, 8, 9);
+
+        // 3. Основной прямоугольный корпус доходного дома
+        const rx = w * 0.12;
+        const ry = h * 0.08;
+        const rw = w * 0.59;
+        const rh = h * 0.82;
+
+        // Тень от здания
+        ctx.fillStyle = 'rgba(18, 16, 14, 0.54)';
+        ctx.fillRect(rx + 3, ry + 3.5, rw, rh);
+
+        // Серо-пепельный градиент ветхой соломенной кровли
+        const roofGrad = ctx.createLinearGradient(rx, ry, rx + rw, ry);
+        roofGrad.addColorStop(0, '#78716a');
+        roofGrad.addColorStop(0.46, '#9c948c');
+        roofGrad.addColorStop(0.54, '#6b645e');
+        roofGrad.addColorStop(1, '#544e49');
+
+        ctx.fillStyle = roofGrad;
+        ctx.fillRect(rx, ry, rw, rh);
+
+        // Бахромчатая штриховка соломы по краям крыши
+        ctx.strokeStyle = 'rgba(26, 22, 20, 0.52)';
+        ctx.lineWidth = 1.1;
+        for (let y = ry + 4; y < ry + rh - 3; y += 4.5) {
+            ctx.beginPath();
+            ctx.moveTo(rx, y);
+            ctx.lineTo(rx + 5, y + 0.5);
+            ctx.moveTo(rx + rw - 5, y);
+            ctx.lineTo(rx + rw, y + 0.5);
+            ctx.stroke();
+        }
+
+        // Контур крыши
+        ctx.strokeStyle = '#1a1715';
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(rx, ry, rw, rh);
+
+        // 4. Продольное коньковое бревно посередине
+        const ridgeX = rx + rw * 0.48;
+        ctx.fillStyle = '#736c66';
+        ctx.strokeStyle = '#141210';
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(ridgeX - 2.4, ry - 2.5, 4.8, rh + 5);
+        ctx.strokeRect(ridgeX - 2.4, ry - 2.5, 4.8, rh + 5);
+
+        // 5. Полукруглые слуховые окна на скатах (3 слева, 2 справа)
+        const drawDormer = (dx, dy, dir) => {
+            ctx.save();
+            ctx.translate(w * dx, h * dy);
+            ctx.fillStyle = '#a8a296';
+            ctx.strokeStyle = '#1c1917';
+            ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            if (dir === 'left') {
+                ctx.arc(2, 0, 5.2, Math.PI * 0.5, Math.PI * 1.5);
+            } else {
+                ctx.arc(-2, 0, 5.2, -Math.PI * 0.5, Math.PI * 0.5);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(dir === 'left' ? -3 : -2, 0);
+            ctx.lineTo(dir === 'left' ? 2 : 3, 0);
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        drawDormer(0.28, 0.23, 'left');
+        drawDormer(0.28, 0.48, 'left');
+        drawDormer(0.28, 0.72, 'left');
+        drawDormer(0.55, 0.23, 'right');
+        drawDormer(0.55, 0.72, 'right');
+
+        // 6. Крупная тёмная дыра-прореха посередине правого ската
+        ctx.fillStyle = '#1f1d1b';
+        ctx.strokeStyle = '#12100e';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.50, h * 0.46);
+        ctx.lineTo(w * 0.62, h * 0.37);
+        ctx.lineTo(w * 0.65, h * 0.55);
+        ctx.lineTo(w * 0.53, h * 0.56);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    },
+
+    tavern_popular(ctx, w, h) {
+        // 1. Фон травянистого участка со светлой дорогой вдоль правой диагонали
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(218, 212, 174, 0.45)';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.85, 0);
+        ctx.lineTo(w, 0);
+        ctx.lineTo(w, h);
+        ctx.lineTo(w * 0.45, h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Мелкая галька на дороге справа
+        ctx.fillStyle = 'rgba(115, 113, 104, 0.65)';
+        [
+            [0.84, 0.34], [0.91, 0.44], [0.81, 0.56], [0.89, 0.64], [0.76, 0.78]
+        ].forEach(([gx, gy]) => {
+            ctx.beginPath();
+            ctx.roundRect(w * gx, h * gy, 3.8, 3.2, 1);
+            ctx.fill();
+        });
+
+        // 2. Входная каменная лестница слева и ящик под ней
+        ctx.fillStyle = '#8c8a82';
+        ctx.strokeStyle = '#1f1d1a';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.08, h * 0.31, w * 0.14, h * 0.11);
+        ctx.strokeRect(w * 0.08, h * 0.31, w * 0.14, h * 0.11);
+
+        for (let sx = w * 0.11; sx < w * 0.21; sx += 3.5) {
+            ctx.beginPath();
+            ctx.moveTo(sx, h * 0.31);
+            ctx.lineTo(sx, h * 0.42);
+            ctx.stroke();
+        }
+
+        // Коричневый ящик/бочонок под лестницей
+        ctx.fillStyle = '#7c5334';
+        ctx.fillRect(w * 0.15, h * 0.50, 7, 10);
+        ctx.strokeRect(w * 0.15, h * 0.50, 7, 10);
+
+        // 3. Три тёмные бочки вдоль правой диагональной стены
+        [
+            [0.81, 0.41], [0.67, 0.68], [0.60, 0.77]
+        ].forEach(([bx, by]) => {
+            ctx.fillStyle = '#3b3732';
+            ctx.strokeStyle = '#171512';
+            ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            ctx.arc(w * bx, h * by, 4.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        // 4. Внешний треугольный контур терракотовой крыши со скруглёнными углами
+        const drawRoundedTri = (pts, rad) => {
+            ctx.beginPath();
+            for (let i = 0; i < pts.length; i++) {
+                const p0 = pts[(i + pts.length - 1) % pts.length];
+                const p1 = pts[i];
+                const p2 = pts[(i + 1) % pts.length];
+                const v1x = p0.x - p1.x;
+                const v1y = p0.y - p1.y;
+                const v2x = p2.x - p1.x;
+                const v2y = p2.y - p1.y;
+                const l1 = Math.hypot(v1x, v1y);
+                const l2 = Math.hypot(v2x, v2y);
+                const s1 = { x: p1.x + (v1x / l1) * rad, y: p1.y + (v1y / l1) * rad };
+                const s2 = { x: p1.x + (v2x / l2) * rad, y: p1.y + (v2y / l2) * rad };
+                if (i === 0) ctx.moveTo(s1.x, s1.y);
+                else ctx.lineTo(s1.x, s1.y);
+                ctx.quadraticCurveTo(p1.x, p1.y, s2.x, s2.y);
+            }
+            ctx.closePath();
+        };
+
+        const outerPts = [
+            { x: w * 0.19, y: h * 0.08 },
+            { x: w * 0.87, y: h * 0.14 },
+            { x: w * 0.41, y: h * 0.83 }
+        ];
+
+        // Тень от таверны
+        ctx.save();
+        ctx.translate(2.5, 3.5);
+        ctx.fillStyle = 'rgba(18, 14, 10, 0.54)';
+        drawRoundedTri(outerPts, 7);
+        ctx.fill();
+        ctx.restore();
+
+        // Заливка терракотово-коричневых скатов крыши
+        const roofGrad = ctx.createLinearGradient(w * 0.19, h * 0.08, w * 0.87, h * 0.83);
+        roofGrad.addColorStop(0, '#7c4324');
+        roofGrad.addColorStop(0.5, '#9c5a34');
+        roofGrad.addColorStop(1, '#542b14');
+
+        ctx.fillStyle = roofGrad;
+        ctx.strokeStyle = '#241208';
+        ctx.lineWidth = 2.0;
+        drawRoundedTri(outerPts, 7);
+        ctx.fill();
+        ctx.stroke();
+
+        // 5. Углублённая светло-песочная плоская площадка крыши в двойном обрамлении
+        const innerPts = [
+            { x: w * 0.31, y: h * 0.20 },
+            { x: w * 0.72, y: h * 0.24 },
+            { x: w * 0.43, y: h * 0.67 }
+        ];
+
+        ctx.fillStyle = '#cfc2a3';
+        ctx.strokeStyle = '#3b2b1a';
+        ctx.lineWidth = 2.8;
+        drawRoundedTri(innerPts, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = '#e5dcc5';
+        ctx.lineWidth = 1.2;
+        drawRoundedTri(innerPts, 4);
+        ctx.stroke();
+
+        // 6. Дымоход и ромбовидный люк на внутренней площадке крыши
+        ctx.fillStyle = '#5c5852';
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 1.3;
+        ctx.fillRect(w * 0.36, h * 0.34, 6, 9);
+        ctx.strokeRect(w * 0.36, h * 0.34, 6, 9);
+
+        ctx.save();
+        ctx.translate(w * 0.53, h * 0.31);
+        ctx.rotate(0.78);
+        ctx.fillStyle = '#9c8c72';
+        ctx.fillRect(-3.5, -3.5, 7, 7);
+        ctx.strokeRect(-3.5, -3.5, 7, 7);
+        ctx.restore();
+    },
+
+    tavern_dive(ctx, w, h) {
+        // 1. Фон травянистого участка с грязными вытоптанными пятнами
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(115, 86, 52, 0.45)';
+        const mudSpots = [
+            [0.64, 0.08, 7, 5], [0.85, 0.24, 6, 8], [0.16, 0.72, 6, 5],
+            [0.44, 0.86, 9, 6], [0.76, 0.80, 8, 6], [0.28, 0.90, 5, 4]
+        ];
+        mudSpots.forEach(([mx, my, rx, ry]) => {
+            ctx.beginPath();
+            ctx.ellipse(w * mx, h * my, rx, ry, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // 2. Деревянная пристройка-навес снизу слева и две бочки у входа
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.48)';
+        ctx.fillRect(w * 0.20, h * 0.69, w * 0.35, h * 0.16);
+
+        const shedGrad = ctx.createLinearGradient(w * 0.19, h * 0.67, w * 0.54, h * 0.83);
+        shedGrad.addColorStop(0, '#7c6244');
+        shedGrad.addColorStop(1, '#a68b68');
+        ctx.fillStyle = shedGrad;
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(w * 0.19, h * 0.67, w * 0.35, h * 0.15);
+        ctx.strokeRect(w * 0.19, h * 0.67, w * 0.35, h * 0.15);
+
+        ctx.beginPath();
+        ctx.moveTo(w * 0.36, h * 0.67);
+        ctx.lineTo(w * 0.36, h * 0.82);
+        ctx.stroke();
+
+        // Бочка и серый бочонок справа от пристройки
+        ctx.fillStyle = '#6e472b';
+        ctx.beginPath();
+        ctx.arc(w * 0.63, h * 0.75, 4.0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#5c5850';
+        ctx.fillRect(w * 0.56, h * 0.81, 6, 7);
+        ctx.strokeRect(w * 0.56, h * 0.81, 6, 7);
+
+        // 3. Основная четырёхскатная соломенная крыша забегаловки
+        const rx = w * 0.10;
+        const ry = h * 0.12;
+        const rw = w * 0.80;
+        const rh = h * 0.55;
+
+        // Тень от здания
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.54)';
+        ctx.fillRect(rx + 2.5, ry + 3.5, rw, rh);
+
+        // Заливка соломенной крыши (верх и право светлее, низ и лево темнее)
+        const roofGrad = ctx.createLinearGradient(rx, ry, rx + rw, ry + rh);
+        roofGrad.addColorStop(0, '#9c8044');
+        roofGrad.addColorStop(0.5, '#b89b58');
+        roofGrad.addColorStop(1, '#75561e');
+        ctx.fillStyle = roofGrad;
+        ctx.fillRect(rx, ry, rw, rh);
+
+        // Тёмный нижний скат крыши
+        ctx.fillStyle = 'rgba(82, 54, 16, 0.42)';
+        ctx.beginPath();
+        ctx.moveTo(rx, ry + rh);
+        ctx.lineTo(w * 0.42, h * 0.43);
+        ctx.lineTo(w * 0.62, h * 0.43);
+        ctx.lineTo(rx + rw, ry + rh);
+        ctx.closePath();
+        ctx.fill();
+
+        // Бахромчатая фактура соломы по периметру
+        ctx.strokeStyle = 'rgba(38, 26, 8, 0.48)';
+        ctx.lineWidth = 1.1;
+        for (let x = rx + 4; x < rx + rw - 4; x += 5) {
+            ctx.beginPath();
+            ctx.moveTo(x, ry);
+            ctx.lineTo(x, ry + 4.5);
+            ctx.moveTo(x, ry + rh - 4.5);
+            ctx.lineTo(x, ry + rh);
+            ctx.stroke();
+        }
+        for (let y = ry + 4; y < ry + rh - 4; y += 5) {
+            ctx.beginPath();
+            ctx.moveTo(rx, y);
+            ctx.lineTo(rx + 4.5, y);
+            ctx.moveTo(rx + rw - 4.5, y);
+            ctx.lineTo(rx + rw, y);
+            ctx.stroke();
+        }
+
+        // Неровный контур карниза
+        ctx.strokeStyle = '#22170a';
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(rx, ry, rw, rh);
+
+        // 4. Коньковые балки вальмовой крыши
+        const rLeftX = w * 0.42;
+        const rRightX = w * 0.62;
+        const rY = h * 0.43;
+
+        ctx.strokeStyle = '#2b1c0c';
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(rLeftX, rY);
+        ctx.lineTo(rRightX, rY);
+        ctx.moveTo(rx, ry);
+        ctx.lineTo(rLeftX, rY);
+        ctx.moveTo(rx, ry + rh);
+        ctx.lineTo(rLeftX, rY);
+        ctx.moveTo(rx + rw, ry);
+        ctx.lineTo(rRightX, rY);
+        ctx.moveTo(rx + rw, ry + rh);
+        ctx.lineTo(rRightX, rY);
+        ctx.stroke();
+
+        // 5. Три тёмные заплатки (прорехи) на скатах крыши
+        const drawPatch = (px, py, pw, ph, ang) => {
+            ctx.save();
+            ctx.translate(w * px, h * py);
+            ctx.rotate(ang);
+            ctx.fillStyle = '#1f1d1c';
+            ctx.beginPath();
+            ctx.roundRect(-pw / 2, -ph / 2, pw, ph, 2.5);
+            ctx.fill();
+            ctx.restore();
+        };
+
+        drawPatch(0.66, 0.23, 12, 6, -0.35);
+        drawPatch(0.26, 0.42, 6, 13, 0.25);
+        drawPatch(0.61, 0.52, 11, 8, -0.45);
+
+        // 6. Каменный дымоход на верхнем скате левее центра
+        ctx.fillStyle = '#7c7870';
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.42, h * 0.28, 7, 10);
+        ctx.strokeRect(w * 0.42, h * 0.28, 7, 10);
+
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(w * 0.44, h * 0.30, 3, 6);
+    },
+
+    tannery(ctx, w, h) {
+        // 1. Фон травянистого участка со светлой тропой в левом верхнем углу
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = 'rgba(218, 212, 174, 0.55)';
+        ctx.lineWidth = 10;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.14, 0);
+        ctx.lineTo(w * 0.28, h * 0.28);
+        ctx.stroke();
+
+        // 2. Реквизит у верхней стены: коричневая бочка и серый ящик
+        ctx.fillStyle = '#754c33';
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(w * 0.41, h * 0.09, 4.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#6e6a62';
+        ctx.fillRect(w * 0.33, h * 0.17, 6, 7);
+        ctx.strokeRect(w * 0.33, h * 0.17, 6, 7);
+
+        // 3. Повёрнутая Г-образная постройка кожевни
+        ctx.save();
+        ctx.translate(w * 0.48, h * 0.45);
+        ctx.rotate(-0.46);
+
+        // Дубильный реквизит во внутреннем дворе справа (ящики и синий чан)
+        ctx.fillStyle = '#5c5549';
+        ctx.strokeStyle = '#1f1912';
+        ctx.lineWidth = 1.2;
+        ctx.fillRect(16, -2, 8, 8);
+        ctx.strokeRect(16, -2, 8, 8);
+
+        ctx.fillStyle = '#7c5834';
+        ctx.fillRect(5, 3, 9, 8);
+        ctx.strokeRect(5, 3, 9, 8);
+
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.arc(14, 15, 4.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#7dd3fc';
+        ctx.beginPath();
+        ctx.arc(13, 14, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Контур Г-образной крыши в локальных координатах
+        const pts = [
+            { x: -34, y: -26 },
+            { x: 34, y: -26 },
+            { x: 34, y: -3 },
+            { x: -7, y: -3 },
+            { x: -7, y: 34 },
+            { x: -34, y: 34 }
+        ];
+
+        // Тень от здания
+        ctx.save();
+        ctx.translate(2.5, 3.5);
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.54)';
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Заливка двухцветной соломенной крыши
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+
+        // Светлый песочный базовый цвет (внешние скаты)
+        ctx.fillStyle = '#c4b488';
+        ctx.fill();
+        ctx.clip();
+
+        // Тёмно-коричневые внутренние скаты
+        ctx.fillStyle = '#6e4e26';
+        ctx.fillRect(-20, -14, 56, 50);
+
+        // Бахромчатая штриховка пучков соломы по краям крыши
+        ctx.strokeStyle = 'rgba(38, 26, 10, 0.48)';
+        ctx.lineWidth = 1.1;
+        for (let x = -31; x <= 31; x += 4.5) {
+            ctx.beginPath();
+            ctx.moveTo(x, -26);
+            ctx.lineTo(x, -21);
+            ctx.stroke();
+        }
+        for (let y = -23; y <= 31; y += 4.5) {
+            ctx.beginPath();
+            ctx.moveTo(-34, y);
+            ctx.lineTo(-29, y);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Внешний контур крыши
+        ctx.strokeStyle = '#22180c';
+        ctx.lineWidth = 1.9;
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.stroke();
+
+        // 4. Светлые коньковые брёвна с тёмной окантовкой
+        const drawRidgeLine = (x1, y1, x2, y2) => {
+            ctx.strokeStyle = '#22180c';
+            ctx.lineWidth = 3.2;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#d4c8a8';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        };
+
+        drawRidgeLine(-20, 34, -20, -14);
+        drawRidgeLine(-20, -14, 34, -14);
+        drawRidgeLine(-34, -26, -20, -14);
+
+        // 5. Круглая каменная вытяжная труба в углу крыши
+        ctx.fillStyle = '#5c5852';
+        ctx.strokeStyle = '#171512';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(-25, -13, 4.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#171512';
+        ctx.beginPath();
+        ctx.arc(-25, -13, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    },
+
+    stable(ctx, w, h) {
+        // 1. Фон травянистого участка со светлой вытоптанной землёй и булыжниками слева
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(218, 212, 174, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.72, h * 0.42, w * 0.24, h * 0.28, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Мощёные камни у левого края двора
+        ctx.fillStyle = 'rgba(122, 120, 112, 0.72)';
+        const stones = [
+            [0.06, 0.56], [0.12, 0.54], [0.08, 0.62],
+            [0.14, 0.60], [0.07, 0.68], [0.13, 0.67]
+        ];
+        stones.forEach(([sx, sy]) => {
+            ctx.beginPath();
+            ctx.roundRect(w * sx, h * sy, 3.8, 3.2, 1);
+            ctx.fill();
+        });
+
+        // 2. Внешний реквизит слева внизу: бочка и ящик с кормом
+        ctx.fillStyle = '#7c5334';
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(w * 0.17, h * 0.77, 4.0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#5c5850';
+        ctx.fillRect(w * 0.11, h * 0.85, 6, 8);
+        ctx.strokeRect(w * 0.11, h * 0.85, 6, 8);
+
+        // 3. Повёрнутый корпус конюшни с боковым навесом-стойлом
+        ctx.save();
+        ctx.translate(w * 0.52, h * 0.48);
+        ctx.rotate(-0.42);
+
+        // Ящик/тюк у верхнего левого угла пристройки
+        ctx.fillStyle = '#855834';
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.2;
+        ctx.fillRect(-31, -16, 8, 8);
+        ctx.strokeRect(-31, -16, 8, 8);
+
+        // Тень от всего комплекса конюшни
+        ctx.fillStyle = 'rgba(18, 16, 12, 0.52)';
+        ctx.fillRect(-29, -10, 16, 44);
+        ctx.fillRect(-15, -31, 41, 67);
+
+        // Левый низкий дощатый навес-стойло
+        ctx.fillStyle = '#756e62';
+        ctx.strokeStyle = '#1f1c17';
+        ctx.lineWidth = 1.6;
+        ctx.fillRect(-31, -12, 16, 44);
+        ctx.strokeRect(-31, -12, 16, 44);
+
+        // Поперечные доски на боковом навесе
+        ctx.strokeStyle = 'rgba(28, 24, 18, 0.52)';
+        ctx.lineWidth = 1;
+        for (let py = -8; py <= 28; py += 4.2) {
+            ctx.beginPath();
+            ctx.moveTo(-31, py);
+            ctx.lineTo(-15, py);
+            ctx.stroke();
+        }
+
+        // Основной двускатный корпус конюшни (серо-бежевая соломенная крыша)
+        const rw = 40;
+        const rh = 66;
+        const rx = -16;
+        const ry = -33;
+
+        const roofGrad = ctx.createLinearGradient(rx, ry, rx + rw, ry);
+        roofGrad.addColorStop(0, '#7c7668');
+        roofGrad.addColorStop(0.45, '#968f80');
+        roofGrad.addColorStop(0.55, '#aba392');
+        roofGrad.addColorStop(1, '#857e6e');
+
+        ctx.fillStyle = roofGrad;
+        ctx.strokeStyle = '#1f1c17';
+        ctx.lineWidth = 1.9;
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.strokeRect(rx, ry, rw, rh);
+
+        // Бахромчатая фактура пучков соломы по краям и скатам
+        ctx.strokeStyle = 'rgba(32, 28, 20, 0.52)';
+        ctx.lineWidth = 1.1;
+        for (let y = ry + 3; y < ry + rh - 2; y += 4.2) {
+            ctx.beginPath();
+            ctx.moveTo(rx, y);
+            ctx.lineTo(rx + 5, y + 0.5);
+            ctx.moveTo(rx + rw - 5, y);
+            ctx.lineTo(rx + rw, y + 0.5);
+            ctx.stroke();
+        }
+
+        // 4. Продольное коньковое бревно посередине
+        ctx.fillStyle = '#a8a090';
+        ctx.strokeStyle = '#1f1c17';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(rx + rw * 0.45 - 2, ry - 2, 4.2, rh + 4);
+        ctx.strokeRect(rx + rw * 0.45 - 2, ry - 2, 4.2, rh + 4);
+
+        ctx.restore();
+    },
+
+    special_artisan(ctx, w, h) {
+        // 1. Фон травянистого участка и мощёная дорожка справа по центру
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(122, 120, 112, 0.74)';
+        for (let x = w * 0.68; x < w - 2; x += 5) {
+            for (let dy = -6; dy <= 5; dy += 5) {
+                const shift = (Math.floor(x / 5) % 2) * 2;
+                ctx.beginPath();
+                ctx.roundRect(x, h * 0.50 + dy + shift, 3.8, 3.4, 1);
+                ctx.fill();
+            }
+        }
+
+        // 2. Реквизит у стен: бочки и ящики
+        const drawBarrel = (bx, by, r = 4.0, fill = '#3b3730') => {
+            ctx.fillStyle = fill;
+            ctx.strokeStyle = '#171512';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(w * bx, h * by, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        };
+
+        // Две тёмные бочки и малый коричневый бочонок справа сверху
+        drawBarrel(0.75, 0.08, 4.4);
+        drawBarrel(0.69, 0.17, 4.4);
+        drawBarrel(0.65, 0.27, 3.2, '#6b472b');
+
+        // Зеленоватая кадушка справа снизу
+        drawBarrel(0.68, 0.76, 4.4, '#59633e');
+        ctx.fillStyle = '#859163';
+        ctx.beginPath();
+        ctx.arc(w * 0.68, h * 0.76, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ящики у левой внешней стены
+        ctx.fillStyle = '#4a4339';
+        ctx.strokeStyle = '#171512';
+        ctx.lineWidth = 1.2;
+        ctx.fillRect(w * 0.03, h * 0.21, 7, 9);
+        ctx.strokeRect(w * 0.03, h * 0.21, 7, 9);
+
+        // 3. Основной прямоугольный корпус мастерской
+        const rx = w * 0.11;
+        const ry = h * 0.08;
+        const rw = w * 0.50;
+        const rh = h * 0.83;
+
+        // Тень от здания
+        ctx.fillStyle = 'rgba(18, 14, 10, 0.54)';
+        ctx.fillRect(rx + 3, ry + 3.5, rw, rh);
+
+        // Заливка медно-коричневой крыши
+        const roofGrad = ctx.createLinearGradient(rx, ry, rx + rw, ry + rh);
+        roofGrad.addColorStop(0, '#7c5334');
+        roofGrad.addColorStop(0.5, '#a87c54');
+        roofGrad.addColorStop(1, '#633e22');
+        ctx.fillStyle = roofGrad;
+        ctx.fillRect(rx, ry, rw, rh);
+
+        // Мелкая фактура черепицы на скатах
+        ctx.strokeStyle = 'rgba(28, 18, 10, 0.36)';
+        ctx.lineWidth = 1;
+        for (let y = ry + 4; y < ry + rh - 3; y += 4.5) {
+            const shift = (Math.floor(y / 4.5) % 2) * 2.5;
+            for (let x = rx + 3; x < rx + rw - 3; x += 5) {
+                ctx.strokeRect(x + shift, y, 4.5, 4);
+            }
+        }
+
+        ctx.strokeStyle = '#1f140b';
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(rx, ry, rw, rh);
+
+        // 4. Продольное коньковое бревно посередине
+        const ridgeX = rx + rw * 0.50;
+        ctx.fillStyle = '#9c7854';
+        ctx.strokeStyle = '#1f140b';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(ridgeX - 2.0, ry - 2, 4.0, rh + 4);
+        ctx.strokeRect(ridgeX - 2.0, ry - 2, 4.0, rh + 4);
+
+        // 5. Выступающий треугольный фронтон (портик) справа по центру
+        const gTop = h * 0.33;
+        const gBot = h * 0.67;
+        const gMid = h * 0.50;
+        const gRight = w * 0.67;
+
+        // Тень от фронтона
+        ctx.fillStyle = 'rgba(18, 14, 10, 0.45)';
+        ctx.beginPath();
+        ctx.moveTo(ridgeX + 2, gMid + 2);
+        ctx.lineTo(gRight + 2, gTop + 2);
+        ctx.lineTo(gRight + 2, gBot + 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Верхний светлый скат фронтона
+        ctx.fillStyle = '#c49e78';
+        ctx.beginPath();
+        ctx.moveTo(ridgeX, gMid);
+        ctx.lineTo(gRight, gTop);
+        ctx.lineTo(gRight, gMid);
+        ctx.closePath();
+        ctx.fill();
+
+        // Нижний тёмный скат фронтона
+        ctx.fillStyle = '#6e4728';
+        ctx.beginPath();
+        ctx.moveTo(ridgeX, gMid);
+        ctx.lineTo(gRight, gMid);
+        ctx.lineTo(gRight, gBot);
+        ctx.closePath();
+        ctx.fill();
+
+        // Контур и горизонтальный конёк фронтона
+        ctx.strokeStyle = '#1f140b';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(ridgeX, gMid);
+        ctx.lineTo(gRight, gTop);
+        ctx.lineTo(gRight, gBot);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(ridgeX, gMid);
+        ctx.lineTo(gRight, gMid);
+        ctx.stroke();
+
+        // 6. Тёмный каменный дымоход в нижней левой части крыши
+        ctx.fillStyle = '#47433e';
+        ctx.strokeStyle = '#141210';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(rx + 8, ry + rh - 18, 7, 11);
+        ctx.strokeRect(rx + 8, ry + rh - 18, 7, 11);
+
+        ctx.fillStyle = '#141210';
+        ctx.fillRect(rx + 10, ry + rh - 15, 3, 5);
+    },
+
+    smithy(ctx, w, h) {
+        // 1. Фон травянистого участка и вытоптанная земля во внутреннем дворе
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(182, 178, 152, 0.45)';
+        ctx.fillRect(w * 0.45, h * 0.16, w * 0.42, h * 0.34);
+
+        // 2. Деревянный навес-дровник слева сверху и тамбур снизу
+        ctx.fillStyle = '#9e9788';
+        ctx.strokeStyle = '#1f1b14';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.18, h * 0.08, w * 0.11, h * 0.31);
+        ctx.strokeRect(w * 0.18, h * 0.08, w * 0.11, h * 0.31);
+
+        ctx.fillStyle = '#754e29';
+        ctx.fillRect(w * 0.14, h * 0.14, 4, 14);
+        ctx.strokeRect(w * 0.14, h * 0.14, 4, 14);
+
+        // Нижний тамбур под южной стеной
+        ctx.fillStyle = '#6b5e54';
+        ctx.fillRect(w * 0.54, h * 0.78, 8, 10);
+        ctx.strokeRect(w * 0.54, h * 0.78, 8, 10);
+
+        // 3. Кузнечный реквизит во дворе: горн, точильный круг и синяя бочка для закалки
+        ctx.fillStyle = '#78736a';
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 1.3;
+        ctx.fillRect(w * 0.52, h * 0.16, 7, 25);
+        ctx.strokeRect(w * 0.52, h * 0.16, 7, 25);
+
+        // Тлеющие угли в открытом очаге у стены
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(w * 0.535, h * 0.24, 4, 9);
+
+        // Точильный круг / наковальня
+        ctx.fillStyle = '#6b6862';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.72, h * 0.38, 6.5, 4.2, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Бочка с ярко-синей водой для закалки клинков
+        ctx.fillStyle = '#1d4ed8';
+        ctx.beginPath();
+        ctx.arc(w * 0.86, h * 0.38, 5.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#7dd3fc';
+        ctx.beginPath();
+        ctx.arc(w * 0.85, h * 0.37, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Г-образный ступенчатый контур здания кузницы
+        const pts = [
+            { x: w * 0.29, y: h * 0.04 },
+            { x: w * 0.51, y: h * 0.04 },
+            { x: w * 0.51, y: h * 0.44 },
+            { x: w * 0.91, y: h * 0.44 },
+            { x: w * 0.91, y: h * 0.78 },
+            { x: w * 0.50, y: h * 0.78 },
+            { x: w * 0.50, y: h * 0.87 },
+            { x: w * 0.11, y: h * 0.87 },
+            { x: w * 0.11, y: h * 0.58 },
+            { x: w * 0.29, y: h * 0.58 }
+        ];
+
+        // Тень от здания
+        ctx.save();
+        ctx.translate(2.5, 3.5);
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.54)';
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Заливка двухцветной крыши (светлый песочный верх и тёмно-коричневый низ)
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+
+        ctx.fillStyle = '#c4b898';
+        ctx.fill();
+        ctx.clip();
+
+        // Тёмно-коричневый нижний скат крыши
+        ctx.fillStyle = '#6e4e26';
+        ctx.fillRect(w * 0.11, h * 0.61, w * 0.81, h * 0.27);
+
+        // Светлый треугольный скат левого нижнего выступа
+        ctx.fillStyle = '#c4b898';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.11, h * 0.58);
+        ctx.lineTo(w * 0.29, h * 0.58);
+        ctx.lineTo(w * 0.29, h * 0.74);
+        ctx.lineTo(w * 0.11, h * 0.87);
+        ctx.closePath();
+        ctx.fill();
+
+        // Фактура кровельной дранки/черепицы
+        ctx.strokeStyle = 'rgba(38, 26, 10, 0.36)';
+        ctx.lineWidth = 1;
+        for (let y = h * 0.06; y < h * 0.86; y += 5) {
+            for (let x = w * 0.13; x < w * 0.90; x += 6) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + 3, y);
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+
+        // Внешний контур крыши
+        ctx.strokeStyle = '#22170a';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.stroke();
+
+        // 5. Коньковые балки и диагональные стыки скатов
+        ctx.strokeStyle = '#2b1c0c';
+        ctx.lineWidth = 2.2;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.91, h * 0.61);
+        ctx.lineTo(w * 0.29, h * 0.61);
+        ctx.lineTo(w * 0.51, h * 0.44);
+        ctx.moveTo(w * 0.29, h * 0.61);
+        ctx.lineTo(w * 0.29, h * 0.74);
+        ctx.lineTo(w * 0.11, h * 0.87);
+        ctx.moveTo(w * 0.29, h * 0.74);
+        ctx.lineTo(w * 0.50, h * 0.74);
+        ctx.stroke();
+
+        // 6. Каменный дымоход у внутреннего края вертикального крыла
+        ctx.fillStyle = '#47433e';
+        ctx.strokeStyle = '#171512';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.45, h * 0.22, 6, 11);
+        ctx.strokeRect(w * 0.45, h * 0.22, 6, 11);
+    },
+
+    shrine(ctx, w, h) {
+        // 1. Фон травянистого участка и четыре мощёные дорожки к святилищу
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Мощёные булыжником подходы (север, юг, запад, восток)
+        ctx.fillStyle = 'rgba(122, 120, 112, 0.74)';
+        for (let t = 2; t < w - 2; t += 5) {
+            if (t < h * 0.28 || t > h * 0.72) {
+                for (let dx = -7; dx <= 5; dx += 5) {
+                    const shift = (Math.floor(t / 5) % 2) * 2;
+                    ctx.beginPath();
+                    ctx.roundRect(w * 0.49 + dx + shift, t, 3.8, 3.4, 1);
+                    ctx.fill();
+                }
+            }
+            if (t < w * 0.28 || t > w * 0.72) {
+                for (let dy = -7; dy <= 5; dy += 5) {
+                    const shift = (Math.floor(t / 5) % 2) * 2;
+                    ctx.beginPath();
+                    ctx.roundRect(t, h * 0.49 + dy + shift, 3.4, 3.8, 1);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // 2. Садовые кусты по краям поляны
+        const drawBush = (bx, by, rx, ry) => {
+            ctx.fillStyle = 'rgba(15, 22, 10, 0.42)';
+            ctx.beginPath();
+            ctx.ellipse(w * bx + 1.5, h * by + 2, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            const bushGrad = ctx.createRadialGradient(w * bx - 2, h * by - 2, 1, w * bx, h * by, Math.max(rx, ry));
+            bushGrad.addColorStop(0, '#4d6629');
+            bushGrad.addColorStop(0.7, '#324519');
+            bushGrad.addColorStop(1, '#1d290e');
+            ctx.fillStyle = bushGrad;
+            ctx.beginPath();
+            ctx.ellipse(w * bx, h * by, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        drawBush(0.06, 0.24, 5, 11);
+        drawBush(0.84, 0.20, 7, 5);
+        drawBush(0.11, 0.72, 6, 5);
+        drawBush(0.88, 0.74, 8, 9);
+        drawBush(0.76, 0.80, 6, 7);
+
+        // 3. Четыре угловые каменные тумбы-жаровни
+        const drawCornerPillar = (px, py) => {
+            const pSize = 9;
+            const x = w * px - pSize / 2;
+            const y = h * py - pSize / 2;
+
+            ctx.fillStyle = 'rgba(18, 18, 18, 0.48)';
+            ctx.fillRect(x + 1.5, y + 2, pSize, pSize);
+
+            ctx.fillStyle = '#8b8b89';
+            ctx.strokeStyle = '#222220';
+            ctx.lineWidth = 1.4;
+            ctx.fillRect(x, y, pSize, pSize);
+            ctx.strokeRect(x, y, pSize, pSize);
+
+            ctx.fillStyle = '#5c5c5a';
+            ctx.beginPath();
+            ctx.arc(w * px, h * py, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        [[0.14, 0.11], [0.86, 0.11], [0.12, 0.88], [0.87, 0.88]].forEach(([px, py]) => drawCornerPillar(px, py));
+
+        // 4. Центральный трёхъярусный ступенчатый алтарь святилища
+        const drawStep = (inset, color, lineW) => {
+            const size = w * (0.42 - inset * 2);
+            const x = (w - size) / 2;
+            const y = (h - size) / 2;
+
+            if (inset === 0) {
+                ctx.fillStyle = 'rgba(18, 18, 18, 0.54)';
+                ctx.fillRect(x + 2.5, y + 3.5, size, size);
+            }
+
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#242422';
+            ctx.lineWidth = lineW;
+            ctx.fillRect(x, y, size, size);
+            ctx.strokeRect(x, y, size, size);
+        };
+
+        drawStep(0, '#858583', 1.8);
+        drawStep(0.045, '#969694', 1.4);
+        drawStep(0.085, '#7c7c7a', 1.2);
+
+        // 5. Круглый каменный алтарь-чаша на вершине святилища
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        ctx.fillStyle = '#666664';
+        ctx.strokeStyle = '#1f1f1d';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 8.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#8c8c8a';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Небольшой светлый рельефный знак на диске
+        ctx.fillStyle = '#c4c4c2';
+        ctx.beginPath();
+        ctx.arc(cx, cy - 3.2, 1.3, 0, Math.PI * 2);
+        ctx.fill();
+    },
+
+    sacred_grove(ctx, w, h) {
+        // 1. Фон солнечной лесной поляны
+        const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.08, w * 0.5, h * 0.5, w * 0.72);
+        bgGrad.addColorStop(0, '#c2c985');
+        bgGrad.addColorStop(0.55, '#9ea864');
+        bgGrad.addColorStop(1, '#85904e');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Мягкое затемнение под кронами деревьев
+        ctx.fillStyle = 'rgba(42, 48, 22, 0.25)';
+        ctx.beginPath();
+        ctx.arc(w * 0.5, h * 0.5, w * 0.44, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. Внутреннее кольцо из 7 стоячих камней (менгиров)
+        const stones = [
+            [0.37, 0.30, 5.2, 4.4, -0.3],
+            [0.57, 0.26, 4.8, 3.8, 0.2],
+            [0.71, 0.41, 4.6, 5.0, 0.4],
+            [0.61, 0.67, 5.0, 4.4, -0.4],
+            [0.39, 0.68, 4.8, 3.8, 0.1],
+            [0.28, 0.48, 4.2, 5.2, -0.1]
+        ];
+
+        stones.forEach(([sx, sy, rx, ry, rot]) => {
+            ctx.save();
+            ctx.translate(w * sx, h * sy);
+            ctx.rotate(rot);
+
+            // Тень от менгира
+            ctx.fillStyle = 'rgba(20, 22, 14, 0.48)';
+            ctx.beginPath();
+            ctx.ellipse(1.5, 2.5, rx + 0.5, ry + 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Сам серый камень
+            const sGrad = ctx.createRadialGradient(-rx * 0.3, -ry * 0.3, 1, 0, 0, Math.max(rx, ry));
+            sGrad.addColorStop(0, '#c7c5be');
+            sGrad.addColorStop(0.65, '#94928b');
+            sGrad.addColorStop(1, '#5e5c56');
+
+            ctx.fillStyle = sGrad;
+            ctx.strokeStyle = '#1f1e1b';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        // 3. Внешнее кольцо из 8 пышных деревьев и кустов по периметру рощи
+        const drawFoliageCluster = (cx, cy, r, seed) => {
+            const lobes = 7;
+            // Тень от кроны дерева на траву
+            ctx.fillStyle = 'rgba(15, 20, 8, 0.46)';
+            ctx.beginPath();
+            for (let i = 0; i <= lobes * 2; i++) {
+                const ang = (Math.PI * 2 / (lobes * 2)) * i;
+                const wave = (i % 2 === 0) ? 1.08 : 0.86;
+                const px = w * cx + 2.2 + Math.cos(ang) * r * wave;
+                const py = h * cy + 2.8 + Math.sin(ang) * r * wave;
+                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Зелёная листва с градиентом и тёмной обводкой
+            const fGrad = ctx.createRadialGradient(w * cx - r * 0.3, h * cy - r * 0.3, 2, w * cx, h * cy, r * 1.1);
+            fGrad.addColorStop(0, '#688c2e');
+            fGrad.addColorStop(0.65, '#47631d');
+            fGrad.addColorStop(1, '#26380e');
+
+            ctx.fillStyle = fGrad;
+            ctx.strokeStyle = '#162107';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            for (let i = 0; i <= lobes * 2; i++) {
+                const ang = (Math.PI * 2 / (lobes * 2)) * i + seed;
+                const wave = (i % 2 === 0) ? 1.1 : 0.85;
+                const px = w * cx + Math.cos(ang) * r * wave;
+                const py = h * cy + Math.sin(ang) * r * wave;
+                i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Внутренние складки листвы
+            ctx.strokeStyle = 'rgba(22, 34, 8, 0.38)';
+            ctx.lineWidth = 1.1;
+            ctx.beginPath();
+            ctx.arc(w * cx - r * 0.15, h * cy - r * 0.1, r * 0.45, 0.4, 2.4);
+            ctx.stroke();
+        };
+
+        const trees = [
+            [0.22, 0.15, 11.5, 0.2],  // верхний левый
+            [0.52, 0.09, 9.5, 0.8],   // верхний центральный
+            [0.82, 0.16, 11.0, 1.4],  // верхний правый
+            [0.14, 0.47, 8.2, 0.5],   // средний левый
+            [0.88, 0.52, 10.5, 1.1],  // средний правый
+            [0.21, 0.81, 13.0, 0.3],  // нижний левый (крупный)
+            [0.51, 0.87, 8.8, 1.7],   // нижний центральный
+            [0.81, 0.82, 11.5, 0.9]   // нижний правый
+        ];
+
+        trees.forEach(([x, y, r, seed]) => drawFoliageCluster(x, y, r, seed));
+    },
+
+    rubble(ctx, w, h) {
+        // 1. Фон травянистого участка со светлым вытоптанным центром и пятнами гари
+        const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.1, w * 0.5, h * 0.5, w * 0.72);
+        bgGrad.addColorStop(0, '#c7c29b');
+        bgGrad.addColorStop(0.55, '#9ea668');
+        bgGrad.addColorStop(1, '#848d4f');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Тёмные пятна гари и золы вдоль левой и правой стен
+        ctx.fillStyle = 'rgba(28, 24, 18, 0.34)';
+        ctx.beginPath();
+        ctx.ellipse(w * 0.16, h * 0.50, 9, 24, 0.1, 0, Math.PI * 2);
+        ctx.ellipse(w * 0.86, h * 0.48, 8, 18, -0.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. Мелкий щебень и галька в центре развалин
+        ctx.fillStyle = 'rgba(110, 108, 98, 0.65)';
+        const gravel = [
+            [0.34, 0.24], [0.46, 0.22], [0.52, 0.38], [0.44, 0.45],
+            [0.54, 0.50], [0.48, 0.58], [0.64, 0.52], [0.36, 0.64],
+            [0.62, 0.66], [0.42, 0.72], [0.58, 0.74]
+        ];
+        gravel.forEach(([gx, gy]) => {
+            ctx.beginPath();
+            ctx.roundRect(w * gx, h * gy, 3.6, 3.0, 1);
+            ctx.fill();
+        });
+
+        // 3. Остатки разрушенного каменного фундамента по периметру
+        const drawStone = (x, y, sw, sh, angle = 0) => {
+            ctx.save();
+            ctx.translate(w * x, h * y);
+            ctx.rotate(angle);
+            ctx.fillStyle = 'rgba(18, 18, 15, 0.45)';
+            ctx.fillRect(-sw / 2 + 1.5, -sh / 2 + 2, sw, sh);
+
+            ctx.fillStyle = '#8b8a82';
+            ctx.strokeStyle = '#1f1e1b';
+            ctx.lineWidth = 1.3;
+            ctx.fillRect(-sw / 2, -sh / 2, sw, sh);
+            ctx.strokeRect(-sw / 2, -sh / 2, sw, sh);
+            ctx.restore();
+        };
+
+        // Верхний левый угол фундамента
+        [
+            [0.12, 0.10, 8, 6, 0], [0.21, 0.09, 7, 5, 0.1], [0.11, 0.18, 6, 8, 0],
+            [0.11, 0.27, 6, 7, -0.1], [0.19, 0.20, 5, 5, 0.2], [0.25, 0.18, 6, 5, -0.15],
+            [0.35, 0.10, 5, 5, 0]
+        ].forEach(s => drawStone(...s));
+
+        // Верхний правый и правый край фундамента
+        [
+            [0.75, 0.11, 6, 5, 0.1], [0.85, 0.13, 8, 6, 0], [0.87, 0.22, 6, 8, 0],
+            [0.78, 0.22, 5, 6, -0.2], [0.88, 0.36, 5, 7, 0.1], [0.88, 0.72, 6, 7, 0]
+        ].forEach(s => drawStone(...s));
+
+        // Нижний левый и нижний правый углы фундамента
+        [
+            [0.11, 0.64, 6, 7, 0], [0.11, 0.74, 6, 8, 0.05], [0.12, 0.85, 7, 7, 0],
+            [0.21, 0.87, 8, 5, -0.05], [0.27, 0.64, 5, 5, 0.3],
+            [0.76, 0.88, 8, 6, 0], [0.85, 0.87, 7, 6, 0.05], [0.88, 0.80, 6, 7, 0]
+        ].forEach(s => drawStone(...s));
+
+        // 4. Обгоревшие деревянные балки перекрытий в центре и у стен
+        const drawBeam = (x, y, bw, bh, angle) => {
+            ctx.save();
+            ctx.translate(w * x, h * y);
+            ctx.rotate(angle);
+
+            ctx.fillStyle = 'rgba(16, 14, 10, 0.50)';
+            ctx.fillRect(-bw / 2 + 2, -bh / 2 + 2.5, bw, bh);
+
+            const bGrad = ctx.createLinearGradient(-bw / 2, 0, bw / 2, 0);
+            bGrad.addColorStop(0, '#594828');
+            bGrad.addColorStop(0.5, '#857042');
+            bGrad.addColorStop(1, '#4a3b1f');
+
+            ctx.fillStyle = bGrad;
+            ctx.strokeStyle = '#1c160b';
+            ctx.lineWidth = 1.3;
+            ctx.fillRect(-bw / 2, -bh / 2, bw, bh);
+            ctx.strokeRect(-bw / 2, -bh / 2, bw, bh);
+
+            // Продольная трещина дерева
+            ctx.strokeStyle = 'rgba(26, 20, 10, 0.55)';
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(-bw * 0.35, 0);
+            ctx.lineTo(bw * 0.35, 0);
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        // Главные крупные балки в центре и снизу (как на иллюстрации)
+        drawBeam(0.50, 0.33, 34, 4.5, -0.44);
+        drawBeam(0.39, 0.44, 30, 4.2, 1.48);
+        drawBeam(0.62, 0.34, 38, 4.5, 1.24);
+        drawBeam(0.58, 0.65, 25, 3.6, 0.32);
+        drawBeam(0.52, 0.78, 38, 4.8, 0.0);
+
+        // Мелкие обломки досок слева
+        drawBeam(0.29, 0.25, 11, 3.2, -0.95);
+        drawBeam(0.20, 0.49, 16, 3.2, 0.02);
+    },
+
+    pier(ctx, w, h) {
+        // 1. Бирюзовая вода сверху и песчано-травянистый берег снизу
+        const waterGrad = ctx.createLinearGradient(0, 0, 0, h * 0.42);
+        waterGrad.addColorStop(0, '#0e7490');
+        waterGrad.addColorStop(0.65, '#22b8cf');
+        waterGrad.addColorStop(1, '#99e9f2');
+        ctx.fillStyle = waterGrad;
+        ctx.fillRect(0, 0, w, h * 0.42);
+
+        const landGrad = ctx.createLinearGradient(0, h * 0.40, 0, h);
+        landGrad.addColorStop(0, '#dcd7b4');
+        landGrad.addColorStop(0.35, '#a8b070');
+        landGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = landGrad;
+        ctx.fillRect(0, h * 0.40, w, h * 0.60);
+
+        // 2. Деревянные лодки на воде (большая парусная и малая шлюпка)
+        ctx.save();
+        ctx.translate(w * 0.54, h * 0.25);
+        ctx.rotate(0.58);
+        ctx.fillStyle = 'rgba(10, 25, 30, 0.42)';
+        ctx.beginPath();
+        ctx.ellipse(2, 3, 21, 7.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#7c5834';
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(-21, 0);
+        ctx.quadraticCurveTo(-5, -8.5, 21, 0);
+        ctx.quadraticCurveTo(-5, 8.5, -21, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Свёрнутый белый парус и рея поперёк лодки
+        ctx.fillStyle = '#e5e7eb';
+        ctx.strokeStyle = '#374151';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.ellipse(3, 0, 2.5, 13, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        // Малая шлюпка у пирса
+        ctx.save();
+        ctx.translate(w * 0.41, h * 0.34);
+        ctx.rotate(0.55);
+        ctx.fillStyle = '#6b4c2e';
+        ctx.strokeStyle = '#1f160d';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 8, 2.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        // 3. Деревянный пирс (вертикальный причал слева + горизонтальный настил)
+        const drawDeck = (x, y, dw, dh, isVert) => {
+            ctx.fillStyle = '#5c5244';
+            ctx.strokeStyle = '#1c1814';
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(x, y, dw, dh);
+            ctx.strokeRect(x, y, dw, dh);
+
+            ctx.strokeStyle = '#29231c';
+            ctx.lineWidth = 1.1;
+            if (isVert) {
+                for (let py = y + 4; py < y + dh - 2; py += 5) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, py);
+                    ctx.lineTo(x + dw, py);
+                    ctx.stroke();
+                }
+            } else {
+                for (let px = x + 4; px < x + dw - 2; px += 5) {
+                    ctx.beginPath();
+                    ctx.moveTo(px, y);
+                    ctx.lineTo(px, y + dh);
+                    ctx.stroke();
+                }
+            }
+        };
+
+        drawDeck(w * 0.12, h * 0.03, w * 0.12, h * 0.34, true);
+        drawDeck(0, h * 0.36, w, h * 0.13, false);
+
+        // Деревянные сваи по краям причала и пирса
+        const drawPiling = (px, py) => {
+            ctx.fillStyle = '#787166';
+            ctx.strokeStyle = '#171512';
+            ctx.lineWidth = 1.1;
+            ctx.beginPath();
+            ctx.arc(w * px, h * py, 2.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        };
+
+        [[0.12, 0.04], [0.24, 0.12], [0.12, 0.22], [0.24, 0.28]].forEach(([x, y]) => drawPiling(x, y));
+        for (let sx = 0.04; sx <= 0.96; sx += 0.13) {
+            drawPiling(sx, 0.36);
+            drawPiling(sx + 0.04, 0.49);
+        }
+
+        // 4. Левый серый портовый склад с пристройкой и трубой
+        ctx.fillStyle = 'rgba(18, 16, 14, 0.48)';
+        ctx.fillRect(w * 0.05, h * 0.56, w * 0.31, h * 0.37);
+
+        ctx.fillStyle = '#9e9b93';
+        ctx.strokeStyle = '#1f1d1a';
+        ctx.lineWidth = 1.6;
+        ctx.fillRect(w * 0.04, h * 0.54, w * 0.30, h * 0.37);
+        ctx.strokeRect(w * 0.04, h * 0.54, w * 0.30, h * 0.37);
+
+        // Выступающий тамбур справа и конёк с трубой
+        ctx.fillStyle = '#7c7972';
+        ctx.fillRect(w * 0.34, h * 0.68, w * 0.07, h * 0.11);
+        ctx.strokeRect(w * 0.34, h * 0.68, w * 0.07, h * 0.11);
+
+        ctx.beginPath();
+        ctx.moveTo(w * 0.19, h * 0.54);
+        ctx.lineTo(w * 0.19, h * 0.91);
+        ctx.moveTo(w * 0.34, h * 0.735);
+        ctx.lineTo(w * 0.41, h * 0.735);
+        ctx.stroke();
+
+        ctx.fillStyle = '#5c5952';
+        ctx.fillRect(w * 0.165, h * 0.55, 5, 9);
+        ctx.strokeRect(w * 0.165, h * 0.55, 5, 9);
+
+        // 5. Правый П-образный охристо-золотистый склад
+        const rPts = [
+            { x: w * 0.46, y: h * 0.55 },
+            { x: w * 0.56, y: h * 0.55 },
+            { x: w * 0.56, y: h * 0.66 },
+            { x: w * 0.82, y: h * 0.66 },
+            { x: w * 0.82, y: h * 0.55 },
+            { x: w * 0.92, y: h * 0.55 },
+            { x: w * 0.92, y: h * 0.91 },
+            { x: w * 0.46, y: h * 0.91 }
+        ];
+
+        ctx.fillStyle = 'rgba(18, 15, 10, 0.48)';
+        ctx.beginPath();
+        rPts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x + 2, p.y + 2.5) : ctx.lineTo(p.x + 2, p.y + 2.5));
+        ctx.closePath();
+        ctx.fill();
+
+        const rGrad = ctx.createLinearGradient(w * 0.46, h * 0.55, w * 0.92, h * 0.91);
+        rGrad.addColorStop(0, '#b89654');
+        rGrad.addColorStop(1, '#856224');
+        ctx.fillStyle = rGrad;
+        ctx.strokeStyle = '#24180a';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        rPts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Конёк правого склада и дымоход
+        ctx.beginPath();
+        ctx.moveTo(w * 0.51, h * 0.55);
+        ctx.lineTo(w * 0.51, h * 0.78);
+        ctx.lineTo(w * 0.87, h * 0.78);
+        ctx.lineTo(w * 0.87, h * 0.55);
+        ctx.moveTo(w * 0.46, h * 0.91);
+        ctx.lineTo(w * 0.51, h * 0.78);
+        ctx.moveTo(w * 0.92, h * 0.91);
+        ctx.lineTo(w * 0.87, h * 0.78);
+        ctx.stroke();
+
+        ctx.fillStyle = '#6e6a62';
+        ctx.fillRect(w * 0.67, h * 0.75, 6, 5);
+        ctx.strokeRect(w * 0.67, h * 0.75, 6, 5);
+
+        // 6. Ящики и бочки между пирсом и складами
+        ctx.fillStyle = '#735334';
+        ctx.fillRect(w * 0.37, h * 0.50, 8, 7);
+        ctx.strokeRect(w * 0.37, h * 0.50, 8, 7);
+
+        [[0.46, 0.51], [0.42, 0.58], [0.40, 0.64], [0.65, 0.61], [0.71, 0.61]].forEach(([bx, by]) => {
+            ctx.fillStyle = '#3f3a32';
+            ctx.beginPath();
+            ctx.arc(w * bx, h * by, 3.0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+    },
+
+    park(ctx, w, h) {
+        // 1. Фон солнечной парковой лужайки
+        const bgGrad = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.1, w * 0.5, h * 0.5, w * 0.72);
+        bgGrad.addColorStop(0, '#b5bd7d');
+        bgGrad.addColorStop(0.55, '#9ea668');
+        bgGrad.addColorStop(1, '#879052');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        const cx = w * 0.52;
+        const cy = h * 0.48;
+
+        // 2. Три грунтово-гравийные дорожки, расходящиеся от центрального фонтана
+        ctx.strokeStyle = '#736c58';
+        ctx.lineWidth = 7.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        // Верхняя левая тропа
+        ctx.moveTo(w * 0.10, 0);
+        ctx.quadraticCurveTo(w * 0.30, h * 0.24, cx, cy);
+        // Нижняя левая тропа
+        ctx.moveTo(w * 0.13, h);
+        ctx.quadraticCurveTo(w * 0.32, h * 0.72, cx, cy);
+        // Правая горизонтальная тропа
+        ctx.moveTo(cx, cy);
+        ctx.quadraticCurveTo(w * 0.76, h * 0.51, w, h * 0.52);
+        ctx.stroke();
+
+        // Круглая гравийная площадка вокруг фонтана и текстура гальки
+        ctx.fillStyle = '#7d7560';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 13.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(46, 42, 34, 0.38)';
+        for (let i = 0; i < 45; i++) {
+            const t = i / 45;
+            const px1 = w * (0.10 + t * 0.42) + ((i % 3) - 1) * 1.8;
+            const py1 = h * (t * 0.48) + ((i % 2) - 0.5) * 1.8;
+            ctx.fillRect(px1, py1, 1.5, 1.5);
+
+            const px2 = w * (0.13 + t * 0.39) + ((i % 2) - 0.5) * 1.8;
+            const py2 = h * (1 - t * 0.52) + ((i % 3) - 1) * 1.8;
+            ctx.fillRect(px2, py2, 1.5, 1.5);
+        }
+
+        // 3. Центральный круглый каменный фонтан с голубой водой
+        ctx.fillStyle = 'rgba(18, 22, 14, 0.48)';
+        ctx.beginPath();
+        ctx.arc(cx + 1.5, cy + 2, 10.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Каменный бортик фонтана
+        ctx.fillStyle = '#5c5850';
+        ctx.strokeStyle = '#1f1e1b';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 9.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Водная гладь фонтана
+        const waterGrad = ctx.createRadialGradient(cx - 2, cy - 2, 1, cx, cy, 7.2);
+        waterGrad.addColorStop(0, '#bae6fd');
+        waterGrad.addColorStop(0.55, '#38bdf8');
+        waterGrad.addColorStop(1, '#0284c7');
+
+        ctx.fillStyle = waterGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 7.0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Центральная форсунка фонтана
+        ctx.fillStyle = '#33302b';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 2.0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Группы кустов и деревьев в секторах парка
+        const drawShrub = (bx, by, r) => {
+            ctx.fillStyle = 'rgba(15, 20, 10, 0.44)';
+            ctx.beginPath();
+            ctx.arc(w * bx + 1.5, h * by + 1.8, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            const sGrad = ctx.createRadialGradient(w * bx - r * 0.3, h * by - r * 0.3, 1, w * bx, h * by, r);
+            sGrad.addColorStop(0, '#536b29');
+            sGrad.addColorStop(0.65, '#354719');
+            sGrad.addColorStop(1, '#1d290d');
+            ctx.fillStyle = sGrad;
+            ctx.beginPath();
+            ctx.arc(w * bx, h * by, r, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        // Левый сектор вдоль дорожек
+        [
+            [0.06, 0.28, 4.5], [0.14, 0.33, 5.2], [0.22, 0.38, 4.2],
+            [0.10, 0.45, 5.0], [0.18, 0.50, 4.0], [0.26, 0.53, 4.5],
+            [0.12, 0.72, 4.5]
+        ].forEach(([x, y, r]) => drawShrub(x, y, r));
+
+        // Верхний центральный сектор
+        [
+            [0.38, 0.08, 4.5], [0.47, 0.12, 4.2], [0.43, 0.22, 5.2],
+            [0.51, 0.23, 5.0], [0.59, 0.20, 4.0]
+        ].forEach(([x, y, r]) => drawShrub(x, y, r));
+
+        // Правый верхний сектор
+        [
+            [0.74, 0.11, 3.8], [0.85, 0.14, 4.2], [0.76, 0.25, 4.5], [0.87, 0.32, 3.8]
+        ].forEach(([x, y, r]) => drawShrub(x, y, r));
+
+        // Правый нижний сектор (крупная куртина кустов)
+        [
+            [0.64, 0.67, 5.2], [0.73, 0.65, 4.5], [0.83, 0.66, 5.0],
+            [0.60, 0.77, 4.0], [0.70, 0.79, 5.5], [0.80, 0.82, 5.2],
+            [0.90, 0.79, 4.8], [0.86, 0.90, 4.5]
+        ].forEach(([x, y, r]) => drawShrub(x, y, r));
+    },
+
+    orphanage(ctx, w, h) {
+        // 1. Фон травянистого участка и мощёная дорожка сверху по центру во двор
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(118, 116, 108, 0.75)';
+        for (let y = 2; y < h * 0.48; y += 5) {
+            for (let dx = -7; dx <= 5; dx += 5) {
+                const shift = (Math.floor(y / 5) % 2) * 2;
+                ctx.beginPath();
+                ctx.roundRect(w * 0.49 + dx + shift, y, 4.0, 3.5, 1.1);
+                ctx.fill();
+            }
+        }
+
+        // 2. Каменная ограда парадного двора сверху со столбами и воротами по центру
+        ctx.strokeStyle = '#1f2124';
+        ctx.lineWidth = 4.2;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.11, h * 0.34);
+        ctx.lineTo(w * 0.11, h * 0.06);
+        ctx.lineTo(w * 0.42, h * 0.06);
+        ctx.moveTo(w * 0.58, h * 0.06);
+        ctx.lineTo(w * 0.89, h * 0.06);
+        ctx.lineTo(w * 0.89, h * 0.34);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#8b9096';
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        // Опорные столбы ограды (угловые и воротные)
+        [
+            [0.11, 0.06], [0.42, 0.06], [0.58, 0.06], [0.89, 0.06]
+        ].forEach(([px, py]) => {
+            ctx.fillStyle = '#73787e';
+            ctx.strokeStyle = '#1a1c1e';
+            ctx.lineWidth = 1.4;
+            ctx.fillRect(w * px - 3.2, h * py - 3.2, 6.4, 6.4);
+            ctx.strokeRect(w * px - 3.2, h * py - 3.2, 6.4, 6.4);
+        });
+
+        // 3. Два зелёных дерева/куста во внутреннем дворе по бокам от дорожки
+        const drawTree = (tx, ty, r) => {
+            ctx.fillStyle = 'rgba(15, 22, 10, 0.42)';
+            ctx.beginPath();
+            ctx.arc(w * tx + 1.5, h * ty + 2, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            const tGrad = ctx.createRadialGradient(w * tx - 2, h * ty - 2, 1, w * tx, h * ty, r);
+            tGrad.addColorStop(0, '#627d32');
+            tGrad.addColorStop(0.7, '#415720');
+            tGrad.addColorStop(1, '#263612');
+            ctx.fillStyle = tGrad;
+            ctx.beginPath();
+            ctx.arc(w * tx, h * ty, r, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        drawTree(0.27, 0.21, 8.5);
+        drawTree(0.73, 0.21, 8.0);
+
+        // 4. П-образный контур здания приюта (открыт вверх во двор)
+        const pts = [
+            { x: w * 0.08, y: h * 0.33 },
+            { x: w * 0.32, y: h * 0.33 },
+            { x: w * 0.32, y: h * 0.47 },
+            { x: w * 0.68, y: h * 0.47 },
+            { x: w * 0.68, y: h * 0.33 },
+            { x: w * 0.92, y: h * 0.33 },
+            { x: w * 0.92, y: h * 0.87 },
+            { x: w * 0.08, y: h * 0.87 }
+        ];
+
+        // Тень от здания
+        ctx.save();
+        ctx.translate(2.5, 3.5);
+        ctx.fillStyle = 'rgba(18, 14, 14, 0.55)';
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Заливка красновато-коричневой черепичной крыши
+        ctx.save();
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+
+        const roofGrad = ctx.createLinearGradient(w * 0.08, h * 0.33, w * 0.92, h * 0.87);
+        roofGrad.addColorStop(0, '#594240');
+        roofGrad.addColorStop(0.5, '#785a57');
+        roofGrad.addColorStop(1, '#473331');
+        ctx.fillStyle = roofGrad;
+        ctx.fill();
+        ctx.clip();
+
+        // Мелкая текстура черепицы
+        ctx.strokeStyle = 'rgba(26, 18, 18, 0.42)';
+        ctx.lineWidth = 1;
+        for (let y = h * 0.34; y < h * 0.86; y += 4.5) {
+            const shift = (Math.floor(y / 4.5) % 2) * 2.5;
+            for (let x = w * 0.09; x < w * 0.91; x += 5) {
+                ctx.strokeRect(x + shift, y, 4.5, 4);
+            }
+        }
+        ctx.restore();
+
+        // Внешний контур крыши
+        ctx.strokeStyle = '#1f1616';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.stroke();
+
+        // 5. Коньковые балки крыши (светлые гребни в тёмной окантовке)
+        const drawRidge = (drawFn) => {
+            ctx.strokeStyle = '#1f1616';
+            ctx.lineWidth = 3.2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            drawFn();
+            ctx.stroke();
+
+            ctx.strokeStyle = '#9c8a86';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            drawFn();
+            ctx.stroke();
+        };
+
+        drawRidge(() => {
+            ctx.moveTo(w * 0.20, h * 0.33);
+            ctx.lineTo(w * 0.20, h * 0.66);
+            ctx.lineTo(w * 0.80, h * 0.66);
+            ctx.lineTo(w * 0.80, h * 0.33);
+
+            ctx.moveTo(w * 0.08, h * 0.87);
+            ctx.lineTo(w * 0.20, h * 0.66);
+            ctx.moveTo(w * 0.92, h * 0.87);
+            ctx.lineTo(w * 0.80, h * 0.66);
+            ctx.moveTo(w * 0.32, h * 0.47);
+            ctx.lineTo(w * 0.20, h * 0.66);
+            ctx.moveTo(w * 0.68, h * 0.47);
+            ctx.lineTo(w * 0.80, h * 0.66);
+        });
+
+        // 6. Три треугольных слуховых окна на внутреннем скате и двойной дымоход снизу
+        [0.36, 0.50, 0.64].forEach(dx => {
+            ctx.fillStyle = '#8a624a';
+            ctx.strokeStyle = '#241610';
+            ctx.lineWidth = 1.3;
+            ctx.beginPath();
+            ctx.moveTo(w * dx, h * 0.63);
+            ctx.lineTo(w * (dx - 0.055), h * 0.51);
+            ctx.lineTo(w * (dx + 0.055), h * 0.51);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(w * dx, h * 0.63);
+            ctx.lineTo(w * dx, h * 0.51);
+            ctx.stroke();
+        });
+
+        // Двойной дымоход на нижнем скате
+        ctx.fillStyle = '#4a4342';
+        ctx.strokeStyle = '#171414';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(w * 0.43, h * 0.72, w * 0.14, h * 0.07);
+        ctx.strokeRect(w * 0.43, h * 0.72, w * 0.14, h * 0.07);
+
+        ctx.fillStyle = '#171414';
+        ctx.beginPath();
+        ctx.arc(w * 0.475, h * 0.755, 1.8, 0, Math.PI * 2);
+        ctx.arc(w * 0.525, h * 0.755, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+    },
+
+    monument(ctx, w, h) {
+        // 1. Фон травянистого участка и четыре мощёные дорожки со всех сторон
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Мощёные подходы (север, юг, запад, восток)
+        ctx.fillStyle = 'rgba(122, 120, 112, 0.74)';
+        for (let t = 2; t < w - 2; t += 5) {
+            // Север и юг
+            if (t < h * 0.14 || t > h * 0.85) {
+                for (let dx = -7; dx <= 5; dx += 5) {
+                    const shift = (Math.floor(t / 5) % 2) * 2;
+                    ctx.beginPath();
+                    ctx.roundRect(w * 0.49 + dx + shift, t, 3.8, 3.4, 1);
+                    ctx.fill();
+                }
+            }
+            // Запад и восток
+            if (t < w * 0.14 || t > w * 0.85) {
+                for (let dy = -7; dy <= 5; dy += 5) {
+                    const shift = (Math.floor(t / 5) % 2) * 2;
+                    ctx.beginPath();
+                    ctx.roundRect(t, h * 0.49 + dy + shift, 3.4, 3.8, 1);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // 2. Тёмно-зелёные кусты по четырём углам участка
+        const drawBush = (bx, by, rx, ry) => {
+            ctx.fillStyle = 'rgba(15, 22, 10, 0.45)';
+            ctx.beginPath();
+            ctx.ellipse(w * bx + 1.5, h * by + 2, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            const bushGrad = ctx.createRadialGradient(w * bx - 2, h * by - 2, 1, w * bx, h * by, Math.max(rx, ry));
+            bushGrad.addColorStop(0, '#4d6629');
+            bushGrad.addColorStop(0.7, '#324519');
+            bushGrad.addColorStop(1, '#1d290e');
+            ctx.fillStyle = bushGrad;
+            ctx.beginPath();
+            ctx.ellipse(w * bx, h * by, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        drawBush(0.08, 0.12, 7, 10);
+        drawBush(0.16, 0.22, 6, 5);
+        drawBush(0.88, 0.14, 9, 8);
+        drawBush(0.12, 0.89, 10, 6);
+        drawBush(0.89, 0.88, 9, 7);
+
+        // 3. Основная квадратная каменная платформа монумента
+        const padX = w * 0.15;
+        const padY = h * 0.14;
+        const padSize = w * 0.70;
+
+        ctx.fillStyle = 'rgba(18, 18, 18, 0.54)';
+        ctx.fillRect(padX + 2.5, padY + 3.5, padSize, padSize);
+
+        const stoneGrad = ctx.createLinearGradient(padX, padY, padX + padSize, padY + padSize);
+        stoneGrad.addColorStop(0, '#9a9a98');
+        stoneGrad.addColorStop(0.5, '#858583');
+        stoneGrad.addColorStop(1, '#6b6b69');
+        ctx.fillStyle = stoneGrad;
+        ctx.strokeStyle = '#242422';
+        ctx.lineWidth = 2.0;
+        ctx.fillRect(padX, padY, padSize, padSize);
+        ctx.strokeRect(padX, padY, padSize, padSize);
+
+        // Текстура каменных трещин и швов на платформе
+        ctx.strokeStyle = 'rgba(32, 32, 30, 0.35)';
+        ctx.lineWidth = 1;
+        for (let y = padY + 8; y < padY + padSize - 6; y += 9) {
+            ctx.beginPath();
+            ctx.moveTo(padX + 6, y);
+            ctx.lineTo(padX + padSize - 6, y + ((y % 18 === 0) ? 1.5 : -1.5));
+            ctx.stroke();
+        }
+
+        // 4. Внешний и внутренний ряды круглых каменных тумб (столбиков)
+        const drawBollard = (bx, by) => {
+            ctx.fillStyle = '#3d3d3b';
+            ctx.beginPath();
+            ctx.arc(bx + 1, by + 1, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#a8a8a6';
+            ctx.strokeStyle = '#1f1f1d';
+            ctx.lineWidth = 0.9;
+            ctx.beginPath();
+            ctx.arc(bx, by, 2.0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        };
+
+        // Внешний периметр столбиков (по 5 на сторону)
+        for (let i = 0; i <= 4; i++) {
+            const pos = padX + 3 + (padSize - 6) * (i / 4);
+            drawBollard(pos, padY + 3);
+            drawBollard(pos, padY + padSize - 3);
+            if (i > 0 && i < 4) {
+                drawBollard(padX + 3, pos);
+                drawBollard(padX + padSize - 3, pos);
+            }
+        }
+
+        // Внутренний квадрат столбиков вокруг пьедестала
+        const inRingOffset = 13;
+        for (let i = 0; i <= 3; i++) {
+            const pos = padX + inRingOffset + (padSize - inRingOffset * 2) * (i / 3);
+            drawBollard(pos, padY + inRingOffset);
+            drawBollard(pos, padY + padSize - inRingOffset);
+            if (i > 0 && i < 3) {
+                drawBollard(padX + inRingOffset, pos);
+                drawBollard(padX + padSize - inRingOffset, pos);
+            }
+        }
+
+        // 5. Центральный возвышающийся квадратный пьедестал
+        const pedSize = w * 0.31;
+        const pedX = (w - pedSize) / 2;
+        const pedY = (h - pedSize) / 2;
+
+        ctx.fillStyle = 'rgba(18, 18, 18, 0.50)';
+        ctx.fillRect(pedX + 2, pedY + 2.5, pedSize, pedSize);
+
+        ctx.fillStyle = '#7c7c7a';
+        ctx.strokeStyle = '#222220';
+        ctx.lineWidth = 1.8;
+        ctx.fillRect(pedX, pedY, pedSize, pedSize);
+        ctx.strokeRect(pedX, pedY, pedSize, pedSize);
+
+        // Внутренний зубчатый уступ обелиска
+        const capInset = 4.5;
+        ctx.fillStyle = '#8f8f8d';
+        ctx.strokeStyle = '#2b2b29';
+        ctx.lineWidth = 1.4;
+        ctx.fillRect(pedX + capInset, pedY + capInset, pedSize - capInset * 2, pedSize - capInset * 2);
+        ctx.strokeRect(pedX + capInset, pedY + capInset, pedSize - capInset * 2, pedSize - capInset * 2);
+    },
+
+    mint(ctx, w, h) {
+        // 1. Фон травянистого участка со светлой тропой сверху и мощёной дорогой снизу
+        const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+        bgGrad.addColorStop(0, '#969e60');
+        bgGrad.addColorStop(0.5, '#a8b070');
+        bgGrad.addColorStop(1, '#8c9456');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = 'rgba(218, 212, 174, 0.35)';
+        ctx.fillRect(w * 0.42, 0, w * 0.16, h * 0.15);
+
+        // Мощёная булыжником дорожка от фасада вниз по центру
+        ctx.fillStyle = 'rgba(118, 116, 108, 0.75)';
+        for (let y = h * 0.74; y < h - 2; y += 5) {
+            for (let dx = -8; dx <= 6; dx += 5) {
+                const shift = (Math.floor(y / 5) % 2) * 2;
+                ctx.beginPath();
+                ctx.roundRect(w * 0.49 + dx + shift, y, 4.0, 3.5, 1.1);
+                ctx.fill();
+            }
+        }
+
+        // Хелпер для отрисовки каменной крыши с булыжной текстурой и зубчатым парапетом
+        const drawStoneTier = (pts, baseColor) => {
+            ctx.save();
+            ctx.translate(2.5, 3.5);
+            ctx.fillStyle = 'rgba(18, 18, 20, 0.55)';
+            ctx.beginPath();
+            pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.beginPath();
+            pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.closePath();
+            ctx.fillStyle = baseColor;
+            ctx.fill();
+            ctx.clip();
+
+            // Мозаика крупного серого камня на крыше
+            for (let y = h * 0.10; y < h * 0.74; y += 4.8) {
+                const shift = (Math.floor(y / 4.8) % 2) * 2.8;
+                for (let x = w * 0.08; x < w * 0.92; x += 5.5) {
+                    ctx.fillStyle = ((Math.floor(x + y)) % 3 === 0) ? '#9aa0a8' : '#6e737b';
+                    ctx.strokeStyle = '#26292e';
+                    ctx.lineWidth = 0.8;
+                    ctx.fillRect(x + shift, y, 4.6, 3.8);
+                    ctx.strokeRect(x + shift, y, 4.6, 3.8);
+                }
+            }
+            ctx.restore();
+
+            // Зубчатый парапет по контуру яруса
+            ctx.strokeStyle = '#1e2024';
+            ctx.lineWidth = 3.2;
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.setLineDash([2.2, 2.2]);
+            ctx.strokeStyle = '#b4b9c2';
+            ctx.lineWidth = 1.6;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        };
+
+        // 2. Нижний прямоугольный ярус (боковые крылья монетного двора)
+        const basePts = [
+            { x: w * 0.09, y: h * 0.36 },
+            { x: w * 0.91, y: h * 0.36 },
+            { x: w * 0.91, y: h * 0.72 },
+            { x: w * 0.09, y: h * 0.72 }
+        ];
+        drawStoneTier(basePts, '#7d828a');
+
+        // 3. Верхний шестиугольный центральный бастион
+        const topPts = [
+            { x: w * 0.39, y: h * 0.11 },
+            { x: w * 0.61, y: h * 0.11 },
+            { x: w * 0.72, y: h * 0.32 },
+            { x: w * 0.72, y: h * 0.62 },
+            { x: w * 0.28, y: h * 0.62 },
+            { x: w * 0.28, y: h * 0.32 }
+        ];
+        drawStoneTier(topPts, '#868b94');
+
+        // 4. Деревянные дощатые люки на крыше (центральный и два боковых)
+        const drawHatch = (hx, hy, hw, hh) => {
+            ctx.fillStyle = '#735334';
+            ctx.strokeStyle = '#1f160d';
+            ctx.lineWidth = 1.3;
+            ctx.fillRect(w * hx, h * hy, hw, hh);
+            ctx.strokeRect(w * hx, h * hy, hw, hh);
+
+            ctx.beginPath();
+            for (let ly = h * hy + 3.5; ly < h * hy + hh - 1; ly += 3.5) {
+                ctx.moveTo(w * hx, ly);
+                ctx.lineTo(w * hx + hw, ly);
+            }
+            ctx.stroke();
+        };
+
+        // Центральный большой люк
+        drawHatch(0.425, 0.30, w * 0.15, h * 0.14);
+        // Боковые малые люки на крыльях
+        drawHatch(0.16, 0.51, 7, 7);
+        drawHatch(0.77, 0.51, 7, 7);
+    },
+
     mill(ctx, w, h) {
         // 1. Фон травянистого участка и бирюзовая река вдоль левого края
         const bgGrad = ctx.createLinearGradient(0, 0, w, h);

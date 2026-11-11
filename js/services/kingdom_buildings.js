@@ -8,7 +8,6 @@ import { Buildings4Lot } from './buildings/buildings_4_lot.js';
 const KingdomBuildings = {
     catalog: [
         // 1-Lot Buildings (1x1)
-        { id: 'occult_shop', name: 'Occult Shop (Оккультная лавка)', cols: 1, rows: 1, level: 13 },
         { id: 'alchemy_lab', name: 'Alchemy Lab (Алхимическая лаб.)', cols: 1, rows: 1, level: 3 },
         { id: 'arcanist_tower', name: 'Arcanist Tower (Башня арканиста)', cols: 1, rows: 1, level: 5 },
         { id: 'bank', name: 'Bank (Банк)', cols: 1, rows: 1, level: 5 },
@@ -29,11 +28,26 @@ const KingdomBuildings = {
         { id: 'magic_shop', name: 'Magic Shop (Магическая лавка)', cols: 1, rows: 1, level: 8 },
         { id: 'mansion', name: 'Mansion (Особняк)', cols: 1, rows: 1, level: 6 },
         { id: 'mill', name: 'Mill (Мельница)', cols: 1, rows: 1, level: 2 },
-
+        { id: 'mint', name: 'Mint (Монетный двор)', cols: 1, rows: 1, level: 7 },
+        { id: 'monument', name: 'Monument (Монумент)', cols: 1, rows: 1, level: 3 },
+        { id: 'occult_shop', name: 'Occult Shop (Оккультная лавка)', cols: 1, rows: 1, level: 13 },
+        { id: 'orphanage', name: 'Orphanage (Приют)', cols: 1, rows: 1, level: 2 },
+        { id: 'park', name: 'Park (Парк)', cols: 1, rows: 1, level: 1 },
+        { id: 'pier', name: 'Pier (Пирс)', cols: 1, rows: 1, level: 3 },
+        { id: 'rubble', name: 'Rubble (Руины)', cols: 1, rows: 1, level: 0 },
+        { id: 'sacred_grove', name: 'Sacred Grove (Священная роща)', cols: 1, rows: 1, level: 4 },
         { id: 'shrine', name: 'Shrine (Святилище)', cols: 1, rows: 1, level: 1 },
         { id: 'smithy', name: 'Smithy (Кузница)', cols: 1, rows: 1, level: 3 },
-        { id: 'tavern_popular', name: 'Tavern (Таверна)', cols: 1, rows: 1, level: 3 },
+        { id: 'special_artisan', name: 'Special Artisan (Мастерская ремесленника)', cols: 1, rows: 1, level: 4 },
+        { id: 'stable', name: 'Stable (Конюшня)', cols: 1, rows: 1, level: 2 },
+        { id: 'tannery', name: 'Tannery (Кожевня)', cols: 1, rows: 1, level: 1 },
+        { id: 'tavern_dive', name: 'Tavern, Dive (Забегаловка)', cols: 1, rows: 1, level: 1 },
+        { id: 'tavern_popular', name: 'Tavern, Popular (Популярная таверна)', cols: 1, rows: 1, level: 3 },
+        { id: 'tenement', name: 'Tenement (Доходный дом)', cols: 1, rows: 1, level: 1 },
+        { id: 'thieves_guild', name: "Thieves' Guild (Гильдия воров)", cols: 1, rows: 1, level: 5 },
+        { id: 'trade_shop', name: 'Trade Shop (Торговая лавка)', cols: 1, rows: 1, level: 1 },
         { id: 'watchtower', name: 'Watchtower (Сторожевая башня)', cols: 1, rows: 1, level: 3 },
+
         // 2-Lot Buildings (2x1)
         { id: 'garrison', name: 'Garrison (Гарнизон)', cols: 2, rows: 1, level: 5 },
         { id: 'marketplace', name: 'Marketplace (Рыночная площадь)', cols: 2, rows: 1, level: 4 },
