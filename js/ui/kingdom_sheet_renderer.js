@@ -36,12 +36,19 @@ const KingdomSheetRenderer = {
     renderSheetTab(s, { roleNames, skillConfig, getSkillTotal }) {
         const ctrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
 
+        const statNamesRu = {
+            culture: 'КУЛЬТУРА',
+            economy: 'ЭКОНОМИКА',
+            loyalty: 'ЛОЯЛЬНОСТЬ',
+            stability: 'СТАБИЛЬНОСТЬ'
+        };
+
         const statsHtml = ['culture', 'economy', 'loyalty', 'stability'].map(key => {
             const st = s.stats[key];
             const modStr = st.modifier >= 0 ? `+${st.modifier}` : st.modifier;
             return `
                 <div class="k-box-card">
-                    <div class="k-box-title">${key.toUpperCase()}</div>
+                    <div class="k-box-title">${statNamesRu[key]}</div>
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
                         <span id="k_mod_${key}" style="font-size:20px; font-weight:900; color:#ffd875;">${modStr}</span>
                         <input type="number" id="k_stat_val_${key}" class="k-inp" value="${st.value}" style="width:62px;">
@@ -112,20 +119,22 @@ const KingdomSheetRenderer = {
         return `
             <div class="k-grid-2col" style="display:grid; grid-template-columns: 1.1fr 1fr; gap:16px;">
                 <div>
+                
                     <div class="k-panel">
                         <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px; margin-bottom:8px;">
-                            <div><label class="k-lbl">Kingdom Name</label><input type="text" id="k_name" class="k-inp" value="${s.name}"></div>
-                            <div><label class="k-lbl">Level</label><input type="number" id="k_level" class="k-inp" value="${s.level}"></div>
-                            <div><label class="k-lbl">XP (1000 = Lvl)</label><input type="number" id="k_xp" class="k-inp" value="${s.xp}"></div>
+                            <div><label class="k-lbl">Название королевства</label><input type="text" id="k_name" class="k-inp" value="${s.name}"></div>
+                            <div><label class="k-lbl">Уровень</label><input type="number" id="k_level" class="k-inp" value="${s.level}"></div>
+                            <div><label class="k-lbl">Опыт XP (1000 = Ур.)</label><input type="number" id="k_xp" class="k-inp" value="${s.xp}"></div>
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:10px;">
-                            <div><label class="k-lbl">Charter</label><input type="text" id="k_charter" class="k-inp" value="${s.charter}"></div>
-                            <div><label class="k-lbl">Heartland</label><input type="text" id="k_heartland" class="k-inp" value="${s.heartland}"></div>
-                            <div><label class="k-lbl">Government</label><input type="text" id="k_government" class="k-inp" value="${s.government}"></div>
-                            <div><label class="k-lbl">Capital City</label><input type="text" id="k_capital" class="k-inp" value="${s.capitalCity}"></div>
+                            <div><label class="k-lbl">Хартия (Charter)</label><input type="text" id="k_charter" class="k-inp" value="${s.charter}"></div>
+                            <div><label class="k-lbl">Сердце земель</label><input type="text" id="k_heartland" class="k-inp" value="${s.heartland}"></div>
+                            <div><label class="k-lbl">Форма правления</label><input type="text" id="k_government" class="k-inp" value="${s.government}"></div>
+                            <div><label class="k-lbl">Столица</label><input type="text" id="k_capital" class="k-inp" value="${s.capitalCity}"></div>
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">${statsHtml}</div>
                     </div>
+
 
                     <div class="k-panel" style="margin-top:12px;">
                         <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; margin-bottom:10px;">
