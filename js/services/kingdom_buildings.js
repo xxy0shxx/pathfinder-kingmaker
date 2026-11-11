@@ -48,11 +48,6 @@ const KingdomBuildings = {
         { id: 'trade_shop', name: 'Trade Shop (Торговая лавка)', cols: 1, rows: 1, level: 1 },
         { id: 'watchtower', name: 'Watchtower (Сторожевая башня)', cols: 1, rows: 1, level: 3 },
 
-
-
-
-
-
         // 2-Lot Buildings (2x1)
         { id: 'academy', name: 'Academy (Академия)', cols: 2, rows: 1, level: 10 },
         { id: 'embassy', name: 'Embassy (Посольство)', cols: 2, rows: 1, level: 8 },
@@ -75,16 +70,17 @@ const KingdomBuildings = {
         { id: 'theater', name: 'Theater (Театр)', cols: 2, rows: 1, level: 4 },
         { id: 'town_hall', name: 'Town Hall (Ратуша)', cols: 2, rows: 1, level: 2 },
 
-
-
-
-
-
         // 4-Lot Buildings (2x2)
         { id: 'arena', name: 'Arena (Арена)', cols: 2, rows: 2, level: 9 },
         { id: 'castle', name: 'Castle (Замок)', cols: 2, rows: 2, level: 9 },
-
-
+        { id: 'cathedral', name: 'Cathedral (Собор)', cols: 2, rows: 2, level: 13 },
+        { id: 'construction_yard', name: 'Construction Yard (Строительный двор)', cols: 2, rows: 2, level: 1 },
+        { id: 'menagerie', name: 'Menagerie (Зверинец)', cols: 2, rows: 2, level: 12 },
+        { id: 'palace', name: 'Palace (Дворец)', cols: 2, rows: 2, level: 14 },
+        { id: 'stockyard', name: 'Stockyard (Скотный двор)', cols: 2, rows: 2, level: 3 },
+        { id: 'university', name: 'University (Университет)', cols: 2, rows: 2, level: 12 },
+        { id: 'waterfront_corner', name: 'Waterfront (corner) (Набережная угловая)', cols: 2, rows: 2, level: 4 },
+        { id: 'waterfront_side', name: 'Waterfront (side) (Набережная боковая)', cols: 2, rows: 2, level: 4 },
     ],
 
     _cache: {},
