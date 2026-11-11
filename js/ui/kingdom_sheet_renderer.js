@@ -96,10 +96,10 @@ const KingdomSheetRenderer = {
 
 
         const abilityShortRu = {
-            culture: 'КУЛ',
-            economy: 'ЭКО',
-            loyalty: 'ЛОЯ',
-            stability: 'СТА'
+            culture: 'КУЛЬТУРА',
+            economy: 'ЭКОНОМИКА',
+            loyalty: 'ЛОЯЛЬНОСТЬ',
+            stability: 'СТАБИЛЬНОСТЬ'
         };
 
         const skillsHtml = skillConfig.map(cfg => {
@@ -144,8 +144,8 @@ const KingdomSheetRenderer = {
                             <div><label class="k-lbl">Опыт XP (1000 = Ур.)</label><input type="number" id="k_xp" class="k-inp" value="${s.xp}"></div>
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:10px;">
-                            <div><label class="k-lbl">Хартия (Charter)</label><input type="text" id="k_charter" class="k-inp" value="${s.charter}"></div>
-                            <div><label class="k-lbl">Сердце земель</label><input type="text" id="k_heartland" class="k-inp" value="${s.heartland}"></div>
+                            <div><label class="k-lbl">Хартия</label><input type="text" id="k_charter" class="k-inp" value="${s.charter}"></div>
+                            <div><label class="k-lbl">Центр королевства</label><input type="text" id="k_heartland" class="k-inp" value="${s.heartland}"></div>
                             <div><label class="k-lbl">Форма правления</label><input type="text" id="k_government" class="k-inp" value="${s.government}"></div>
                             <div><label class="k-lbl">Столица</label><input type="text" id="k_capital" class="k-inp" value="${s.capitalCity}"></div>
                         </div>
@@ -156,7 +156,7 @@ const KingdomSheetRenderer = {
                         <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; margin-bottom:10px;">
                             <div><label class="k-lbl">Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
                             <div><label class="k-lbl">Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
-                            <div><label class="k-lbl">Беспокойство</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
+                            <div><label class="k-lbl">Беспорядки</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
                             <div><label class="k-lbl">Потребление</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="Автоматический расчёт: база поселения + постройки + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                             <div><label class="k-lbl">Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
                             <div><label class="k-lbl">СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>

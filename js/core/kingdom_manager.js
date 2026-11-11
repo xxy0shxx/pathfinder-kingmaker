@@ -98,11 +98,11 @@ const KingdomManager = {
         ruler: "Правитель",
         counselor: "Канцлер",
         general: "Генерал",
-        emissary: "Эмиссар",
+        emissary: "Дипломат",
         magister: "Магистр",
         treasurer: "Казначей",
         viceroy: "Наместник",
-        warden: "Маршал"
+        warden: "Хранитель"
     },
 
     skillConfig: [
