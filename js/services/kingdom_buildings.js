@@ -169,6 +169,33 @@ const KingdomBuildings = {
         return st ? st.note : 'Особая постройка';
     },
 
+    getBuildingInfoHtml(id) {
+        const text = this.getBuildingInfoText(id);
+        if (!text) return '';
+
+        const negativeKeywords = ['потребление', 'коррупция', 'преступность', 'разруха', 'раздор'];
+
+        return text.split(';').map(part => {
+            const trimmed = part.trim();
+            if (!trimmed) return '';
+
+            const lower = trimmed.toLowerCase();
+            const isNegativeStat = negativeKeywords.some(kw => lower.includes(kw));
+
+            let color = '#ffd875'; // Жёлтый по умолчанию (без + и -)
+
+            if (lower.includes('снижает беспокойство')) {
+                color = '#2ecc71'; // Зелёный
+            } else if (trimmed.startsWith('+')) {
+                color = isNegativeStat ? '#ff7675' : '#2ecc71'; // Красный для роста потребления/упадка, зелёный для навыков
+            } else if (trimmed.startsWith('-')) {
+                color = isNegativeStat ? '#2ecc71' : '#ff7675'; // Зелёный для снижения потребления (-1 Потребление)
+            }
+
+            return `<span style="color:${color}; font-weight:600;">${trimmed}</span>`;
+        }).join('<span style="color:#8a6421;">; </span>');
+    },
+
     // Расчёт суммарных эффектов и максимальных Item-бонусов по всем постройкам на сетке
     calculateSettlementEffects(placedBuildings = []) {
         const maxSkillBonuses = {};

@@ -285,22 +285,30 @@ const KingdomSheetRenderer = {
 
         const catalogHtml = groups.map(group => {
             const isCollapsed = !!collapsedState[group.key];
+
+
             const itemsHtml = group.items.map(b => {
                 const thumb = KingdomBuildings.getBuildingDataUrl(b.id);
                 const infoText = typeof KingdomBuildings.getBuildingInfoText === 'function'
                     ? KingdomBuildings.getBuildingInfoText(b.id)
                     : '';
+                const infoHtml = typeof KingdomBuildings.getBuildingInfoHtml === 'function'
+                    ? KingdomBuildings.getBuildingInfoHtml(b.id)
+                    : infoText;
+
                 return `
                     <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${b.name}${infoText ? ' — ' + infoText : ''}">
                         <img src="${thumb}" class="k-bld-thumb" alt="${b.name}">
                         <div class="k-bld-info">
                             <div class="k-bld-name">${b.name}</div>
                             <div class="k-bld-meta">Размер: ${b.cols}×${b.rows} • Ур. ${b.level}</div>
-                            ${infoText ? `<div class="k-bld-bonus-tag">${infoText}</div>` : ''}
+                            ${infoHtml ? `<div class="k-bld-bonus-tag">${infoHtml}</div>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
+
+
 
             return `
                 <div class="k-catalog-group ${isCollapsed ? 'collapsed' : ''}" data-group-key="${group.key}">
