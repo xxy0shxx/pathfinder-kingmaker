@@ -232,7 +232,8 @@ const KingdomManager = {
         this.renderUi();
     },
 
-    syncFromHexMap() {
+
+    syncFromHexMap(silent = false) {
         const hexes = this.mapDataRef?.hexes || {};
         let claimedCount = 0;
         let farmlands = 0;
@@ -247,25 +248,21 @@ const KingdomManager = {
             const desc = (h.text || h.description || '').toLowerCase();
             const combined = `${title} ${desc}`;
 
-            // Считаем гекс частью королевства, если стоит флаг, заливка цветом или упоминание владения
-            const hasColor = h.color && h.color !== 'transparent' && h.color !== '';
-            const isClaimed = !!(h.kingdomClaimed || hasColor || combined.includes('королевств') || combined.includes('владен'));
-
+            const isClaimed = !!(h.kingdomClaimed || combined.includes('королевств') || combined.includes('владен'));
             if (isClaimed) {
                 claimedCount++;
             }
 
-            if (combined.includes('ферм') || combined.includes('farmland')) farmlands++;
-            if (combined.includes('лесопил') || combined.includes('lumber')) lumberCamps++;
-            if (combined.includes('шахт') || combined.includes('mine')) mines++;
-            if (combined.includes('каменолом') || combined.includes('quarr')) quarries++;
+            const ws = h.workSite || 'none';
+            if (ws === 'farmlands' || (ws === 'none' && (combined.includes('ферм') || combined.includes('farmland')))) farmlands++;
+            if (ws === 'lumberCamps' || (ws === 'none' && (combined.includes('лесопил') || combined.includes('lumber')))) lumberCamps++;
+            if (ws === 'mines' || (ws === 'none' && (combined.includes('шахт') || combined.includes('mine')))) mines++;
+            if (ws === 'quarries' || (ws === 'none' && (combined.includes('каменолом') || combined.includes('quarr')))) quarries++;
         });
 
         const s = this.state;
         const sizeBefore = s.size;
-        if (claimedCount > 0) {
-            s.size = claimedCount;
-        }
+        s.size = Math.max(1, claimedCount);
 
         s.workSites.farmlands = farmlands;
         s.workSites.lumberCamps = lumberCamps;
@@ -276,15 +273,18 @@ const KingdomManager = {
         this._persist();
         this.renderUi();
 
-        alert(
-            `🗺 Синхронизация с картой завершена:\n\n` +
-            `• Размер королевства (гексов): ${sizeBefore} → ${s.size}\n` +
-            `• Фермы: ${farmlands}\n` +
-            `• Лесопилки: ${lumberCamps}\n` +
-            `• Шахты: ${mines}\n` +
-            `• Каменоломни: ${quarries}`
-        );
+        if (!silent) {
+            alert(
+                `🗺 Синхронизация с картой завершена:\n\n` +
+                `• Размер королевства (гексов): ${sizeBefore} → ${s.size}\n` +
+                `• Фермы: ${farmlands}\n` +
+                `• Лесопилки: ${lumberCamps}\n` +
+                `• Шахты: ${mines}\n` +
+                `• Каменоломни: ${quarries}`
+            );
+        }
     },
+
 
     exportCityToPng() {
         this.saveFromUi();

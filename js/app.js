@@ -412,12 +412,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             FogManager.syncMapFog(mapData.hexes);
+            if (window.KingdomManager && typeof window.KingdomManager.syncFromHexMap === 'function') {
+                window.KingdomManager.syncFromHexMap(true);
+            }
             HexModal.close();
         },
 
         onDelete: (hexId) => {
             StorageManager.deleteHex(mapData, hexId);
             HexCanvasRender.updateData(mapData.hexes);
+            if (window.KingdomManager && typeof window.KingdomManager.syncFromHexMap === 'function') {
+                window.KingdomManager.syncFromHexMap(true);
+            }
             HexModal.close();
         }
     });

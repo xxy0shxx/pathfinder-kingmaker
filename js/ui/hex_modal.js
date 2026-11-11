@@ -23,9 +23,43 @@ const HexModal = {
 
         this.groupMenuFields();
         this.assembleActionButtons();
+        this.ensureKingdomControls();
         this.initColorPresets();
         this.attachEvents();
     },
+    ensureKingdomControls() {
+        const menu = document.getElementById('hexMenu');
+        if (!menu || document.getElementById('hexKingdomClaimed')) return;
+
+        const row = document.createElement('div');
+        row.className = 'box-row-combined';
+        row.style.cssText = 'display:flex; gap:10px; margin-top:8px; width:100%; clear:both;';
+        row.innerHTML = `
+            <div class="checkbox-row" style="flex:1; margin-bottom:0; justify-content:flex-start; gap:8px;">
+                <input type="checkbox" id="hexKingdomClaimed">
+                <label for="hexKingdomClaimed" style="margin:0; font-weight:bold; color:#ffd875; font-size:13px;">👑 Территория королевства</label>
+            </div>
+            <div class="box" style="flex:1; margin-bottom:0;">
+                <select id="hexWorkSiteType" title="Добывающий участок королевства в этом гексе">
+                    <option value="none">Участок: Нет</option>
+                    <option value="farmlands">🌾 Ферма (Еда)</option>
+                    <option value="lumberCamps">🪵 Лесопилка (Дерево)</option>
+                    <option value="mines">⛏ Шахта (Руда)</option>
+                    <option value="quarries">🧱 Каменоломня (Камень)</option>
+                </select>
+            </div>
+        `;
+
+        const btnSave = document.getElementById('btnSave');
+        const buttonsBlock = btnSave ? btnSave.closest('.buttons') : menu.querySelector('.buttons');
+        if (buttonsBlock && buttonsBlock.parentNode) {
+            buttonsBlock.parentNode.insertBefore(row, buttonsBlock);
+        } else {
+            menu.appendChild(row);
+        }
+    },
+
+
     initColorPresets() {
         const container = document.getElementById('colorPresetsContainer');
         // Если контейнера нет или кнопки уже сгенерированы — выходим
@@ -188,6 +222,11 @@ const HexModal = {
             if (inpQuestStatus) inpQuestStatus.checked = false;
         }
 
+        const cbClaimed = document.getElementById('hexKingdomClaimed');
+        const selWorkSite = document.getElementById('hexWorkSiteType');
+        if (cbClaimed) cbClaimed.checked = !!(hexData && hexData.kingdomClaimed);
+        if (selWorkSite) selWorkSite.value = (hexData && hexData.workSite) ? hexData.workSite : 'none';
+
         if (this.modal) this.modal.classList.add('open');
     },
 
@@ -231,6 +270,8 @@ const HexModal = {
             type: document.getElementById('inpType').value,
             terrain: document.getElementById('inpTerrain').value,
             regionLevel: document.getElementById('inpRegionLevel').value,
+            kingdomClaimed: document.getElementById('hexKingdomClaimed')?.checked || false,
+            workSite: document.getElementById('hexWorkSiteType')?.value || 'none',
             questData: questTitleVal ? {
                 title: questTitleVal,
                 desc: document.getElementById('inpQuestDesc').value.trim(),

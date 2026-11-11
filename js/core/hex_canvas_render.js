@@ -453,6 +453,7 @@ const HexCanvasRender = {
         });
     },
 
+
     updateTooltipState(tooltip) {
         if (!tooltip) return;
         const hexKey = this.hoveredHexKey;
@@ -485,6 +486,19 @@ const HexCanvasRender = {
         paramsBlock += `<div style="margin-bottom: 4px;">${data.mapMapped ? '📜 <b>Карта составлена</b>' : '❌ <span style="color: #7f8c8d;">Карта отсутствует</span>'}</div>`;
         if (data.squadHere) paramsBlock += `<div style="margin-bottom: 4px; color: #ff7675;">🚩 <b>Отряд в гексе</b></div>`;
 
+        const wsLabels = {
+            farmlands: '🌾 Ферма (Еда)',
+            lumberCamps: '🪵 Лесопилка (Дерево)',
+            mines: '⛏ Шахта (Руда)',
+            quarries: '🧱 Каменоломня (Камень)'
+        };
+        if (data.kingdomClaimed) {
+            paramsBlock += `<div style="margin-bottom: 4px; color: #ffd875;">👑 <b>Территория королевства</b></div>`;
+        }
+        if (data.workSite && data.workSite !== 'none' && wsLabels[data.workSite]) {
+            paramsBlock += `<div style="margin-bottom: 4px;">🏗 <b>Участок:</b> <span class="tooltip-value">${wsLabels[data.workSite]}</span></div>`;
+        }
+
         if (isRevealed) {
             if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
             if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`;
@@ -498,6 +512,7 @@ const HexCanvasRender = {
 
         tooltip.innerHTML = content; tooltip.style.display = 'block';
     },
+
 
     triggerFocus(hexId) {
         this.focusedHexKey = hexId;
