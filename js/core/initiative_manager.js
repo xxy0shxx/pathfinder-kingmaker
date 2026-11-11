@@ -323,7 +323,9 @@ const InitiativeManager = {
                             <label class="init-nat20-checkbox-label" title="Натуральная 20" style="margin-right: 4px !important;"><input type="checkbox" id="initInputNat20"><span>D20</span></label>
                             <label class="init-nat20-checkbox-label" title="Натуральная 1" style="border-color: #823030 !important;"><input type="checkbox" id="initInputNat1"><span style="color: #ff7675 !important;">D1</span></label>
                             <select id="initInputFaction" style="width: 140px; background: #090f0b; border: 1px solid #543e0d; color: #ebd291; padding: 4px;">
-                                <option value="friend">🟢 Союзник</option><option value="neutral" selected>💛 Нейтрал</option><option value="enemy">🔴 Враг</option>
+                                <option value="friend">🟢 Союзник</option>
+                                <option value="neutral" selected>🟡 Нейтрал</option>
+                                <option value="enemy">🔴 Враг</option>
                             </select>
                             <button type="button" class="btn ok" id="initBtnAdd" style="padding: 6px 20px; font-size: 14px; min-width: auto; height: 38px;">⚜ Добавить</button>
                         </div>
@@ -434,6 +436,9 @@ const InitiativeManager = {
             const isActive = !isOut && this.state.selectedUnitId === unit.id;
 
             card.className = `init-combatant-card faction-${unit.faction}`;
+            card.className = `init-combatant-card faction-${unit.faction} state-${unit.status || 'active'}`;
+
+
             if (isOut) card.classList.add('status-out');
             if (isActive) card.classList.add('selected-turn-gold');
             card.setAttribute('draggable', 'true');
@@ -481,7 +486,7 @@ const InitiativeManager = {
                     <div class="init-select-wrapper">
                         <select class="init-inline-faction-select" data-id="${unit.id}">
                             <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
-                            <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>💛 Нейтрал</option>
+                            <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>🟡 Нейтрал</option>
                             <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
                         </select>
                     </div>
@@ -491,8 +496,6 @@ const InitiativeManager = {
                     <button type="button" class="init-btn-delete-card">×</button>
                 </div>
             `;
-
-
 
             this._bindCardEvents(card, unit);
             return card;

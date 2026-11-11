@@ -4266,3 +4266,92 @@ canvas[style*="position: fixed"] {
 #questLogContainer .init-out-zone-grid.mode-bg3 .init-avatar-shield-circle {
     height: 82px !important;
 }
+/* ============================================================================
+   ПЛАШКИ СТАТУСОВ В ВЕРХНЕЙ ЧАСТИ ПОРТРЕТА (ТОЛЬКО ПРИ СМЕРТИ И РАСПЛАСТАН)
+   ============================================================================ */
+
+/* Общая база для верхней ленты статуса внутри портрета */
+#questLogContainer .mode-bg3 .init-combatant-card.state-dying .init-avatar-shield-circle::after,
+#questLogContainer .mode-bg3 .init-combatant-card.state-prone .init-avatar-shield-circle::after {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 10.5px !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    padding: 2px 0 !important;
+    letter-spacing: 0.4px !important;
+    text-shadow: 0 1px 2px #000 !important;
+    z-index: 5 !important;
+    pointer-events: none !important;
+}
+
+/* 1. При смерти (Багровая плашка) */
+#questLogContainer .mode-bg3 .init-combatant-card.state-dying .init-avatar-shield-circle::after {
+    content: "🩸 ПРИ СМЕРТИ" !important;
+    background: rgba(165, 20, 20, 0.92) !important;
+    border-bottom: 1px solid #ff7675 !important;
+    color: #ffffff !important;
+}
+
+/* 2. Распластан (Янтарно-золотая плашка) */
+#questLogContainer .mode-bg3 .init-combatant-card.state-prone .init-avatar-shield-circle::after {
+    content: "💫 РАСПЛАСТАН" !important;
+    background: rgba(155, 95, 10, 0.92) !important;
+    border-bottom: 1px solid #ffd875 !important;
+    color: #ffd875 !important;
+}
+/* ============================================================================
+   ФИКС ВЕРТИКАЛЬНОГО СПИСКА: ТЁМНАЯ ВЫПАДАШКА СТАТУСОВ И СЕРЫЙ ЦВЕТ ВЫБЫВШИХ
+   ============================================================================ */
+
+/* 1. Единый тёмный стиль для выпадашки статусов в вертикальном списке (не затрагивая Горизонт) */
+.init-cards-scroll-list:not(.mode-bg3) .init-inline-status-select {
+    background-color: #040905 !important;
+    border: 1px solid #543e0d !important;
+    color: #ebd291 !important;
+    padding: 6px 10px !important;
+    font-size: 16px !important;
+    font-weight: normal !important;
+    border-radius: 4px !important;
+    height: auto !important;
+    cursor: pointer !important;
+    outline: none !important;
+}
+
+.init-cards-scroll-list:not(.mode-bg3) .init-inline-status-select option {
+    background-color: #040905 !important;
+    color: #ebd291 !important;
+}
+
+.init-cards-scroll-list:not(.mode-bg3) .init-inline-status-select.status-dying {
+    border-color: #e74c3c !important;
+    color: #ff7675 !important;
+}
+
+.init-cards-scroll-list:not(.mode-bg3) .init-inline-status-select.status-prone {
+    border-color: #f39c12 !important;
+    color: #f1c40f !important;
+}
+
+.init-cards-scroll-list:not(.mode-bg3) .init-inline-status-select.status-out {
+    border-color: #636e72 !important;
+    color: #b2bec3 !important;
+}
+
+/* 2. Принудительный серый фон и рамка для ВЫБЫВШИХ бойцов любой фракции (включая Нейтралов) */
+#questLogContainer .init-cards-scroll-list .init-combatant-card.status-out,
+#questLogContainer .init-cards-scroll-list .init-combatant-card.faction-neutral.status-out,
+#questLogContainer .init-cards-scroll-list .init-combatant-card.faction-friend.status-out,
+#questLogContainer .init-cards-scroll-list .init-combatant-card.faction-enemy.status-out {
+    background: linear-gradient(90deg, #3a3f42 0%, #222629 100%) !important;
+    border: 2px solid #636e72 !important;
+    box-shadow: none !important;
+    opacity: 0.85 !important;
+}
+
+#questLogContainer .init-cards-scroll-list .init-combatant-card.status-out .init-card-name-text {
+    color: #b2bec3 !important;
+}
