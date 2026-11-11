@@ -4355,3 +4355,14 @@ canvas[style*="position: fixed"] {
 #questLogContainer .init-cards-scroll-list .init-combatant-card.status-out .init-card-name-text {
     color: #b2bec3 !important;
 }
+
+.k-panel { background: rgba(12, 18, 14, 0.92); border: 1px solid #543e0d; border-radius: 6px; padding: 10px 12px; }
+.k-sec-title { font-size: 13px; font-weight: 900; color: #ffd875; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding-bottom: 4px; }
+.k-box-card { background: #060b07; border: 1px solid #543e0d; border-radius: 4px; padding: 6px 8px; }
+.k-box-title { font-size: 11px; font-weight: 900; color: #dfbc6f; margin-bottom: 4px; }
+.k-lbl { display: block; font-size: 11px; color: #dfbc6f; margin-bottom: 2px; font-weight: bold; }
+.k-inp { width: 100%; background: #040905; border: 1px solid #543e0d; color: #ebd291; padding: 4px 6px; font-size: 13px; border-radius: 4px; box-sizing: border-box; }
+.k-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.k-table th { text-align: left; color: #ffd875; border-bottom: 1px solid #543e0d; padding: 4px; }
+.k-table td { padding: 3px 4px; border-bottom: 1px solid rgba(84, 62, 13, 0.35); }
+.k-table input.k-inp { width: 48px; text-align: center; padding: 2px; }
