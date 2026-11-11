@@ -814,6 +814,48 @@ const KingdomManager = {
         this.renderUi();
     },
 
+
+    _isAreaFree(targetR, targetC, spanRows, spanCols, ignoreUid = null) {
+        if (targetR < 0 || targetC < 0 || targetR + spanRows > 6 || targetC + spanCols > 6) {
+            return { ok: false, reason: 'Постройка выходит за границы городской сетки (6×6)!' };
+        }
+
+        const occupied = new Set();
+        (this.state.urbanGrid?.buildings || []).forEach(b => {
+            if (ignoreUid && b.uid === ignoreUid) return;
+            const m = KingdomBuildings.getBuildingMeta(b.id);
+            if (!m) return;
+            const isRot = ((b.rotation || 0) % 180) !== 0;
+            const bCols = isRot ? m.rows : m.cols;
+            const bRows = isRot ? m.cols : m.rows;
+            for (let r = b.r; r < b.r + bRows; r++) {
+                for (let c = b.c; c < b.c + bCols; c++) {
+                    occupied.add(`${r}_${c}`);
+                }
+            }
+        });
+
+        for (let r = targetR; r < targetR + spanRows; r++) {
+            for (let c = targetC; c < targetC + spanCols; c++) {
+                if (occupied.has(`${r}_${c}`)) {
+                    return { ok: false, reason: 'Этот участок уже занят другой постройкой!' };
+                }
+            }
+        }
+
+        return { ok: true };
+    },
+
+    _checkWaterRequirement(buildingId) {
+        const cost = typeof KingdomBuildings.getBuildingCost === 'function'
+            ? KingdomBuildings.getBuildingCost(buildingId)
+            : {};
+        if (!cost.needWater) return true;
+
+        const borders = this.state.urbanGrid?.borders || {};
+        return Object.values(borders).some(val => val === 'water' || val === 'bridge');
+    },
+
     placeBuilding(buildingId, targetR, targetC, existingUid = null) {
         const meta = KingdomBuildings.getBuildingMeta(buildingId);
         if (!meta) return;
@@ -822,31 +864,142 @@ const KingdomManager = {
         if (existingUid) {
             const old = this.state.urbanGrid.buildings.find(b => b.uid === existingUid);
             if (old) rotation = old.rotation || 0;
-            this.state.urbanGrid.buildings = this.state.urbanGrid.buildings.filter(b => b.uid !== existingUid);
         }
 
         const isRotated = (rotation % 180) !== 0;
         const spanCols = isRotated ? meta.rows : meta.cols;
         const spanRows = isRotated ? meta.cols : meta.rows;
 
-        if (targetR + spanRows > 6 || targetC + spanCols > 6) {
-            alert("Постройка выходит за границы городской сетки (6×6)!");
+        // 1. Защита от наложения и выхода за края сетки
+        const check = this._isAreaFree(targetR, targetC, spanRows, spanCols, existingUid);
+        if (!check.ok) {
+            alert(check.reason);
             this.renderUi();
             return;
         }
 
-        this.state.urbanGrid.buildings.push({
-            uid: existingUid || ('bld_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
-            id: buildingId,
-            r: targetR,
-            c: targetC,
-            rotation
-        });
+        // 2. Перемещение уже построенного здания внутри города — бесплатно
+        if (existingUid) {
+            const existing = this.state.urbanGrid.buildings.find(b => b.uid === existingUid);
+            if (existing) {
+                existing.r = targetR;
+                existing.c = targetC;
+            }
+            this.syncSettlementStats();
+            this._persist();
+            this.renderUi();
+            return;
+        }
 
-        this.syncSettlementStats();
+        // 3. Проверка наличия водной границы для портовых построек
+        if (!this._checkWaterRequirement(buildingId)) {
+            alert(`Для постройки «${meta.name}» хотя бы одна из границ поселения должна иметь тип «Вода» или «Мост»!`);
+            return;
+        }
 
-        this._persist();
-        this.renderUi();
+        // 4. Открываем окно подтверждения строительства со стоимостью в RP и ресурсах
+        this._openBuildConfirmModal(buildingId, meta, targetR, targetC);
+    },
+
+    _openBuildConfirmModal(buildingId, meta, targetR, targetC) {
+        const existing = document.getElementById('kBuildConfirmOverlay');
+        if (existing) existing.remove();
+
+        const s = this.state;
+        const cost = typeof KingdomBuildings.getBuildingCost === 'function'
+            ? KingdomBuildings.getBuildingCost(buildingId)
+            : { rp: 0 };
+
+        // Скидка 1 RP за наличие Строительного двора в поселении (минимум 1 RP, если цена > 0)
+        const hasConstructionYard = (s.urbanGrid?.buildings || []).some(b => b.id === 'construction_yard');
+        const finalRp = (cost.rp > 0 && hasConstructionYard) ? Math.max(1, cost.rp - 1) : (cost.rp || 0);
+
+        const reqs = [
+            { key: 'rp', label: 'Очки ресурсов (RP)', need: finalRp, have: parseInt(s.rp, 10) || 0 },
+            { key: 'lumber', label: '🪵 Дерево', need: cost.lumber || 0, have: parseInt(s.commodities.lumber?.value, 10) || 0 },
+            { key: 'stone', label: '🧱 Камень', need: cost.stone || 0, have: parseInt(s.commodities.stone?.value, 10) || 0 },
+            { key: 'ore', label: '⛏ Руда', need: cost.ore || 0, have: parseInt(s.commodities.ore?.value, 10) || 0 },
+            { key: 'luxuries', label: '💎 Роскошь', need: cost.luxuries || 0, have: parseInt(s.commodities.luxuries?.value, 10) || 0 }
+        ].filter(r => r.need > 0);
+
+        const canAfford = reqs.every(r => r.have >= r.need);
+
+        const reqsHtml = reqs.length === 0
+            ? `<div style="color:#2ecc71;">Постройка не требует затрат ресурсов.</div>`
+            : reqs.map(r => {
+                const ok = r.have >= r.need;
+                return `
+                    <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed rgba(138,100,33,0.25);">
+                        <span>${r.label}:</span>
+                        <span style="font-family:monospace; font-weight:bold; color:${ok ? '#2ecc71' : '#ff7675'};">
+                            Нужно ${r.need} (На складе: ${r.have})
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kBuildConfirmOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:460px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
+                <div style="font-size:19px; font-weight:bold; color:#ffd875; text-transform:uppercase; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:12px;">
+                    🏗 Строительство: ${meta.name}
+                </div>
+
+                <div style="font-size:13px; color:#a4b0be; margin-bottom:10px;">
+                    Уровень постройки: <b style="color:#ffd875;">${meta.level}</b> • Размер: <b style="color:#ffd875;">${meta.cols}×${meta.rows}</b>
+                    ${hasConstructionYard && cost.rp > 0 ? `<div style="color:#2ecc71; margin-top:3px;">✔ Скидка Строительного двора: -1 RP</div>` : ''}
+                </div>
+
+                <div style="background:rgba(0,0,0,0.4); border:1px solid #543e0d; border-radius:6px; padding:10px 14px; margin-bottom:16px; font-size:15px;">
+                    ${reqsHtml}
+                </div>
+
+                <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+                    <button type="button" class="btn cc" id="kBuildCancelBtn">Отмена</button>
+                    <button type="button" class="btn cc" id="kBuildFreeBtn" title="Разместить на карте без списания ресурсов">Бесплатно (Редактор)</button>
+                    <button type="button" class="btn ok" id="kBuildPayBtn" ${canAfford ? '' : 'disabled'} style="opacity:${canAfford ? '1' : '0.45'};">
+                        ⚜ Построить и списать
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const finishBuild = (deductResources) => {
+            if (deductResources && canAfford) {
+                s.rp = (parseInt(s.rp, 10) || 0) - finalRp;
+                if (cost.lumber) s.commodities.lumber.value -= cost.lumber;
+                if (cost.stone) s.commodities.stone.value -= cost.stone;
+                if (cost.ore) s.commodities.ore.value -= cost.ore;
+                if (cost.luxuries) s.commodities.luxuries.value -= cost.luxuries;
+            }
+
+            s.urbanGrid.buildings.push({
+                uid: 'bld_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                id: buildingId,
+                r: targetR,
+                c: targetC,
+                rotation: 0
+            });
+
+            overlay.remove();
+            this.syncSettlementStats();
+            this._persist();
+            this.renderUi();
+        };
+
+        overlay.querySelector('#kBuildCancelBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        overlay.querySelector('#kBuildFreeBtn').addEventListener('click', () => finishBuild(false));
+
+        const payBtn = overlay.querySelector('#kBuildPayBtn');
+        if (payBtn && canAfford) {
+            payBtn.addEventListener('click', () => finishBuild(true));
+        }
     },
 
     rotateBuilding(uid) {
@@ -861,8 +1014,9 @@ const KingdomManager = {
         const spanCols = isRotated ? meta.rows : meta.cols;
         const spanRows = isRotated ? meta.cols : meta.rows;
 
-        if (bld.r + spanRows > 6 || bld.c + spanCols > 6) {
-            alert("Недостаточно места для поворота у края сетки!");
+        const check = this._isAreaFree(bld.r, bld.c, spanRows, spanCols, uid);
+        if (!check.ok) {
+            alert(check.reason);
             return;
         }
 
@@ -870,6 +1024,8 @@ const KingdomManager = {
         this._persist();
         this.renderUi();
     },
+
+
 
     removeBuilding(uid) {
         this.state.urbanGrid.buildings = this.state.urbanGrid.buildings.filter(b => b.uid !== uid);

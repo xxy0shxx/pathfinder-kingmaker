@@ -162,6 +162,100 @@ const KingdomBuildings = {
 
     _cache: {},
 
+    // Стоимость строительства в RP и материалах (Pathfinder 2e Kingmaker)
+    buildCosts: {
+        // 1 клетка (1x1)
+        alchemy_lab:       { rp: 18, lumber: 2, stone: 1 },
+        arcanist_tower:    { rp: 30, stone: 4 },
+        bank:              { rp: 28, stone: 4, ore: 2 },
+        barracks:          { rp: 6,  lumber: 2, stone: 1 },
+        brewery:           { rp: 6,  lumber: 2 },
+        cemetery:          { rp: 4,  stone: 1 },
+        dump:              { rp: 4 },
+        festival_hall:     { rp: 7,  lumber: 3 },
+        general_store:     { rp: 8,  lumber: 2 },
+        granary:           { rp: 12, lumber: 2 },
+        herbalist:         { rp: 10, lumber: 1 },
+        houses:            { rp: 3,  lumber: 1 },
+        illicit_market:    { rp: 12, lumber: 2 },
+        inn:               { rp: 10, lumber: 2 },
+        jail:              { rp: 14, lumber: 2, stone: 2 },
+        library:           { rp: 6,  lumber: 2 },
+        luxury_store:      { rp: 28, lumber: 4, luxuries: 2 },
+        magic_shop:        { rp: 44, stone: 4, luxuries: 2 },
+        mansion:           { rp: 10, lumber: 2, stone: 2, luxuries: 1 },
+        mill:              { rp: 6,  lumber: 2, stone: 1 },
+        mint:              { rp: 30, stone: 5, ore: 3 },
+        monument:          { rp: 6,  stone: 1 },
+        occult_shop:       { rp: 48, lumber: 4, luxuries: 2 },
+        orphanage:         { rp: 6,  lumber: 2 },
+        park:              { rp: 5 },
+        pier:              { rp: 16, lumber: 2, needWater: true },
+        rubble:            { rp: 0 },
+        sacred_grove:      { rp: 12 },
+        shrine:            { rp: 8,  lumber: 2, stone: 1 },
+        smithy:            { rp: 8,  lumber: 2, stone: 1, ore: 1 },
+        special_artisan:   { rp: 12, lumber: 2, stone: 1 },
+        stable:            { rp: 10, lumber: 2 },
+        tannery:           { rp: 6,  lumber: 1 },
+        tavern_dive:       { rp: 6,  lumber: 1 },
+        tavern_popular:    { rp: 24, lumber: 4, stone: 1 },
+        tenement:          { rp: 1,  lumber: 1 },
+        thieves_guild:     { rp: 24, lumber: 2, stone: 2 },
+        trade_shop:        { rp: 10, lumber: 2 },
+        watchtower:        { rp: 12, lumber: 2, stone: 2 },
+
+        // 2 клетки (2x1)
+        academy:           { rp: 52, lumber: 6, stone: 6 },
+        embassy:           { rp: 26, lumber: 4, stone: 4, luxuries: 2 },
+        foundry:           { rp: 16, lumber: 2, stone: 3, ore: 2 },
+        garrison:          { rp: 28, lumber: 4, stone: 3 },
+        guildhall:         { rp: 34, lumber: 4, stone: 2 },
+        hospital:          { rp: 30, lumber: 4, stone: 3 },
+        keep:              { rp: 32, lumber: 4, stone: 4 },
+        lumberyard:        { rp: 16, lumber: 3, stone: 1 },
+        marketplace:       { rp: 48, lumber: 4 },
+        military_academy:  { rp: 36, lumber: 4, stone: 4 },
+        museum:            { rp: 30, lumber: 4, stone: 4 },
+        noble_villa:       { rp: 24, lumber: 4, stone: 4, luxuries: 2 },
+        opera_house:       { rp: 40, lumber: 6, stone: 4, luxuries: 2 },
+        secure_warehouse:  { rp: 24, lumber: 3, stone: 3 },
+        stonemason:        { rp: 16, lumber: 2, stone: 3 },
+        tavern_luxury:     { rp: 48, lumber: 6, stone: 4, luxuries: 2 },
+        tavern_world_class:{ rp: 64, lumber: 8, stone: 6, luxuries: 4 },
+        temple:            { rp: 32, lumber: 4, stone: 4 },
+        theater:           { rp: 24, lumber: 4, stone: 2 },
+        town_hall:         { rp: 22, lumber: 4, stone: 2 },
+
+        // 4 клетки (2x2)
+        arena:             { rp: 40, lumber: 6, stone: 6 },
+        castle:            { rp: 54, lumber: 6, stone: 8 },
+        cathedral:         { rp: 58, lumber: 6, stone: 8 },
+        construction_yard: { rp: 20, lumber: 4, stone: 2 },
+        menagerie:         { rp: 26, lumber: 6, stone: 2 },
+        palace:            { rp: 108, lumber: 8, stone: 10, luxuries: 6 },
+        stockyard:         { rp: 20, lumber: 4 },
+        university:        { rp: 78, lumber: 8, stone: 8 },
+        waterfront_corner: { rp: 90, lumber: 8, stone: 4, needWater: true },
+        waterfront_side:   { rp: 90, lumber: 8, stone: 4, needWater: true }
+    },
+
+    getBuildingCost(id) {
+        return this.buildCosts[id] || { rp: 0 };
+    },
+
+    getBuildingCostText(id) {
+        const c = this.getBuildingCost(id);
+        const parts = [`${c.rp || 0} RP`];
+        if (c.lumber) parts.push(`${c.lumber} Дерева`);
+        if (c.stone) parts.push(`${c.stone} Камня`);
+        if (c.ore) parts.push(`${c.ore} Руды`);
+        if (c.luxuries) parts.push(`${c.luxuries} Роскоши`);
+        if (c.needWater) parts.push('нужна Вода/Мост');
+        return parts.join(' • ');
+    },
+
+
     getBuildingInfoText(id) {
         const st = this.statsData[id];
         return st ? st.note : 'Особая постройка';
