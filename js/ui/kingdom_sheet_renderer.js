@@ -5,13 +5,22 @@ import KingdomBuildings from '../services/kingdom_buildings.js';
  */
 const KingdomSheetRenderer = {
     renderMainLayout(state, activeSubTab, helpers) {
+        const canLevelUp = (parseInt(state.xp, 10) || 0) >= 1000;
+        const levelUpBtn = canLevelUp
+            ? `<button type="button" class="btn ok" id="kBtnLevelUp" style="border-color:#ffd875; box-shadow:0 0 12px rgba(255,216,117,0.6);">👑 Повысить уровень!</button>`
+            : '';
+
         const tabButtons = `
-            <div class="k-subtabs-bar" style="display:flex; gap:10px; align-items:center; margin-bottom:14px; border-bottom:2px solid #543e0d; padding-bottom:10px;">
+            <div class="k-subtabs-bar" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; border-bottom:2px solid #543e0d; padding-bottom:10px;">
                 <button type="button" class="btn ${activeSubTab === 'sheet' ? 'ok' : ''}" data-k-tab="sheet">📜 Лист и Навыки</button>
                 <button type="button" class="btn ${activeSubTab === 'events' ? 'ok' : ''}" data-k-tab="events">⚡ События</button>
                 <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : ''}" data-k-tab="urban">🏰 Постройки и Город</button>
-                <button type="button" class="btn cc" id="kBtnUpkeepTurn" style="margin-left:auto;">🎲 Сбор ресурсов (Upkeep)</button>
-                <button type="button" class="btn ok k-btn-save-small" style="margin-left:auto;">⚜ Сохранить</button>
+                <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+                    ${levelUpBtn}
+                    <button type="button" class="btn cc" id="kBtnUpkeepTurn" title="Сбор ресурсов (Upkeep)">🎲 Сбор ресурсов</button>
+                    <button type="button" class="btn cc" id="kBtnEndTurn" title="Перевести остаток RP в опыт XP (макс. 120)">⏳ Конец хода</button>
+                    <button type="button" class="btn ok k-btn-save-small">⚜ Сохранить</button>
+                </div>
             </div>
         `;
 

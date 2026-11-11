@@ -517,6 +517,161 @@ const KingdomManager = {
         setTimeout(() => closeBtn.focus(), 50);
     },
 
+    openEndTurnModal() {
+        this.saveFromUi();
+
+        const s = this.state;
+        const currentRp = parseInt(s.rp, 10) || 0;
+        const xpGain = Math.min(120, Math.max(0, currentRp));
+        const currentXp = parseInt(s.xp, 10) || 0;
+        const nextXp = currentXp + xpGain;
+
+        const existing = document.getElementById('kEndTurnOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kEndTurnOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:460px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
+                <div style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+                    ⏳ Завершение хода королевства
+                </div>
+
+                <div style="background:rgba(0,0,0,0.4); border:1px solid #543e0d; border-radius:6px; padding:14px; margin-bottom:16px; font-size:15px; line-height:1.55;">
+                    <div>• Неизрасходовано RP: <b>${currentRp}</b> (сбрасываются в 0 в конце хода)</div>
+                    <div>• Конвертация в опыт (макс. 120 XP за ход): <b style="color:#2ecc71;">+${xpGain} XP</b></div>
+                    <div>• Опыт королевства (XP): <b>${currentXp}</b> → <b style="color:#ffd875;">${nextXp} / 1000</b></div>
+                    ${nextXp >= 1000 ? `<div style="margin-top:8px; color:#ffd875; font-weight:bold;">👑 Доступно повышение уровня королевства!</div>` : ''}
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                    <button type="button" class="btn cc" id="kEndTurnCancel">Отмена</button>
+                    <button type="button" class="btn ok" id="kEndTurnConfirm">⚜ Завершить ход</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        overlay.querySelector('#kEndTurnCancel').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        overlay.querySelector('#kEndTurnConfirm').addEventListener('click', () => {
+            s.rp = 0;
+            s.xp = nextXp;
+            overlay.remove();
+            this.recalculateModifiers();
+            this._persist();
+            this.renderUi();
+
+            if (s.xp >= 1000) {
+                this.openLevelUpModal();
+            }
+        });
+    },
+
+    openLevelUpModal() {
+        this.saveFromUi();
+
+        const s = this.state;
+        const currentXp = parseInt(s.xp, 10) || 0;
+        if (currentXp < 1000) {
+            alert(`Для повышения уровня нужно 1000 XP (сейчас ${currentXp} XP).`);
+            return;
+        }
+
+        const existing = document.getElementById('kLevelUpOverlay');
+        if (existing) existing.remove();
+
+        const statLabels = {
+            culture: 'Culture (Культура)',
+            economy: 'Economy (Экономика)',
+            loyalty: 'Loyalty (Лояльность)',
+            stability: 'Stability (Стабильность)'
+        };
+
+        const checkboxesHtml = Object.entries(statLabels).map(([key, label]) => {
+            const curVal = parseInt(s.stats[key]?.value, 10) || 10;
+            const step = curVal >= 18 ? 1 : 2;
+            return `
+                <label style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:5px; cursor:pointer;">
+                    <span style="display:flex; align-items:center; gap:8px; font-weight:bold; color:#ebd291;">
+                        <input type="checkbox" class="k-lvlup-stat-cb" value="${key}"> ${label}
+                    </span>
+                    <span style="color:#2ecc71; font-family:monospace; font-weight:bold;">${curVal} → ${curVal + step} (+${step})</span>
+                </label>
+            `;
+        }).join('');
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kLevelUpOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #142b1c 0%, #09140d 100%); border:2px solid #ffd875; border-radius:8px; padding:22px 26px; width:470px; max-width:92vw; color:#ebd291; box-shadow:0 15px 45px rgba(0,0,0,0.95), 0 0 35px rgba(255,216,117,0.45); font-family:'Tinos', serif;">
+                <div style="font-size:21px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #8a6421; padding-bottom:8px; margin-bottom:12px;">
+                    👑 Повышение уровня королевства (${s.level} → ${(parseInt(s.level, 10) || 1) + 1})
+                </div>
+
+                <div style="font-size:14px; color:#dfbc6f; margin-bottom:12px; line-height:1.4;">
+                    • Списывается <b>1000 XP</b> (остаток: <b>${currentXp - 1000} XP</b>)<br>
+                    • Базовая <b>Control DC</b> увеличивается на <b>+1</b> (${s.controlDcBase} → ${(parseInt(s.controlDcBase, 10) || 14) + 1})<br>
+                    • Выберите <b>2 разные характеристики</b> для повышения:
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                    ${checkboxesHtml}
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                    <button type="button" class="btn cc" id="kLvlUpCancel">Позже</button>
+                    <button type="button" class="btn ok" id="kLvlUpConfirm" disabled style="opacity:0.5;">👑 Повысить уровень</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const cbs = Array.from(overlay.querySelectorAll('.k-lvlup-stat-cb'));
+        const btnConfirm = overlay.querySelector('#kLvlUpConfirm');
+
+        cbs.forEach(cb => {
+            cb.addEventListener('change', () => {
+                const checked = cbs.filter(item => item.checked);
+                if (checked.length > 2) {
+                    cb.checked = false;
+                    return;
+                }
+                const ready = checked.length === 2;
+                btnConfirm.disabled = !ready;
+                btnConfirm.style.opacity = ready ? '1' : '0.5';
+            });
+        });
+
+        overlay.querySelector('#kLvlUpCancel').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+        btnConfirm.addEventListener('click', () => {
+            const chosen = cbs.filter(item => item.checked).map(item => item.value);
+            if (chosen.length !== 2) return;
+
+            s.xp = Math.max(0, (parseInt(s.xp, 10) || 0) - 1000);
+            s.level = (parseInt(s.level, 10) || 1) + 1;
+            s.controlDcBase = (parseInt(s.controlDcBase, 10) || 14) + 1;
+
+            chosen.forEach(key => {
+                const cur = parseInt(s.stats[key].value, 10) || 10;
+                s.stats[key].value = cur + (cur >= 18 ? 1 : 2);
+            });
+
+            overlay.remove();
+            this.recalculateModifiers();
+            this._persist();
+            this.renderUi();
+        });
+    },
+
 
 
 
@@ -751,6 +906,8 @@ const KingdomManager = {
         this._bindEvents(container);
     },
 
+
+
     _bindEvents(container) {
         container.querySelectorAll('[data-k-tab]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -764,6 +921,12 @@ const KingdomManager = {
 
         const btnUpkeep = container.querySelector('#kBtnUpkeepTurn');
         if (btnUpkeep) btnUpkeep.addEventListener('click', () => this.openUpkeepModal());
+
+        const btnEndTurn = container.querySelector('#kBtnEndTurn');
+        if (btnEndTurn) btnEndTurn.addEventListener('click', () => this.openEndTurnModal());
+
+        const btnLevelUp = container.querySelector('#kBtnLevelUp');
+        if (btnLevelUp) btnLevelUp.addEventListener('click', () => this.openLevelUpModal());
 
 
         const btnAddEv = container.querySelector('#kBtnAddEvent');
