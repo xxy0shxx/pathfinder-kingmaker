@@ -198,13 +198,111 @@ const KingdomManager = {
         this.renderUi();
     },
 
+
+
+    // Связь характеристик с типами упадка (Ruins) и ролями лидеров (Invested +1)
+    ruinAbilityMap: {
+        corruption: 'culture',
+        crime: 'economy',
+        decay: 'stability',
+        strife: 'loyalty'
+    },
+
+    leaderAbilityMap: {
+        ruler: 'loyalty',
+        counselor: 'culture',
+        general: 'stability',
+        emissary: 'loyalty',
+        magister: 'culture',
+        treasurer: 'economy',
+        viceroy: 'economy',
+        warden: 'stability'
+    },
+
+    getSizeModifier(size) {
+        const s = parseInt(size, 10) || 1;
+        if (s >= 100) return 4;
+        if (s >= 50) return 3;
+        if (s >= 25) return 2;
+        if (s >= 10) return 1;
+        return 0;
+    },
+
+    getUnrestPenalty() {
+        const u = parseInt(this.state?.unrest, 10) || 0;
+        if (u >= 15) return -4;
+        if (u >= 10) return -3;
+        if (u >= 5) return -2;
+        if (u >= 1) return -1;
+        return 0;
+    },
+
     recalculateModifiers() {
+        // 1. Модификаторы 4 основных характеристик
         for (let key in this.state.stats) {
             const val = parseInt(this.state.stats[key].value, 10) || 10;
             this.state.stats[key].modifier = Math.floor((val - 10) / 2);
         }
+
+        // 2. Модификатор Control DC от Size и лимит складов Commodities
+        const sizeMod = this.getSizeModifier(this.state.size);
+        this.state.controlDcSize = sizeMod;
+
+        const maxComm = 4 + sizeMod * 4;
+        if (this.state.commodities) {
+            ['food', 'lumber', 'luxuries', 'ore', 'stone'].forEach(c => {
+                if (this.state.commodities[c]) {
+                    this.state.commodities[c].max = maxComm;
+                }
+            });
+        }
+
+        // 3. Пороги (10 + мод. характеристики) и штрафы Упадка (Ruins)
+        if (this.state.ruins) {
+            for (let ruinKey in this.ruinAbilityMap) {
+                const r = this.state.ruins[ruinKey];
+                if (!r) continue;
+                const abKey = this.ruinAbilityMap[ruinKey];
+                const abMod = this.state.stats[abKey]?.modifier || 0;
+                r.threshold = Math.max(1, 10 + abMod);
+                r.penalty = Math.floor((parseInt(r.score, 10) || 0) / r.threshold);
+            }
+        }
+
+        // 4. Синхронизация бонусов построек и Consumption
         this.syncSettlementStats();
     },
+
+    getSkillTotal(skillId) {
+        const cfg = this.skillConfig.find(s => s.id === skillId);
+        if (!cfg) return 0;
+
+        const abilityMod = this.state.stats[cfg.ability]?.modifier || 0;
+        const sk = this.state.skills[skillId] || { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
+        const lvl = parseInt(this.state.level, 10) || 1;
+        const profBonus = sk.prof > 0 ? (sk.prof + lvl) : 0;
+
+        // Бонус +1, если есть хотя бы один вложенный (Invested) лидер по этой характеристике
+        let investedBonus = 0;
+        if (this.state.leaders) {
+            for (let role in this.leaderAbilityMap) {
+                if (this.leaderAbilityMap[role] === cfg.ability && this.state.leaders[role]?.invested && (this.state.leaders[role]?.name || '').trim() !== '') {
+                    investedBonus = 1;
+                    break;
+                }
+            }
+        }
+
+        // Штраф от соответствующего Упадка (Ruin) и Беспокойства (Unrest)
+        const ruinKey = Object.keys(this.ruinAbilityMap).find(k => this.ruinAbilityMap[k] === cfg.ability);
+        const ruinPenalty = ruinKey ? (parseInt(this.state.ruins?.[ruinKey]?.penalty, 10) || 0) : 0;
+        const unrestPenalty = this.getUnrestPenalty();
+
+        return abilityMod + profBonus + investedBonus + (sk.status || 0) + (sk.circ || 0) + (sk.item || 0) + (sk.other || 0) - ruinPenalty + unrestPenalty;
+    },
+
+
+
 
     syncSettlementStats() {
         if (!this.state || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
@@ -236,14 +334,7 @@ const KingdomManager = {
         }
     },
 
-    getSkillTotal(skillId) {
-        const cfg = this.skillConfig.find(s => s.id === skillId);
-        if (!cfg) return 0;
-        const abilityMod = this.state.stats[cfg.ability]?.modifier || 0;
-        const sk = this.state.skills[skillId] || { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
-        const profBonus = sk.prof > 0 ? (sk.prof + (parseInt(this.state.level, 10) || 1)) : 0;
-        return abilityMod + profBonus + (sk.status || 0) + (sk.circ || 0) + (sk.item || 0) + (sk.other || 0);
-    },
+
 
     addEventCard() {
         this.state.events.push({
@@ -643,6 +734,16 @@ const KingdomManager = {
                 });
             }
         });
+
+        // Мгновенный автопересчёт на вкладке «Лист и Навыки» при изменении чисел, селектов или чекбоксов
+        const sheetGrid = container.querySelector('.k-grid-2col');
+        if (sheetGrid) {
+            sheetGrid.querySelectorAll('input[type="number"], select, input[type="checkbox"]').forEach(el => {
+                el.addEventListener('change', () => {
+                    this.saveFromUi();
+                });
+            });
+        }
 
     }
 };

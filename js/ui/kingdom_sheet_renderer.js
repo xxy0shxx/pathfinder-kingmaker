@@ -39,17 +39,21 @@ const KingdomSheetRenderer = {
             `;
         }).join('');
 
+
         const ruinsHtml = ['corruption', 'crime', 'decay', 'strife'].map(key => {
             const r = s.ruins[key];
+            const penStyle = r.penalty > 0 ? 'background:#2b1111; border-color:#e74c3c; color:#ff7675; font-weight:bold;' : 'opacity:0.75;';
             return `
                 <tr>
                     <td style="text-transform:uppercase; font-weight:bold;">${key}</td>
                     <td><input type="number" id="k_ruin_score_${key}" class="k-inp" value="${r.score}"></td>
-                    <td><input type="number" id="k_ruin_pen_${key}" class="k-inp" value="${r.penalty}"></td>
-                    <td><input type="number" id="k_ruin_thr_${key}" class="k-inp" value="${r.threshold}"></td>
+                    <td><input type="number" id="k_ruin_pen_${key}" class="k-inp" value="${r.penalty}" readonly title="Авторасчёт: Score / Threshold" style="${penStyle}"></td>
+                    <td><input type="number" id="k_ruin_thr_${key}" class="k-inp" value="${r.threshold}" readonly title="Авторасчёт: 10 + модификатор характеристики" style="opacity:0.75;"></td>
                 </tr>
             `;
         }).join('');
+
+
 
         const leadersHtml = Object.keys(roleNames).map(role => {
             const l = s.leaders[role] || { name: '', invested: false };
