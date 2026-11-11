@@ -4,7 +4,7 @@
 export const Buildings4Lot = {
 
     castle(ctx, w, h) {
-        // 1. Внешний травянистый фон участка
+        // 1. Внешний травянистый фон участка (полностью виден вокруг рва со всех сторон)
         const bgGrad = ctx.createLinearGradient(0, 0, w, h);
         bgGrad.addColorStop(0, '#969e60');
         bgGrad.addColorStop(0.5, '#a8b070');
@@ -12,16 +12,16 @@ export const Buildings4Lot = {
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, w, h);
 
-        // Шестиугольные опорные вершины крепости (чуть опущены сверху, чтобы сверху поместился ров и трава)
-        const cTL = { x: w * 0.18, y: h * 0.18 };
-        const cTR = { x: w * 0.82, y: h * 0.18 };
-        const cMR = { x: w * 0.87, y: h * 0.48 };
-        const cBR = { x: w * 0.82, y: h * 0.78 };
-        const cBL = { x: w * 0.18, y: h * 0.78 };
-        const cML = { x: w * 0.13, y: h * 0.48 };
+        // Шестиугольные опорные вершины крепости (с отступами от краёв, чтобы вместить ров и внешний берег)
+        const cTL = {x: w * 0.21, y: h * 0.20};
+        const cTR = {x: w * 0.79, y: h * 0.20};
+        const cMR = {x: w * 0.84, y: h * 0.48};
+        const cBR = {x: w * 0.79, y: h * 0.75};
+        const cBL = {x: w * 0.21, y: h * 0.75};
+        const cML = {x: w * 0.16, y: h * 0.48};
 
         const hexPts = [cTL, cTR, cMR, cBR, cBL, cML];
-        const tRad = w * 0.065;
+        const tRad = w * 0.060;
 
         const traceHexCastle = (includeBarbican = false) => {
             ctx.beginPath();
@@ -30,15 +30,15 @@ export const Buildings4Lot = {
             ctx.lineTo(cMR.x, cMR.y);
             ctx.lineTo(cBR.x, cBR.y);
             if (includeBarbican) {
-                ctx.lineTo(w * 0.58, h * 0.80);
-                ctx.lineTo(w * 0.44, h * 0.80);
+                ctx.lineTo(w * 0.57, h * 0.77);
+                ctx.lineTo(w * 0.45, h * 0.77);
             }
             ctx.lineTo(cBL.x, cBL.y);
             ctx.lineTo(cML.x, cML.y);
             ctx.closePath();
         };
 
-        // Хелпер для рисования равномерного рва вокруг стен, башен и барбакана
+        // Хелпер для рисования рва как увеличенного силуэта замка и башен
         const strokeMoatLayer = (color, wallStrokeW, towerExtraR) => {
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
@@ -56,8 +56,8 @@ export const Buildings4Lot = {
             });
 
             [
-                [w * 0.445, h * 0.80, w * 0.052 + towerExtraR],
-                [w * 0.575, h * 0.80, w * 0.052 + towerExtraR]
+                [w * 0.45, h * 0.77, w * 0.048 + towerExtraR],
+                [w * 0.57, h * 0.77, w * 0.048 + towerExtraR]
             ].forEach(([bx, by, br]) => {
                 ctx.beginPath();
                 ctx.arc(bx, by, br, 0, Math.PI * 2);
@@ -65,41 +65,14 @@ export const Buildings4Lot = {
             });
         };
 
-
-
-
-
-
-        // 2. Равномерный фигурный ров одинаковой толщины вокруг всего силуэта замка
+        // 2. Ров из 2 слоёв воды (мелководье у берегов + основная гладь) внутри зелени участка
         ctx.save();
-        strokeMoatLayer('#99e9f2', 36, 14);
-        strokeMoatLayer('#22b8cf', 30, 11);
-        strokeMoatLayer('#0c8599', 22, 7);
+        strokeMoatLayer('#8ce9f2', 32, 12);
+        strokeMoatLayer('#22b8cf', 26, 9);
         ctx.restore();
 
-        // Внешняя кромка мелководья рва
-        traceHexCastle(true);
-        ctx.strokeStyle = '#99e9f2';
-        ctx.lineWidth = 54;
-        ctx.stroke();
-
-        // Основная гладь бирюзовой воды рва
-        traceHexCastle(true);
-        ctx.fillStyle = '#22b8cf';
-        ctx.fill();
-        ctx.strokeStyle = '#22b8cf';
-        ctx.lineWidth = 46;
-        ctx.stroke();
-
-        // Глубокая тень воды ближе к острову
-        traceHexCastle(true);
-        ctx.strokeStyle = '#0c8599';
-        ctx.lineWidth = 34;
-        ctx.stroke();
-        ctx.restore();
-
-        // 3. Остров замка с зелёным берегом снаружи всех шести стен и башен
-        const yardGrad = ctx.createRadialGradient(w * 0.5, h * 0.50, w * 0.08, w * 0.5, h * 0.5, w * 0.44);
+        // 3. Внутренний остров замка с зелёной береговой полосой у стен
+        const yardGrad = ctx.createRadialGradient(w * 0.5, h * 0.48, w * 0.08, w * 0.5, h * 0.48, w * 0.40);
         yardGrad.addColorStop(0, '#dcd6b0');
         yardGrad.addColorStop(0.68, '#b8ba82');
         yardGrad.addColorStop(1, '#7c8549');
@@ -107,25 +80,23 @@ export const Buildings4Lot = {
         traceHexCastle(false);
         ctx.fillStyle = yardGrad;
         ctx.strokeStyle = '#7c8549';
-        ctx.lineWidth = 18;
+        ctx.lineWidth = 16;
         ctx.lineJoin = 'round';
         ctx.fill();
         ctx.stroke();
 
         // Зелёные мысы берега вокруг башен и южного барбакана
-        const tRadBank = tRad + 3;
+        const tRadBank = tRad + 2.5;
         ctx.fillStyle = '#7c8549';
         [
             ...hexPts.map(p => [p.x, p.y, tRadBank]),
-            [w * 0.445, h * 0.80, w * 0.052 + 3],
-            [w * 0.575, h * 0.80, w * 0.052 + 3]
+            [w * 0.45, h * 0.77, w * 0.048 + 2.5],
+            [w * 0.57, h * 0.77, w * 0.048 + 2.5]
         ].forEach(([bx, by, br]) => {
             ctx.beginPath();
             ctx.arc(bx, by, br, 0, Math.PI * 2);
             ctx.fill();
         });
-
-
 
         // 4. Деревянный мост через ров снизу по центру
         const bridgeX = w * 0.48;
@@ -286,7 +257,7 @@ export const Buildings4Lot = {
         drawKeepPolygon();
         ctx.stroke();
 
-        const topKeep = { x: w * 0.42, y: h * 0.18, w: w * 0.19, h: h * 0.09 };
+        const topKeep = {x: w * 0.42, y: h * 0.18, w: w * 0.19, h: h * 0.09};
         ctx.fillStyle = 'rgba(14, 16, 18, 0.50)';
         ctx.fillRect(topKeep.x + 1.5, topKeep.y + 2, topKeep.w, topKeep.h);
 
@@ -356,7 +327,7 @@ export const Buildings4Lot = {
         hexPts.forEach(p => drawRoundTower(p.x, p.y, tRad));
     },
 
-        arena(ctx, w, h) {
+    arena(ctx, w, h) {
         // 1. Фон травянистого участка
         const bgGrad = ctx.createLinearGradient(0, 0, w, h);
         bgGrad.addColorStop(0, '#969e60');
