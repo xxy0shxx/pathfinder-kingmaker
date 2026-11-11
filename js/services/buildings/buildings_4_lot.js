@@ -109,7 +109,12 @@ export const Buildings4Lot = {
             ctx.stroke();
         });
 
-        // 4. ГЛАВНЫЙ СЕВЕРНЫЙ КОРПУС (Ш-образное здание в верхней половине участка)
+
+
+
+
+
+        // 4. ГЛАВНЫЙ СЕВЕРНЫЙ КОРПУС (объёмная многоскатная крыша, как у Museum)
         const nPts = [
             { x: w * 0.03, y: h * 0.04 },
             { x: w * 0.40, y: h * 0.04 },
@@ -155,24 +160,89 @@ export const Buildings4Lot = {
         ctx.fillStyle = midSlope;
         ctx.fillRect(0, 0, w, h * 0.46);
 
-        // Внутренние затенённые скаты левого крыла и освещённые скаты правого
+        // Внутренние затенённые скаты левого крыла (по диагоналям к дворику)
         ctx.fillStyle = darkSlope;
-        ctx.fillRect(w * 0.125, h * 0.09, w * 0.275, h * 0.30);
+        ctx.beginPath();
+        ctx.moveTo(w * 0.125, h * 0.09);
+        ctx.lineTo(w * 0.40, h * 0.09);
+        ctx.lineTo(w * 0.40, h * 0.145);
+        ctx.lineTo(w * 0.22, h * 0.145);
+        ctx.lineTo(w * 0.22, h * 0.34);
+        ctx.lineTo(w * 0.36, h * 0.34);
+        ctx.lineTo(w * 0.36, h * 0.39);
+        ctx.lineTo(w * 0.125, h * 0.39);
+        ctx.closePath();
+        ctx.fill();
 
+        // Внутренние освещённые скаты правого крыла
         ctx.fillStyle = lightSlope;
-        ctx.fillRect(w * 0.59, h * 0.09, w * 0.285, h * 0.30);
+        ctx.beginPath();
+        ctx.moveTo(w * 0.875, h * 0.09);
+        ctx.lineTo(w * 0.59, h * 0.09);
+        ctx.lineTo(w * 0.59, h * 0.145);
+        ctx.lineTo(w * 0.78, h * 0.145);
+        ctx.lineTo(w * 0.78, h * 0.34);
+        ctx.lineTo(w * 0.64, h * 0.34);
+        ctx.lineTo(w * 0.64, h * 0.39);
+        ctx.lineTo(w * 0.875, h * 0.39);
+        ctx.closePath();
+        ctx.fill();
 
-        // Внешние боковые скаты
+        // Внешний левый освещённый скат и внешний правый затенённый скат
         ctx.fillStyle = lightSlope;
-        ctx.fillRect(w * 0.03, h * 0.04, w * 0.095, h * 0.40);
+        ctx.beginPath();
+        ctx.moveTo(w * 0.03, h * 0.04);
+        ctx.lineTo(w * 0.125, h * 0.09);
+        ctx.lineTo(w * 0.125, h * 0.39);
+        ctx.lineTo(w * 0.03, h * 0.44);
+        ctx.closePath();
+        ctx.fill();
+
         ctx.fillStyle = darkSlope;
-        ctx.fillRect(w * 0.875, h * 0.04, w * 0.095, h * 0.40);
+        ctx.beginPath();
+        ctx.moveTo(w * 0.97, h * 0.04);
+        ctx.lineTo(w * 0.875, h * 0.09);
+        ctx.lineTo(w * 0.875, h * 0.39);
+        ctx.lineTo(w * 0.97, h * 0.44);
+        ctx.closePath();
+        ctx.fill();
 
-        // Центральный портик
+        // Центральный портик: левый светлый скат, правый тёмный скат
         ctx.fillStyle = lightSlope;
-        ctx.fillRect(w * 0.40, h * 0.025, w * 0.095, h * 0.22);
+        ctx.beginPath();
+        ctx.moveTo(w * 0.40, h * 0.025);
+        ctx.lineTo(w * 0.495, h * 0.025);
+        ctx.lineTo(w * 0.495, h * 0.24);
+        ctx.lineTo(w * 0.40, h * 0.24);
+        ctx.lineTo(w * 0.40, h * 0.145);
+        ctx.lineTo(w * 0.45, h * 0.09);
+        ctx.lineTo(w * 0.40, h * 0.04);
+        ctx.closePath();
+        ctx.fill();
+
         ctx.fillStyle = '#733716';
-        ctx.fillRect(w * 0.495, h * 0.025, w * 0.095, h * 0.22);
+        ctx.beginPath();
+        ctx.moveTo(w * 0.59, h * 0.025);
+        ctx.lineTo(w * 0.495, h * 0.025);
+        ctx.lineTo(w * 0.495, h * 0.24);
+        ctx.lineTo(w * 0.59, h * 0.24);
+        ctx.lineTo(w * 0.59, h * 0.145);
+        ctx.lineTo(w * 0.54, h * 0.09);
+        ctx.lineTo(w * 0.59, h * 0.04);
+        ctx.closePath();
+        ctx.fill();
+
+        // Штриховка черепицы вдоль карнизов
+        ctx.strokeStyle = 'rgba(28, 12, 4, 0.48)';
+        ctx.lineWidth = 1.0;
+        for (let x = w * 0.04; x < w * 0.96; x += 5) {
+            ctx.beginPath();
+            ctx.moveTo(x, h * 0.04);
+            ctx.lineTo(x, h * 0.065);
+            ctx.moveTo(x, h * 0.415);
+            ctx.lineTo(x, h * 0.44);
+            ctx.stroke();
+        }
         ctx.restore();
 
         ctx.strokeStyle = '#241206';
@@ -182,9 +252,10 @@ export const Buildings4Lot = {
         ctx.closePath();
         ctx.stroke();
 
-        // Коньковые балки северного корпуса и два двойных дымохода
+        // Коньковые балки и все внутренние/внешние диагональные рёбра скатов
         ctx.strokeStyle = '#2b1407';
         ctx.lineWidth = 2.0;
+        ctx.lineJoin = 'round';
         ctx.beginPath();
         ctx.moveTo(w * 0.36, h * 0.39);
         ctx.lineTo(w * 0.125, h * 0.39);
@@ -199,16 +270,35 @@ export const Buildings4Lot = {
         ctx.moveTo(w * 0.495, h * 0.025);
         ctx.lineTo(w * 0.495, h * 0.24);
 
+        // Внешние и внутренние диагональные стыки крыльев
         ctx.moveTo(w * 0.03, h * 0.04);
         ctx.lineTo(w * 0.125, h * 0.09);
         ctx.moveTo(w * 0.03, h * 0.44);
         ctx.lineTo(w * 0.125, h * 0.39);
+        ctx.moveTo(w * 0.22, h * 0.145);
+        ctx.lineTo(w * 0.125, h * 0.09);
+        ctx.moveTo(w * 0.22, h * 0.34);
+        ctx.lineTo(w * 0.125, h * 0.39);
+
         ctx.moveTo(w * 0.97, h * 0.04);
         ctx.lineTo(w * 0.875, h * 0.09);
         ctx.moveTo(w * 0.97, h * 0.44);
         ctx.lineTo(w * 0.875, h * 0.39);
+        ctx.moveTo(w * 0.78, h * 0.145);
+        ctx.lineTo(w * 0.875, h * 0.09);
+        ctx.moveTo(w * 0.78, h * 0.34);
+        ctx.lineTo(w * 0.875, h * 0.39);
+
+        // V-образные стыки центрального портика с крыльями
+        ctx.moveTo(w * 0.40, h * 0.04);
+        ctx.lineTo(w * 0.45, h * 0.09);
+        ctx.lineTo(w * 0.40, h * 0.145);
+        ctx.moveTo(w * 0.59, h * 0.04);
+        ctx.lineTo(w * 0.54, h * 0.09);
+        ctx.lineTo(w * 0.59, h * 0.145);
         ctx.stroke();
 
+        // Два двойных каменных дымохода на боковых крыльях
         [0.125, 0.875].forEach(cx => {
             ctx.fillStyle = '#9ca3af';
             ctx.strokeStyle = '#1f2937';
