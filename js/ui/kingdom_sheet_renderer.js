@@ -323,12 +323,22 @@ const KingdomSheetRenderer = {
 
 
         const skillNamesRu = {
-            agriculture: 'Земледелие', arts: 'Искусство', boating: 'Судоходство',
-            defense: 'Оборона', engineering: 'Инженерия', exploration: 'Разведка',
-            folklore: 'Фольклор', industry: 'Ремесло', intrigue: 'Интриги',
-            magic: 'Магия', politics: 'Политика', scholarship: 'Учёность',
-            statecraft: 'Дипломатия', trade: 'Торговля', warfare: 'Военное дело',
-            wilderness: 'Дикая природа'
+            warfare: 'Военное дело',
+            wilderness: 'Дикие земли',
+            agriculture: 'Земледелие',
+            engineering: 'Инженерное дело',
+            intrigue: 'Интрига',
+            arts: 'Искусства',
+            exploration: 'Исследование',
+            boating: 'Лодочный транспорт',
+            magic: 'Магия',
+            defense: 'Оборона',
+            scholarship: 'Образование',
+            politics: 'Политика',
+            industry: 'Производство',
+            trade: 'Торговля',
+            folklore: 'Традиции',
+            statecraft: 'Управление'
         };
 
         const ruinNamesRu = {
@@ -436,10 +446,10 @@ const KingdomSheetRenderer = {
                         <div>
                             <label class="k-lbl">Тип</label>
                             <select id="k_ug_type" class="k-inp">
-                                <option value="village" ${ug.settlementType === 'village' ? 'selected' : ''}>Деревня (Village)</option>
-                                <option value="town" ${ug.settlementType === 'town' ? 'selected' : ''}>Городок (Town)</option>
-                                <option value="city" ${ug.settlementType === 'city' ? 'selected' : ''}>Город (City)</option>
-                                <option value="metropolis" ${ug.settlementType === 'metropolis' ? 'selected' : ''}>Мегаполис (Metropolis)</option>
+                                <option value="village" ${ug.settlementType === 'village' ? 'selected' : ''}>Деревня</option>
+                                <option value="town" ${ug.settlementType === 'town' ? 'selected' : ''}>Посёлок</option>
+                                <option value="city" ${ug.settlementType === 'city' ? 'selected' : ''}>Город</option>
+                                <option value="metropolis" ${ug.settlementType === 'metropolis' ? 'selected' : ''}>Мегаполис</option>
                             </select>
                         </div>
                         <div><label class="k-lbl">Уровень</label><input type="number" id="k_ug_level" class="k-inp" value="${ug.level}"></div>

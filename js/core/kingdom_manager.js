@@ -361,12 +361,12 @@ const KingdomManager = {
         overlay.innerHTML = `
             <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:460px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
                 <div style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
-                    ⚜ Фаза содержания (Upkeep)
+                    ⚜ Фаза содержания
                 </div>
 
                 <div style="background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:15px; line-height:1.45;">
-                    <div>• Добыча со складов: <b>+${s.workSites.farmlands} Food</b>, <b>+${s.workSites.lumberCamps} Lumber</b>, <b>+${s.workSites.mines} Ore</b>, <b>+${s.workSites.quarries} Stone</b></div>
-                    <div>• Расход провизии (Consumption): <b style="color:#ff7675;">-${s.consumption} Food</b></div>
+                    <div>• Добыча со складов: <b>+${s.workSites.farmlands} Еды</b>, <b>+${s.workSites.lumberCamps} Древесины</b>, <b>+${s.workSites.mines} Руды</b>, <b>+${s.workSites.quarries} Камня</b></div>
+                    <div>• Расход провизии: <b style="color:#ff7675;">-${s.consumption} Food</b></div>
                 </div>
 
                 <div style="margin-bottom:16px;">
@@ -422,10 +422,10 @@ const KingdomManager = {
 
         // 1. Сбор ресурсов с рабочих участков (Work Sites)
         const harvests = [
-            { site: 'farmlands', comm: 'food', label: 'Food (Еда)' },
-            { site: 'lumberCamps', comm: 'lumber', label: 'Lumber (Дерево)' },
-            { site: 'mines', comm: 'ore', label: 'Ore (Руда)' },
-            { site: 'quarries', comm: 'stone', label: 'Stone (Камень)' }
+            { site: 'farmlands', comm: 'food', label: 'Еда' },
+            { site: 'lumberCamps', comm: 'lumber', label: 'Древесина' },
+            { site: 'mines', comm: 'ore', label: 'Руда' },
+            { site: 'quarries', comm: 'stone', label: 'Камень' }
         ];
 
         harvests.forEach(({ site, comm, label }) => {
@@ -448,13 +448,13 @@ const KingdomManager = {
             const foodBefore = parseInt(s.commodities.food.value, 10) || 0;
             if (foodBefore >= cons) {
                 s.commodities.food.value = foodBefore - cons;
-                changes.push(`<div>• <b>Потребление (-${cons} Food):</b> ${foodBefore} → <b style="color:#ebd291;">${s.commodities.food.value}</b></div>`);
+                changes.push(`<div>• <b>Потребление (-${cons} Еды):</b> ${foodBefore} → <b style="color:#ebd291;">${s.commodities.food.value}</b></div>`);
             } else {
                 const deficit = cons - foodBefore;
                 const unrestBefore = parseInt(s.unrest, 10) || 0;
                 s.commodities.food.value = 0;
                 s.unrest = unrestBefore + deficit;
-                changes.push(`<div style="color:#ff7675;">• <b>⚠ Нехватка провизии!</b> Списано ${foodBefore} Food (остаток 0), <b>Unrest:</b> ${unrestBefore} → <b>${s.unrest}</b> (+${deficit})</div>`);
+                changes.push(`<div style="color:#ff7675;">• <b>⚠ Нехватка провизии!</b> Списано ${foodBefore} Еды (остаток 0), <b>Беспорядки:</b> ${unrestBefore} → <b>${s.unrest}</b> (+${deficit})</div>`);
             }
         } else {
             changes.push(`<div>• <b>Потребление:</b> 0 Food</div>`);
@@ -587,10 +587,10 @@ const KingdomManager = {
         if (existing) existing.remove();
 
         const statLabels = {
-            culture: 'Culture (Культура)',
-            economy: 'Economy (Экономика)',
-            loyalty: 'Loyalty (Лояльность)',
-            stability: 'Stability (Стабильность)'
+            culture: 'Культура',
+            economy: 'Экономика',
+            loyalty: 'Лояльность',
+            stability: 'Стабильность'
         };
 
         const checkboxesHtml = Object.entries(statLabels).map(([key, label]) => {
@@ -682,11 +682,11 @@ const KingdomManager = {
         if (existing) existing.remove();
 
         const rates = {
-            food:     { label: '🌾 Food (Еда)',         buy: 2, sell: 1 },
-            lumber:   { label: '🪵 Lumber (Дерево)',    buy: 2, sell: 1 },
-            ore:      { label: '⛏ Ore (Руда)',          buy: 2, sell: 1 },
-            stone:    { label: '🧱 Stone (Камень)',     buy: 2, sell: 1 },
-            luxuries: { label: '💎 Luxuries (Роскошь)', buy: 4, sell: 2 }
+            food:     { label: '🌾 Еда',         buy: 2, sell: 1 },
+            lumber:   { label: '🪵 Древесина',    buy: 2, sell: 1 },
+            ore:      { label: '⛏ Руда',          buy: 2, sell: 1 },
+            stone:    { label: '🧱 Камень',     buy: 2, sell: 1 },
+            luxuries: { label: '💎 Предметы роскоши)', buy: 4, sell: 2 }
         };
 
         const overlay = document.createElement('div');
@@ -723,7 +723,7 @@ const KingdomManager = {
             overlay.innerHTML = `
                 <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:540px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
-                        <span style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px;">⚖ Обмен ресурсов (Commodities ↔ RP)</span>
+                        <span style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px;">⚖ Обмен ресурсов (Товары ↔ RP)</span>
                         <span style="background:#040905; border:1px solid #ffd875; padding:4px 12px; border-radius:5px; font-family:monospace; font-size:17px; font-weight:bold; color:#ffd875;">Казна: ${curRp} RP</span>
                     </div>
 
