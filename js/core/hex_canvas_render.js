@@ -188,12 +188,20 @@ const HexCanvasRender = {
         }
 
         if (hasEdges) {
-            ctx.strokeStyle = 'rgba(255, 216, 117, 0.38)';
-            ctx.lineWidth = 9;
+            ctx.shadowColor = 'rgba(255, 216, 117, 0.9)';
+            ctx.shadowBlur = 14;
+            ctx.strokeStyle = 'rgba(255, 200, 75, 0.55)';
+            ctx.lineWidth = 12;
             ctx.stroke();
 
+            ctx.shadowBlur = 6;
             ctx.strokeStyle = '#ffd875';
-            ctx.lineWidth = 3.2;
+            ctx.lineWidth = 5.0;
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#fff5cc';
+            ctx.lineWidth = 1.8;
             ctx.stroke();
         }
 
