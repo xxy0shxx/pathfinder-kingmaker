@@ -3527,6 +3527,105 @@ canvas[style*="position: fixed"] {
 .init-focus-phrase-text { font-family: "Tinos", serif; font-size: 40px; font-style: italic; font-weight: bold; color: #ebd291; line-height: 1.5; text-shadow: 0 3px 6px rgba(0, 0, 0, 0.95); }
 .init-focus-quote-shield span.gold-unit-focus-name { color: #ffd875 !important; font-family: 'Montserrat', sans-serif; font-style: normal !important; font-size: 44px; font-weight: 900; text-transform: uppercase; padding: 0 12px; text-shadow: 0 0 15px #ffd875, 0 0 30px rgba(212, 175, 55, 0.6), 0 3px 6px #000 !important; }
 
+/* Подсветка натуральной 20 (зелёный) и натуральной 1 (красный) в поле инициативы */
+.init-inline-score-input.nat-20,
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-inline-score-input.nat-20 {
+    color: #2ecc71 !important;
+    border-color: #2ecc71 !important;
+    box-shadow: inset 0 0 8px rgba(46, 204, 113, 0.35), 0 0 8px rgba(46, 204, 113, 0.5) !important;
+    text-shadow: 0 0 8px rgba(46, 204, 113, 0.8) !important;
+}
+
+.init-inline-score-input.nat-1,
+#questLogContainer .init-cards-scroll-list.mode-bg3 .init-inline-score-input.nat-1 {
+    color: #ff4757 !important;
+    border-color: #ff4757 !important;
+    box-shadow: inset 0 0 8px rgba(255, 71, 87, 0.35), 0 0 8px rgba(255, 71, 87, 0.5) !important;
+    text-shadow: 0 0 8px rgba(255, 71, 87, 0.8) !important;
+}
+
+/* Выпадающий список статусов в вертикальном списке */
+.init-inline-status-select {
+    background: #040905;
+    border: 1px solid #543e0d;
+    color: #ebd291;
+    padding: 5px 8px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.init-inline-status-select.status-dying { border-color: #e74c3c; color: #ff7675; }
+.init-inline-status-select.status-prone { border-color: #f39c12; color: #f1c40f; }
+.init-inline-status-select.status-out   { border-color: #7f8c8d; color: #95a5a6; }
+
+/* Компактная выпадашка статусов в режиме «Горизонт» (нижний левый угол карточки) */
+#questLogContainer .mode-bg3 .init-inline-status-select {
+    position: fixed !important;
+    bottom: 4px !important;
+    left: 4px !important;
+    width: 34px !important;
+    height: 26px !important;
+    padding: 0 2px !important;
+    font-size: 15px !important;
+    background: rgba(2, 5, 3, 0.88) !important;
+    border: 1.5px solid #dfbc6f !important;
+    border-radius: 4px !important;
+    color: #ffd875 !important;
+    z-index: 6 !important;
+    text-align: center !important;
+}
+
+/* Серое оформление выбывшего бойца */
+.init-combatant-card.status-out,
+#questLogContainer .mode-bg3 .init-combatant-card.status-out {
+    background: linear-gradient(180deg, #3a3f42 0%, #222629 100%) !important;
+    border-color: #636e72 !important;
+    box-shadow: none !important;
+    opacity: 0.78 !important;
+}
+.init-combatant-card.status-out img {
+    filter: grayscale(100%) contrast(0.9) !important;
+}
+
+/* Отдельный блок выбывших бойцов строго под рамкой с цитатами */
+.init-out-combatants-zone {
+    margin: 18px auto 0 auto;
+    width: calc(100% - 60px);
+    background: rgba(20, 24, 26, 0.85);
+    border: 2px dashed #636e72;
+    border-radius: 8px;
+    padding: 12px 20px;
+}
+.init-out-zone-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    color: #95a5a6;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+.init-out-zone-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+}
+.init-out-zone-grid .init-combatant-card {
+    position: relative !important;
+    overflow: hidden !important;
+    width: 96px !important;
+    height: 96px !important;
+    min-width: 96px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    border-width: 2px !important;
+}
+.init-out-zone-grid .init-card-name-text { font-size: 18px !important; }
+
+
 /* ============================================================================
    КОМПАКТНАЯ ТВ-УПАКОВКА ЛЕВОЙ КОЛОНКИ ПРИВАЛА БЕЗ ПРОКРУТКИ
    ============================================================================ */

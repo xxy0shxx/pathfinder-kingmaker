@@ -76,6 +76,7 @@ const InitiativeManager = {
         this._saveWithoutSort();
     },
 
+
     addCombatant(name, score, faction, isNat20, isNat1 = false) {
         const cleanName = String(name).trim();
         let parsedScore = parseInt(score, 10);
@@ -99,6 +100,7 @@ const InitiativeManager = {
             faction: faction || 'neutral',
             isNat20: !!isNat20,
             isNat1: !!isNat1,
+            status: 'active', // 'active' | 'dying' | 'prone' | 'out'
             avatarType: null,
             avatar: null
         };
@@ -109,6 +111,20 @@ const InitiativeManager = {
         }
         this._sortAndSave();
     },
+
+    updateStatus(id, newStatus) {
+        const unit = this.state.combatants.find(c => c.id === id);
+        if (!unit) return;
+        unit.status = newStatus || 'active';
+
+        // Если текущий активный боец выбыл, передаем ход следующему активному
+        if (unit.status === 'out' && this.state.selectedUnitId === id) {
+            const activeUnits = this.state.combatants.filter(c => c.status !== 'out');
+            this.state.selectedUnitId = activeUnits.length > 0 ? activeUnits[0].id : null;
+        }
+        this._sortAndSave();
+    },
+
     setCombatantAvatar(id, avatarType) {
         const unit = this.state.combatants.find(c => c.id === id);
         if (!unit) return;
@@ -120,17 +136,18 @@ const InitiativeManager = {
     },
 
     nextTurn() {
-        if (this.state.combatants.length === 0) return;
+        const activeUnits = this.state.combatants.filter(c => c.status !== 'out');
+        if (activeUnits.length === 0) return;
 
-        const currentIndex = this.state.combatants.findIndex(c => c.id === this.state.selectedUnitId);
+        const currentIndex = activeUnits.findIndex(c => c.id === this.state.selectedUnitId);
         this.state.phraseSeed = Math.floor(Math.random() * 1000);
 
-        if (currentIndex === -1 || currentIndex === this.state.combatants.length - 1) {
-            this.state.selectedUnitId = this.state.combatants[0].id;
+        if (currentIndex === -1 || currentIndex === activeUnits.length - 1) {
+            this.state.selectedUnitId = activeUnits[0].id;
             this.state.round += 1;
             this.triggerRoundFlashEffect();
         } else {
-            this.state.selectedUnitId = this.state.combatants[currentIndex + 1].id;
+            this.state.selectedUnitId = activeUnits[currentIndex + 1].id;
         }
 
         this._saveWithoutSort();
@@ -164,6 +181,11 @@ const InitiativeManager = {
 
     _sortAndSave() {
         this.state.combatants.sort((a, b) => {
+            const aOut = a.status === 'out';
+            const bOut = b.status === 'out';
+            if (aOut && !bOut) return 1;
+            if (!aOut && bOut) return -1;
+
             if (a.isNat20 && !b.isNat20) return -1;
             if (!a.isNat20 && b.isNat20) return 1;
             if (a.isNat1 && !b.isNat1) return 1;
@@ -374,57 +396,74 @@ const InitiativeManager = {
             });
             this._isInputsBound = true;
         }
+
+
+
+
         const listContainer = document.getElementById('initiativeCombatantsList');
         if (!listContainer) return;
         listContainer.innerHTML = '';
 
-        if (this.state.viewMode === 'bg3') {
-            listContainer.classList.add('mode-bg3');
-            document.getElementById('initBtnToggleView').textContent = '🏹 Режим: Горизонт';
-        } else {
-            listContainer.classList.remove('mode-bg3');
-            document.getElementById('initBtnToggleView').textContent = '📜 Режим: Список';
-        }
+        const isBg3 = this.state.viewMode === 'bg3';
+        listContainer.classList.toggle('mode-bg3', isBg3);
+        document.getElementById('initBtnToggleView').textContent = isBg3 ? '🏹 Режим: Горизонт' : '📜 Режим: Список';
 
         const roundNumEl = document.getElementById('initRoundCounterNum');
         if (roundNumEl) roundNumEl.textContent = this.state.round;
 
         const oldShield = container.querySelector('.init-focus-quote-shield');
         if (oldShield) oldShield.remove();
+        const oldOutZone = container.querySelector('.init-out-combatants-zone');
+        if (oldOutZone) oldOutZone.remove();
 
         if (this.state.combatants.length === 0) {
             listContainer.innerHTML = `<div class="quest-log-empty">Бой не начат. Добавьте участников.</div>`;
             return;
         }
 
-        const activeUnit = this.state.combatants.find(c => c.id === this.state.selectedUnitId) || this.state.combatants[0];
-        const phrases = InitiativePhrases.getPhrasesForUnit(activeUnit);
+        const activeUnits = this.state.combatants.filter(c => c.status !== 'out');
+        const outUnits = this.state.combatants.filter(c => c.status === 'out');
+
+        const activeUnit = activeUnits.find(c => c.id === this.state.selectedUnitId) || activeUnits[0];
+        const phrases = activeUnit ? InitiativePhrases.getPhrasesForUnit(activeUnit) : ['Все бойцы выбыли из схватки!'];
         const currentQuoteHTML = phrases[this.state.phraseSeed % phrases.length];
 
-        this.state.combatants.forEach((unit, index) => {
+        const createCardElement = (unit, index) => {
             const card = document.createElement('div');
-            const isActive = this.state.selectedUnitId === unit.id;
+            const isOut = unit.status === 'out';
+            const isActive = !isOut && this.state.selectedUnitId === unit.id;
+
             card.className = `init-combatant-card faction-${unit.faction}`;
+            if (isOut) card.classList.add('status-out');
+            if (isActive) card.classList.add('selected-turn-gold');
             card.setAttribute('draggable', 'true');
             card.setAttribute('data-id', unit.id);
-            if (isActive) card.classList.add('selected-turn-gold');
-
-            let statusIcon = '';
-            if (unit.isNat20) statusIcon = '<span class="init-crown-badge">👑</span>';
-            if (unit.isNat1) statusIcon = '<span class="init-nat1-skull-badge">💀</span>';
 
             const avatarHtml = unit.avatar
                 ? `<div class="init-avatar-shield-circle active"><img src="${unit.avatar}"></div>`
                 : `<div class="init-avatar-shield-circle">${index + 1}</div>`;
+
+            let scoreClass = 'init-inline-score-input';
+            if (unit.isNat20) scoreClass += ' nat-20';
+            if (unit.isNat1) scoreClass += ' nat-1';
+
+            const statusSelectHtml = `
+                <select class="init-inline-status-select status-${unit.status || 'active'}" data-id="${unit.id}" title="Состояние бойца">
+                    <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>⚔️ В строю</option>
+                    <option value="dying" ${unit.status === 'dying' ? 'selected' : ''}>🩸 При смерти</option>
+                    <option value="prone" ${unit.status === 'prone' ? 'selected' : ''}>💫 Распластан</option>
+                    <option value="out" ${unit.status === 'out' ? 'selected' : ''}>💀 Выбыл</option>
+                </select>
+            `;
 
             card.innerHTML = `
                 <div class="init-card-left" style="pointer-events: none;">
                     <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
                     ${avatarHtml}
                     <div class="init-card-name-text">${unit.name}</div>
-                    ${statusIcon}
                 </div>
                 <div class="init-card-right">
+                    ${statusSelectHtml}
                     <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
                         <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
                             ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
@@ -439,76 +478,100 @@ const InitiativeManager = {
                         </select>
                     </div>
                     <div class="init-score-massive-block">
-                        <input type="number" class="init-inline-score-input" data-id="${unit.id}" value="${unit.score}">
+                        <input type="number" class="${scoreClass}" data-id="${unit.id}" value="${unit.score}">
                     </div>
                     <button type="button" class="init-btn-delete-card">×</button>
                 </div>
             `;
 
-            card.addEventListener('click', (e) => {
-                if (!['SELECT', 'INPUT', 'BUTTON'].includes(e.target.tagName)) {
-                    this.toggleSelectUnit(unit.id);
-                }
-            });
+            this._bindCardEvents(card, unit);
+            return card;
+        };
 
-            card.querySelector('.init-inline-avatar-select').addEventListener('change', (e) => {
-                this.setCombatantAvatar(unit.id, e.target.value);
-            });
-
-            card.querySelector('.init-btn-toggle-d20-inline').addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!unit.isNat20 && !unit.isNat1) this.toggleNat20(unit.id);
-                else if (unit.isNat20) this.toggleNat1(unit.id);
-                else {
-                    unit.isNat1 = false;
-                    this._sortAndSave();
-                }
-            });
-
-            const scoreInp = card.querySelector('.init-inline-score-input');
-            scoreInp.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const direction = e.deltaY < 0 ? 1 : -1;
-                const newVal = Math.max(1, Math.min(100, (parseInt(scoreInp.value, 10) || 0) + direction));
-                this.updateScore(unit.id, newVal);
-            });
-            scoreInp.addEventListener('change', (e) => this.updateScore(unit.id, e.target.value));
-
-            card.querySelector('.init-inline-faction-select').addEventListener('change', (e) => {
-                this.updateFaction(unit.id, e.target.value);
-                this._sortAndSave();
-            });
-            card.querySelector('.init-btn-delete-card').addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.removeCombatant(unit.id);
-            });
-
-            card.addEventListener('dragstart', (e) => {
-                card.classList.add('init-card-dragging');
-                e.dataTransfer.setData('text/plain', unit.id);
-            });
-            card.addEventListener('dragend', () => card.classList.remove('init-card-dragging'));
-            card.addEventListener('dragover', (e) => e.preventDefault());
-            card.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const draggedId = e.dataTransfer.getData('text/plain');
-                const draggedIdx = this.state.combatants.findIndex(c => c.id === draggedId);
-                const targetIdx = this.state.combatants.findIndex(c => c.id === unit.id);
-                if (draggedIdx !== -1 && targetIdx !== -1) {
-                    const [draggedItem] = this.state.combatants.splice(draggedIdx, 1);
-                    this.state.combatants.splice(targetIdx, 0, draggedItem);
-                    this._saveWithoutSort();
-                }
-            });
-
-            listContainer.appendChild(card);
-        });
+        // В режиме списка выбывшие идут в конце общего списка, в горизонте — уходят под цитату
+        const mainListUnits = isBg3 ? activeUnits : this.state.combatants;
+        mainListUnits.forEach((unit, idx) => listContainer.appendChild(createCardElement(unit, idx)));
 
         const quoteShield = document.createElement('div');
         quoteShield.className = 'init-focus-quote-shield';
         quoteShield.innerHTML = `<div class="init-focus-phrase-text">${currentQuoteHTML}</div>`;
         listContainer.parentNode.appendChild(quoteShield);
+
+        // Зона выбывших бойцов строго под рамкой с цитатами (для режима Горизонт)
+        if (isBg3 && outUnits.length > 0) {
+            const outZone = document.createElement('div');
+            outZone.className = 'init-out-combatants-zone mode-bg3';
+            outZone.innerHTML = `<div class="init-out-zone-title">💀 Выбыли из боя (${outUnits.length})</div><div class="init-out-zone-grid"></div>`;
+            const outGrid = outZone.querySelector('.init-out-zone-grid');
+            outUnits.forEach((unit, idx) => outGrid.appendChild(createCardElement(unit, idx)));
+            listContainer.parentNode.appendChild(outZone);
+        }
+    },
+
+    _bindCardEvents(card, unit) {
+        card.addEventListener('click', (e) => {
+            if (!['SELECT', 'INPUT', 'BUTTON'].includes(e.target.tagName) && unit.status !== 'out') {
+                this.toggleSelectUnit(unit.id);
+            }
+        });
+
+        card.querySelector('.init-inline-status-select').addEventListener('change', (e) => {
+            this.updateStatus(unit.id, e.target.value);
+        });
+
+        card.querySelector('.init-inline-avatar-select').addEventListener('change', (e) => {
+            this.setCombatantAvatar(unit.id, e.target.value);
+        });
+
+        card.querySelector('.init-btn-toggle-d20-inline').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!unit.isNat20 && !unit.isNat1) this.toggleNat20(unit.id);
+            else if (unit.isNat20) this.toggleNat1(unit.id);
+            else {
+                unit.isNat1 = false;
+                this._sortAndSave();
+            }
+        });
+
+        const scoreInp = card.querySelector('.init-inline-score-input');
+        scoreInp.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const direction = e.deltaY < 0 ? 1 : -1;
+            const newVal = Math.max(1, Math.min(100, (parseInt(scoreInp.value, 10) || 0) + direction));
+            this.updateScore(unit.id, newVal);
+        });
+        scoreInp.addEventListener('change', (e) => this.updateScore(unit.id, e.target.value));
+
+        card.querySelector('.init-inline-faction-select').addEventListener('change', (e) => {
+            this.updateFaction(unit.id, e.target.value);
+            this._sortAndSave();
+        });
+
+        card.querySelector('.init-btn-delete-card').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.removeCombatant(unit.id);
+        });
+
+        card.addEventListener('dragstart', (e) => {
+            card.classList.add('init-card-dragging');
+            e.dataTransfer.setData('text/plain', unit.id);
+        });
+        card.addEventListener('dragend', () => card.classList.remove('init-card-dragging'));
+        card.addEventListener('dragover', (e) => e.preventDefault());
+        card.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const draggedId = e.dataTransfer.getData('text/plain');
+            const draggedIdx = this.state.combatants.findIndex(c => c.id === draggedId);
+            const targetIdx = this.state.combatants.findIndex(c => c.id === unit.id);
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const [draggedItem] = this.state.combatants.splice(draggedIdx, 1);
+                this.state.combatants.splice(targetIdx, 0, draggedItem);
+                this._saveWithoutSort();
+            }
+        });
     }
+
+
 };
 
 export default InitiativeManager;
