@@ -4366,3 +4366,180 @@ canvas[style*="position: fixed"] {
 .k-table th { text-align: left; color: #ffd875; border-bottom: 1px solid #543e0d; padding: 4px; }
 .k-table td { padding: 3px 4px; border-bottom: 1px solid rgba(84, 62, 13, 0.35); }
 .k-table input.k-inp { width: 48px; text-align: center; padding: 2px; }
+
+/* ============================================================================
+   КАТАЛОГ ПОСТРОЕК ГОРОДА: РЕСАЙЗЕР, КАТЕГОРИИ И КРУПНЫЙ ШРИФТ
+   ============================================================================ */
+.k-catalog-panel {
+    flex-shrink: 0;
+    min-width: 240px;
+    max-width: 750px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.k-catalog-scroll {
+    overflow-y: auto;
+    padding-right: 4px;
+    flex: 1;
+}
+
+.k-catalog-scroll::-webkit-scrollbar { width: 8px; }
+.k-catalog-scroll::-webkit-scrollbar-track { background: #040905; border-radius: 4px; }
+.k-catalog-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8a6421 0%, #b89445 50%, #6e4e14 100%);
+    border: 1px solid #543e0d;
+    border-radius: 4px;
+}
+
+.k-catalog-resizer {
+    width: 10px;
+    cursor: col-resize;
+    flex-shrink: 0;
+    position: relative;
+    margin: 0 4px;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.k-catalog-resizer::after {
+    content: "";
+    position: absolute;
+    top: 8%;
+    bottom: 8%;
+    left: 4px;
+    width: 2px;
+    background: rgba(184, 148, 69, 0.35);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.k-catalog-resizer:hover,
+.k-catalog-resizer.active {
+    background: rgba(184, 148, 69, 0.15);
+}
+
+.k-catalog-resizer:hover::after,
+.k-catalog-resizer.active::after {
+    background: #ffd875;
+    box-shadow: 0 0 8px #ffd875;
+}
+
+.k-catalog-group {
+    margin-bottom: 10px;
+    border: 1px solid #543e0d;
+    border-radius: 5px;
+    background: #060b07;
+    overflow: hidden;
+}
+
+.k-catalog-group-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: linear-gradient(180deg, #1b3322 0%, #0f1f14 100%);
+    border: none;
+    border-bottom: 1px solid #543e0d;
+    color: #ffd875;
+    font-family: "Tinos", serif;
+    font-size: 17px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    cursor: pointer;
+    text-align: left;
+    transition: filter 0.15s ease;
+}
+
+.k-catalog-group-header:hover {
+    filter: brightness(1.2);
+}
+
+.k-catalog-group.collapsed .k-catalog-group-header {
+    border-bottom: none;
+}
+
+.k-catalog-group.collapsed .k-catalog-group-body {
+    display: none;
+}
+
+.k-group-arrow {
+    color: #dfbc6f;
+    font-size: 16px;
+    width: 14px;
+}
+
+.k-group-title {
+    flex: 1;
+}
+
+.k-group-count {
+    background: rgba(184, 148, 69, 0.25);
+    border: 1px solid #8a6421;
+    color: #ebd291;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: monospace;
+}
+
+.k-catalog-group-body {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.k-bld-palette-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    background: #0a120c;
+    border: 1px solid #543e0d;
+    border-radius: 4px;
+    cursor: grab;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.k-bld-palette-item:hover {
+    border-color: #ffd875;
+    background: #142619;
+}
+
+.k-bld-palette-item:active {
+    cursor: grabbing;
+}
+
+.k-bld-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border: 1px solid #d4af37;
+    border-radius: 4px;
+    background: #1c2118;
+    flex-shrink: 0;
+}
+
+.k-bld-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.k-bld-name {
+    font-family: "Tinos", serif;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffd875;
+    line-height: 1.25;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.k-bld-meta {
+    font-size: 13px;
+    color: #a4b0be;
+    margin-top: 3px;
+}

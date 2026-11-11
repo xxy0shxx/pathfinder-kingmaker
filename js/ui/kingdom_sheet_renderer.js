@@ -205,16 +205,49 @@ const KingdomSheetRenderer = {
         `;
     },
 
+
+
     renderUrbanTab(s) {
         const ug = s.urbanGrid;
-        const catalogHtml = KingdomBuildings.catalog.map(b => {
-            const thumb = KingdomBuildings.getBuildingDataUrl(b.id);
+
+        let collapsedState = {};
+        try {
+            collapsedState = JSON.parse(localStorage.getItem('pf_km_catalog_collapsed') || '{}');
+        } catch (e) {}
+
+        const savedWidth = parseInt(localStorage.getItem('pf_km_catalog_width'), 10);
+        const initialWidth = (savedWidth && savedWidth >= 240 && savedWidth <= 750) ? savedWidth : 380;
+
+        const groups = [
+            { key: 'lot_1', title: '1 клетка (1×1)', items: KingdomBuildings.catalog.filter(b => b.cols * b.rows === 1) },
+            { key: 'lot_2', title: '2 клетки (2×1)', items: KingdomBuildings.catalog.filter(b => b.cols * b.rows === 2) },
+            { key: 'lot_4', title: '4 клетки (2×2)', items: KingdomBuildings.catalog.filter(b => b.cols * b.rows === 4) }
+        ];
+
+        const catalogHtml = groups.map(group => {
+            const isCollapsed = !!collapsedState[group.key];
+            const itemsHtml = group.items.map(b => {
+                const thumb = KingdomBuildings.getBuildingDataUrl(b.id);
+                return `
+                    <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${b.name}">
+                        <img src="${thumb}" class="k-bld-thumb" alt="${b.name}">
+                        <div class="k-bld-info">
+                            <div class="k-bld-name">${b.name}</div>
+                            <div class="k-bld-meta">Размер: ${b.cols}×${b.rows} • Ур. ${b.level}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
             return `
-                <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" style="display:flex; align-items:center; gap:10px; padding:6px; background:#090f0b; border:1px solid #543e0d; border-radius:6px; cursor:grab; margin-bottom:6px;">
-                    <img src="${thumb}" style="width:44px; height:44px; object-fit:contain; border:1px solid #d4af37; border-radius:4px; background:#1c2118;">
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-size:13px; font-weight:bold; color:#ffd875; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.name}</div>
-                        <div style="font-size:11px; color:#95a5a6;">Размер: ${b.cols}×${b.rows} | Ур. ${b.level}</div>
+                <div class="k-catalog-group ${isCollapsed ? 'collapsed' : ''}" data-group-key="${group.key}">
+                    <button type="button" class="k-catalog-group-header">
+                        <span class="k-group-arrow">${isCollapsed ? '▸' : '▾'}</span>
+                        <span class="k-group-title">${group.title}</span>
+                        <span class="k-group-count">${group.items.length}</span>
+                    </button>
+                    <div class="k-catalog-group-body">
+                        ${itemsHtml}
                     </div>
                 </div>
             `;
@@ -228,6 +261,7 @@ const KingdomSheetRenderer = {
                 cellsHtml += `<div class="k-urban-cell" data-r="${r}" data-c="${c}" style="width:84px; height:84px; border:1px dashed rgba(212,175,55,0.35); ${blockDividerR} ${blockDividerC} box-sizing:border-box;"></div>`;
             }
         }
+
         const placedHtml = ug.buildings.map(bld => {
             const meta = KingdomBuildings.getBuildingMeta(bld.id);
             if (!meta) return '';
@@ -269,13 +303,15 @@ const KingdomSheetRenderer = {
         };
 
         return `
-            <div style="display:grid; grid-template-columns: 290px 1fr; gap:16px; align-items:start;">
-                <div class="k-panel" style="max-height:620px; overflow-y:auto;">
-                    <div class="k-sec-title">ПОСТРОЙКИ (Перетащите на карту)</div>
-                    ${catalogHtml}
+            <div style="display:flex; align-items:stretch; gap:0; width:100%;">
+                <div class="k-panel k-catalog-panel" id="kCatalogPanel" style="width:${initialWidth}px; max-height:760px;">
+                    <div class="k-sec-title" style="font-size:15px;">ПОСТРОЙКИ (Перетащите на карту)</div>
+                    <div class="k-catalog-scroll">${catalogHtml}</div>
                 </div>
 
-                <div class="k-panel">
+                <div class="k-catalog-resizer" id="kCatalogResizer" title="Потяните мышью, чтобы изменить ширину списка"></div>
+
+                <div class="k-panel" style="flex:1; min-width:540px;">
                     <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; margin-bottom:10px;">
                         <div><label class="k-lbl">Settlement</label><input type="text" id="k_ug_name" class="k-inp" value="${ug.settlementName}"></div>
                         <div>
@@ -319,6 +355,9 @@ const KingdomSheetRenderer = {
             </div>
         `;
     }
+
+
+
 };
 
 export default KingdomSheetRenderer;

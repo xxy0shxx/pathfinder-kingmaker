@@ -498,6 +498,58 @@ const KingdomManager = {
                 }
             });
         });
+
+        // Раскрытие и сворачивание категорий построек (1, 2, 4 клетки)
+        container.querySelectorAll('.k-catalog-group-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const groupEl = header.closest('.k-catalog-group');
+                const key = groupEl.dataset.groupKey;
+                const nowCollapsed = groupEl.classList.toggle('collapsed');
+                header.querySelector('.k-group-arrow').textContent = nowCollapsed ? '▸' : '▾';
+
+                try {
+                    const saved = JSON.parse(localStorage.getItem('pf_km_catalog_collapsed') || '{}');
+                    saved[key] = nowCollapsed;
+                    localStorage.setItem('pf_km_catalog_collapsed', JSON.stringify(saved));
+                } catch (e) {}
+            });
+        });
+
+        // Динамическое изменение ширины списка построек мышью
+        const catalogPanel = container.querySelector('#kCatalogPanel');
+        const catalogResizer = container.querySelector('#kCatalogResizer');
+        if (catalogPanel && catalogResizer) {
+            let isResizing = false;
+
+            const onMouseMove = (e) => {
+                if (!isResizing) return;
+                const rect = catalogPanel.getBoundingClientRect();
+                const newWidth = Math.min(750, Math.max(240, Math.round(e.clientX - rect.left)));
+                catalogPanel.style.width = `${newWidth}px`;
+            };
+
+            const onMouseUp = () => {
+                if (!isResizing) return;
+                isResizing = false;
+                catalogResizer.classList.remove('active');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                localStorage.setItem('pf_km_catalog_width', parseInt(catalogPanel.style.width, 10));
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+            };
+
+            catalogResizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isResizing = true;
+                catalogResizer.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            });
+        }
+
     }
 };
 
