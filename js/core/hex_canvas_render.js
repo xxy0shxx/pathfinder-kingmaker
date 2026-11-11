@@ -126,6 +126,79 @@ const HexCanvasRender = {
         this.ctx.closePath();
     },
 
+    isHexClaimed(data) {
+        if (!data || typeof data !== 'object') return false;
+        const combined = `${data.title || ''} ${data.text || data.description || ''}`.toLowerCase();
+        return !!(data.kingdomClaimed || combined.includes('королевств') || combined.includes('владен'));
+    },
+
+    drawKingdomBorders(r) {
+        const ctx = this.ctx;
+        const { rows, cols } = MAP_CONFIG.grid;
+
+        const edgeNeighborsEven = [,
+            ,
+            [1, -1],
+            [0, -1],
+            [-1, -1],
+            [-1, 0]
+        ];
+
+        const edgeNeighborsOdd = [,
+            ,
+            ,
+            [0, -1],
+            [-1, 0],
+            [-1, 1]
+        ];
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+
+        let hasEdges = false;
+
+        for (let row = 0; row < rows; row++) {
+            const offsets = (row % 2 === 0) ? edgeNeighborsEven : edgeNeighborsOdd;
+            for (let col = 0; col < cols; col++) {
+                const hexKey = `hex_${row}_${col}`;
+                const data = this.hexesData[hexKey];
+                if (!this.isHexClaimed(data)) continue;
+
+                const coords = this.hexCoords[hexKey];
+                if (!coords) continue;
+
+                for (let i = 0; i < 6; i++) {
+                    const offset = offsets[i];
+                    if (!offset) continue;
+                    const nKey = `hex_${row + offset[0]}_${col + offset[1]}`;
+                    if (this.isHexClaimed(this.hexesData[nKey])) continue;
+
+                    const a1 = (Math.PI / 180) * (60 * i - 30);
+                    const a2 = (Math.PI / 180) * (60 * (i + 1) - 30);
+
+                    ctx.moveTo(coords.cx + r * Math.cos(a1), coords.cy + r * Math.sin(a1));
+                    ctx.lineTo(coords.cx + r * Math.cos(a2), coords.cy + r * Math.sin(a2));
+                    hasEdges = true;
+                }
+            }
+        }
+
+        if (hasEdges) {
+            ctx.strokeStyle = 'rgba(255, 216, 117, 0.38)';
+            ctx.lineWidth = 9;
+            ctx.stroke();
+
+            ctx.strokeStyle = '#ffd875';
+            ctx.lineWidth = 3.2;
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    },
+
+
     render() {
         DebugManager.profileFps();
 
@@ -208,7 +281,11 @@ const HexCanvasRender = {
             }
         }
 
+
+
         const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
+
+        this.drawKingdomBorders(r);
 
         if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap) {
             this.isAnimating = true;
