@@ -48,11 +48,41 @@ const KingdomBuildings = {
         { id: 'trade_shop', name: 'Trade Shop (Торговая лавка)', cols: 1, rows: 1, level: 1 },
         { id: 'watchtower', name: 'Watchtower (Сторожевая башня)', cols: 1, rows: 1, level: 3 },
 
+
+
+
+
+
         // 2-Lot Buildings (2x1)
+        { id: 'academy', name: 'Academy (Академия)', cols: 2, rows: 1, level: 10 },
+        { id: 'embassy', name: 'Embassy (Посольство)', cols: 2, rows: 1, level: 8 },
+        { id: 'foundry', name: 'Foundry (Литейная)', cols: 2, rows: 1, level: 3 },
         { id: 'garrison', name: 'Garrison (Гарнизон)', cols: 2, rows: 1, level: 5 },
+        { id: 'guildhall', name: 'Guildhall (Дом гильдии)', cols: 2, rows: 1, level: 5 },
+        { id: 'hospital', name: 'Hospital (Госпиталь)', cols: 2, rows: 1, level: 9 },
+        { id: 'keep', name: 'Keep (Цитадель)', cols: 2, rows: 1, level: 3 },
+        { id: 'lumberyard', name: 'Lumberyard (Лесопилка)', cols: 2, rows: 1, level: 3 },
         { id: 'marketplace', name: 'Marketplace (Рыночная площадь)', cols: 2, rows: 1, level: 4 },
+        { id: 'military_academy', name: 'Military Academy (Военная академия)', cols: 2, rows: 1, level: 12 },
+        { id: 'museum', name: 'Museum (Музей)', cols: 2, rows: 1, level: 6 },
+        { id: 'noble_villa', name: 'Noble Villa (Дворянская вилла)', cols: 2, rows: 1, level: 8 },
+        { id: 'opera_house', name: 'Opera House (Оперный театр)', cols: 2, rows: 1, level: 10 },
+        { id: 'secure_warehouse', name: 'Secure Warehouse (Защищённый склад)', cols: 2, rows: 1, level: 6 },
+        { id: 'stonemason', name: 'Stonemason (Гильдия каменщиков)', cols: 2, rows: 1, level: 2 },
+        { id: 'tavern_luxury', name: 'Tavern, Luxury (Роскошная таверна)', cols: 2, rows: 1, level: 7 },
+        { id: 'tavern_world_class', name: 'Tavern, World-Class (Первоклассная таверна)', cols: 2, rows: 1, level: 13 },
+        { id: 'temple', name: 'Temple (Храм)', cols: 2, rows: 1, level: 5 },
+        { id: 'theater', name: 'Theater (Театр)', cols: 2, rows: 1, level: 4 },
         { id: 'town_hall', name: 'Town Hall (Ратуша)', cols: 2, rows: 1, level: 2 },
+
+
+
+
+
+
         // 4-Lot Buildings (2x2)
+        { id: 'arena', name: 'Arena (Арена)', cols: 2, rows: 2, level: 9 },
+
         { id: 'castle', name: 'Castle (Замок)', cols: 2, rows: 2, level: 9 }
     ],
 
