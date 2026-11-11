@@ -4543,3 +4543,44 @@ canvas[style*="position: fixed"] {
     color: #a4b0be;
     margin-top: 3px;
 }
+
+/* Строка поиска в каталоге построек */
+.k-catalog-search-wrap {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.k-catalog-search-inp {
+    padding: 8px 30px 8px 10px !important;
+    font-size: 14px !important;
+    border-color: #8a6421 !important;
+}
+
+.k-catalog-search-inp:focus {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 8px rgba(255, 216, 117, 0.35);
+    outline: none;
+}
+
+.k-catalog-search-clear {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: rgba(92, 30, 30, 0.85);
+    border: 1px solid #ff7675;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.k-catalog-search-clear:hover {
+    filter: brightness(1.25);
+}

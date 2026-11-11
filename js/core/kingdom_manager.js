@@ -550,6 +550,56 @@ const KingdomManager = {
             });
         }
 
+        // Живой поиск построек по названию (английскому или русскому)
+        const searchInput = container.querySelector('#kCatalogSearchInput');
+        const searchClear = container.querySelector('#kCatalogSearchClear');
+        if (searchInput && searchClear) {
+            const applyCatalogFilter = () => {
+                const query = searchInput.value.trim().toLowerCase();
+                searchClear.style.display = query ? 'flex' : 'none';
+
+                let savedCollapsed = {};
+                try {
+                    savedCollapsed = JSON.parse(localStorage.getItem('pf_km_catalog_collapsed') || '{}');
+                } catch (e) {}
+
+                container.querySelectorAll('.k-catalog-group').forEach(groupEl => {
+                    const key = groupEl.dataset.groupKey;
+                    const items = groupEl.querySelectorAll('.k-bld-palette-item');
+                    let visibleCount = 0;
+
+                    items.forEach(item => {
+                        const name = (item.getAttribute('title') || '').toLowerCase();
+                        const isMatch = !query || name.includes(query);
+                        item.style.display = isMatch ? 'flex' : 'none';
+                        if (isMatch) visibleCount++;
+                    });
+
+                    const countBadge = groupEl.querySelector('.k-group-count');
+                    if (countBadge) countBadge.textContent = visibleCount;
+
+                    if (query) {
+                        groupEl.style.display = visibleCount > 0 ? 'block' : 'none';
+                        groupEl.classList.remove('collapsed');
+                        groupEl.querySelector('.k-group-arrow').textContent = '▾';
+                    } else {
+                        groupEl.style.display = 'block';
+                        const wasCollapsed = !!savedCollapsed[key];
+                        groupEl.classList.toggle('collapsed', wasCollapsed);
+                        groupEl.querySelector('.k-group-arrow').textContent = wasCollapsed ? '▸' : '▾';
+                    }
+                });
+            };
+
+            searchInput.addEventListener('input', applyCatalogFilter);
+            searchClear.addEventListener('click', () => {
+                searchInput.value = '';
+                applyCatalogFilter();
+                searchInput.focus();
+            });
+        }
+
+
     }
 };
 

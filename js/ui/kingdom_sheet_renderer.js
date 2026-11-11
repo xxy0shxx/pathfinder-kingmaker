@@ -304,11 +304,16 @@ const KingdomSheetRenderer = {
 
         return `
             <div style="display:flex; align-items:stretch; gap:0; width:100%;">
+            
                 <div class="k-panel k-catalog-panel" id="kCatalogPanel" style="width:${initialWidth}px; max-height:760px;">
                     <div class="k-sec-title" style="font-size:15px;">ПОСТРОЙКИ (Перетащите на карту)</div>
+                    <div class="k-catalog-search-wrap">
+                        <input type="text" id="kCatalogSearchInput" class="k-inp k-catalog-search-inp" placeholder="🔍 Поиск постройки (англ / рус)..." autocomplete="off">
+                        <button type="button" id="kCatalogSearchClear" class="k-catalog-search-clear" title="Очистить поиск" style="display:none;">×</button>
+                    </div>
                     <div class="k-catalog-scroll">${catalogHtml}</div>
                 </div>
-
+                
                 <div class="k-catalog-resizer" id="kCatalogResizer" title="Потяните мышью, чтобы изменить ширину списка"></div>
 
                 <div class="k-panel" style="flex:1; min-width:540px;">
