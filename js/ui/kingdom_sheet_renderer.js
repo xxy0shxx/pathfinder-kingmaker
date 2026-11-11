@@ -58,14 +58,21 @@ const KingdomSheetRenderer = {
         }).join('');
 
 
+        const ruinNamesRu = {
+            corruption: 'Коррупция',
+            crime: 'Преступность',
+            decay: 'Упадок',
+            strife: 'Распри'
+        };
+
         const ruinsHtml = ['corruption', 'crime', 'decay', 'strife'].map(key => {
             const r = s.ruins[key];
             const penStyle = r.penalty > 0 ? 'background:#2b1111; border-color:#e74c3c; color:#ff7675; font-weight:bold;' : 'opacity:0.75;';
             return `
                 <tr>
-                    <td style="text-transform:uppercase; font-weight:bold;">${key}</td>
+                    <td style="font-weight:bold;">${ruinNamesRu[key]}</td>
                     <td><input type="number" id="k_ruin_score_${key}" class="k-inp" value="${r.score}"></td>
-                    <td><input type="number" id="k_ruin_pen_${key}" class="k-inp" value="${r.penalty}" readonly title="Авторасчёт: Score / Threshold" style="${penStyle}"></td>
+                    <td><input type="number" id="k_ruin_pen_${key}" class="k-inp" value="${r.penalty}" readonly title="Авторасчёт: Очки / Порог" style="${penStyle}"></td>
                     <td><input type="number" id="k_ruin_thr_${key}" class="k-inp" value="${r.threshold}" readonly title="Авторасчёт: 10 + модификатор характеристики" style="opacity:0.75;"></td>
                 </tr>
             `;
@@ -135,21 +142,21 @@ const KingdomSheetRenderer = {
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">${statsHtml}</div>
                     </div>
 
-
                     <div class="k-panel" style="margin-top:12px;">
                         <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; margin-bottom:10px;">
-                            <div><label class="k-lbl">Size</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
-                            <div><label class="k-lbl">RP</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
-                            <div><label class="k-lbl">Unrest</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
-                            <div><label class="k-lbl">Consumption</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="Автоматический расчёт: база поселения + постройки + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
-                            <div><label class="k-lbl">Fame</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
-                            <div><label class="k-lbl">Control DC (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
+                            <div><label class="k-lbl">Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
+                            <div><label class="k-lbl">Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
+                            <div><label class="k-lbl">Беспокойство</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
+                            <div><label class="k-lbl">Потребление</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="Автоматический расчёт: база поселения + постройки + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                            <div><label class="k-lbl">Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
+                            <div><label class="k-lbl">СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
                         </div>
                         <table class="k-table">
-                            <thead><tr><th>Ruin Type</th><th>Score</th><th>Penalty</th><th>Threshold</th></tr></thead>
+                            <thead><tr><th>Раздор</th><th>Очки</th><th>Штраф</th><th>Порог</th></tr></thead>
                             <tbody>${ruinsHtml}</tbody>
                         </table>
                     </div>
+
 
                     <div class="k-panel" style="margin-top:12px;">
                         <div class="k-sec-title">LEADERS</div>
