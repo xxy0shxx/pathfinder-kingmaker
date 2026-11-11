@@ -84,8 +84,8 @@ const KingdomSheetRenderer = {
             const l = s.leaders[role] || { name: '', invested: false };
             return `
                 <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-                    <label title="Invested (+1)" style="display:flex; align-items:center; gap:3px; font-size:12px;">
-                        <input type="checkbox" id="k_leader_inv_${role}" ${l.invested ? 'checked' : ''}> INV
+                    <label title="Вложенная роль (+1 к связанным навыкам)" style="display:flex; align-items:center; gap:3px; font-size:12px;">
+                        <input type="checkbox" id="k_leader_inv_${role}" ${l.invested ? 'checked' : ''}>
                     </label>
                     <span style="width:155px; font-size:13px; font-weight:bold; color:#dfbc6f;">${roleNames[role]}</span>
                     <input type="text" id="k_leader_name_${role}" class="k-inp" value="${l.name}" placeholder="Имя персонажа..." style="flex:1;">
@@ -159,29 +159,38 @@ const KingdomSheetRenderer = {
 
 
                     <div class="k-panel" style="margin-top:12px;">
-                        <div class="k-sec-title">LEADERS</div>
+                        <div class="k-sec-title">ПРАВИТЕЛИ И СОВЕТНИКИ</div>
                         ${leadersHtml}
                     </div>
                 </div>
 
                 <div>
+                
                     <div class="k-panel">
-                        <div class="k-sec-title">COMMODITIES & WORK SITES</div>
+                        <div class="k-sec-title">РЕСУРСЫ И РАБОЧИЕ УЧАСТКИ</div>
                         <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:8px;">
-                            ${['food', 'lumber', 'luxuries', 'ore', 'stone'].map(c => `
+                            ${[
+                                { id: 'food', label: 'ЕДА' },
+                                { id: 'lumber', label: 'ДРЕВЕСИНА' },
+                                { id: 'luxuries', label: 'ПРЕДМЕТЫ РОСКОШИ' },
+                                { id: 'ore', label: 'РУДА' },
+                                { id: 'stone', label: 'КАМЕНЬ' }
+                            ].map(c => `
                                 <div>
-                                    <label class="k-lbl">${c.toUpperCase()} (Max ${s.commodities[c].max})</label>
-                                    <input type="number" id="k_comm_${c}" class="k-inp" value="${s.commodities[c].value}">
+                                    <label class="k-lbl">${c.label} (Макс ${s.commodities[c.id].max})</label>
+                                    <input type="number" id="k_comm_${c.id}" class="k-inp" value="${s.commodities[c.id].value}">
                                 </div>
                             `).join('')}
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
-                            <div><label class="k-lbl">Farmlands</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
-                            <div><label class="k-lbl">Lumber Camps</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
-                            <div><label class="k-lbl">Mines</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
-                            <div><label class="k-lbl">Quarries</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
+                            <div><label class="k-lbl">Фермы (Farmlands)</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
+                            <div><label class="k-lbl">Лесопилки (Lumber)</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
+                            <div><label class="k-lbl">Шахты (Mines)</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
+                            <div><label class="k-lbl">Каменоломни (Quarries)</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
                         </div>
                     </div>
+
+                    
 
                     <div class="k-panel" style="margin-top:12px;">
                         <div class="k-sec-title">KINGDOM SKILLS</div>

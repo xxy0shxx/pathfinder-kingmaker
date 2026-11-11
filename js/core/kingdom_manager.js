@@ -95,14 +95,14 @@ const KingdomManager = {
     },
 
     roleNames: {
-        ruler: "Ruler (Правитель)",
-        counselor: "Counselor (Канцлер)",
-        general: "General (Генерал)",
-        emissary: "Emissary (Эмиссар)",
-        magister: "Magister (Магистр)",
-        treasurer: "Treasurer (Казначей)",
-        viceroy: "Viceroy (Наместник)",
-        warden: "Warden (Маршал)"
+        ruler: "Правитель",
+        counselor: "Канцлер",
+        general: "Генерал",
+        emissary: "Эмиссар",
+        magister: "Магистр",
+        treasurer: "Казначей",
+        viceroy: "Наместник",
+        warden: "Маршал"
     },
 
     skillConfig: [
