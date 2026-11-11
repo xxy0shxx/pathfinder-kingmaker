@@ -177,7 +177,7 @@ const KingdomSheetRenderer = {
                 <div>
                 
                     <div class="k-panel">
-                        <div class="k-sec-title">РЕСУРСЫ И РАБОЧИЕ УЧАСТКИ</div>
+                        <div class="k-sec-title">РЕСУРСЫ И РАБОЧИЕ ПЛОЩАДКИ</div>
                         <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:8px;">
                             ${[
                                 { id: 'food', label: 'ЕДА' },
@@ -193,8 +193,8 @@ const KingdomSheetRenderer = {
                             `).join('')}
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
-                            <div><label class="k-lbl">Фермы</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
-                            <div><label class="k-lbl">Лесопилки</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
+                            <div><label class="k-lbl">Угодья</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
+                            <div><label class="k-lbl">Лагеря лесорубов</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
                             <div><label class="k-lbl">Шахты</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
                             <div><label class="k-lbl">Каменоломни</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
                         </div>
@@ -225,6 +225,8 @@ const KingdomSheetRenderer = {
         `;
     },
 
+
+
     renderEventsTab(s) {
         const eventsHtml = s.events.length === 0
             ? `<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">Активных событий королевства нет. Нажмите «+ Добавить событие».</div>`
@@ -232,19 +234,19 @@ const KingdomSheetRenderer = {
                 <div class="k-panel k-event-card" data-ev-id="${ev.id}" style="position:relative;">
                     <button type="button" class="k-btn-del-ev" data-del-ev="${ev.id}" title="Удалить событие" style="position:absolute; top:8px; right:8px; background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:4px; cursor:pointer; width:24px; height:24px;">×</button>
                     <div style="display:grid; grid-template-columns: 3fr 1fr; gap:8px; margin-bottom:8px; padding-right:28px;">
-                        <div><label class="k-lbl">Event Name</label><input type="text" class="k-inp k-ev-name" value="${ev.name}" placeholder="Название события..."></div>
-                        <div><label class="k-lbl">Level</label><input type="number" class="k-inp k-ev-level" value="${ev.level}"></div>
+                        <div><label class="k-lbl">Название события</label><input type="text" class="k-inp k-ev-name" value="${ev.name}" placeholder="Название события..."></div>
+                        <div><label class="k-lbl">Уровень</label><input type="number" class="k-inp k-ev-level" value="${ev.level}"></div>
                     </div>
                     <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px; margin-bottom:8px;">
-                        <div><label class="k-lbl">Skill to Resolve</label><input type="text" class="k-inp k-ev-skill" value="${ev.skill}"></div>
-                        <div><label class="k-lbl">Modifier</label><input type="number" class="k-inp k-ev-mod" value="${ev.modifier}"></div>
+                        <div><label class="k-lbl">Навык разрешения</label><input type="text" class="k-inp k-ev-skill" value="${ev.skill}"></div>
+                        <div><label class="k-lbl">Модификатор</label><input type="number" class="k-inp k-ev-mod" value="${ev.modifier}"></div>
                     </div>
                     <div style="margin-bottom:8px;">
-                        <label class="k-lbl">Notes</label>
+                        <label class="k-lbl">Заметки</label>
                         <textarea class="k-inp k-ev-notes" rows="3" placeholder="Описание и последствия...">${ev.notes}</textarea>
                     </div>
                     <div>
-                        <label class="k-lbl">Resolution Status</label>
+                        <label class="k-lbl">Статус разрешения</label>
                         <input type="text" class="k-inp k-ev-status" value="${ev.status}" placeholder="В процессе / Успех / Провал...">
                     </div>
                 </div>
@@ -252,7 +254,7 @@ const KingdomSheetRenderer = {
 
         return `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <span style="font-size:15px; font-weight:bold; color:#ffd875;">ЖУРНАЛ СОБЫТИЙ КОРОЛЕВСТВА (Стр. 7)</span>
+                <span style="font-size:15px; font-weight:bold; color:#ffd875;">ЖУРНАЛ СОБЫТИЙ КОРОЛЕВСТВА</span>
                 <button type="button" class="btn ok" id="kBtnAddEvent">+ Добавить событие</button>
             </div>
             <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;">
@@ -260,6 +262,9 @@ const KingdomSheetRenderer = {
             </div>
         `;
     },
+
+
+
 
     renderUrbanTab(s) {
         const ug = s.urbanGrid;
@@ -316,16 +321,33 @@ const KingdomSheetRenderer = {
             ? KingdomBuildings.calculateSettlementEffects(ug.buildings)
             : { usedLots: 0, totalConsumption: 0, maxSkillBonuses: {}, totalRuins: {}, buildingCount: ug.buildings.length };
 
+
+        const skillNamesRu = {
+            agriculture: 'Земледелие', arts: 'Искусство', boating: 'Судоходство',
+            defense: 'Оборона', engineering: 'Инженерия', exploration: 'Разведка',
+            folklore: 'Фольклор', industry: 'Ремесло', intrigue: 'Интриги',
+            magic: 'Магия', politics: 'Политика', scholarship: 'Учёность',
+            statecraft: 'Дипломатия', trade: 'Торговля', warfare: 'Военное дело',
+            wilderness: 'Дикая природа'
+        };
+
+        const ruinNamesRu = {
+            corruption: 'Коррупция',
+            crime: 'Преступность',
+            decay: 'Разруха',
+            strife: 'Раздор'
+        };
+
         const skillBadgesHtml = Object.keys(effects.maxSkillBonuses).length === 0
             ? `<span style="color:#95a5a6; font-size:12px;">Нет активных бонусов к навыкам</span>`
             : Object.entries(effects.maxSkillBonuses)
                 .sort((a, b) => a[0].localeCompare(b[0]))
-                .map(([skill, val]) => `<span class="k-eff-badge good">+${val} ${skill.charAt(0).toUpperCase() + skill.slice(1)}</span>`)
+                .map(([skill, val]) => `<span class="k-eff-badge good">+${val} ${skillNamesRu[skill] || skill}</span>`)
                 .join('');
 
         const ruinBadgesHtml = Object.entries(effects.totalRuins)
             .filter(([, val]) => val > 0)
-            .map(([ruin, val]) => `<span class="k-eff-badge bad">+${val} ${ruin.toUpperCase()}</span>`)
+            .map(([ruin, val]) => `<span class="k-eff-badge bad">+${val} ${ruinNamesRu[ruin] || ruin.toUpperCase()}</span>`)
             .join('');
 
         const consSign = effects.totalConsumption > 0 ? `+${effects.totalConsumption}` : `${effects.totalConsumption}`;
@@ -335,11 +357,11 @@ const KingdomSheetRenderer = {
             <div class="k-urban-summary-box">
                 <div class="k-urban-summary-top">
                     <span>🏘 Построек: <b>${effects.buildingCount}</b> (Участков: <b>${effects.usedLots} / 36</b>)</span>
-                    <span>🍖 Потребление от зданий: <span class="k-eff-badge ${consClass}">${consSign} Consumption</span></span>
+                    <span>🍖 Потребление от зданий: <span class="k-eff-badge ${consClass}">${consSign} Потребл.</span></span>
                     ${ruinBadgesHtml ? `<span>⚠ Упадок от построек: ${ruinBadgesHtml}</span>` : ''}
                 </div>
                 <div class="k-urban-summary-skills">
-                    <span style="color:#dfbc6f; font-size:12px; font-weight:bold; margin-right:6px;">Макс. Item-бонусы:</span>
+                    <span style="color:#dfbc6f; font-size:12px; font-weight:bold; margin-right:6px;">Макс. бонусы предметов:</span>
                     ${skillBadgesHtml}
                 </div>
             </div>
@@ -376,15 +398,16 @@ const KingdomSheetRenderer = {
         const borderSelect = (side, label) => `
             <div style="display:flex; align-items:center; gap:6px;">
                 <span style="font-size:12px; color:#dfbc6f;">${label}:</span>
-                <select id="k_ug_border_${side}" class="k-inp" style="width:130px;">
+                <select id="k_ug_border_${side}" class="k-inp" style="width:155px;">
                     <option value="none" ${ug.borders[side] === 'none' ? 'selected' : ''}>Нет</option>
-                    <option value="water" ${ug.borders[side] === 'water' ? 'selected' : ''}>🌊 Water</option>
-                    <option value="bridge" ${ug.borders[side] === 'bridge' ? 'selected' : ''}>🌉 Bridge</option>
-                    <option value="wall_wood" ${ug.borders[side] === 'wall_wood' ? 'selected' : ''}>🪵 Wall (wood)</option>
-                    <option value="wall_stone" ${ug.borders[side] === 'wall_stone' ? 'selected' : ''}>🧱 Wall (stone)</option>
+                    <option value="water" ${ug.borders[side] === 'water' ? 'selected' : ''}>🌊 Вода</option>
+                    <option value="bridge" ${ug.borders[side] === 'bridge' ? 'selected' : ''}>🌉 Мост</option>
+                    <option value="wall_wood" ${ug.borders[side] === 'wall_wood' ? 'selected' : ''}>🪵 Деревянная стена</option>
+                    <option value="wall_stone" ${ug.borders[side] === 'wall_stone' ? 'selected' : ''}>🧱 Каменная стена</option>
                 </select>
             </div>
         `;
+
 
         const borderColor = (val) => {
             if (val === 'water') return '4px solid #3498db';
@@ -409,25 +432,25 @@ const KingdomSheetRenderer = {
 
                 <div class="k-panel" style="flex:1; min-width:540px;">
                     <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; margin-bottom:10px;">
-                        <div><label class="k-lbl">Settlement</label><input type="text" id="k_ug_name" class="k-inp" value="${ug.settlementName}"></div>
+                        <div><label class="k-lbl">Название поселения</label><input type="text" id="k_ug_name" class="k-inp" value="${ug.settlementName}"></div>
                         <div>
-                            <label class="k-lbl">Type</label>
+                            <label class="k-lbl">Тип</label>
                             <select id="k_ug_type" class="k-inp">
-                                <option value="village" ${ug.settlementType === 'village' ? 'selected' : ''}>Village</option>
-                                <option value="town" ${ug.settlementType === 'town' ? 'selected' : ''}>Town</option>
-                                <option value="city" ${ug.settlementType === 'city' ? 'selected' : ''}>City</option>
-                                <option value="metropolis" ${ug.settlementType === 'metropolis' ? 'selected' : ''}>Metropolis</option>
+                                <option value="village" ${ug.settlementType === 'village' ? 'selected' : ''}>Деревня (Village)</option>
+                                <option value="town" ${ug.settlementType === 'town' ? 'selected' : ''}>Городок (Town)</option>
+                                <option value="city" ${ug.settlementType === 'city' ? 'selected' : ''}>Город (City)</option>
+                                <option value="metropolis" ${ug.settlementType === 'metropolis' ? 'selected' : ''}>Мегаполис (Metropolis)</option>
                             </select>
                         </div>
-                        <div><label class="k-lbl">Level</label><input type="number" id="k_ug_level" class="k-inp" value="${ug.level}"></div>
-                        <div><label class="k-lbl">Consumption</label><input type="number" id="k_ug_cons" class="k-inp" value="${ug.consumption}" readonly title="Автоматический расчёт: база типа поселения + модификатор зданий + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                        <div><label class="k-lbl">Уровень</label><input type="number" id="k_ug_level" class="k-inp" value="${ug.level}"></div>
+                        <div><label class="k-lbl">Потребление</label><input type="number" id="k_ug_cons" class="k-inp" value="${ug.consumption}" readonly title="Автоматический расчёт: база типа поселения + модификатор зданий + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                     </div>
 
                     <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; font-size:12px;">
-                        <label><input type="checkbox" id="k_ug_overcrowded" ${ug.overcrowded ? 'checked' : ''}> Overcrowded</label>
-                        <label><input type="checkbox" id="k_ug_lamps" ${ug.infraStreetlamps ? 'checked' : ''}> Magical Streetlamps</label>
-                        <label><input type="checkbox" id="k_ug_paved" ${ug.infraPavedStreets ? 'checked' : ''}> Paved Streets</label>
-                        <label><input type="checkbox" id="k_ug_sewer" ${ug.infraSewer ? 'checked' : ''}> Sewer System</label>
+                        <label><input type="checkbox" id="k_ug_overcrowded" ${ug.overcrowded ? 'checked' : ''}> Перенаселение (+2 Потребл.)</label>
+                        <label><input type="checkbox" id="k_ug_lamps" ${ug.infraStreetlamps ? 'checked' : ''}> Магические фонари</label>
+                        <label><input type="checkbox" id="k_ug_paved" ${ug.infraPavedStreets ? 'checked' : ''}> Мощёные улицы</label>
+                        <label><input type="checkbox" id="k_ug_sewer" ${ug.infraSewer ? 'checked' : ''}> Канализация</label>
                     </div>
 
                     ${summaryHtml}
@@ -446,8 +469,8 @@ const KingdomSheetRenderer = {
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                        <div><label class="k-lbl">Garrisoned Armies</label><input type="text" id="k_ug_armies" class="k-inp" value="${ug.garrisonedArmies}"></div>
-                        <div><label class="k-lbl">Ongoing Events</label><input type="text" id="k_ug_events" class="k-inp" value="${ug.ongoingEvents}"></div>
+                        <div><label class="k-lbl">Гарнизонные армии</label><input type="text" id="k_ug_armies" class="k-inp" value="${ug.garrisonedArmies}"></div>
+                        <div><label class="k-lbl">Текущие события</label><input type="text" id="k_ug_events" class="k-inp" value="${ug.ongoingEvents}"></div>
                     </div>
                 </div>
             </div>
