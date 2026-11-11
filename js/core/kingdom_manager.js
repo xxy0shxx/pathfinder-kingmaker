@@ -203,6 +203,21 @@ const KingdomManager = {
             const val = parseInt(this.state.stats[key].value, 10) || 10;
             this.state.stats[key].modifier = Math.floor((val - 10) / 2);
         }
+        this.syncBuildingItemBonuses();
+    },
+
+    syncBuildingItemBonuses() {
+        if (!this.state || !this.state.skills || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
+        const buildings = this.state.urbanGrid?.buildings || [];
+        const effects = KingdomBuildings.calculateSettlementEffects(buildings);
+        const maxBonuses = effects.maxSkillBonuses || {};
+
+        this.skillConfig.forEach(cfg => {
+            if (!this.state.skills[cfg.id]) {
+                this.state.skills[cfg.id] = { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
+            }
+            this.state.skills[cfg.id].item = maxBonuses[cfg.id] || 0;
+        });
     },
 
     getSkillTotal(skillId) {
@@ -263,6 +278,8 @@ const KingdomManager = {
             rotation
         });
 
+        this.syncBuildingItemBonuses();
+
         this._persist();
         this.renderUi();
     },
@@ -291,6 +308,8 @@ const KingdomManager = {
 
     removeBuilding(uid) {
         this.state.urbanGrid.buildings = this.state.urbanGrid.buildings.filter(b => b.uid !== uid);
+
+        this.syncBuildingItemBonuses();
         this._persist();
         this.renderUi();
     },
@@ -369,7 +388,7 @@ const KingdomManager = {
                     sk.prof = this._readInt(`k_skill_prof_${cfg.id}`, sk.prof);
                     sk.status = this._readInt(`k_skill_status_${cfg.id}`, sk.status);
                     sk.circ = this._readInt(`k_skill_circ_${cfg.id}`, sk.circ);
-                    sk.item = this._readInt(`k_skill_item_${cfg.id}`, sk.item);
+                    sk.item = this._readInt(`k_skill_item_${cfg.id}`, sk.item); // @TODO need to delete
                     sk.other = this._readInt(`k_skill_other_${cfg.id}`, sk.other);
                 });
 

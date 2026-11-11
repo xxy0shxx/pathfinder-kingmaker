@@ -68,6 +68,11 @@ const KingdomSheetRenderer = {
             const sk = s.skills[cfg.id];
             const total = getSkillTotal(cfg.id);
             const totalStr = total >= 0 ? `+${total}` : total;
+            const itemVal = parseInt(sk.item, 10) || 0;
+            const itemStyle = itemVal > 0
+                ? 'background:#0d2415; border-color:#2ecc71; color:#2ecc71; font-weight:bold; cursor:help;'
+                : 'opacity:0.65; cursor:help;';
+
             return `
                 <tr>
                     <td style="font-weight:bold;">${cfg.label} <span style="font-size:11px; color:#95a5a6;">(${cfg.ability.slice(0,3).toUpperCase()})</span></td>
@@ -83,7 +88,7 @@ const KingdomSheetRenderer = {
                     </td>
                     <td><input type="number" id="k_skill_status_${cfg.id}" class="k-inp" value="${sk.status}"></td>
                     <td><input type="number" id="k_skill_circ_${cfg.id}" class="k-inp" value="${sk.circ}"></td>
-                    <td><input type="number" id="k_skill_item_${cfg.id}" class="k-inp" value="${sk.item}"></td>
+                    <td><input type="number" id="k_skill_item_${cfg.id}" class="k-inp" value="${itemVal}" readonly title="Автоматический бонус предмета от построек в поселении" style="${itemStyle}"></td>
                     <td><input type="number" id="k_skill_other_${cfg.id}" class="k-inp" value="${sk.other}"></td>
                 </tr>
             `;
