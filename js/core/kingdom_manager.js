@@ -894,6 +894,7 @@ const KingdomManager = {
         setTimeout(() => closeBtn.focus(), 50);
     },
 
+
     openEndTurnModal() {
         this.saveFromUi();
 
@@ -903,23 +904,35 @@ const KingdomManager = {
         const currentXp = parseInt(s.xp, 10) || 0;
         const nextXp = currentXp + xpGain;
 
+        const hasUnresolvedEvents = Array.isArray(s.events) && s.events.some(ev => ev.status !== 'resolved');
+        const eventFlatDc = hasUnresolvedEvents ? 11 : 16;
+
         const existing = document.getElementById('kEndTurnOverlay');
         if (existing) existing.remove();
 
         const overlay = document.createElement('div');
         overlay.id = 'kEndTurnOverlay';
-        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
 
         overlay.innerHTML = `
-            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:460px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
-                <div style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:24px 28px; width:560px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
+                <div style="font-size:22px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #543e0d; padding-bottom:10px; margin-bottom:14px;">
                     ⏳ Завершение хода королевства
                 </div>
 
-                <div style="background:rgba(0,0,0,0.4); border:1px solid #543e0d; border-radius:6px; padding:14px; margin-bottom:16px; font-size:15px; line-height:1.55;">
+                <div style="background:rgba(255, 216, 117, 0.08); border:1px solid #8a6421; border-radius:6px; padding:12px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                    <div style="font-size:15px; line-height:1.4;">
+                        <b style="color:#ffd875;">⚡ Фаза Событий (шаг перед концом хода):</b><br>
+                        Чистая проверка <b>СЛ ${eventFlatDc}</b>${hasUnresolvedEvents ? ' (есть нерешённое событие)' : ''}.
+                    </div>
+                    <button type="button" class="btn cc" id="kEndTurnGoEventBtn" style="white-space:nowrap; font-size:14px; padding:8px 12px;">🎲 Проверить событие</button>
+                </div>
+
+                <div style="background:rgba(0,0,0,0.4); border:1px solid #543e0d; border-radius:6px; padding:14px; margin-bottom:18px; font-size:16px; line-height:1.6;">
                     <div>• Неизрасходовано RP: <b>${currentRp}</b> (сбрасываются в 0 в конце хода)</div>
                     <div>• Конвертация в опыт (макс. 120 XP за ход): <b style="color:#2ecc71;">+${xpGain} XP</b></div>
                     <div>• Опыт королевства (XP): <b>${currentXp}</b> → <b style="color:#ffd875;">${nextXp} / 1000</b></div>
+                    <div>• Календарь Голариона: сдвиг на <b>+1 месяц</b></div>
                     ${nextXp >= 1000 ? `<div style="margin-top:8px; color:#ffd875; font-weight:bold;">👑 Доступно повышение уровня королевства!</div>` : ''}
                 </div>
 
@@ -934,10 +947,21 @@ const KingdomManager = {
 
         overlay.querySelector('#kEndTurnCancel').addEventListener('click', () => overlay.remove());
         overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+        overlay.querySelector('#kEndTurnGoEventBtn').addEventListener('click', () => {
+            overlay.remove();
+            this.openKingdomEventRollModal();
+        });
+
         overlay.querySelector('#kEndTurnConfirm').addEventListener('click', () => {
             s.rp = 0;
             s.xp = nextXp;
             overlay.remove();
+
+            if (window.WeatherManager && typeof window.WeatherManager.advanceCalendar === 'function') {
+                window.WeatherManager.advanceCalendar(0, 1);
+            }
+
             this.recalculateModifiers();
             this.resetAllLeaderActions();
             this._persist();
@@ -948,6 +972,8 @@ const KingdomManager = {
             }
         });
     },
+
+
 
     openLevelUpModal() {
         this.saveFromUi();
