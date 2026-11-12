@@ -349,14 +349,16 @@ const WeatherManager = {
                     <div id="kWNat20Hint" style="display:none; color:#2ecc71; font-size:12px; margin-bottom:6px;">
                         👑 Выпала натуральная 20 на проверке СЛ 17! Можете сделать доп. проверку СЛ 17 на связанное явление.
                     </div>
+                    
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; font-size:12px;">
                         ${hazards.map(h => `
-                            <div data-hz-id="${h.id}" style="padding:4px 8px; border:1px solid #543e0d; border-radius:3px; display:flex; justify-content:space-between;">
+                            <div data-hz-id="${h.id}" data-min-roll="${h.minRoll}" title="Нажмите, чтобы подставить значение ${h.minRoll}" style="padding:4px 8px; border:1px solid #543e0d; border-radius:3px; display:flex; justify-content:space-between; cursor:pointer; transition:all 0.15s ease;">
                                 <span><b>${h.minRoll === h.maxRoll ? h.minRoll : h.minRoll + '–' + h.maxRoll}</b> ${h.icon} ${h.label}</span>
                                 <span style="color:#a4b0be;">${h.levelText}</span>
                             </div>
                         `).join('')}
                     </div>
+                    
                 </div>
 
                 <div id="kWSummaryPreview" style="background:#040905; border:1px solid #543e0d; border-radius:4px; padding:8px 12px; margin-bottom:12px; font-size:13px; color:#ebd291;">
@@ -419,8 +421,15 @@ const WeatherManager = {
             preview.innerHTML = tags.join('<br>') + (matchedHz ? this._renderWeatherHazardCardHtml(matchedHz) : '');
         };
 
-
         [inpPrecip, inpCold, inpEventFlat, inpHzRoll].filter(Boolean).forEach(el => el.addEventListener('input', refresh));
+
+        overlay.querySelectorAll('[data-hz-id]').forEach(row => {
+            row.addEventListener('click', () => {
+                inpHzRoll.value = row.dataset.minRoll;
+                refresh();
+            });
+        });
+
         overlay.querySelector('#kWeatherApplyBtn').addEventListener('click', () => {
             overlay.remove();
             this.setDailyWeather(stateDraft, true);
