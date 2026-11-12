@@ -1095,6 +1095,7 @@ const KingdomManager = {
             const s = this.state;
             const curRp = parseInt(s.rp, 10) || 0;
 
+
             const rowsHtml = Object.entries(rates).map(([key, info]) => {
                 const c = s.commodities[key] || { value: 0, max: 4 };
                 const canBuy = curRp >= info.buy && c.value < c.max;
@@ -1117,6 +1118,7 @@ const KingdomManager = {
                     </tr>
                 `;
             }).join('');
+
 
             overlay.innerHTML = `
                 <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:540px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
@@ -1762,6 +1764,13 @@ const KingdomManager = {
 
         const btnExportCity = container.querySelector('#kBtnExportCityPng');
         if (btnExportCity) btnExportCity.addEventListener('click', () => this.exportCityToPng());
+
+        const btnOpenWeather = container.querySelector('#kBtnOpenWeatherRoll');
+        if (btnOpenWeather) {
+            btnOpenWeather.addEventListener('click', () => this.openWeatherRollModal());
+        }
+
+
 
 
         const btnNextDay = container.querySelector('#kBtnCalNextDay');
@@ -2469,6 +2478,87 @@ const KingdomManager = {
         this._persist();
         this.renderUi();
         if (!silent && window.CampingManager) {
+            window.CampingManager.recalculateCamp();
+        }
+    },
+
+    openWeatherRollModal() {
+        const info = this.getCalendarInfo();
+        const pool = MAP_CONFIG.golarionCalendar?.weatherBySeason?.[info.season] || [];
+        if (pool.length === 0) return;
+
+        const existing = document.getElementById('kWeatherRollOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kWeatherRollOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        const rowsHtml = pool.map(item => {
+            const minR = item.minRoll || 1;
+            const maxR = item.maxRoll || 20;
+            return `<div data-w-row="${item.id}" style="display:flex; justify-content:space-between; padding:6px 10px; border:1px solid #543e0d; border-radius:4px; background:rgba(0,0,0,0.35); margin-bottom:5px; font-size:13px;">
+                <span><b>${minR}–${maxR}</b>: ${item.icon} ${item.label}</span>
+                <span style="color:#a4b0be;">Охота ${item.huntDcMod >= 0 ? '+' + item.huntDcMod : item.huntDcMod} / Сцены ${item.encDcMod >= 0 ? '+' + item.encDcMod : item.encDcMod}</span>
+            </div>`;
+        }).join('');
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:20px 24px; width:440px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9); font-family:'Tinos', serif;">
+                <div style="font-size:18px; font-weight:bold; color:#ffd875; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:12px;">
+                    🎲 Определение погоды (${info.seasonLabel})
+                </div>
+                <div style="margin-bottom:12px;">${rowsHtml}</div>
+                <div style="margin-bottom:14px;">
+                    <label class="k-lbl">Введите результат броска d20 со стола (1–20):</label>
+                    <input type="number" id="kWeatherD20Inp" class="k-inp" min="1" max="20" placeholder="1–20" style="font-size:20px; font-weight:bold; text-align:center; color:#ffd875; border-color:#ffd875;">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn cc" id="kWeatherCancelBtn">Отмена</button>
+                    <button type="button" class="btn ok" id="kWeatherApplyBtn" disabled>Применить погоду</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const inp = overlay.querySelector('#kWeatherD20Inp');
+        const applyBtn = overlay.querySelector('#kWeatherApplyBtn');
+        let matchedWeather = null;
+
+        inp.addEventListener('input', () => {
+            const val = parseInt(inp.value, 10);
+            matchedWeather = (!isNaN(val) && val >= 1 && val <= 20)
+                ? pool.find(w => val >= w.minRoll && val <= w.maxRoll) || pool.at(0)
+                : null;
+
+            overlay.querySelectorAll('[data-w-row]').forEach(row => {
+                const isHit = matchedWeather && row.dataset.wRow === matchedWeather.id;
+                row.style.borderColor = isHit ? '#2ecc71' : '#543e0d';
+                row.style.background = isHit ? 'rgba(46, 204, 113, 0.16)' : 'rgba(0,0,0,0.35)';
+            });
+            applyBtn.disabled = !matchedWeather;
+        });
+
+        applyBtn.addEventListener('click', () => {
+            if (!matchedWeather) return;
+            overlay.remove();
+            this.setCalendarWeather(matchedWeather.id);
+        });
+        overlay.querySelector('#kWeatherCancelBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        setTimeout(() => inp.focus(), 40);
+    },
+
+    setCalendarWeather(weatherId) {
+        this.saveFromUi();
+        if (!this.state.calendar) {
+            this.state.calendar = { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' };
+        }
+        this.state.calendar.weatherId = weatherId;
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+        if (window.CampingManager && typeof window.CampingManager.recalculateCamp === 'function') {
             window.CampingManager.recalculateCamp();
         }
     },

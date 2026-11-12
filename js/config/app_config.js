@@ -167,26 +167,28 @@ export const MAP_CONFIG = {
         ],
         weatherBySeason: {
             winter: [
-                { id: 'clear_cold', icon: '🌤️', label: 'Морозно и ясно',   huntDcMod: 1,  encDcMod: 0, consMod: 0 },
-                { id: 'blizzard',   icon: '🌨️', label: 'Метель и вьюга',   huntDcMod: 3,  encDcMod: 2, consMod: 1 },
-                { id: 'deep_frost', icon: '🥶', label: 'Лютая стужа',      huntDcMod: 2,  encDcMod: 1, consMod: 1 }
+                { id: 'clear_cold', minRoll: 1,  maxRoll: 12, icon: '🌤️', label: 'Морозно и ясно',    huntDcMod: 1,  encDcMod: 0, consMod: 0 },
+                { id: 'deep_frost', minRoll: 13, maxRoll: 17, icon: '🥶', label: 'Лютая стужа',       huntDcMod: 2,  encDcMod: 1, consMod: 1 },
+                { id: 'blizzard',   minRoll: 18, maxRoll: 20, icon: '🌨️', label: 'Метель и вьюга',    huntDcMod: 3,  encDcMod: 2, consMod: 1 }
             ],
             spring: [
-                { id: 'clear_mild', icon: '⛅', label: 'Ясно и свежо',     huntDcMod: 0,  encDcMod: 0, consMod: 0 },
-                { id: 'heavy_rain', icon: '🌧️', label: 'Проливной дождь',  huntDcMod: 2,  encDcMod: 1, consMod: 0 },
-                { id: 'mud_thaw',   icon: '🌫️', label: 'Распутица и туман',huntDcMod: 1,  encDcMod: 1, consMod: 0 }
+                { id: 'clear_mild', minRoll: 1,  maxRoll: 12, icon: '⛅', label: 'Ясно и свежо',      huntDcMod: 0,  encDcMod: 0, consMod: 0 },
+                { id: 'mud_thaw',   minRoll: 13, maxRoll: 17, icon: '🌫️', label: 'Распутица и туман', huntDcMod: 1,  encDcMod: 1, consMod: 0 },
+                { id: 'heavy_rain', minRoll: 18, maxRoll: 20, icon: '🌧️', label: 'Проливной дождь',   huntDcMod: 2,  encDcMod: 1, consMod: 0 }
             ],
             summer: [
-                { id: 'sunny',      icon: '☀️', label: 'Ясно и тепло',     huntDcMod: -1, encDcMod: 0, consMod: 0 },
-                { id: 'heatwave',   icon: '🔥', label: 'Изнуряющий зной',  huntDcMod: 2,  encDcMod: 0, consMod: 1 },
-                { id: 'storm',      icon: '⛈️', label: 'Летняя гроза',     huntDcMod: 2,  encDcMod: 1, consMod: 0 }
+                { id: 'sunny',      minRoll: 1,  maxRoll: 12, icon: '☀️', label: 'Ясно и тепло',      huntDcMod: -1, encDcMod: 0, consMod: 0 },
+                { id: 'heatwave',   minRoll: 13, maxRoll: 17, icon: '🔥', label: 'Изнуряющий зной',   huntDcMod: 2,  encDcMod: 0, consMod: 1 },
+                { id: 'storm',      minRoll: 18, maxRoll: 20, icon: '⛈️', label: 'Летняя гроза',      huntDcMod: 2,  encDcMod: 1, consMod: 0 }
             ],
             autumn: [
-                { id: 'crisp',      icon: '🍂', label: 'Прохладно и сухо', huntDcMod: -1, encDcMod: 0, consMod: 0 },
-                { id: 'thick_fog',  icon: '🌫️', label: 'Густой туман',     huntDcMod: 1,  encDcMod: -1,consMod: 0 },
-                { id: 'cold_rain',  icon: '🌧️', label: 'Холодный ливень',  huntDcMod: 2,  encDcMod: 1, consMod: 0 }
+                { id: 'crisp',      minRoll: 1,  maxRoll: 12, icon: '🍂', label: 'Прохладно и сухо',  huntDcMod: -1, encDcMod: 0, consMod: 0 },
+                { id: 'thick_fog',  minRoll: 13, maxRoll: 17, icon: '🌫️', label: 'Густой туман',      huntDcMod: 1,  encDcMod: -1,consMod: 0 },
+                { id: 'cold_rain',  minRoll: 18, maxRoll: 20, icon: '🌧️', label: 'Холодный ливень',   huntDcMod: 2,  encDcMod: 1, consMod: 0 }
             ]
         }
+
+
     },
 
 };
