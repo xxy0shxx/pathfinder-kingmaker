@@ -636,6 +636,7 @@ const HexCanvasRender = {
         });
     },
 
+
     updateTooltipState(tooltip) {
         if (!tooltip) return;
         const hexKey = this.hoveredHexKey;
@@ -718,12 +719,29 @@ const HexCanvasRender = {
             if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
             if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`;
             if (data.type && MAP_CONFIG.types[data.type]) paramsBlock += `<div style="margin-bottom: 4px;">${MAP_CONFIG.types[data.type].icon} <b>Объект:</b> <span class="tooltip-value">${MAP_CONFIG.types[data.type].label}</span></div>`;
-            //if (data.terrain && MAP_CONFIG.terrains[data.terrain]) paramsBlock += `<div style="margin-bottom: 4px;">${MAP_CONFIG.terrains[data.terrain].icon} <b>Местность:</b> <span class="tooltip-value">${MAP_CONFIG.terrains[data.terrain].label} 🎲СЛ ${MAP_CONFIG.terrains[data.terrain].dc}</span></div>`;
+
+
             if (data.terrain && MAP_CONFIG.terrains[data.terrain]) {
                 const terr = MAP_CONFIG.terrains[data.terrain];
                 const kState = window.KingdomManager?.state;
                 const baseCtrlDc = (parseInt(kState?.controlDcBase, 10) || 14) + (parseInt(kState?.controlDcSize, 10) || 0);
-                const claimDc = baseCtrlDc + (terr.claimDcMod || 0);
+
+                // Проверяем наличие дороги в самом гексе или в одном из 6 соседних гексов
+                const rNum = parseInt(row, 10);
+                const cNum = parseInt(col, 10);
+                const offsets = (rNum % 2 === 0)
+                    ? [[0, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0]]
+                    : [[0, 1], [1, 1], [1, 0], [0, -1], [-1, 0], [-1, 1]];
+
+                const selfRoad = this.hasHexRoad(data);
+                const neighborRoad = offsets.some(([dr, dc]) =>
+                    this.hasHexRoad(this.hexesData[`hex_${rNum + dr}_${cNum + dc}`])
+                );
+                const hasRoadBonus = selfRoad || neighborRoad;
+
+                const rawClaimDc = baseCtrlDc + (terr.claimDcMod || 0);
+                const claimDc = hasRoadBonus ? Math.max(5, rawClaimDc - 1) : rawClaimDc;
+                const roadBonusNote = hasRoadBonus ? ' <span style="color:#2ecc71;">(−1 от дороги)</span>' : '';
 
                 // Если в названии или описании гекса есть мост — дорога через воду не требует лишних ОР
                 const hasBridge = /мост|bridge/i.test(`${data.title || ''} ${data.text || ''}`);
@@ -731,10 +749,13 @@ const HexCanvasRender = {
                 const bridgeNote = (data.terrain === 'water' && hasBridge) ? ' (есть мост!)' : '';
 
                 paramsBlock += `<div style="margin-bottom: 4px;">${terr.icon} <b>Местность:</b> <span class="tooltip-value">${terr.label} (Встреча СЛ ${terr.dc})</span></div>`;
-                paramsBlock += `<div style="margin-bottom: 4px; font-size: 14px; color: #dfbc6f;">👑 <b>Освоение:</b> Захват/Расчистка <b>СЛ ${claimDc}</b> • Расчистка: <b>${terr.clearCost || 0} ОР</b> • Дорога: <b>${finalRoadCost} ОР</b>${bridgeNote}</div>`;
+                paramsBlock += `<div style="margin-bottom: 4px; font-size: 14px; color: #dfbc6f;">👑 <b>Освоение:</b> Захват/Расчистка <b>СЛ ${claimDc}</b>${roadBonusNote} • Расчистка: <b>${terr.clearCost || 0} ОР</b> • Дорога: <b>${finalRoadCost} ОР</b>${bridgeNote}</div>`;
+                if (neighborRoad && !selfRoad) {
+                    paramsBlock += `<div style="margin-bottom: 4px; font-size: 13px; color: #2ecc71;">🛣 <b>Соседняя дорога:</b> развитие и прокладка пути упрощены</div>`;
+                }
             }
-        }
 
+        }
 
         content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
         if (data.text) content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
@@ -742,6 +763,7 @@ const HexCanvasRender = {
 
         tooltip.innerHTML = content; tooltip.style.display = 'block';
     },
+
 
 
 

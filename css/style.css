@@ -1544,7 +1544,8 @@ body {
 }
 
 #visualLayer.hide-quest-tooltips ~ .right-controls-panel #btnToggleTooltips,
-.right-controls-panel #btnTogglePaths.paths-hidden {
+.right-controls-panel #btnTogglePaths.paths-hidden,
+.right-controls-panel #btnToggleKingdomRoads.paths-hidden {
     background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
     border-color: #823030 !important;
     color: #f7baba !important;

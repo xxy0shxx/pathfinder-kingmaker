@@ -19,6 +19,22 @@ const UiSelectManager = {
     initWorkSiteGuard() {
         const rules = MAP_CONFIG.workSiteRules || {};
 
+        // Проверка наличия дороги в текущем гексе или в одном из 6 соседних гексов
+        const checkRoadNetwork = (hexKey) => {
+            const hexes = window.HexCanvasRender?.hexesData || {};
+            const hasRoad = (h) => !!(h && (h.hasRoad || /дорог|тракт|road/i.test(`${h.title || ''} ${h.text || ''} ${h.description || ''}`)));
+
+            if (!hexKey || !hexKey.startsWith('hex_')) return { selfRoad: false, neighborRoad: false };
+            const [, rStr, cStr] = hexKey.split('_');
+            const r = parseInt(rStr, 10), c = parseInt(cStr, 10);
+
+            const offsets = (r % 2 === 0)
+                ? [[0, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0]]
+                : [[0, 1], [1, 1], [1, 0], [0, -1], [-1, 0], [-1, 1]];
+
+            const neighborRoad = offsets.some(([dr, dc]) => hasRoad(hexes[`hex_${r + dr}_${c + dc}`]));
+            return { selfRoad: hasRoad(hexes[hexKey]), neighborRoad };
+        };
 
         const syncGuard = () => {
             const menu = document.getElementById('hexMenu');
@@ -105,8 +121,16 @@ const UiSelectManager = {
                 } else {
                     const kState = km.state;
                     const curRp = parseInt(kState.rp, 10) || 0;
+//                    const baseCtrlDc = (parseInt(kState.controlDcBase, 10) || 14) + (parseInt(kState.controlDcSize, 10) || 0);
+
+                    //const claimDc = baseCtrlDc + (terr.claimDcMod || 0);
+
+                    const currentHexId = menu.dataset.hexId || window.HexCanvasRender?.hoveredHexKey || '';
+                    const roadNet = checkRoadNetwork(currentHexId);
+                    const hasRoadBonus = roadNet.selfRoad || roadNet.neighborRoad;
                     const baseCtrlDc = (parseInt(kState.controlDcBase, 10) || 14) + (parseInt(kState.controlDcSize, 10) || 0);
-                    const claimDc = baseCtrlDc + (terr.claimDcMod || 0);
+                    const rawClaimDc = baseCtrlDc + (terr.claimDcMod || 0);
+                    const claimDc = hasRoadBonus ? Math.max(5, rawClaimDc - 1) : rawClaimDc;
 
                     const titleVal = menu.querySelector('input[type="text"]')?.value || '';
                     const descVal = menu.querySelector('textarea')?.value || '';
@@ -158,9 +182,10 @@ const UiSelectManager = {
                     hintBox.style.display = 'block';
                     hintBox.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <span>👑 <b>Освоение (${terr.label}):</b> СЛ <b>${claimDc}</b></span>
+                            <span>👑 <b>Освоение (${terr.label}):</b> СЛ <b>${claimDc}</b>${hasRoadBonus ? ` <span style="color:#2ecc71;">(−1 от дороги)</span>` : ''}</span>
                             <span style="color:#ffd875; font-family:monospace; font-weight:bold;">Казна: ${curRp} ОР</span>
                         </div>
+                        ${roadNet.neighborRoad && !roadNet.selfRoad ? `<div style="color:#2ecc71; font-size:11px; margin-bottom:4px;">🛣 Рядом есть дорога: развитие и прокладка пути упрощены</div>` : ''}
                         <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;">
                             ${makeSpendBtn('claim', '🚩 Захват', claimCost, isAlreadyClaimed)}
                             ${makeSpendBtn('clear', '🪓 Расчистка', clearCost, isAlreadyCleared)}
@@ -217,6 +242,20 @@ const UiSelectManager = {
                 setTimeout(syncGuard, 20);
             }
         }, true);
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#mapCanvas')) {
+                const menu = document.getElementById('hexMenu');
+                if (menu && window.HexCanvasRender?.hoveredHexKey) {
+                    menu.dataset.hexId = window.HexCanvasRender.hoveredHexKey;
+                }
+            }
+            if (e.target.closest('#hexMenu') || e.target.closest('#mapCanvas')) {
+                setTimeout(syncGuard, 20);
+            }
+        }, true);
+
+
     },
 
 
