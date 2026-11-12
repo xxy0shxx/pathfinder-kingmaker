@@ -86,6 +86,39 @@ const UiSelectManager = {
                     );
                 }
             }
+
+            // 4. Вывод расчётной стоимости ОР и СЛ освоения под селектом местности
+            if (terrainEl) {
+                let hintBox = menu.querySelector('#hexTerrainCostHint');
+                if (!hintBox) {
+                    hintBox = document.createElement('div');
+                    hintBox.id = 'hexTerrainCostHint';
+                    hintBox.style.cssText = 'margin-top:6px; padding:6px 10px; background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:4px; font-size:12px; color:#ebd291; line-height:1.4;';
+                    (terrainEl.closest('.box') || terrainEl.parentElement).appendChild(hintBox);
+                }
+
+                const terr = MAP_CONFIG.terrains?.[terrainVal];
+                if (!terr) {
+                    hintBox.style.display = 'none';
+                } else {
+                    const kState = window.KingdomManager?.state;
+                    const baseCtrlDc = (parseInt(kState?.controlDcBase, 10) || 14) + (parseInt(kState?.controlDcSize, 10) || 0);
+                    const claimDc = baseCtrlDc + (terr.claimDcMod || 0);
+                    const titleVal = menu.querySelector('input[type="text"]')?.value || '';
+                    const descVal = menu.querySelector('textarea')?.value || '';
+                    const hasBridge = /мост|bridge/i.test(`${titleVal} ${descVal}`);
+                    const roadCost = (terrainVal === 'water' && hasBridge) ? 1 : (terr.roadCost ?? 1);
+
+                    hintBox.style.display = 'block';
+                    hintBox.innerHTML =
+                        `👑 <b>Освоение (${terr.label}):</b> Захват / Расчистка <b>СЛ ${claimDc}</b> (база ${baseCtrlDc} + ${terr.claimDcMod || 0})<br>` +
+                        `💰 <b>Затраты:</b> Расчистка <b>${terr.clearCost || 0} ОР</b> • Участок <b>${terr.workSiteCost || 0} ОР</b> • Дорога <b>${roadCost} ОР</b>` +
+                        (hasBridge && terrainVal === 'water' ? ` <span style="color:#2ecc71;">(мост снижает цену)</span>` : '');
+                }
+            }
+
+
+
         };
 
         document.addEventListener('change', (e) => {

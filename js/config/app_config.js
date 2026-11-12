@@ -38,14 +38,64 @@ export const MAP_CONFIG = {
     },
 
     // Справочник ландшафтов: привязка иконки, названия и СЛ проверки по умолчанию
+    // Справочник ландшафтов: случайные встречи (dc) + правила освоения королевства (Pathfinder 2e Kingmaker)
     terrains: {
-        swamp:    { icon: '🐸', label: 'Болото',    dc: 14 },
-        forest:   { icon: '🌲', label: 'Лес',       dc: 14 },
-        water:    { icon: '🌊', label: 'Вода',      dc: 17 },
-        arctic:   { icon: '❄️', label: 'Приполярье', dc: 17 },
-        mountain: { icon: '⛰️', label: 'Горы',      dc: 16 },
-        plains:   { icon: '🌾', label: 'Равнины',   dc: 12 }
+        plains: {
+            icon: '🌾',
+            label: 'Равнины',
+            dc: 12,
+            claimDcMod: 0,     // Базовая КС управления +0
+            clearCost: 1,      // Расчистка гекса: 1 ОР
+            roadCost: 1,       // Прокладка дороги: 1 ОР
+            workSiteCost: 2    // Строительство участка: 2 ОР
+        },
+        forest: {
+            icon: '🌲',
+            label: 'Лес',
+            dc: 14,
+            claimDcMod: 1,     // Густой лес: +1 к СЛ расчистки и освоения
+            clearCost: 2,      // Расчистка гекса: 2 ОР
+            roadCost: 2,       // Прокладка дороги: 2 ОР
+            workSiteCost: 4    // Лесопилка: 4 ОР
+        },
+        swamp: {
+            icon: '🐸',
+            label: 'Болото',
+            dc: 14,
+            claimDcMod: 2,     // Топи: +2 к СЛ расчистки и освоения
+            clearCost: 4,      // Расчистка гекса: 4 ОР
+            roadCost: 4,       // Прокладка дороги (гати): 4 ОР
+            workSiteCost: 6    // Осушение / участок: 6 ОР
+        },
+        mountain: {
+            icon: '⛰️',
+            label: 'Горы',
+            dc: 16,
+            claimDcMod: 2,     // Высокогорье: +2 к СЛ расчистки и освоения
+            clearCost: 4,      // Расчистка гекса: 4 ОР
+            roadCost: 4,       // Прокладка горного тракта: 4 ОР
+            workSiteCost: 6    // Шахта / каменоломня: 6 ОР
+        },
+        arctic: {
+            icon: '❄️',
+            label: 'Приполярье',
+            dc: 17,
+            claimDcMod: 2,     // Мерзлота и холмы: +2 к СЛ освоения
+            clearCost: 3,      // Расчистка гекса: 3 ОР
+            roadCost: 3,       // Прокладка дороги: 3 ОР
+            workSiteCost: 6    // Шахта / каменоломня: 6 ОР
+        },
+        water: {
+            icon: '🌊',
+            label: 'Вода',
+            dc: 17,
+            claimDcMod: 3,     // Водная преграда: +3 к СЛ (требуется мост/переправа)
+            clearCost: 0,      // Вода не расчищается стандартно
+            roadCost: 8,       // Переправа / мост без готового моста: 8 ОР (с мостом — бесплатно)
+            workSiteCost: 0
+        }
     },
+
 
     // Правила совместимости рабочих участков (Work Sites) с рельефом по Pathfinder 2e Kingmaker
     workSiteRules: {
