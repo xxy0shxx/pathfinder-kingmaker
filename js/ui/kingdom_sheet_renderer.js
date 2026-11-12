@@ -38,9 +38,10 @@ const KingdomSheetRenderer = {
         else if (cal.cold) bgWeatherLabel = '🥶 Холодный день (утомление 4 ч)';
 
         const hazardBadgeHtml = cal.hazard
-            ? `<span style="background:rgba(231, 76, 60, 0.2); border:1px solid #e74c3c; color:#ff7675; padding:2px 8px; border-radius:4px; font-weight:bold;">
-                   ⚡ ${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText})
-               </span>`
+            ? `<button type="button" id="kBtnActiveHazardInfo" title="Нажмите, чтобы открыть карточку правил погодного явления"
+                   style="background:rgba(231, 76, 60, 0.22); border:1px solid #e74c3c; color:#ff7675; padding:2px 9px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:inherit; font-size:12px;">
+                   ⚡ ${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText}) ℹ️
+               </button>`
             : '';
 
         const calendarBarHtml = `

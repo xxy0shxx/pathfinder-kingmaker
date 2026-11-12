@@ -167,18 +167,78 @@ export const MAP_CONFIG = {
             { id: 11, name: 'Кутона',    days: 31, season: 'winter', seasonLabel: '❄️ Зима',  precipDc: 8,  coldDc: 18 }
         ],
         weatherHazardsTable: [
-            { id: 'fog',          minRoll: 1,  maxRoll: 3,  icon: '🌫️', label: 'Туман',                 levelText: 'Ур. 0',        minLevel: 0 },
-            { id: 'downpour',     minRoll: 4,  maxRoll: 7,  icon: '🌧️', label: 'Ливень',                levelText: 'Ур. 0',        minLevel: 0 },
-            { id: 'cold_snap',    minRoll: 8,  maxRoll: 9,  icon: '🥶', label: 'Резкое похолодание',    levelText: 'Ур. 1',        minLevel: 1 },
-            { id: 'windstorm',    minRoll: 10, maxRoll: 12, icon: '💨', label: 'Ураган',                levelText: 'Ур. 1',        minLevel: 1 },
-            { id: 'hail',         minRoll: 13, maxRoll: 13, icon: '🧊', label: 'Град, сильный',         levelText: 'Ур. 2',        minLevel: 2 },
-            { id: 'blizzard',     minRoll: 14, maxRoll: 14, icon: '🌨️', label: 'Метель',                levelText: 'Ур. 6',        minLevel: 6 },
-            { id: 'supernatural', minRoll: 15, maxRoll: 15, icon: '🔮', label: 'Сверхъестественная буря',levelText: 'Ур. 6+',       minLevel: 6 },
-            { id: 'flash_flood',  minRoll: 16, maxRoll: 16, icon: '🌊', label: 'Ливневый паводок',      levelText: 'Ур. 7',        minLevel: 7 },
-            { id: 'wildfire',     minRoll: 17, maxRoll: 17, icon: '🔥', label: 'Пожар',                 levelText: 'Ур. 4 или 10', minLevel: 4 },
-            { id: 'sinkhole',     minRoll: 18, maxRoll: 18, icon: '🕳️', label: 'Проседание грунта',     levelText: 'Ур. 5 или 12', minLevel: 5 },
-            { id: 'thunderstorm', minRoll: 19, maxRoll: 19, icon: '⛈️', label: 'Гроза',                 levelText: 'Ур. 7 или 13', minLevel: 7 },
-            { id: 'tornado',      minRoll: 20, maxRoll: 20, icon: '🌪️', label: 'Торнадо',               levelText: 'Ур. 12 или 17',minLevel: 12 }
+            {
+                id: 'fog', minRoll: 1, maxRoll: 3, icon: '🌫️', label: 'Туман', levelText: 'Ур. 0', minLevel: 0,
+                survivalDc: 'СЛ 14 (Изучен)', duration: '1d4 часа+', req: 'Нет',
+                prep: 'Укрытие не защищает от тумана, но позволяет переждать.',
+                effect: 'Все существа получают состояние скрытости (concealed) за пределами 5 футов. Скорость передвижения по карте снижена вдвое.'
+            },
+            {
+                id: 'downpour', minRoll: 4, maxRoll: 7, icon: '🌧️', label: 'Ливень', levelText: 'Ур. 0', minLevel: 0,
+                survivalDc: 'СЛ 14 (Изучен)', duration: '1d4 часа+', req: 'Нет',
+                prep: 'Выживание СЛ 14: найти/соорудить укрытие (полная защита).',
+                effect: 'Штраф −2 к Вниманию и дистанционным атакам. Потушены открытые огни. Без укрытия — промокание и утомление через 2 часа.'
+            },
+            {
+                id: 'cold_snap', minRoll: 8, maxRoll: 9, icon: '🥶', label: 'Резкое похолодание', levelText: 'Ур. 1', minLevel: 1,
+                survivalDc: 'СЛ 15 (Изучен)', duration: '2d4 часа+', req: 'Не лето',
+                prep: 'Выживание СЛ 15: развести защищённый костёр и утеплиться.',
+                effect: 'Температура падает до сильного холода: спасбросок Стойкости СЛ 15 каждый час или утомление + 1d6 урона холодом.'
+            },
+            {
+                id: 'windstorm', minRoll: 10, maxRoll: 12, icon: '💨', label: 'Ураган', levelText: 'Ур. 1', minLevel: 1,
+                survivalDc: 'СЛ 15 (Изучен)', duration: '1d4 часа+', req: 'Нет',
+                prep: 'Выживание СЛ 15: найти укрытие от ветра (полная защита).',
+                effect: 'Штраф −2 к дистанционным атакам, полёт невозможен, открытый огонь гаснет, спасбросок Атлетики/Акробатики СЛ 15 против сбивания с ног.'
+            },
+            {
+                id: 'hail', minRoll: 13, maxRoll: 13, icon: '🧊', label: 'Град, сильный', levelText: 'Ур. 2', minLevel: 2,
+                survivalDc: 'СЛ 16 (Изучен)', duration: '1d10 минут', req: 'Нет',
+                prep: 'Выживание СЛ 16: срочно укрыться (полная защита от градин).',
+                effect: '1d6 дробящего урона каждую минуту (простой спасбросок Реакции СЛ 18), штраф −2 к Вниманию и сложная местность.'
+            },
+            {
+                id: 'blizzard', minRoll: 14, maxRoll: 14, icon: '🌨️', label: 'Метель', levelText: 'Ур. 6', minLevel: 6,
+                survivalDc: 'СЛ 22 (Эксперт)', duration: '2d4 часа+', req: 'Зима или горы',
+                prep: 'Выживание СЛ 22: снежное укрытие (защищает от ветра и видимости).',
+                effect: 'Видимость 5 футов, сложная местность, сильный холод (Стойкость СЛ 22 каждый час) и штраф −4 к Вниманию и атакам.'
+            },
+            {
+                id: 'supernatural', minRoll: 15, maxRoll: 15, icon: '🔮', label: 'Сверхъестественная буря', levelText: 'Ур. 6+', minLevel: 6,
+                survivalDc: 'СЛ 22 (Эксперт)', duration: '1d4 часа+', req: 'Нет',
+                prep: 'Выживание СЛ 22 или Мистицизм/Природа СЛ 22 для защиты.',
+                effect: 'Аномальные осадки и всплески магии (дикая магия, спасбросок Воли/Реакции СЛ 22 и энергетический урон 3d6).'
+            },
+            {
+                id: 'flash_flood', minRoll: 16, maxRoll: 16, icon: '🌊', label: 'Ливневый паводок', levelText: 'Ур. 7', minLevel: 7,
+                survivalDc: 'СЛ 23 (Эксперт)', duration: '10 минут', req: 'Низина, река или болото',
+                prep: 'Выживание СЛ 23: подняться на возвышенность (полное избежание).',
+                effect: 'Поток воды сносит существ: Атлетика/Реакция СЛ 25 или 4d6 дробящего урона и унесение течением (риск утопления).'
+            },
+            {
+                id: 'wildfire', minRoll: 17, maxRoll: 17, icon: '🔥', label: 'Пожар', levelText: 'Ур. 4 или 10', minLevel: 4,
+                survivalDc: 'СЛ 19 / 27 (Эксперт)', duration: '1d6 часов+', req: 'Лес или равнины (не зима)',
+                prep: 'Выживание СЛ 19 (Ур. 4) или СЛ 27 (Ур. 10): встречный пал или водоём.',
+                effect: 'Стена огня и едкий дым (состояние тошноты/удушья, 2d6 или 5d6 урона огнём за раунд в зоне пламени).'
+            },
+            {
+                id: 'sinkhole', minRoll: 18, maxRoll: 18, icon: '🕳️', label: 'Проседание грунта', levelText: 'Ур. 5 или 12', minLevel: 5,
+                survivalDc: 'СЛ 20 / 30 (Мастер)', duration: 'Мгновенно', req: 'Болото, холмы или пещеры',
+                prep: 'Выживание или Внимание СЛ 20/30: обойти нестабильный участок.',
+                effect: 'Провал земли глубиной 20–40 футов: Реакция СЛ 22/32 или падение с уроном и завалом (требуется Атлетика для подъёма).'
+            },
+            {
+                id: 'thunderstorm', minRoll: 19, maxRoll: 19, icon: '⛈️', label: 'Гроза', levelText: 'Ур. 7 или 13', minLevel: 7,
+                survivalDc: 'СЛ 23 / 31 (Эксперт/Мастер)', duration: '1d4 часа+', req: 'Нет',
+                prep: 'Выживание СЛ 23/31: укрыться в низине или здании вдали от деревьев.',
+                effect: 'Ливень + ураганный ветер + удары молний каждые 10 мин (Реакция СЛ 25/33 или 4d12 / 8d12 урона электричеством).'
+            },
+            {
+                id: 'tornado', minRoll: 20, maxRoll: 20, icon: '🌪️', label: 'Торнадо', levelText: 'Ур. 12 или 17', minLevel: 12,
+                survivalDc: 'СЛ 30 / 36 (Мастер)', duration: '1d10 минут', req: 'Равнины или холмы',
+                prep: 'Выживание СЛ 30/36: подземное укрытие (обычные постройки разрушаются).',
+                effect: 'Катастрофический вихрь: затягивает существ и объекты, наносит 6d10 / 10d10 дробящего урона (Стойкость СЛ 32/38).'
+            }
         ],
         weatherBySeason: {
             winter: [

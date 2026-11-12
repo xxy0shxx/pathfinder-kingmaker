@@ -1770,7 +1770,10 @@ const KingdomManager = {
             btnOpenWeather.addEventListener('click', () => this.openWeatherRollModal());
         }
 
-
+        const btnHazardInfo = container.querySelector('#kBtnActiveHazardInfo');
+        if (btnHazardInfo) {
+            btnHazardInfo.addEventListener('click', () => this.openActiveHazardDetailsModal());
+        }
 
 
         const btnNextDay = container.querySelector('#kBtnCalNextDay');
@@ -2581,6 +2584,7 @@ const KingdomManager = {
 
         let stateDraft = { precip: false, cold: false, hazardId: null, secondHazardNote: false };
 
+
         const refresh = () => {
             const pRoll = parseInt(inpPrecip.value, 10);
             const cRoll = inpCold ? parseInt(inpCold.value, 10) : NaN;
@@ -2615,8 +2619,9 @@ const KingdomManager = {
             if (matchedHz) tags.push(`⚡ Явление: ${matchedHz.icon} ${matchedHz.label} (${matchedHz.levelText})`);
             else if (hasEvent) tags.push('⚡ Погодное явление сработало — введите бросок d20 по таблице');
 
-            preview.innerHTML = tags.join('<br>');
+            preview.innerHTML = tags.join('<br>') + (matchedHz ? this._renderWeatherHazardCardHtml(matchedHz) : '');
         };
+
 
         [inpPrecip, inpCold, inpEventFlat, inpHzRoll].filter(Boolean).forEach(el => el.addEventListener('input', refresh));
         overlay.querySelector('#kWeatherApplyBtn').addEventListener('click', () => {
@@ -2644,6 +2649,53 @@ const KingdomManager = {
         }
     },
 
+    _renderWeatherHazardCardHtml(hz) {
+        if (!hz) return '';
+        const hasPlus = String(hz.duration || '').includes('+');
+        const plusNote = hasPlus
+            ? ' <span style="color:#a4b0be; font-size:11px;">(знак «+»: в конце срока чистая проверка СЛ 11 для продления)</span>'
+            : '';
+
+        return `
+            <div style="background:rgba(92, 30, 30, 0.22); border:1.5px solid #e74c3c; border-radius:6px; padding:10px 12px; margin-top:8px; font-size:13px; line-height:1.45; color:#ebd291;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed rgba(231, 76, 60, 0.45); padding-bottom:5px; margin-bottom:6px;">
+                    <span style="font-size:16px; font-weight:bold; color:#ff7675;">${hz.icon} ${hz.label}</span>
+                    <span style="background:#040905; border:1px solid #e74c3c; color:#ffd875; padding:1px 8px; border-radius:4px; font-size:12px; font-weight:bold;">Опасность (${hz.levelText})</span>
+                </div>
+                <div><b>🧭 Предсказание (Выживание):</b> ${hz.survivalDc || '—'} • <b>Требования:</b> ${hz.req || 'Нет'}</div>
+                <div><b>⏳ Длительность:</b> ${hz.duration || '—'}${plusNote}</div>
+                <div style="margin-top:4px;"><b>🏕 Подготовка и укрытие:</b> ${hz.prep || '—'}</div>
+                <div style="margin-top:4px; color:#fff;"><b>⚡ Эффект:</b> ${hz.effect || '—'}</div>
+                <div style="margin-top:5px; font-size:11px; color:#2ecc71;">
+                    🏆 Награда ПО: как за простую опасность (${hz.levelText}), кроме пережидания внутри полноценного здания.
+                </div>
+            </div>
+        `;
+    },
+
+    openActiveHazardDetailsModal() {
+        const hz = this.getCalendarInfo()?.hazard;
+        if (!hz) return;
+
+        const existing = document.getElementById('kHazardDetailsOverlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kHazardDetailsOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #e74c3c; border-radius:8px; padding:18px 22px; width:500px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9); font-family:'Tinos', serif;">
+                <div style="font-size:17px; font-weight:bold; color:#ffd875; margin-bottom:4px;">📜 Справка по активному погодному явлению</div>
+                ${this._renderWeatherHazardCardHtml(hz)}
+                <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                    <button type="button" class="btn ok" id="kCloseHazardDetailsBtn">Закрыть</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#kCloseHazardDetailsBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    },
 
 };
 
