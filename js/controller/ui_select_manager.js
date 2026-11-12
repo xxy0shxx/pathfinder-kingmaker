@@ -36,6 +36,7 @@ const UiSelectManager = {
             return { selfRoad: hasRoad(hexes[hexKey]), neighborRoad };
         };
 
+
         const syncGuard = () => {
             const menu = document.getElementById('hexMenu');
             if (!menu) return;
@@ -144,6 +145,10 @@ const UiSelectManager = {
 
                     const hasBridge = /мост|bridge/i.test(combinedText);
                     const hasClearedRuins = /руин.*расчищ|расчищ.*руин|ruin.*clear/i.test(combinedText);
+                    const isFreehold = /вольн.*владен|freehold/i.test(combinedText);
+                    const isFreeholdAnnexed = /вольн.*владен.*присоедин|freehold.*annex/i.test(combinedText);
+
+
 
                     const claimCost = 1;
                     const clearCost = terr.clearCost || 0;
@@ -192,6 +197,14 @@ const UiSelectManager = {
                             ${makeSpendBtn('site', '🏗 Участок', siteCost, isSiteAlreadyBuilt)}
                             ${makeSpendBtn('road', '🛣 Дорога', roadCost, isRoadAlreadyBuilt)}
                         </div>
+                        ${isFreehold && !isFreeholdAnnexed ? `
+                            <div style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(212,175,55,0.3); display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                <span style="font-size:11px; color:#ffd875;">🏘 Обнаружено Вольное владение</span>
+                                <button type="button" id="btnAnnexFreeholdHex" style="padding:4px 9px; font-size:11px; font-weight:bold; border-radius:4px; cursor:pointer; background:linear-gradient(180deg, #8a6421 0%, #543e0d 100%); border:1px solid #ffd875; color:#fff;">
+                                    🤝 Присоединить дипломатией
+                                </button>
+                            </div>
+                        ` : ''}
                         ${hasClearedRuins && rawSiteCost > 0 && !isSiteAlreadyBuilt ? `<div style="color:#2ecc71; font-size:11px; margin-top:4px;">✔ Скидка расчищенных руин: цена участка снижена вдвое</div>` : ''}
                     `;
 
@@ -229,9 +242,32 @@ const UiSelectManager = {
                             syncGuard();
                         };
                     });
+                    const annexBtn = hintBox.querySelector('#btnAnnexFreeholdHex');
+                    if (annexBtn && typeof km.openAnnexFreeholdModal === 'function') {
+                        annexBtn.onclick = (ev) => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            const suggestedName = titleVal.trim() || 'Вольное владение';
+                            km.openAnnexFreeholdModal(suggestedName, (finalName) => {
+                                if (claimedCb && !claimedCb.checked) {
+                                    claimedCb.checked = true;
+                                }
+                                const descArea = menu.querySelector('textarea');
+                                if (descArea && !/вольн.*владен.*присоедин/i.test(descArea.value)) {
+                                    const curText = descArea.value.trim();
+                                    const note = `🤝 Вольное владение «${finalName}» присоединено к королевству.`;
+                                    descArea.value = curText ? `${curText}\n${note}` : note;
+                                }
+                                syncGuard();
+                            });
+                        };
+                    }
+
+
                 }
             }
         };
+
 
         document.addEventListener('change', (e) => {
             if (e.target.closest('#hexMenu')) syncGuard();

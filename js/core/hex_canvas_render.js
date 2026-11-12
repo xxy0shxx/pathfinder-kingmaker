@@ -387,6 +387,7 @@ const HexCanvasRender = {
         }
     },
 
+
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 
@@ -442,7 +443,9 @@ const HexCanvasRender = {
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
 
 
-        if (isRevealed) {
+
+
+        if (isRevealed && data) {
             if (!window.MAP_HIDE_EXPLORED && data.explored) drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
             if (!window.MAP_HIDE_MAPPED && data.mapMapped) drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
             if (!window.MAP_HIDE_OBJ_ICON && data.type && MAP_CONFIG.types[data.type]) {
@@ -452,7 +455,7 @@ const HexCanvasRender = {
                 drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
             }
 
-            // Иконка рабочего участка (ферма, лесопилка, шахта, каменоломня) строго в центре гекса
+            // Иконка рабочего участка
             if (data.workSite && data.workSite !== 'none' && !data.squadHere) {
                 const wsIcons = {
                     farmlands: '🌾',
@@ -464,7 +467,57 @@ const HexCanvasRender = {
                     drawAnimatedIcon(wsIcons[data.workSite], cx, cy + 4);
                 }
             }
+
+            // 1. Определение поселения на гексе
+            const combinedText = `${data.title || ''} ${data.text || ''} ${data.description || ''}`;
+            const settlements = window.KingdomManager?.state?.settlements || [];
+            const capitalName = (window.KingdomManager?.state?.capitalCity || '').trim().toLowerCase();
+            const hexTitleLower = (data.title || '').trim().toLowerCase();
+
+            const matchedSettlement = settlements.find(st =>
+                st.settlementName && hexTitleLower && hexTitleLower.includes(st.settlementName.trim().toLowerCase())
+            );
+            const isCapital = !!(
+                (capitalName && hexTitleLower && hexTitleLower.includes(capitalName)) ||
+                /столиц|capital/i.test(combinedText)
+            );
+            const isSettlementHex = !!(
+                matchedSettlement ||
+                isCapital ||
+                /город|деревн|посел|посёл|крепост|форт|вольн.*владен|freehold|settlement|town|city|village/i.test(combinedText)
+            );
+
+            // 2. 3D-цитадель поселения
+            if (isSettlementHex && !data.squadHere && (!data.workSite || data.workSite === 'none')) {
+                const isMajor = isCapital || (matchedSettlement && ['city', 'metropolis'].includes(matchedSettlement.settlementType));
+                ThreeDTokenEngine.draw3DSettlementMarker(
+                    ctx,
+                    cx,
+                    cy + 6,
+                    isMajor ? 0.56 : 0.44,
+                    isMajor ? 'gold' : 'bronze'
+                );
+                this.isAnimating = true;
+            }
+
+            // 3. Маркеры Моста и Руин
+            const hasBridge = /мост|bridge/i.test(combinedText);
+            const hasRuins = /руин|ruin/i.test(combinedText);
+            const isRuinsCleared = /руин.*расчищ|расчищ.*руин|ruin.*clear/i.test(combinedText);
+
+            if (hasBridge && hasRuins) {
+                drawAnimatedIcon('🌉', cx - 18, cy + 28);
+                drawAnimatedIcon(isRuinsCleared ? '🏛' : '🏚', cx + 18, cy + 28);
+            } else if (hasBridge) {
+                drawAnimatedIcon('🌉', cx, cy + 28);
+            } else if (hasRuins) {
+                drawAnimatedIcon(isRuinsCleared ? '🏛' : '🏚', cx, cy + 28);
+            }
         }
+
+
+
+
 
         if (data && data.squadHere) {
             const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
@@ -503,6 +556,7 @@ const HexCanvasRender = {
             if (questTitle !== '') this.drawQuestPlate(ctx, `⚜️ ${questTitle}`, cx, cy - r + 8);
         }
     },
+
 
 
 

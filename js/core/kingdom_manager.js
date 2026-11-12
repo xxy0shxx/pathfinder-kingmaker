@@ -2035,6 +2035,146 @@ const KingdomManager = {
         this.renderUi();
     },
 
+    /**
+     * Присоединение Вольного владения (Freehold) дипломатией по правилам Pathfinder 2e Kingmaker
+     */
+    openAnnexFreeholdModal(freeholdName = "Вольное владение", onSuccessCallback = null) {
+        this.saveFromUi();
+        this._ensureSettlementsList();
+
+        const existing = document.getElementById('kFreeholdAnnexOverlay');
+        if (existing) existing.remove();
+
+        const s = this.state;
+        const baseCtrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
+        const cleanName = (freeholdName || '').trim() || `Вольное владение #${s.settlements.length + 1}`;
+
+        const diploSkills = [
+            { id: 'statecraft', label: 'Управление (Statecraft)' },
+            { id: 'politics',   label: 'Политика (Politics)' },
+            { id: 'folklore',   label: 'Традиции (Folklore)' },
+            { id: 'intrigue',   label: 'Интрига (Intrigue)' }
+        ];
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kFreeholdAnnexOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #ffd875; border-radius:8px; padding:22px 26px; width:490px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 30px rgba(255,216,117,0.4); font-family:'Tinos', serif;">
+                <div style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:12px;">
+                    🤝 Присоединение Вольного владения
+                </div>
+
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div>
+                        <label class="k-lbl">Название поселения</label>
+                        <input type="text" id="kFhNameInp" class="k-inp" value="${cleanName}">
+                    </div>
+                    <div>
+                        <label class="k-lbl">Тип поселения</label>
+                        <select id="kFhTypeSel" class="k-inp">
+                            <option value="village" selected>Деревня</option>
+                            <option value="town">Посёлок</option>
+                            <option value="city">Город</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div>
+                        <label class="k-lbl">Навык переговоров</label>
+                        <select id="kFhSkillSel" class="k-inp">
+                            ${diploSkills.map(sk => {
+            const mod = this.getSkillTotal(sk.id);
+            return `<option value="${sk.id}">${sk.label} (${mod >= 0 ? '+' + mod : mod})</option>`;
+        }).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="k-lbl">СЛ (DC)</label>
+                        <input type="number" id="kFhDcInp" class="k-inp" value="${baseCtrlDc}" style="text-align:center; font-weight:bold;">
+                    </div>
+                    <div>
+                        <label class="k-lbl">Бросок d20</label>
+                        <div style="display:flex; gap:4px;">
+                            <input type="number" id="kFhRollInp" class="k-inp" min="1" max="20" placeholder="1-20" style="text-align:center; font-weight:bold; color:#ffd875;">
+                            <button type="button" class="btn cc" id="kFhAutoRoll" style="padding:0 8px;">🎲</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="kFhResultBox" style="background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:6px; padding:12px; margin-bottom:14px; text-align:center; font-size:14px; color:#95a5a6;">
+                    Выполните проверку переговоров (d20) или присоедините напрямую
+                </div>
+
+                <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+                    <button type="button" class="btn cc" id="kFhCancelBtn">Отмена</button>
+                    <button type="button" class="btn ok" id="kFhConfirmBtn">👑 Присоединить в королевство</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const skillSel = overlay.querySelector('#kFhSkillSel');
+        const dcInp = overlay.querySelector('#kFhDcInp');
+        const rollInp = overlay.querySelector('#kFhRollInp');
+        const resBox = overlay.querySelector('#kFhResultBox');
+
+        const evaluate = () => {
+            const d20 = parseInt(rollInp.value, 10);
+            const dc = parseInt(dcInp.value, 10) || baseCtrlDc;
+            const mod = this.getSkillTotal(skillSel.value);
+            if (isNaN(d20) || d20 < 1 || d20 > 20) return;
+
+            const total = d20 + mod;
+            const diff = total - dc;
+            let deg = diff >= 10 ? 3 : (diff >= 0 ? 2 : (diff <= -10 ? 0 : 1));
+            if (d20 === 20) deg = Math.min(3, deg + 1);
+            if (d20 === 1) deg = Math.max(0, deg - 1);
+
+            const labels = [
+                { t: '💀 КРИТИЧЕСКИЙ ПРОВАЛ (Переговоры сорваны, +1 Беспорядки)', c: '#e74c3c' },
+                { t: '✖ ПРОВАЛ (Владение сохраняет независимость)', c: '#ff7675' },
+                { t: '✔ УСПЕХ (Вольное владение готово войти в королевство)', c: '#2ecc71' },
+                { t: '👑 КРИТИЧЕСКИЙ УСПЕХ (Владение присоединяется с энтузиазмом!)', c: '#ffd875' }
+            ];
+            resBox.style.borderColor = labels[deg].c;
+            resBox.innerHTML = `<b style="color:${labels[deg].c}; font-size:16px;">${labels[deg].t}</b><br>Итог: <b>${total}</b> (${d20} ${mod >= 0 ? '+' + mod : mod}) против СЛ <b>${dc}</b>`;
+        };
+
+        [skillSel, dcInp, rollInp].forEach(el => el.addEventListener('input', evaluate));
+        overlay.querySelector('#kFhAutoRoll').addEventListener('click', () => {
+            rollInp.value = Math.floor(Math.random() * 20) + 1;
+            evaluate();
+        });
+
+        overlay.querySelector('#kFhCancelBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+        overlay.querySelector('#kFhConfirmBtn').addEventListener('click', () => {
+            const finalName = overlay.querySelector('#kFhNameInp').value.trim() || cleanName;
+            const finalType = overlay.querySelector('#kFhTypeSel').value || 'village';
+
+            // Создаём новое поселение в списке городов королевства
+            const created = this._createDefaultSettlement(finalName);
+            created.settlementType = finalType;
+            s.settlements.push(created);
+            s.activeSettlementId = created.id;
+            s.urbanGrid = created;
+
+            overlay.remove();
+            this.recalculateModifiers();
+            this._persist();
+            this.renderUi();
+
+            if (typeof onSuccessCallback === 'function') {
+                onSuccessCallback(finalName);
+            }
+        });
+    },
+
 
 
 };

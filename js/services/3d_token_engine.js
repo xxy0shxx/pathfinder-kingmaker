@@ -500,7 +500,24 @@ const ThreeDTokenEngine = {
             }
         });
         ctx.restore();
+    },
+
+    /**
+     * Компактный 3D low-poly маркер поселения/города на гексе
+     */
+    draw3DSettlementMarker(ctx, cx, cy, scale = 0.48, materialOverride = 'bronze') {
+        const prevColor = window.CURRENT_SQUAD_TOKEN_COLOR;
+        window.CURRENT_SQUAD_TOKEN_COLOR = materialOverride;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
+        this.draw3DCastleToken(ctx, 0, -10);
+        ctx.restore();
+
+        window.CURRENT_SQUAD_TOKEN_COLOR = prevColor;
     }
+
 };
 
 export default ThreeDTokenEngine;
