@@ -1188,14 +1188,20 @@ const KingdomManager = {
     },
 
     addEventCard() {
+        const kingdomLvl = parseInt(this.state.level, 10) || 1;
+        const modVal = parseInt(selectedEvent.dcMod, 10) || 0;
+
         this.state.events.push({
             id: 'ev_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-            name: '',
-            level: 1,
-            skill: 'Society / Politics',
-            modifier: 0,
-            notes: '',
-            status: 'Активно'
+            name: cleanTitle,
+            title: cleanTitle,
+            level: kingdomLvl,
+            modifier: modVal,
+            skill: selectedEvent.skill || 'statecraft',
+            skillName: rusSkillName,
+            dc: Number(baseCtrlDc + modVal) || 14,
+            status: 'active',
+            notes: `Навык разрешения: ${rusSkillName} (СЛ ${baseCtrlDc + modVal}).\n${selectedEvent.desc}`
         });
         this._persist();
         this.renderUi();

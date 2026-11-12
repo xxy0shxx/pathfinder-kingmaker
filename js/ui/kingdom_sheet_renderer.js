@@ -318,6 +318,7 @@ const KingdomSheetRenderer = {
 
 
 
+
     renderEventsTab(s) {
         const skillLabelsRu = {
             agriculture: 'Сельское хозяйство',
@@ -339,32 +340,51 @@ const KingdomSheetRenderer = {
         };
 
         const eventsHtml = s.events.length === 0
-            ? `<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">Активных событий королевства нет. Нажмите «+ Добавить событие».</div>`
-            : s.events.map(ev => `
-                <div class="k-panel k-event-card" data-ev-id="${ev.id}" style="position:relative;">
-                    <button type="button" class="k-btn-del-ev" data-del-ev="${ev.id}" title="Удалить событие" style="position:absolute; top:8px; right:8px; background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:4px; cursor:pointer; width:24px; height:24px;">×</button>
-                    <div style="display:grid; grid-template-columns: 3fr 1fr; gap:8px; margin-bottom:8px; padding-right:28px;">
-                        <div><label class="k-lbl">Название события</label><input type="text" class="k-inp k-ev-name" value="${ev.name}" placeholder="Название события..."></div>
-                        <div><label class="k-lbl">Уровень</label><input type="number" class="k-inp k-ev-level" value="${ev.level}"></div>
+            ? `<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">Активных событий королевства нет. Нажмите «🎲 Событие хода» или «+ Добавить событие».</div>`
+            : s.events.map(ev => {
+                const evLevel = ev.level !== undefined && ev.level !== '' ? ev.level : (parseInt(s.level, 10) || 1);
+                const evMod = ev.modifier !== undefined && ev.modifier !== '' ? ev.modifier : 0;
+
+                const curStatus = String(ev.status || 'active').toLowerCase();
+                const isResolved = curStatus === 'resolved' || curStatus === 'разрешено';
+                const isFailed = curStatus === 'failed' || curStatus === 'провалено';
+                const isActive = !isResolved && !isFailed;
+
+                const borderCol = isResolved ? '#2ecc71' : (isFailed ? '#e74c3c' : '#543e0d');
+
+                return `
+                    <div class="k-panel k-event-card" data-ev-id="${ev.id}" style="position:relative; border-color:${borderCol};">
+                        <button type="button" class="k-btn-del-ev" data-del-ev="${ev.id}" title="Удалить событие" style="position:absolute; top:8px; right:8px; background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:4px; cursor:pointer; width:24px; height:24px;">×</button>
+                        <div style="display:grid; grid-template-columns: 3fr 1fr; gap:8px; margin-bottom:8px; padding-right:28px;">
+                            <div><label class="k-lbl">Название события</label><input type="text" class="k-inp k-ev-name" value="${ev.name || ev.title || ''}" placeholder="Название события..."></div>
+                            <div><label class="k-lbl">Уровень</label><input type="number" class="k-inp k-ev-level" value="${evLevel}"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px; margin-bottom:8px;">
+                            <div>
+                                <label class="k-lbl">Навык разрешения</label>
+                                <select class="k-inp k-ev-skill">
+                                    ${Object.entries(skillLabelsRu).map(([key, label]) =>
+                    `<option value="${key}" ${(ev.skill || 'statecraft') === key ? 'selected' : ''}>${label}</option>`
+                ).join('')}
+                                </select>
+                            </div>
+                            <div><label class="k-lbl">Модификатор</label><input type="number" class="k-inp k-ev-mod" value="${evMod}"></div>
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <label class="k-lbl">Заметки</label>
+                            <textarea class="k-inp k-ev-notes" rows="3" placeholder="Описание и последствия...">${ev.notes || ''}</textarea>
+                        </div>
+                        <div>
+                            <label class="k-lbl">Статус разрешения</label>
+                            <select class="k-inp k-ev-status">
+                                <option value="active" ${isActive ? 'selected' : ''}>⏳ Активно</option>
+                                <option value="resolved" ${isResolved ? 'selected' : ''}>✅ Разрешено</option>
+                                <option value="failed" ${isFailed ? 'selected' : ''}>❌ Провалено</option>
+                            </select>
+                        </div>
                     </div>
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px; margin-bottom:8px;">
-                        <div><label class="k-lbl">Навык разрешения</label><select class="k-inp k-ev-skill">
-            ${Object.entries(skillLabelsRu).map(([key, label]) =>
-                `<option value="${key}" ${(ev.skill || 'statecraft') === key ? 'selected' : ''}>${label}</option>`
-            ).join('')}
-        </select></div>
-                        <div><label class="k-lbl">Модификатор</label><input type="number" class="k-inp k-ev-mod" value="${ev.modifier}"></div>
-                    </div>
-                    <div style="margin-bottom:8px;">
-                        <label class="k-lbl">Заметки</label>
-                        <textarea class="k-inp k-ev-notes" rows="3" placeholder="Описание и последствия...">${ev.notes}</textarea>
-                    </div>
-                    <div>
-                        <label class="k-lbl">Статус разрешения</label>
-                        <input type="text" class="k-inp k-ev-status" value="${ev.status}" placeholder="В процессе / Успех / Провал...">
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
         return `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -379,6 +399,7 @@ const KingdomSheetRenderer = {
             </div>
         `;
     },
+
 
 
 
