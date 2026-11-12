@@ -4867,3 +4867,91 @@ canvas[style*="position: fixed"] {
     margin-top: auto !important;
     flex-shrink: 0 !important;
 }
+
+/* ============================================================================
+   ЕДИНЫЙ ГЕРАЛЬДИЧЕСКИЙ СТИЛЬ ДЛЯ ВСЕХ ЧЕКБОКСОВ И РАДИОКНОПОК В НАСТРОЙКАХ
+   ============================================================================ */
+#settingsTabletContainer .checkbox-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    margin-bottom: 10px !important;
+    padding: 8px 14px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(84, 62, 13, 0.4) !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#settingsTabletContainer .checkbox-row:hover {
+    background: rgba(21, 46, 29, 0.25) !important;
+    border-color: #b89445 !important;
+}
+
+#settingsTabletContainer .checkbox-row label {
+    order: 1 !important;
+    flex: 1 !important;
+    text-align: left !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: #ebd291 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#settingsTabletContainer .checkbox-row input[type="checkbox"]:checked + label,
+#settingsTabletContainer .checkbox-row:has(input[type="checkbox"]:checked) label {
+    color: #fff !important;
+    text-shadow: 0 0 8px rgba(255, 216, 117, 0.5) !important;
+}
+
+#settingsTabletContainer .checkbox-row input[type="checkbox"] {
+    order: -1 !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: #020503 !important;
+    border: 2px solid #543e0d !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    cursor: pointer !important;
+    outline: none !important;
+    flex-shrink: 0 !important;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.9) !important;
+}
+
+#settingsTabletContainer .checkbox-row input[type="checkbox"]:hover {
+    border-color: #b89445 !important;
+    box-shadow: 0 0 8px rgba(184, 148, 69, 0.5) !important;
+}
+
+#settingsTabletContainer .checkbox-row input[type="checkbox"]:checked {
+    border-color: #ffd875 !important;
+    background: #020503 !important;
+    box-shadow: 0 0 12px #ffd875, inset 0 0 4px rgba(255, 216, 117, 0.3) !important;
+}
+
+#settingsTabletContainer .checkbox-row input[type="checkbox"]:checked::before {
+    content: "⚜" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    font-size: 14px !important;
+    color: #ffd875 !important;
+    font-weight: 900 !important;
+    text-shadow: 0 0 4px #dfbc6f !important;
+}
