@@ -141,7 +141,7 @@ const WeatherManager = {
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <span style="color:#ebd291;">Погода: <b style="color:#ffd875;">${bgWeatherLabel}</b></span>
                     ${hazardBadgeHtml}
-                    <button type="button" class="btn cc w-btn-open-roll" style="padding:3px 10px; font-size:12px;">🌦 Подготовка погоды</button>
+                    <button type="button" class="btn cc w-btn-open-roll" style="padding:3px 10px; font-size:12px;">⛅ Подготовка погоды</button>
                 </div>
             </div>
         `;
@@ -324,7 +324,7 @@ const WeatherManager = {
         overlay.innerHTML = `
             <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:20px 24px; width:520px; max-width:95vw; max-height:92vh; overflow-y:auto; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9); font-family:'Tinos', serif;">
                 <div style="font-size:18px; font-weight:bold; color:#ffd875; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:12px;">
-                    🌦 Ежедневная подготовка: Погода (${info.day} ${info.monthName}, ${info.seasonLabel})
+                    ⛅ Ежедневная подготовка: Погода (${info.day} ${info.monthName}, ${info.seasonLabel})
                 </div>
 
                 <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">

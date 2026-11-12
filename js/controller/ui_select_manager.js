@@ -190,12 +190,12 @@ const UiSelectManager = {
                             <span>👑 <b>Освоение (${terr.label}):</b> СЛ <b>${claimDc}</b>${hasRoadBonus ? ` <span style="color:#2ecc71;">(−1 от дороги)</span>` : ''}</span>
                             <span style="color:#ffd875; font-family:monospace; font-weight:bold;">Казна: ${curRp} ОР</span>
                         </div>
-                        ${roadNet.neighborRoad && !roadNet.selfRoad ? `<div style="color:#2ecc71; font-size:11px; margin-bottom:4px;">🛣 Рядом есть дорога: развитие и прокладка пути упрощены</div>` : ''}
+                        ${roadNet.neighborRoad && !roadNet.selfRoad ? `<div style="color:#2ecc71; font-size:11px; margin-bottom:4px;">🛣️ Рядом есть дорога: развитие и прокладка пути упрощены</div>` : ''}
                         <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;">
                             ${makeSpendBtn('claim', '🚩 Захват', claimCost, isAlreadyClaimed)}
                             ${makeSpendBtn('clear', '🪓 Расчистка', clearCost, isAlreadyCleared)}
                             ${makeSpendBtn('site', '🏗 Участок', siteCost, isSiteAlreadyBuilt)}
-                            ${makeSpendBtn('road', '🛣 Дорога', roadCost, isRoadAlreadyBuilt)}
+                            ${makeSpendBtn('road', '🛣️ Дорога', roadCost, isRoadAlreadyBuilt)}
                         </div>
                         ${isFreehold && !isFreeholdAnnexed ? `
                             <div style="margin-top:6px; padding-top:6px; border-top:1px dashed rgba(212,175,55,0.3); display:flex; justify-content:space-between; align-items:center; gap:8px;">
@@ -230,7 +230,7 @@ const UiSelectManager = {
                             if (descArea) {
                                 const curText = descArea.value.trim();
                                 if (label.includes('Дорога') && !isRoadAlreadyBuilt) {
-                                    descArea.value = curText ? `${curText}\n🛣 Дорога проложена.` : '🛣 Дорога проложена.';
+                                    descArea.value = curText ? `${curText}\n🛣️ Дорога проложена.` : '🛣️ Дорога проложена.';
                                 } else if (label.includes('Расчистка') && !isAlreadyCleared) {
                                     const note = /руин|ruin/i.test(curText) ? '🏛 Руины расчищены.' : '🪓 Территория расчищена.';
                                     descArea.value = curText ? `${curText}\n${note}` : note;

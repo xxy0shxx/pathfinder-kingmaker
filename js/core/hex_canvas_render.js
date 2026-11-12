@@ -739,7 +739,7 @@ const HexCanvasRender = {
         const featureTags = [];
 
         if (/дорог|тракт|road/i.test(combinedMeta)) {
-            featureTags.push('🛣 <b>Дорога проложена</b> (ускоряет передвижение и развитие)');
+            featureTags.push('🛣️ <b>Дорога проложена</b> (ускоряет передвижение и развитие)');
         }
         if (/мост|bridge/i.test(combinedMeta)) {
             featureTags.push('🌉 <b>Мост</b> (переправа через реку без лишних ОР)');
@@ -804,7 +804,7 @@ const HexCanvasRender = {
                 paramsBlock += `<div style="margin-bottom: 4px;">${terr.icon} <b>Местность:</b> <span class="tooltip-value">${terr.label} (Встреча СЛ ${terr.dc})</span></div>`;
                 paramsBlock += `<div style="margin-bottom: 4px; font-size: 14px; color: #dfbc6f;">👑 <b>Освоение:</b> Захват/Расчистка <b>СЛ ${claimDc}</b>${roadBonusNote} • Расчистка: <b>${terr.clearCost || 0} ОР</b> • Дорога: <b>${finalRoadCost} ОР</b>${bridgeNote}</div>`;
                 if (neighborRoad && !selfRoad) {
-                    paramsBlock += `<div style="margin-bottom: 4px; font-size: 13px; color: #2ecc71;">🛣 <b>Соседняя дорога:</b> развитие и прокладка пути упрощены</div>`;
+                    paramsBlock += `<div style="margin-bottom: 4px; font-size: 13px; color: #2ecc71;">🛣️ <b>Соседняя дорога:</b> развитие и прокладка пути упрощены</div>`;
                 }
             }
 

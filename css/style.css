@@ -5310,3 +5310,123 @@ canvas[style*="position: fixed"] {
         padding-bottom: 3px !important;
     }
 }
+/* ============================================================================
+   ТВ-МАСШТАБИРОВАНИЕ ПЛАНШЕТА КОРОЛЕВСТВА (#kingdomTabletContainer)
+   ============================================================================ */
+#kingdomTabletContainer {
+    font-size: 18px !important;
+}
+
+/* 1. Верхняя панель подвкладок и кнопок управления ходом */
+#kingdomTabletContainer .k-subtabs-bar .btn {
+    font-size: 16px !important;
+    padding: 8px 14px !important;
+}
+
+/* 2. Общая плашка календаря Голариона и погоды в шапке */
+#kingdomTabletContainer .w-shared-calendar-bar {
+    font-size: 17px !important;
+    padding: 9px 14px !important;
+}
+
+#kingdomTabletContainer .w-shared-calendar-bar .btn,
+#kingdomTabletContainer .w-shared-calendar-bar .w-btn-active-hazard {
+    font-size: 15px !important;
+    padding: 5px 11px !important;
+}
+
+/* 3. Заголовки секций, подписи полей и инпуты */
+#kingdomTabletContainer .k-sec-title {
+    font-size: 21px !important;
+    margin-bottom: 12px !important;
+}
+
+#kingdomTabletContainer .k-lbl {
+    font-size: 15px !important;
+    margin-bottom: 5px !important;
+}
+
+#kingdomTabletContainer .k-inp,
+#kingdomTabletContainer select.k-inp,
+#kingdomTabletContainer textarea.k-inp {
+    font-size: 18px !important;
+    padding: 7px 10px !important;
+}
+
+/* 4. Карточки 4 характеристик королевства (Культура, Экономика, Лояльность, Стабильность) */
+#kingdomTabletContainer .k-stat-card {
+    padding: 12px 10px !important;
+}
+
+#kingdomTabletContainer .k-stat-name {
+    font-size: 17px !important;
+}
+
+#kingdomTabletContainer .k-stat-mod {
+    font-size: 32px !important;
+}
+
+#kingdomTabletContainer .k-stat-card button {
+    font-size: 20px !important;
+    padding: 3px 12px !important;
+}
+
+/* 5. Склады ресурсов, ОР (RP), XP, Беспорядки и Руины */
+#kingdomTabletContainer .k-res-val,
+#kingdomTabletContainer [id^="k_comm_val_"] {
+    font-size: 22px !important;
+}
+
+#kingdomTabletContainer .k-panel {
+    font-size: 17px !important;
+    line-height: 1.45 !important;
+}
+
+#kingdomTabletContainer .k-panel .btn {
+    font-size: 15px !important;
+    padding: 6px 12px !important;
+}
+
+/* 6. Таблица навыков королевства */
+#kingdomTabletContainer .k-skills-table th {
+    font-size: 15px !important;
+    padding: 8px 6px !important;
+}
+
+#kingdomTabletContainer .k-skills-table td {
+    font-size: 18px !important;
+    padding: 7px 6px !important;
+}
+
+#kingdomTabletContainer .k-skills-table .k-inp,
+#kingdomTabletContainer .k-skills-table select {
+    font-size: 16px !important;
+    padding: 4px 6px !important;
+}
+
+/* 7. Адаптация под оконный режим браузера (не F11, <= 1000px) */
+@media (max-height: 1000px) {
+    #kingdomTabletContainer {
+        font-size: 16px !important;
+    }
+
+    #kingdomTabletContainer .k-sec-title {
+        font-size: 19px !important;
+        margin-bottom: 8px !important;
+    }
+
+    #kingdomTabletContainer .k-lbl {
+        font-size: 14px !important;
+    }
+
+    #kingdomTabletContainer .k-inp,
+    #kingdomTabletContainer select.k-inp {
+        font-size: 16px !important;
+        padding: 5px 8px !important;
+    }
+
+    #kingdomTabletContainer .k-skills-table td {
+        font-size: 16px !important;
+        padding: 5px 5px !important;
+    }
+}

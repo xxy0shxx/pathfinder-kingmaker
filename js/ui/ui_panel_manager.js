@@ -172,7 +172,7 @@ const UiPanelManager = {
             });
         }
 
-        // 8. Регулировка прозрачности дорог королевства (ползунок в настройках + кнопка 🛣 на правой панели)
+        // 8. Регулировка прозрачности дорог королевства (ползунок в настройках + кнопка 🛣️ на правой панели)
         const savedOpacityRaw = localStorage.getItem('kingmakerKingdomRoadsOpacity');
         let currentRoadsOpacity = savedOpacityRaw !== null ? parseFloat(savedOpacityRaw) : 1.0;
         let lastNonZeroOpacity = currentRoadsOpacity > 0 ? currentRoadsOpacity : 1.0;
@@ -205,13 +205,13 @@ const UiPanelManager = {
             }
         };
 
-        // 8.1. Кнопка быстрого переключения 🛣 на правой панели
+        // 8.1. Кнопка быстрого переключения 🛣️ на правой панели
         if (this.rightPanel && !document.getElementById('btnToggleKingdomRoads')) {
             const roadBtn = document.createElement('button');
             roadBtn.type = 'button';
             roadBtn.id = 'btnToggleKingdomRoads';
             roadBtn.className = 'btn-ui-toggle';
-            roadBtn.innerHTML = '🛣';
+            roadBtn.innerHTML = '🛣️';
 
             const pathsBtn = document.getElementById('btnTogglePaths');
             if (pathsBtn && pathsBtn.parentElement === this.rightPanel) {
@@ -242,7 +242,7 @@ const UiPanelManager = {
             roadBlock.style.cssText = 'width: 100%; margin-top: 12px; margin-bottom: 14px;';
             roadBlock.innerHTML = `
                 <label for="rngKingdomRoadsOpacity" style="display:block; margin-bottom: 8px; color: #dfbc6f; font-size: 13px; font-weight: bold; text-transform: uppercase;">
-                    🛣 Прозрачность дорог королевства:
+                    🛣️ Прозрачность дорог королевства:
                 </label>
                 <div style="display: flex; align-items: center; gap: 15px; width: 100%;">
                     <input type="range" id="rngKingdomRoadsOpacity" min="0" max="100" step="5" value="${pct}" style="flex: 1; width: 100%; cursor: pointer;">

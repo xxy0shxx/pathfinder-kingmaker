@@ -98,7 +98,7 @@ const QuestManager = {
             tabWeather.id = 'tabWeather';
             tabWeather.className = 'quest-tab-btn';
             tabWeather.title = 'Календарь Голариона и Погода';
-            tabWeather.textContent = '🌦';
+            tabWeather.textContent = '⛅';
             tabCamping.insertAdjacentElement('afterend', tabWeather);
         }
 
