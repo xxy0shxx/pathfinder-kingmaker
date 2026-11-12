@@ -70,10 +70,10 @@ const KingdomSheetRenderer = {
         const ctrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
 
         const statNamesRu = {
-            culture: 'КУЛЬТУРА',
-            economy: 'ЭКОНОМИКА',
-            loyalty: 'ЛОЯЛЬНОСТЬ',
-            stability: 'СТАБИЛЬНОСТЬ'
+            culture: '🎭 КУЛЬТУРА',
+            economy: '💰 ЭКОНОМИКА',
+            loyalty: '🤝 ЛОЯЛЬНОСТЬ',
+            stability: '🏛️ СТАБИЛЬНОСТЬ'
         };
 
         const statsHtml = ['culture', 'economy', 'loyalty', 'stability'].map(key => {
@@ -92,10 +92,10 @@ const KingdomSheetRenderer = {
 
 
         const ruinNamesRu = {
-            corruption: 'Коррупция',
-            crime: 'Преступность',
-            decay: 'Упадок',
-            strife: 'Распри'
+            corruption: '🐍 Коррупция',
+            crime: '🗡️ Преступность',
+            decay: '🏚️ Упадок',
+            strife: '🔥 Распри'
         };
 
         const ruinsHtml = ['corruption', 'crime', 'decay', 'strife'].map(key => {
@@ -162,6 +162,25 @@ const KingdomSheetRenderer = {
         };
 
 
+        const skillIcons = {
+            warfare: '⚔️',
+            wilderness: '🌲',
+            agriculture: '🌾',
+            engineering: '⚙️',
+            intrigue: '🗡️',
+            arts: '🎭',
+            exploration: '🧭',
+            boating: '⛵',
+            magic: '🔮',
+            defense: '🛡️',
+            scholarship: '📚',
+            politics: '⚖️',
+            industry: '🏭',
+            trade: '💰',
+            folklore: '📜',
+            statecraft: '👑'
+        };
+
         const skillsHtml = skillConfig.map(cfg => {
             const sk = s.skills[cfg.id];
             const total = getSkillTotal(cfg.id);
@@ -174,7 +193,7 @@ const KingdomSheetRenderer = {
             return `
                 <tr>
                     <td class="k-skill-roll-trigger" data-roll-skill="${cfg.id}" title="Нажмите, чтобы проверить навык «${cfg.label}»" style="font-weight:bold; cursor:pointer; color:#ebd291;">
-                        🎲 ${cfg.label} <span style="font-size:11px; color:#95a5a6;">(${abilityShortRu[cfg.ability] || cfg.ability.slice(0,3).toUpperCase()})</span>
+                        ${skillIcons[cfg.id] || '🎲'} ${cfg.label} <span style="font-size:11px; color:#95a5a6;">(${abilityShortRu[cfg.ability] || cfg.ability.slice(0,3).toUpperCase()})</span>
                     </td>
                     <td id="k_skill_total_${cfg.id}" style="font-weight:900; color:#ffd875; text-align:center;">${totalStr}</td>
                     <td>
@@ -271,11 +290,11 @@ const KingdomSheetRenderer = {
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:8px;">
                             ${[
-            { id: 'food', label: 'ЕДА' },
-            { id: 'lumber', label: 'ДРЕВЕСИНА' },
-            { id: 'luxuries', label: 'РОСКОШЬ' },
-            { id: 'ore', label: 'РУДА' },
-            { id: 'stone', label: 'КАМЕНЬ' }
+            { id: 'food', label: '🌾 ЕДА' },
+            { id: 'lumber', label: '🪵 ДРЕВЕСИНА' },
+            { id: 'luxuries', label: '💎 РОСКОШЬ' },
+            { id: 'ore', label: '⛏️ РУДА' },
+            { id: 'stone', label: '🧱 КАМЕНЬ' }
         ].map(c => `
                                 <div>
                                     <label class="k-lbl">${c.label} (Макс ${s.commodities[c.id].max})</label>
@@ -284,10 +303,10 @@ const KingdomSheetRenderer = {
                             `).join('')}
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
-                            <div><label class="k-lbl">Угодья (-1 Потр.)</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
-                            <div><label class="k-lbl">Лесорубы ${bonusYield.lumberCamps ? `(+${bonusYield.lumberCamps}💎)` : ''}</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
-                            <div><label class="k-lbl">Шахты ${bonusYield.mines ? `(+${bonusYield.mines}💎)` : ''}</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
-                            <div><label class="k-lbl">Каменоломни ${bonusYield.quarries ? `(+${bonusYield.quarries}💎)` : ''}</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
+                            <div><label class="k-lbl">🌾 Угодья (-1 Потр.)</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
+                            <div><label class="k-lbl">🪓 Лесорубы ${bonusYield.lumberCamps ? `(+${bonusYield.lumberCamps}💎)` : ''}</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
+                            <div><label class="k-lbl">⛏️ Шахты ${bonusYield.mines ? `(+${bonusYield.mines}💎)` : ''}</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
+                            <div><label class="k-lbl">🪨 Каменоломни ${bonusYield.quarries ? `(+${bonusYield.quarries}💎)` : ''}</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
                         </div>
                     </div>
 
