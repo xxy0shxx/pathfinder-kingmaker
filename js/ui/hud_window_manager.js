@@ -1,5 +1,5 @@
 /**
- * Единый диспетчер полноэкранного HUD-окна и вкладок (Квесты, Королевство, Привал, Погода, Инициатива, Настройки)
+ * Единый диспетчер полноэкранного HUD-окна (#questLogContainer) и его вкладок
  */
 const HudWindowManager = {
     activeTab: 'active',
@@ -16,9 +16,6 @@ const HudWindowManager = {
         window.HudWindowManager = this;
     },
 
-    /**
-     * Перенос контейнера в body и создание динамических вкладок (например, Погоды)
-     */
     _ensureDomStructure() {
         const container = document.getElementById('questLogContainer');
         if (!container) return;
@@ -39,7 +36,7 @@ const HudWindowManager = {
             questHeader.appendChild(closeBtn);
         }
 
-        // Инъекция вкладки и контейнера Погоды, если их нет в HTML
+        // Динамическая вкладка Погоды
         const tabCamping = document.getElementById('tabCamping');
         if (tabCamping && !document.getElementById('tabWeather')) {
             const tabWeather = document.createElement('button');
@@ -51,6 +48,7 @@ const HudWindowManager = {
             tabCamping.insertAdjacentElement('afterend', tabWeather);
         }
 
+        // Контейнер планшета Погоды
         const kingdomTablet = document.getElementById('kingdomTabletContainer');
         if (kingdomTablet && !document.getElementById('weatherTabletContainer')) {
             const weatherTablet = document.createElement('div');
@@ -82,7 +80,7 @@ const HudWindowManager = {
     },
 
     /**
-     * Регистрация вкладки любым модулем системы
+     * Регистрация вкладки любым независимым модулем
      */
     registerTab(tabKey, { tabBtnId, containerId, displayMode = 'flex', triggerBtnId = null, onOpen = null }) {
         this.tabsRegistry.set(tabKey, { tabBtnId, containerId, displayMode, triggerBtnId, onOpen });
@@ -106,9 +104,6 @@ const HudWindowManager = {
         }
     },
 
-    /**
-     * Открыть окно на нужной вкладке
-     */
     open(tabKey = 'active') {
         const container = document.getElementById('questLogContainer');
         const config = this.tabsRegistry.get(tabKey);
@@ -117,25 +112,21 @@ const HudWindowManager = {
         container.classList.remove('ui-collapsed');
         this.activeTab = tabKey;
 
-        // 1. Скрываем все зарегистрированные контейнеры
         const uniqueContainers = new Set(Array.from(this.tabsRegistry.values()).map(c => c.containerId));
         uniqueContainers.forEach(cId => {
             const el = document.getElementById(cId);
             if (el) el.style.display = 'none';
         });
 
-        // 2. Показываем целевой контейнер
         const targetContainer = document.getElementById(config.containerId);
         if (targetContainer) {
             targetContainer.style.display = config.displayMode || 'flex';
         }
 
-        // 3. Обновляем активную вкладку в шапке
         document.querySelectorAll('.quest-tab-btn').forEach(btn => btn.classList.remove('active'));
         const activeTabBtn = document.getElementById(config.tabBtnId);
         if (activeTabBtn) activeTabBtn.classList.add('active');
 
-        // 4. Подсвечиваем связанную кнопку на правой панели (если есть)
         this._clearTriggerHighlights();
         if (config.triggerBtnId) {
             const btn = document.getElementById(config.triggerBtnId);
@@ -146,15 +137,11 @@ const HudWindowManager = {
             }
         }
 
-        // 5. Вызываем хук рендера модуля
         if (typeof config.onOpen === 'function') {
             config.onOpen(tabKey);
         }
     },
 
-    /**
-     * Переключить окно: если закрыто — открыть на вкладке; если открыта эта же вкладка — закрыть
-     */
     toggle(tabKey) {
         const container = document.getElementById('questLogContainer');
         if (!container) return;
@@ -167,9 +154,6 @@ const HudWindowManager = {
         }
     },
 
-    /**
-     * Полное закрытие HUD и сброс подсветки кнопок
-     */
     close() {
         const container = document.getElementById('questLogContainer');
         if (container) container.classList.add('ui-collapsed');

@@ -262,27 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Глобальный переключатель окон
 window.forceOpenCampingGM = function() {
-    const campingWindow = document.getElementById('campingLogContainer');
-    const questWindow = document.getElementById('questLogContainer');
-    const btn = document.getElementById('btnToggleCamping');
-    if (!campingWindow) return;
-
-    const isCollapsed = campingWindow.classList.contains('ui-collapsed');
-
-    if (isCollapsed) {
-        if (questWindow) questWindow.classList.add('ui-collapsed');
-        campingWindow.classList.remove('ui-collapsed');
-        if (window.CampingManager) window.CampingManager.recalculateCamp();
-
-        if (btn) {
-            btn.style.setProperty('background', 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)', 'important');
-            btn.style.setProperty('border-color', '#dfbc6f', 'important');
-            btn.style.setProperty('color', '#dfbc6f', 'important');
-        }
-    } else {
-        campingWindow.classList.add('ui-collapsed');
-        if (btn) btn.removeAttribute('style');
-    }
+    HudWindowManager.toggle('camping');
 };
 
 window.closeMenu = () => HexModal.close();

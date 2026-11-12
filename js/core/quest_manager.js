@@ -14,7 +14,6 @@ const QuestManager = {
         this.focusCallback = onHexFocus;
         window.QuestManager = this;
 
-        // Регистрируем только вкладки дневника квестов
         HudWindowManager.registerTab('active', {
             tabBtnId: 'tabActiveQuests',
             containerId: 'questLogList',

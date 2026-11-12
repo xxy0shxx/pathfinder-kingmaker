@@ -567,8 +567,7 @@ const CampingManager = {
             if (this.onSaveCallback) this.onSaveCallback();
             else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
 
-            const questLogContainerEl = document.getElementById('questLogContainer');
-            if (questLogContainerEl) questLogContainerEl.classList.add('ui-collapsed');
+            if (window.HudWindowManager) window.HudWindowManager.close();
 
             const saveBtn = document.querySelector('.kingdom-save-wrapper .btn.ok');
             if (saveBtn) {
@@ -592,7 +591,6 @@ const CampingManager = {
                 setTimeout(() => {
                     flash.remove();
                     saveBtn.textContent = oldText;
-                    if (window.QuestManager) window.QuestManager.currentFilter = 'active';
                 }, 450);
             }
         } catch (error) { console.error("Критическая ошибка сохранения привала:", error); }
