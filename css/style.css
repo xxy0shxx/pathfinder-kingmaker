@@ -5216,3 +5216,97 @@ canvas[style*="position: fixed"] {
     width: 44px !important;
     height: 44px !important;
 }
+/* ============================================================================
+   АДАПТАЦИЯ ПЛАНШЕТА ПРИВАЛА ДЛЯ ОКОННОГО РЕЖИМА БРАУЗЕРА (НЕ F11, <= 1000px)
+   ============================================================================ */
+@media (max-height: 1000px) {
+    #campingTabletContainer {
+        padding: 10px 18px !important;
+        gap: 14px !important;
+    }
+
+    #campingTabletContainer .camping-left-col {
+        gap: 6px !important;
+    }
+
+    #campingTabletContainer .camp-current-hex-banner {
+        padding: 6px 12px !important;
+        font-size: 18px !important;
+    }
+
+    #campingTabletContainer #campWeatherHost .w-shared-calendar-bar {
+        padding: 4px 10px !important;
+        font-size: 12px !important;
+    }
+
+    #campingTabletContainer .camping-region-bar {
+        padding: 7px 12px !important;
+        gap: 4px !important;
+    }
+
+    #campingTabletContainer .camp-param-label {
+        font-size: 20px !important;
+    }
+
+    #campingTabletContainer #campEncounterTerrainLabel {
+        font-size: 16px !important;
+    }
+
+    #campingTabletContainer .camp-gm-inputs-grid {
+        padding: 6px 12px !important;
+    }
+
+    #campingTabletContainer .camp-invisible-table {
+        border-spacing: 0 7px !important;
+    }
+
+    #campingTabletContainer .camp-invisible-table th {
+        padding: 2px 4px 3px 4px !important;
+        font-size: 17px !important;
+    }
+
+    #campingTabletContainer .camp-invisible-table td.camp-act-cell {
+        min-height: 62px !important;
+        padding: 8px 136px 8px 12px !important;
+    }
+
+    #campingTabletContainer .camp-invisible-table .act-name {
+        font-size: 19px !important;
+        margin-bottom: 4px !important;
+    }
+
+    #campingTabletContainer [id^="label_dc_"],
+    #campingTabletContainer .camp-invisible-table .skill-name-large {
+        font-size: 15px !important;
+        padding: 2px 10px !important;
+    }
+
+    #campingTabletContainer .camp-invisible-table td:not(.camp-act-cell) {
+        padding: 4px 2px !important;
+    }
+
+    #campingTabletContainer .camp-invisible-table input[type="radio"] {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    #campingTabletContainer .camp-assigned-ally-badge.is-leader .camp-assigned-ally-img {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    #campingTabletContainer .camp-assigned-ally-badge.is-helper .camp-assigned-ally-img {
+        width: 38px !important;
+        height: 38px !important;
+    }
+
+    #campingTabletContainer .camp-allies-dock {
+        padding: 6px 10px !important;
+        gap: 5px !important;
+    }
+
+    #campingTabletContainer .camp-allies-dock-title {
+        font-size: 14px !important;
+        padding-bottom: 3px !important;
+    }
+}
