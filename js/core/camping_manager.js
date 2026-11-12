@@ -179,9 +179,14 @@ const CampingManager = {
                 return isNaN(val) ? 1 : Math.max(-1, Math.min(2, val));
             };
 
+            const calWeather = window.KingdomManager?.getCalendarInfo?.()?.weather || { huntDcMod: 0, encDcMod: 0 };
+            const weatherHuntMod = parseInt(calWeather.huntDcMod, 10) || 0;
+            const weatherEncMod = parseInt(calWeather.encDcMod, 10) || 0;
+
             const finalPrepareDc = Math.max(1, baseRegionDc - getHelperBonus(0));
             const finalCamoDc = Math.max(1, baseRegionDc + prepareDcModifier - getHelperBonus(1));
-            const finalHuntDc = Math.max(1, baseRegionDc + prepareDcModifier - getHelperBonus(2));
+            const finalHuntDc = Math.max(1, baseRegionDc + prepareDcModifier + weatherHuntMod - getHelperBonus(2));
+
 
             const updateSkillDcLabel = (id, skillName, dcValue) => {
                 const el = document.getElementById(id);
@@ -202,7 +207,8 @@ const CampingManager = {
                 if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
             }
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
-            finalEncounterDc += kEncounterBonus;
+
+            finalEncounterDc += kEncounterBonus + weatherEncMod;
             this.state.encounterDc = finalEncounterDc;
 
 

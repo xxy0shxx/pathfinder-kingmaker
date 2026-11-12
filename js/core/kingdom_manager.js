@@ -1,5 +1,6 @@
 import KingdomBuildings from '../services/kingdom_buildings.js';
 import KingdomSheetRenderer from '../ui/kingdom_sheet_renderer.js';
+import { MAP_CONFIG } from '../config/app_config.js';
 
 const KingdomManager = {
     state: null,
@@ -27,6 +28,7 @@ const KingdomManager = {
         isolatedHexesCount: 0,
         siteBonusYield: { lumberCamps: 0, mines: 0, quarries: 0 },
         armies: [],
+        calendar: { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' }, // 1 Фараста 4710 AR (Весна)
         stats: {
             culture: { value: 10, modifier: 0 },
             economy: { value: 10, modifier: 0 },
@@ -227,6 +229,13 @@ const KingdomManager = {
 
         if (!Array.isArray(merged.events)) merged.events = [];
         if (!Array.isArray(merged.armies)) merged.armies = [];
+        merged.calendar = {
+            day: 1,
+            month: 2,
+            year: MAP_CONFIG.golarionCalendar?.startYear || 4710,
+            weatherId: 'clear_mild',
+            ...(saved.calendar || {})
+        };
         return merged;
     },
 
@@ -1755,6 +1764,16 @@ const KingdomManager = {
         if (btnExportCity) btnExportCity.addEventListener('click', () => this.exportCityToPng());
 
 
+        const btnNextDay = container.querySelector('#kBtnCalNextDay');
+        if (btnNextDay) btnNextDay.addEventListener('click', () => this.advanceCalendar(1, 0, false));
+
+        const btnNextMonth = container.querySelector('#kBtnCalNextMonth');
+        if (btnNextMonth) btnNextMonth.addEventListener('click', () => this.advanceCalendar(0, 1, true));
+
+        const btnRollWeather = container.querySelector('#kBtnRollWeather');
+        if (btnRollWeather) btnRollWeather.addEventListener('click', () => this.rollSeasonalWeather(false));
+
+
         const btnAddEv = container.querySelector('#kBtnAddEvent');
         if (btnAddEv) btnAddEv.addEventListener('click', () => this.addEventCard());
 
@@ -2058,6 +2077,7 @@ const KingdomManager = {
     },
 
 
+
     syncSettlementStats() {
         if (!this.state || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
 
@@ -2105,8 +2125,12 @@ const KingdomManager = {
             (sum, a) => sum + (parseInt(a.consumption, 10) || 0),
             0
         );
+
+        const weatherConsMod = this.getCalendarInfo()?.weather?.consMod || 0;
         const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
-        this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption - farmlandReduction);
+        this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption + weatherConsMod - farmlandReduction);
+
+
     },
 
     /**
@@ -2367,11 +2391,87 @@ const KingdomManager = {
             }
         });
 
-
-
-
     },
 
+    getCalendarInfo() {
+        const calCfg = MAP_CONFIG.golarionCalendar;
+        const c = this.state?.calendar || { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' };
+        const months = calCfg?.months || [];
+        const mObj = months[c.month] || { id: 2, name: 'Фараст', days: 31, season: 'spring', seasonLabel: '🌱 Весна' };
+
+        const seasonPool = calCfg?.weatherBySeason?.[mObj.season] || [];
+        const weather = seasonPool.find(w => w.id === c.weatherId) || seasonPool[0] || {
+            id: 'clear', icon: '⛅', label: 'Ясно', huntDcMod: 0, encDcMod: 0, consMod: 0
+        };
+
+        return {
+            day: c.day || 1,
+            month: mObj.id,
+            monthName: mObj.name,
+            monthDays: mObj.days,
+            year: c.year || 4710,
+            season: mObj.season,
+            seasonLabel: mObj.seasonLabel,
+            weather
+        };
+    },
+
+    advanceCalendar(daysDelta = 0, monthsDelta = 0, rollNewWeather = true) {
+        this.saveFromUi();
+        const calCfg = MAP_CONFIG.golarionCalendar;
+        const months = calCfg?.months || [];
+        if (months.length === 0) return;
+
+        if (!this.state.calendar) {
+            this.state.calendar = { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' };
+        }
+        const c = this.state.calendar;
+        c.day = (parseInt(c.day, 10) || 1) + daysDelta;
+        c.month = (parseInt(c.month, 10) || 0) + monthsDelta;
+
+        while (c.month >= 12) {
+            c.month -= 12;
+            c.year += 1;
+        }
+        while (c.month < 0) {
+            c.month += 12;
+            c.year -= 1;
+        }
+
+        while (c.day > (months[c.month]?.days || 30)) {
+            c.day -= (months[c.month]?.days || 30);
+            c.month += 1;
+            if (c.month >= 12) {
+                c.month = 0;
+                c.year += 1;
+            }
+        }
+        if (c.day < 1) c.day = 1;
+
+        if (rollNewWeather) {
+            this.rollSeasonalWeather(true);
+            return;
+        }
+
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+    },
+
+    rollSeasonalWeather(silent = false) {
+        const info = this.getCalendarInfo();
+        const pool = MAP_CONFIG.golarionCalendar?.weatherBySeason?.[info.season] || [];
+        if (pool.length > 0) {
+            const picked = pool[Math.floor(Math.random() * pool.length)];
+            this.state.calendar.weatherId = picked.id;
+        }
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+        if (!silent && window.CampingManager) {
+            window.CampingManager.recalculateCamp();
+        }
+    },
 
 
 };

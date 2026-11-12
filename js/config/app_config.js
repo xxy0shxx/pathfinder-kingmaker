@@ -146,5 +146,47 @@ export const MAP_CONFIG = {
     audio: {
         playlistUrl: 'audio/playlist.json',
         defaultVolume: 0.25
-    }
+    },
+
+    // Календарь Голариона (12 месяцев, сезоны и сезонная погода для Pathfinder 2e Kingmaker)
+    golarionCalendar: {
+        startYear: 4710, // Стандартный год начала кампании Kingmaker (AR)
+        months: [
+            { id: 0,  name: 'Абадиус',   days: 31, season: 'winter', seasonLabel: '❄️ Зима',  desc: 'Суровые морозы и метели' },
+            { id: 1,  name: 'Калистрил', days: 28, season: 'winter', seasonLabel: '❄️ Зима',  desc: 'Холодные ветра и поздние снегопады' },
+            { id: 2,  name: 'Фараст',    days: 31, season: 'spring', seasonLabel: '🌱 Весна', desc: 'Оттепель, распутица и весенние дожди' },
+            { id: 3,  name: 'Гозран',    days: 30, season: 'spring', seasonLabel: '🌱 Весна', desc: 'Бурные ливни и цветение' },
+            { id: 4,  name: 'Дезнус',    days: 31, season: 'spring', seasonLabel: '🌱 Весна', desc: 'Тёплые ветра и ясные ночи' },
+            { id: 5,  name: 'Саренит',   days: 30, season: 'summer', seasonLabel: '☀️ Лето',  desc: 'Долгие солнечные дни и зной' },
+            { id: 6,  name: 'Эрастус',   days: 31, season: 'summer', seasonLabel: '☀️ Лето',  desc: 'Разгар лета и грозы' },
+            { id: 7,  name: 'Ароднус',   days: 31, season: 'summer', seasonLabel: '☀️ Лето',  desc: 'Жаркий сбор раннего урожая' },
+            { id: 8,  name: 'Рова',      days: 30, season: 'autumn', seasonLabel: '🍂 Осень', desc: 'Ветра, листопад и жатва' },
+            { id: 9,  name: 'Ламаштан',  days: 31, season: 'autumn', seasonLabel: '🍂 Осень', desc: 'Холодные туманы и сырость' },
+            { id: 10, name: 'Нет',       days: 30, season: 'autumn', seasonLabel: '🍂 Осень', desc: 'Первые заморозки и слякоть' },
+            { id: 11, name: 'Кутона',    days: 31, season: 'winter', seasonLabel: '❄️ Зима',  desc: 'Самые тёмные ночи и стужа' }
+        ],
+        weatherBySeason: {
+            winter: [
+                { id: 'clear_cold', icon: '🌤️', label: 'Морозно и ясно',   huntDcMod: 1,  encDcMod: 0, consMod: 0 },
+                { id: 'blizzard',   icon: '🌨️', label: 'Метель и вьюга',   huntDcMod: 3,  encDcMod: 2, consMod: 1 },
+                { id: 'deep_frost', icon: '🥶', label: 'Лютая стужа',      huntDcMod: 2,  encDcMod: 1, consMod: 1 }
+            ],
+            spring: [
+                { id: 'clear_mild', icon: '⛅', label: 'Ясно и свежо',     huntDcMod: 0,  encDcMod: 0, consMod: 0 },
+                { id: 'heavy_rain', icon: '🌧️', label: 'Проливной дождь',  huntDcMod: 2,  encDcMod: 1, consMod: 0 },
+                { id: 'mud_thaw',   icon: '🌫️', label: 'Распутица и туман',huntDcMod: 1,  encDcMod: 1, consMod: 0 }
+            ],
+            summer: [
+                { id: 'sunny',      icon: '☀️', label: 'Ясно и тепло',     huntDcMod: -1, encDcMod: 0, consMod: 0 },
+                { id: 'heatwave',   icon: '🔥', label: 'Изнуряющий зной',  huntDcMod: 2,  encDcMod: 0, consMod: 1 },
+                { id: 'storm',      icon: '⛈️', label: 'Летняя гроза',     huntDcMod: 2,  encDcMod: 1, consMod: 0 }
+            ],
+            autumn: [
+                { id: 'crisp',      icon: '🍂', label: 'Прохладно и сухо', huntDcMod: -1, encDcMod: 0, consMod: 0 },
+                { id: 'thick_fog',  icon: '🌫️', label: 'Густой туман',     huntDcMod: 1,  encDcMod: -1,consMod: 0 },
+                { id: 'cold_rain',  icon: '🌧️', label: 'Холодный ливень',  huntDcMod: 2,  encDcMod: 1, consMod: 0 }
+            ]
+        }
+    },
+
 };
