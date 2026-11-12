@@ -139,6 +139,7 @@ const KingdomManager = {
             }
 
             this.state = this.mapDataRef.kingdom;
+            this._ensureSettlementsList();
             this.recalculateModifiers();
             window.KingdomManager = this;
         } catch (e) {
@@ -207,6 +208,9 @@ const KingdomManager = {
             buildings: Array.isArray(saved.urbanGrid?.buildings) ? saved.urbanGrid.buildings : []
         };
 
+        merged.settlements = Array.isArray(saved.settlements) ? saved.settlements : null;
+        merged.activeSettlementId = saved.activeSettlementId || null;
+
         for (let role in base.leaders) {
             const val = saved.leaders ? saved.leaders[role] : null;
             if (typeof val === 'string') {
@@ -233,6 +237,7 @@ const KingdomManager = {
                 this.mapDataRef.kingdom = this._mergeWithDefaults(this.mapDataRef.kingdom);
             }
             this.state = this.mapDataRef.kingdom;
+            this._ensureSettlementsList();
             this.recalculateModifiers();
             this.renderUi();
         } catch (e) {
@@ -1566,6 +1571,7 @@ const KingdomManager = {
 
 
 
+
     _bindEvents(container) {
         container.querySelectorAll('[data-k-tab]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1787,6 +1793,25 @@ const KingdomManager = {
             });
         });
 
+        // Переключение, создание и удаление поселений на вкладке «Постройки и Город»
+        const settleSelect = container.querySelector('#kSettlementSelector');
+        if (settleSelect) {
+            settleSelect.addEventListener('change', () => {
+                this.switchSettlement(settleSelect.value);
+            });
+        }
+
+        const btnAddSettle = container.querySelector('#kBtnAddSettlement');
+        if (btnAddSettle) {
+            btnAddSettle.addEventListener('click', () => this.addNewSettlement());
+        }
+
+        const btnDelSettle = container.querySelector('#kBtnDeleteSettlement');
+        if (btnDelSettle) {
+            btnDelSettle.addEventListener('click', () => this.deleteCurrentSettlement());
+        }
+
+
     },
 
     // Таблица ступеней развития нации по Размеру королевства (Pathfinder 2e Kingmaker)
@@ -1842,41 +1867,54 @@ const KingdomManager = {
         this.syncSettlementStats();
     },
 
+
     syncSettlementStats() {
         if (!this.state || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
 
-        const ug = this.state.urbanGrid;
-        const buildings = ug?.buildings || [];
-        const effects = KingdomBuildings.calculateSettlementEffects(buildings);
+        this._ensureSettlementsList();
         const tier = this.getNationTierInfo(this.state.size);
+        const baseByType = { village: 1, town: 2, city: 4, metropolis: 6 };
 
-        // 1. Синхронизация Item-бонусов с ограничением по потолку размера нации (maxItemBonus)
-        if (this.state.skills) {
+        let allSettlementsConsumption = 0;
+        const globalMaxSkillBonuses = {};
+
+        // Проходим по ВСЕМ поселениям королевства: считаем их потребление и собираем максимальные бонусы
+        (this.state.settlements || []).forEach(settle => {
+            const buildings = settle.buildings || [];
+            const effects = KingdomBuildings.calculateSettlementEffects(buildings);
+
+            settle.overcrowded = !!effects.isOvercrowded;
+            const baseCons = baseByType[settle.settlementType] ?? 1;
+            const crowdPenalty = settle.overcrowded ? 2 : 0;
+            const settleCons = Math.max(0, baseCons + (effects.totalConsumption || 0) + crowdPenalty);
+
+            settle.consumption = settleCons;
+            allSettlementsConsumption += settleCons;
+
             const maxBonuses = effects.maxSkillBonuses || {};
+            for (const [skId, val] of Object.entries(maxBonuses)) {
+                if ((val || 0) > (globalMaxSkillBonuses[skId] || 0)) {
+                    globalMaxSkillBonuses[skId] = val;
+                }
+            }
+        });
+
+        // 1. Синхронизация Item-бонусов в таблицу навыков с учётом потолка размера нации
+        if (this.state.skills) {
             this.skillConfig.forEach(cfg => {
                 if (!this.state.skills[cfg.id]) {
                     this.state.skills[cfg.id] = { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
                 }
-                const rawItemBonus = maxBonuses[cfg.id] || 0;
+                const rawItemBonus = globalMaxSkillBonuses[cfg.id] || 0;
                 this.state.skills[cfg.id].item = Math.min(tier.maxItemBonus, rawItemBonus);
             });
         }
 
-        // 2. Расчёт Consumption поселения и королевства: каждая Ферма снижает Consumption на 1
-        if (ug) {
-            ug.overcrowded = !!effects.isOvercrowded;
-
-            const baseByType = { village: 1, town: 2, city: 4, metropolis: 6 };
-            const baseCons = baseByType[ug.settlementType] ?? 1;
-            const crowdPenalty = ug.overcrowded ? 2 : 0;
-            const totalSettlementCons = Math.max(0, baseCons + (effects.totalConsumption || 0) + crowdPenalty);
-
-            ug.consumption = totalSettlementCons;
-
-            const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
-            this.state.consumption = Math.max(0, totalSettlementCons - farmlandReduction);
-        }
+        // 2. Итоговое потребление королевства = сумма потребления всех городов минус фермы
+        const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
+        this.state.consumption = Math.max(0, allSettlementsConsumption - farmlandReduction);
     },
+
 
     /**
      * Сбор активных региональных бонусов от захваченных Достопримечательностей и Убежищ
@@ -1901,6 +1939,100 @@ const KingdomManager = {
             hasLandmark, // +2 обстоятельства к Культуре или Экономике в регионе
             hasRefuge    // +2 обстоятельства к Верности или Стабильности в зоне
         };
+    },
+
+    _createDefaultSettlement(name = "Новое поселение", id = null) {
+        return {
+            id: id || ('settle_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+            settlementName: name,
+            settlementType: "village",
+            level: 1,
+            consumption: 1,
+            overcrowded: false,
+            infraStreetlamps: false,
+            infraPavedStreets: false,
+            infraSewer: false,
+            garrisonedArmies: "",
+            ongoingEvents: "",
+            borders: { top: "none", bottom: "none", left: "none", right: "none" },
+            buildings: []
+        };
+    },
+
+    _ensureSettlementsList() {
+        const s = this.state || this.mapDataRef?.kingdom;
+        if (!s) return;
+
+        // Миграция старого одиночного urbanGrid в массив settlements
+        if (!Array.isArray(s.settlements) || s.settlements.length === 0) {
+            const first = s.urbanGrid
+                ? { ...JSON.parse(JSON.stringify(s.urbanGrid)), id: s.urbanGrid.id || 'settle_capital' }
+                : this._createDefaultSettlement(s.capitalCity || "Столица", 'settle_capital');
+            s.settlements = [first];
+            s.activeSettlementId = first.id;
+        }
+
+        let active = s.settlements.find(item => item.id === s.activeSettlementId);
+        if (!active) {
+            active = s.settlements[0];
+            s.activeSettlementId = active.id;
+        }
+
+        // Связываем s.urbanGrid напрямую с активным поселением, чтобы весь существующий код работал без изменений
+        s.urbanGrid = active;
+    },
+
+    switchSettlement(settlementId) {
+        this.saveFromUi();
+        const s = this.state;
+        const found = s.settlements?.find(item => item.id === settlementId);
+        if (!found) return;
+
+        s.activeSettlementId = found.id;
+        s.urbanGrid = found;
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+    },
+
+    addNewSettlement() {
+        this.saveFromUi();
+        const s = this.state;
+        this._ensureSettlementsList();
+
+        const nextNum = s.settlements.length + 1;
+        const name = prompt("Введите название нового поселения:", `Поселение #${nextNum}`);
+        if (name === null) return;
+
+        const cleanName = name.trim() || `Поселение #${nextNum}`;
+        const created = this._createDefaultSettlement(cleanName);
+        s.settlements.push(created);
+        s.activeSettlementId = created.id;
+        s.urbanGrid = created;
+
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+    },
+
+    deleteCurrentSettlement() {
+        const s = this.state;
+        this._ensureSettlementsList();
+        if (s.settlements.length <= 1) {
+            alert("Нельзя удалить единственное поселение королевства!");
+            return;
+        }
+
+        const curName = s.urbanGrid?.settlementName || "Поселение";
+        if (!confirm(`Удалить поселение «${curName}» вместе со всеми его постройками?`)) return;
+
+        s.settlements = s.settlements.filter(item => item.id !== s.activeSettlementId);
+        s.activeSettlementId = s.settlements[0].id;
+        s.urbanGrid = s.settlements[0];
+
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
     },
 
 

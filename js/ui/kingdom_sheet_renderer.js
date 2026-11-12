@@ -498,7 +498,6 @@ const KingdomSheetRenderer = {
             </div>
         `;
 
-
         const borderColor = (val) => {
             if (val === 'water') return '4px solid #3498db';
             if (val === 'bridge') return '4px dashed #e67e22';
@@ -506,6 +505,40 @@ const KingdomSheetRenderer = {
             if (val === 'wall_stone') return '4px solid #95a5a6';
             return '2px solid #d4af37';
         };
+
+        const settlementsList = Array.isArray(s.settlements) && s.settlements.length > 0
+            ? s.settlements
+            : [ug];
+
+        const typeShortRu = {
+            village: 'Деревня',
+            town: 'Посёлок',
+            city: 'Город',
+            metropolis: 'Мегаполис'
+        };
+
+        const totalCitiesConsumption = settlementsList.reduce(
+            (sum, item) => sum + (parseInt(item.consumption, 10) || 0),
+            0
+        );
+
+        const settlementSwitcherHtml = `
+            <div style="display:flex; align-items:center; gap:8px; background:rgba(12, 18, 14, 0.92); border:1px solid #8a6421; border-radius:6px; padding:5px 10px; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:bold; color:#ffd875; white-space:nowrap;">🏰 Поселение (${settlementsList.length}):</span>
+                <select id="kSettlementSelector" class="k-inp" style="max-width:340px; font-weight:bold; color:#ffd875; border-color:#dfbc6f; padding:3px 6px; font-size:12px;">
+                    ${settlementsList.map(item => {
+            const isSelected = item.id === (s.activeSettlementId || ug.id);
+            const label = `${item.settlementName || 'Без названия'} (${typeShortRu[item.settlementType] || item.settlementType}, Ур. ${item.level || 1}, Потр. ${item.consumption || 0})`;
+            return `<option value="${item.id}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+        }).join('')}
+                </select>
+                <span style="font-size:12px; color:#ebd291; background:#060b07; border:1px solid #543e0d; padding:3px 8px; border-radius:4px; white-space:nowrap;">
+                    Σ Потребл. всех городов: <b style="color:#ffd875;">${totalCitiesConsumption}</b>
+                </span>
+                <button type="button" class="btn ok" id="kBtnAddSettlement" style="padding:3px 10px; font-size:12px; white-space:nowrap;">+ Город</button>
+                ${settlementsList.length > 1 ? `<button type="button" class="btn del" id="kBtnDeleteSettlement" style="padding:3px 8px; font-size:12px;">🗑</button>` : ''}
+            </div>
+        `;
 
         return `
             <div style="display:flex; align-items:stretch; gap:0; width:100%;">
@@ -521,6 +554,7 @@ const KingdomSheetRenderer = {
                 <div class="k-catalog-resizer" id="kCatalogResizer" title="Потяните мышью, чтобы изменить ширину списка"></div>
 
                 <div class="k-panel" style="flex:1; min-width:540px;">
+                    ${settlementSwitcherHtml}
                     <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; margin-bottom:10px;">
                         <div><label class="k-lbl">Название поселения</label><input type="text" id="k_ug_name" class="k-inp" value="${ug.settlementName}"></div>
                         <div>
