@@ -214,26 +214,24 @@ const HexCanvasRender = {
         return !!(data.hasRoad || /дорог|тракт|road/i.test(combined));
     },
 
+
     drawKingdomRoads(r) {
-        if (window.MAP_HIDE_KINGDOM_ROADS) return;
+        const opacity = window.MAP_KINGDOM_ROADS_OPACITY !== undefined
+            ? Number(window.MAP_KINGDOM_ROADS_OPACITY)
+            : (window.MAP_HIDE_KINGDOM_ROADS ? 0 : 1);
+
+        if (opacity <= 0) return;
+
         const ctx = this.ctx;
         const { rows, cols } = MAP_CONFIG.grid;
 
-        // Только 3 направления (вправо, вниз-вправо, вниз-влево), чтобы не рисовать сегмент дважды
-        const evenHalfOffsets = [
-            { dr: 0, dc: 1 },
-            { dr: 1, dc: 0 },
-            { dr: 1, dc: -1 }
-        ];
-        const oddHalfOffsets = [
-            { dr: 0, dc: 1 },
-            { dr: 1, dc: 1 },
-            { dr: 1, dc: 0 }
-        ];
+        const evenHalfOffsets = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 1, dc: -1 }];
+        const oddHalfOffsets  = [{ dr: 0, dc: 1 }, { dr: 1, dc: 1 }, { dr: 1, dc: 0 }];
         const allEven = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 1, dc: -1 }, { dr: 0, dc: -1 }, { dr: -1, dc: -1 }, { dr: -1, dc: 0 }];
         const allOdd  = [{ dr: 0, dc: 1 }, { dr: 1, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: -1, dc: 0 }, { dr: -1, dc: 1 }];
 
         ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.beginPath();
@@ -292,6 +290,7 @@ const HexCanvasRender = {
 
         ctx.restore();
     },
+
 
     render() {
         DebugManager.profileFps();

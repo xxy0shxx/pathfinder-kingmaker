@@ -172,30 +172,40 @@ const UiPanelManager = {
             });
         }
 
-        // 8. Переключение видимости дорог королевства (правая панель 3x4 + синхронизация с меню настроек)
-        window.MAP_HIDE_KINGDOM_ROADS = localStorage.getItem('kingmakerHideKingdomRoads') === 'true';
+        // 8. Регулировка прозрачности дорог королевства (ползунок в настройках + кнопка 🛣 на правой панели)
+        const savedOpacityRaw = localStorage.getItem('kingmakerKingdomRoadsOpacity');
+        let currentRoadsOpacity = savedOpacityRaw !== null ? parseFloat(savedOpacityRaw) : 1.0;
+        let lastNonZeroOpacity = currentRoadsOpacity > 0 ? currentRoadsOpacity : 1.0;
+        window.MAP_KINGDOM_ROADS_OPACITY = currentRoadsOpacity;
 
-        const updateRoadsUiState = () => {
-            const isHidden = !!window.MAP_HIDE_KINGDOM_ROADS;
-            localStorage.setItem('kingmakerHideKingdomRoads', String(isHidden));
+        const updateRoadsOpacityUi = (newOpacity) => {
+            currentRoadsOpacity = Math.max(0, Math.min(1, Number(newOpacity) || 0));
+            if (currentRoadsOpacity > 0) lastNonZeroOpacity = currentRoadsOpacity;
+
+            window.MAP_KINGDOM_ROADS_OPACITY = currentRoadsOpacity;
+            localStorage.setItem('kingmakerKingdomRoadsOpacity', String(currentRoadsOpacity));
+
+            const pct = Math.round(currentRoadsOpacity * 100);
 
             const panelBtn = document.getElementById('btnToggleKingdomRoads');
             if (panelBtn) {
-                panelBtn.classList.toggle('paths-hidden', isHidden);
-                panelBtn.title = isHidden ? 'Показать дороги королевства' : 'Скрыть дороги королевства';
+                panelBtn.classList.toggle('paths-hidden', pct === 0);
+                panelBtn.title = pct === 0
+                    ? `Показать дороги королевства (${Math.round(lastNonZeroOpacity * 100)}%)`
+                    : `Скрыть дороги королевства (сейчас ${pct}%)`;
             }
 
-            const chk = document.getElementById('chkHideKingdomRoads');
-            if (chk && chk.checked !== isHidden) {
-                chk.checked = isHidden;
-            }
+            const slider = document.getElementById('rngKingdomRoadsOpacity');
+            const valLbl = document.getElementById('lblKingdomRoadsOpacityVal');
+            if (slider && Number(slider.value) !== pct) slider.value = pct;
+            if (valLbl) valLbl.textContent = `${pct}%`;
 
             if (window.HexCanvasRender && typeof window.HexCanvasRender.requestFrame === 'function') {
                 window.HexCanvasRender.requestFrame();
             }
         };
 
-        // 8.1. Создаём кнопку 🛣 в правой панели инструментов (рядом с кнопкой путей)
+        // 8.1. Кнопка быстрого переключения 🛣 на правой панели
         if (this.rightPanel && !document.getElementById('btnToggleKingdomRoads')) {
             const roadBtn = document.createElement('button');
             roadBtn.type = 'button';
@@ -213,45 +223,50 @@ const UiPanelManager = {
             roadBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.MAP_HIDE_KINGDOM_ROADS = !window.MAP_HIDE_KINGDOM_ROADS;
-                updateRoadsUiState();
+                updateRoadsOpacityUi(currentRoadsOpacity > 0 ? 0 : lastNonZeroOpacity);
             });
         }
 
-        // 8.2. Инъекция чекбокса в меню настроек ГМа и двусторонняя синхронизация
-        const injectRoadToggleIntoSettings = () => {
+        // 8.2. Инъекция ползунка прозрачности в меню настроек ГМа (в точном стиле Тумана Войны)
+        const injectRoadSliderIntoSettings = () => {
             const settingsBox = document.getElementById('settingsTabletContainer');
-            if (!settingsBox || settingsBox.querySelector('#chkHideKingdomRoads')) return;
+            if (!settingsBox || settingsBox.querySelector('#rngKingdomRoadsOpacity')) return;
 
-            const bordersCb = settingsBox.querySelector('[id*="Border"], [id*="border"], input[type="checkbox"]');
-            const targetRow = bordersCb?.closest('.checkbox-row, label, div');
-            if (!targetRow || !targetRow.parentElement) return;
+            const fogSlider = settingsBox.querySelector('input[type="range"]');
+            const fogContainer = fogSlider?.closest('.box') || fogSlider?.parentElement?.parentElement || fogSlider?.parentElement;
+            if (!fogContainer || !fogContainer.parentElement) return;
 
-            const roadRow = document.createElement('div');
-            roadRow.className = targetRow.className || 'checkbox-row';
-            roadRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; background:rgba(0,0,0,0.2); padding:6px 10px; border-radius:4px; border:1px solid rgba(84,62,13,0.3); cursor:pointer;';
-            roadRow.innerHTML = `
-                <label for="chkHideKingdomRoads" style="color:#ebd291; font-size:14px; cursor:pointer; flex:1;">🛣 Скрыть дороги королевства</label>
-                <input type="checkbox" id="chkHideKingdomRoads" ${window.MAP_HIDE_KINGDOM_ROADS ? 'checked' : ''} style="accent-color:#a68032; width:18px; height:18px; cursor:pointer;">
+            const pct = Math.round(currentRoadsOpacity * 100);
+            const roadBlock = document.createElement('div');
+            roadBlock.className = 'box';
+            roadBlock.style.cssText = 'width: 100%; margin-top: 12px; margin-bottom: 14px;';
+            roadBlock.innerHTML = `
+                <label for="rngKingdomRoadsOpacity" style="display:block; margin-bottom: 8px; color: #dfbc6f; font-size: 13px; font-weight: bold; text-transform: uppercase;">
+                    🛣 Прозрачность дорог королевства:
+                </label>
+                <div style="display: flex; align-items: center; gap: 15px; width: 100%;">
+                    <input type="range" id="rngKingdomRoadsOpacity" min="0" max="100" step="5" value="${pct}" style="flex: 1; width: 100%; cursor: pointer;">
+                    <span id="lblKingdomRoadsOpacityVal" style="color: #ebd291; font-family: monospace; font-weight: bold; font-size: 15px; min-width: 45px; text-align: right;">${pct}%</span>
+                </div>
             `;
 
-            targetRow.parentElement.insertBefore(roadRow, targetRow.nextSibling);
+            fogContainer.parentElement.insertBefore(roadBlock, fogContainer.nextSibling);
 
-            const chk = roadRow.querySelector('#chkHideKingdomRoads');
-            chk.addEventListener('change', () => {
-                window.MAP_HIDE_KINGDOM_ROADS = chk.checked;
-                updateRoadsUiState();
+            const slider = roadBlock.querySelector('#rngKingdomRoadsOpacity');
+            slider.addEventListener('input', () => {
+                updateRoadsOpacityUi(Number(slider.value) / 100);
             });
         };
 
+
         const settingsContainer = document.getElementById('settingsTabletContainer');
         if (settingsContainer) {
-            const observer = new MutationObserver(() => injectRoadToggleIntoSettings());
+            const observer = new MutationObserver(() => injectRoadSliderIntoSettings());
             observer.observe(settingsContainer, { childList: true, subtree: true });
-            injectRoadToggleIntoSettings();
+            injectRoadSliderIntoSettings();
         }
 
-        updateRoadsUiState();
+        updateRoadsOpacityUi(currentRoadsOpacity);
 
 
     }
