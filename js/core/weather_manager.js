@@ -93,7 +93,7 @@ const WeatherManager = {
         this.syncAllViews();
     },
 
-    setDailyWeather({ precip, cold, hazardId, secondHazardNote }) {
+    setDailyWeather({ precip, cold, hazardId, secondHazardNote }, showModal = false) {
         this.state.precip = !!precip;
         this.state.cold = !!cold;
         this.state.hazardId = hazardId || null;
@@ -101,6 +101,10 @@ const WeatherManager = {
 
         this._persist();
         this.syncAllViews();
+
+        if (showModal) {
+            this.showWeatherAppliedModal();
+        }
     },
 
     syncAllViews() {
@@ -151,6 +155,7 @@ const WeatherManager = {
         rootEl.querySelectorAll('.w-btn-active-hazard').forEach(b => b.onclick = () => this.openActiveHazardDetailsModal());
     },
 
+
     renderTabUi() {
         const container = document.getElementById('weatherTabletContainer');
         if (!container) return;
@@ -158,30 +163,65 @@ const WeatherManager = {
         const cal = this.getCalendarInfo();
         const hazards = MAP_CONFIG.golarionCalendar?.weatherHazardsTable || [];
 
+        let wIcon = '⛅';
+        let wTitle = 'Ясно и благоприятно';
+        let wNotes = ['Стандартная скорость перехода (утомление через 8 ч), без штрафов к Вниманию.'];
+        let wBorder = '#2ecc71';
+
+        if (cal.precip && cal.cold) {
+            wIcon = '🌨️';
+            wTitle = 'Снег и мороз';
+            wNotes = ['Ускоренное утомление (через 4 ч пешего перехода)', 'Штраф −1 к Вниманию (зрение)'];
+            wBorder = '#3498db';
+        } else if (cal.precip) {
+            wIcon = '🌧️';
+            wTitle = 'Небольшой дождь';
+            wNotes = ['Ускоренное утомление (через 4 ч пешего перехода)', 'Штраф −1 к Вниманию (зрение)'];
+            wBorder = '#3498db';
+        } else if (cal.cold) {
+            wIcon = '🥶';
+            wTitle = 'Холодный день';
+            wNotes = ['Ускоренное утомление (через 4 ч дневной активности вместо 8)'];
+            wBorder = '#74b9ff';
+        }
+
         const activeHazardHtml = cal.hazard
             ? this._renderWeatherHazardCardHtml(cal.hazard)
-            : `<div style="padding:18px; border:1px dashed #543e0d; border-radius:6px; color:#95a5a6; font-size:20px; text-align:center;">
-                   Опасных погодных явлений сегодня нет. Нажмите «🌦 Подготовка погоды», чтобы ввести утренние проверки.
+            : `<div style="padding:16px; border:1px dashed #543e0d; border-radius:6px; color:#95a5a6; font-size:19px; text-align:center;">
+                   Опасных погодных явлений сегодня нет.
                </div>`;
 
         container.innerHTML = `
             <div style="padding:16px 24px; color:#ebd291; font-family:'Tinos', serif; display:flex; flex-direction:column; gap:16px;">
                 ${this.renderCompactBarHtml()}
-                <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:20px; align-items:start;">
-                    <div class="k-panel" style="padding:18px 22px;">
-                        <div class="k-sec-title" style="font-size:22px;">📜 Погодные условия и справочник</div>
-                        <div style="font-size:19px; line-height:1.5; margin-bottom:14px;">
-                            <div>• <b>СЛ чистой проверки осадков (${cal.monthName}):</b> <span style="color:#ffd875;">СЛ ${cal.precipDc}</span></div>
-                            <div>• <b>СЛ чистой проверки холода:</b> <span style="color:#ffd875;">${cal.coldDc ? 'СЛ ' + cal.coldDc : 'Не требуется (теплый сезон)'}</span></div>
-                            <div>• <b>СЛ чистой проверки опасного явления:</b> <span style="color:#ffd875;">СЛ 17</span></div>
+                <div style="display:grid; grid-template-columns: 1.05fr 1.15fr; gap:20px; align-items:start;">
+                    <div class="k-panel" style="padding:18px 22px; display:flex; flex-direction:column; gap:14px;">
+                        <div class="k-sec-title" style="font-size:22px; margin-bottom:0;">🌤 Текущая погода дня</div>
+
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; background:rgba(0,0,0,0.42); border:2px solid ${wBorder}; border-radius:8px; padding:14px 18px;">
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <div style="font-size:48px; line-height:1;">${wIcon}</div>
+                                <div>
+                                    <div style="font-size:24px; font-weight:bold; color:#fff; margin-bottom:4px;">${wTitle}</div>
+                                    <div style="font-size:17px; color:#ebd291; line-height:1.4;">${wNotes.join(' • ')}</div>
+                                </div>
+                            </div>
+                            ${(cal.precip || cal.cold || cal.hazard) ? `<button type="button" class="btn cc" id="wBtnResetClear" style="padding:8px 14px; font-size:15px; white-space:nowrap;">☀️ Сбросить в ясно</button>` : ''}
                         </div>
+
+                        <div style="background:rgba(0,0,0,0.28); border:1px solid #543e0d; border-radius:6px; padding:12px 16px; font-size:18px; line-height:1.5;">
+                            <div style="color:#ffd875; font-weight:bold; margin-bottom:4px;">🎲 СЛ утренних чистых проверок (${cal.monthName}):</div>
+                            <div>• Осадки: <b>СЛ ${cal.precipDc}</b> • Холод: <b>${cal.coldDc ? 'СЛ ' + cal.coldDc : 'Нет'}</b> • Опасное явление: <b>СЛ 17</b></div>
+                        </div>
+
                         ${activeHazardHtml}
                     </div>
+
                     <div class="k-panel" style="padding:18px 22px;">
                         <div class="k-sec-title" style="font-size:22px;">⚡ Таблица случайных погодных явлений (d20)</div>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; font-size:18px;">
                             ${hazards.map(h => `
-                                <div data-pick-hz="${h.id}" style="padding:8px 12px; border:1px solid ${cal.hazard?.id === h.id ? '#2ecc71' : '#543e0d'}; background:${cal.hazard?.id === h.id ? 'rgba(46,204,113,0.16)' : 'rgba(0,0,0,0.35)'}; border-radius:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" title="Нажмите, чтобы просмотреть или активировать явление">
+                                <div data-pick-hz="${h.id}" style="padding:9px 12px; border:1px solid ${cal.hazard?.id === h.id ? '#2ecc71' : '#543e0d'}; background:${cal.hazard?.id === h.id ? 'rgba(46,204,113,0.18)' : 'rgba(0,0,0,0.35)'}; border-radius:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" title="Кликните, чтобы выбрать или снять явление">
                                     <span><b>${h.minRoll === h.maxRoll ? h.minRoll : h.minRoll + '–' + h.maxRoll}</b> ${h.icon} ${h.label}</span>
                                     <span style="color:#a4b0be; font-size:15px;">${h.levelText}</span>
                                 </div>
@@ -193,17 +233,27 @@ const WeatherManager = {
         `;
 
         this.bindBarEvents(container);
+
+        const resetBtn = container.querySelector('#wBtnResetClear');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                this.setDailyWeather({ precip: false, cold: false, hazardId: null, secondHazardNote: false }, false);
+            });
+        }
+
         container.querySelectorAll('[data-pick-hz]').forEach(el => {
             el.addEventListener('click', () => {
+                const nextHz = (cal.hazard?.id === el.dataset.pickHz) ? null : el.dataset.pickHz;
                 this.setDailyWeather({
                     precip: cal.precip,
                     cold: cal.cold,
-                    hazardId: el.dataset.pickHz,
+                    hazardId: nextHz,
                     secondHazardNote: cal.secondHazardNote
-                });
+                }, false);
             });
         });
     },
+
     _renderWeatherHazardCardHtml(hz) {
         if (!hz) return '';
         const hasPlus = String(hz.duration || '').includes('+');
@@ -373,7 +423,7 @@ const WeatherManager = {
         [inpPrecip, inpCold, inpEventFlat, inpHzRoll].filter(Boolean).forEach(el => el.addEventListener('input', refresh));
         overlay.querySelector('#kWeatherApplyBtn').addEventListener('click', () => {
             overlay.remove();
-            this.setDailyWeather(stateDraft);
+            this.setDailyWeather(stateDraft, true);
         });
         overlay.querySelector('#kWeatherCancelBtn').addEventListener('click', () => overlay.remove());
         overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
