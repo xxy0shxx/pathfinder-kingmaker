@@ -19,6 +19,7 @@ const UiPanelManager = {
         this.attachEvents();
     },
 
+
     /**
      * Привязка событий клика
      */
@@ -76,8 +77,6 @@ const UiPanelManager = {
             });
         }
 
-
-// Внутри UiPanelManager.js -> метод attachEvents()
 
         // 5. Полностью изолированное управление окном привала ГМа
         const btnToggleCamping = document.getElementById('btnToggleCamping');
@@ -172,6 +171,88 @@ const UiPanelManager = {
                 btnToggleSettings.style.setProperty('color', '#dfbc6f', 'important');
             });
         }
+
+        // 8. Переключение видимости дорог королевства (правая панель 3x4 + синхронизация с меню настроек)
+        window.MAP_HIDE_KINGDOM_ROADS = localStorage.getItem('kingmakerHideKingdomRoads') === 'true';
+
+        const updateRoadsUiState = () => {
+            const isHidden = !!window.MAP_HIDE_KINGDOM_ROADS;
+            localStorage.setItem('kingmakerHideKingdomRoads', String(isHidden));
+
+            const panelBtn = document.getElementById('btnToggleKingdomRoads');
+            if (panelBtn) {
+                panelBtn.classList.toggle('paths-hidden', isHidden);
+                panelBtn.title = isHidden ? 'Показать дороги королевства' : 'Скрыть дороги королевства';
+            }
+
+            const chk = document.getElementById('chkHideKingdomRoads');
+            if (chk && chk.checked !== isHidden) {
+                chk.checked = isHidden;
+            }
+
+            if (window.HexCanvasRender && typeof window.HexCanvasRender.requestFrame === 'function') {
+                window.HexCanvasRender.requestFrame();
+            }
+        };
+
+        // 8.1. Создаём кнопку 🛣 в правой панели инструментов (рядом с кнопкой путей)
+        if (this.rightPanel && !document.getElementById('btnToggleKingdomRoads')) {
+            const roadBtn = document.createElement('button');
+            roadBtn.type = 'button';
+            roadBtn.id = 'btnToggleKingdomRoads';
+            roadBtn.className = 'btn-ui-toggle';
+            roadBtn.innerHTML = '🛣';
+
+            const pathsBtn = document.getElementById('btnTogglePaths');
+            if (pathsBtn && pathsBtn.parentElement === this.rightPanel) {
+                this.rightPanel.insertBefore(roadBtn, pathsBtn.nextSibling);
+            } else {
+                this.rightPanel.insertBefore(roadBtn, this.rightPanel.firstChild);
+            }
+
+            roadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.MAP_HIDE_KINGDOM_ROADS = !window.MAP_HIDE_KINGDOM_ROADS;
+                updateRoadsUiState();
+            });
+        }
+
+        // 8.2. Инъекция чекбокса в меню настроек ГМа и двусторонняя синхронизация
+        const injectRoadToggleIntoSettings = () => {
+            const settingsBox = document.getElementById('settingsTabletContainer');
+            if (!settingsBox || settingsBox.querySelector('#chkHideKingdomRoads')) return;
+
+            const bordersCb = settingsBox.querySelector('[id*="Border"], [id*="border"], input[type="checkbox"]');
+            const targetRow = bordersCb?.closest('.checkbox-row, label, div');
+            if (!targetRow || !targetRow.parentElement) return;
+
+            const roadRow = document.createElement('div');
+            roadRow.className = targetRow.className || 'checkbox-row';
+            roadRow.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; background:rgba(0,0,0,0.2); padding:6px 10px; border-radius:4px; border:1px solid rgba(84,62,13,0.3); cursor:pointer;';
+            roadRow.innerHTML = `
+                <label for="chkHideKingdomRoads" style="color:#ebd291; font-size:14px; cursor:pointer; flex:1;">🛣 Скрыть дороги королевства</label>
+                <input type="checkbox" id="chkHideKingdomRoads" ${window.MAP_HIDE_KINGDOM_ROADS ? 'checked' : ''} style="accent-color:#a68032; width:18px; height:18px; cursor:pointer;">
+            `;
+
+            targetRow.parentElement.insertBefore(roadRow, targetRow.nextSibling);
+
+            const chk = roadRow.querySelector('#chkHideKingdomRoads');
+            chk.addEventListener('change', () => {
+                window.MAP_HIDE_KINGDOM_ROADS = chk.checked;
+                updateRoadsUiState();
+            });
+        };
+
+        const settingsContainer = document.getElementById('settingsTabletContainer');
+        if (settingsContainer) {
+            const observer = new MutationObserver(() => injectRoadToggleIntoSettings());
+            observer.observe(settingsContainer, { childList: true, subtree: true });
+            injectRoadToggleIntoSettings();
+        }
+
+        updateRoadsUiState();
+
 
     }
 };
