@@ -87,10 +87,7 @@ const UiSelectManager = {
                 }
             }
 
-
-
-
-            // 4. Вывод расчётной стоимости ОР, СЛ освоения и кнопок быстрого списания из казны
+            // 4. Вывод расчётной стоимости ОР, СЛ освоения и кнопок с защитой от повторного нажатия
             if (terrainEl) {
                 let hintBox = menu.querySelector('#hexTerrainCostHint');
                 if (!hintBox) {
@@ -113,17 +110,31 @@ const UiSelectManager = {
                     const titleVal = menu.querySelector('input[type="text"]')?.value || '';
                     const descVal = menu.querySelector('textarea')?.value || '';
                     const combinedText = `${titleVal} ${descVal}`;
+
+                    // Проверяем уже выполненные этапы освоения гекса
+                    const isAlreadyClaimed = isClaimed;
+                    const isAlreadyCleared = /территори.*расчищ|руин.*расчищ|расчищ.*руин|hex.*clear|ruin.*clear/i.test(combinedText);
+                    const isRoadAlreadyBuilt = /дорог.*проложен|тракт.*проложен|road.*built/i.test(combinedText);
+                    const isSiteAlreadyBuilt = curVal && curVal !== 'none';
+
                     const hasBridge = /мост|bridge/i.test(combinedText);
                     const hasClearedRuins = /руин.*расчищ|расчищ.*руин|ruin.*clear/i.test(combinedText);
 
-                    const claimCost = 1; // Захват гекса (Claim Hex) по правилам PF2e: 1 ОР
+                    const claimCost = 1;
                     const clearCost = terr.clearCost || 0;
                     const rawSiteCost = terr.workSiteCost || 0;
                     const siteCost = (rawSiteCost > 0 && hasClearedRuins) ? Math.max(1, Math.floor(rawSiteCost / 2)) : rawSiteCost;
                     const roadCost = (terrainVal === 'water' && hasBridge) ? 1 : (terr.roadCost ?? 1);
 
-                    const makeSpendBtn = (id, label, cost) => {
-                        if (cost <= 0) return '';
+                    const makeSpendBtn = (id, label, cost, isDone) => {
+                        if (cost <= 0 && !isDone) return '';
+                        if (isDone) {
+                            return `<button type="button" disabled title="Этап уже выполнен для этого гекса"
+                                style="padding:3px 7px; font-size:11px; font-weight:bold; border-radius:3px; cursor:default;
+                                background:#0d2415; border:1px solid #2ecc71; color:#2ecc71; opacity:0.85;">
+                                ✔ ${label.replace(/^[^\s]+\s/, '')}
+                            </button>`;
+                        }
                         const ok = curRp >= cost;
                         return `<button type="button" data-spend-rp="${cost}" data-spend-label="${label}" ${ok ? '' : 'disabled'}
                             style="padding:3px 7px; font-size:11px; font-weight:bold; border-radius:3px; cursor:${ok ? 'pointer' : 'not-allowed'};
@@ -140,15 +151,13 @@ const UiSelectManager = {
                             <span style="color:#ffd875; font-family:monospace; font-weight:bold;">Казна: ${curRp} ОР</span>
                         </div>
                         <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;">
-                            ${makeSpendBtn('claim', '🚩 Захват', claimCost)}
-                            ${makeSpendBtn('clear', '🪓 Расчистка', clearCost)}
-                            ${makeSpendBtn('site', '🏗 Участок', siteCost)}
-                            ${makeSpendBtn('road', '🛣 Дорога', roadCost)}
+                            ${makeSpendBtn('claim', '🚩 Захват', claimCost, isAlreadyClaimed)}
+                            ${makeSpendBtn('clear', '🪓 Расчистка', clearCost, isAlreadyCleared)}
+                            ${makeSpendBtn('site', '🏗 Участок', siteCost, isSiteAlreadyBuilt)}
+                            ${makeSpendBtn('road', '🛣 Дорога', roadCost, isRoadAlreadyBuilt)}
                         </div>
-                        ${hasClearedRuins && rawSiteCost > 0 ? `<div style="color:#2ecc71; font-size:11px; margin-top:4px;">✔ Скидка расчищенных руин: цена участка снижена вдвое</div>` : ''}
+                        ${hasClearedRuins && rawSiteCost > 0 && !isSiteAlreadyBuilt ? `<div style="color:#2ecc71; font-size:11px; margin-top:4px;">✔ Скидка расчищенных руин: цена участка снижена вдвое</div>` : ''}
                     `;
-
-
 
                     hintBox.querySelectorAll('[data-spend-rp]').forEach(btn => {
                         btn.onclick = (ev) => {
@@ -163,38 +172,28 @@ const UiSelectManager = {
                             if (typeof km._persist === 'function') km._persist();
                             if (typeof km.renderUi === 'function') km.renderUi();
 
-                            // Автоматически ставим галочку «Территория королевства» при оплате захвата
                             if (label.includes('Захват') && claimedCb && !claimedCb.checked) {
                                 claimedCb.checked = true;
                             }
 
-                            // Автоматически добавляем метку в первое текстовое поле описания гекса
                             const descArea = menu.querySelector('textarea');
                             if (descArea) {
                                 const curText = descArea.value.trim();
-                                if (label.includes('Дорога') && !/дорог|тракт|road/i.test(curText)) {
+                                if (label.includes('Дорога') && !isRoadAlreadyBuilt) {
                                     descArea.value = curText ? `${curText}\n🛣 Дорога проложена.` : '🛣 Дорога проложена.';
-                                } else if (label.includes('Расчистка') && /руин|ruin/i.test(curText) && !/расчищ|clear/i.test(curText)) {
-                                    descArea.value = `${curText}\n🏛 Руины расчищены.`;
-                                } else if (label.includes('Расчистка') && !/расчищ|clear/i.test(curText)) {
-                                    descArea.value = curText ? `${curText}\n🪓 Территория расчищена.` : '🪓 Территория расчищена.';
+                                } else if (label.includes('Расчистка') && !isAlreadyCleared) {
+                                    const note = /руин|ruin/i.test(curText) ? '🏛 Руины расчищены.' : '🪓 Территория расчищена.';
+                                    descArea.value = curText ? `${curText}\n${note}` : note;
+                                } else if (label.includes('Участок') && !/участок оплачен/i.test(curText)) {
+                                    descArea.value = curText ? `${curText}\n🏗 Рабочий участок оплачен.` : '🏗 Рабочий участок оплачен.';
                                 }
                             }
 
                             syncGuard();
                         };
                     });
-
-
-
-
                 }
             }
-
-
-
-
-
         };
 
         document.addEventListener('change', (e) => {
