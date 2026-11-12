@@ -132,7 +132,6 @@ const HexCanvasRender = {
         return !!(data.kingdomClaimed || combined.includes('королевств') || combined.includes('владен'));
     },
 
-
     drawKingdomBorders(r) {
         if (window.MAP_HIDE_KINGDOM_BORDERS) return;
         const ctx = this.ctx;
@@ -209,7 +208,90 @@ const HexCanvasRender = {
         ctx.restore();
     },
 
+    hasHexRoad(data) {
+        if (!data || typeof data !== 'object') return false;
+        const combined = `${data.title || ''} ${data.text || ''} ${data.description || ''} ${data.notes || ''}`;
+        return !!(data.hasRoad || /дорог|тракт|road/i.test(combined));
+    },
 
+    drawKingdomRoads(r) {
+        if (window.MAP_HIDE_KINGDOM_ROADS) return;
+        const ctx = this.ctx;
+        const { rows, cols } = MAP_CONFIG.grid;
+
+        // Только 3 направления (вправо, вниз-вправо, вниз-влево), чтобы не рисовать сегмент дважды
+        const evenHalfOffsets = [
+            { dr: 0, dc: 1 },
+            { dr: 1, dc: 0 },
+            { dr: 1, dc: -1 }
+        ];
+        const oddHalfOffsets = [
+            { dr: 0, dc: 1 },
+            { dr: 1, dc: 1 },
+            { dr: 1, dc: 0 }
+        ];
+        const allEven = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 1, dc: -1 }, { dr: 0, dc: -1 }, { dr: -1, dc: -1 }, { dr: -1, dc: 0 }];
+        const allOdd  = [{ dr: 0, dc: 1 }, { dr: 1, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: -1, dc: 0 }, { dr: -1, dc: 1 }];
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+
+        let hasSegments = false;
+        const isolatedPoints = [];
+
+        for (let row = 0; row < rows; row++) {
+            const halfOffsets = (row % 2 === 0) ? evenHalfOffsets : oddHalfOffsets;
+            const fullOffsets = (row % 2 === 0) ? allEven : allOdd;
+
+            for (let col = 0; col < cols; col++) {
+                const hexKey = `hex_${row}_${col}`;
+                if (!this.hasHexRoad(this.hexesData[hexKey])) continue;
+
+                const coords = this.hexCoords[hexKey];
+                if (!coords) continue;
+
+                for (const step of halfOffsets) {
+                    const nKey = `hex_${row + step.dr}_${col + step.dc}`;
+                    if (this.hasHexRoad(this.hexesData[nKey]) && this.hexCoords[nKey]) {
+                        ctx.moveTo(coords.cx, coords.cy);
+                        ctx.lineTo(this.hexCoords[nKey].cx, this.hexCoords[nKey].cy);
+                        hasSegments = true;
+                    }
+                }
+
+                const hasAnyNeighbor = fullOffsets.some(st =>
+                    this.hasHexRoad(this.hexesData[`hex_${row + st.dr}_${col + st.dc}`])
+                );
+                if (!hasAnyNeighbor) isolatedPoints.push(coords);
+            }
+        }
+
+        if (hasSegments) {
+            ctx.strokeStyle = 'rgba(42, 24, 10, 0.85)';
+            ctx.lineWidth = 8;
+            ctx.stroke();
+
+            ctx.setLineDash([12, 8]);
+            ctx.strokeStyle = '#d4a359';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        isolatedPoints.forEach(pt => {
+            ctx.beginPath();
+            ctx.arc(pt.cx, pt.cy, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#d4a359';
+            ctx.strokeStyle = '#2a180a';
+            ctx.lineWidth = 2.5;
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        ctx.restore();
+    },
 
     render() {
         DebugManager.profileFps();
@@ -293,10 +375,9 @@ const HexCanvasRender = {
             }
         }
 
-
-
         const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
-
+        this.drawKingdomRoads(r);
+        this.drawKingdomBorders(r);
         this.drawKingdomBorders(r);
 
         if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap) {
@@ -305,10 +386,6 @@ const HexCanvasRender = {
             this.stopAnimationLoop();
         }
     },
-
-
-
-
 
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;

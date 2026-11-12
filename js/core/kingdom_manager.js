@@ -313,6 +313,28 @@ const KingdomManager = {
                 notices.push(`🏛 Достопримечательность (${key}): Беспорядки -${unrestDrop}${xpBonus ? ', +40 XP' : ''}`);
             }
 
+            // Убежище (Refuge): при первом захвате снижает наивысший показатель Краха (Ruin) на 1
+            if (/убежищ|refuge/i.test(combined) && !h._refugeRewarded) {
+                h._refugeRewarded = true;
+                const ruinKeys = ['corruption', 'crime', 'decay', 'strife'];
+                const ruinNames = { corruption: 'Коррупция', crime: 'Преступность', decay: 'Упадок', strife: 'Распри' };
+
+                // Ищем показатель Краха с наибольшим количеством очков (> 0)
+                let targetRuin = ruinKeys.reduce((best, k) => {
+                    const curScore = parseInt(s.ruins?.[k]?.score, 10) || 0;
+                    const bestScore = best ? (parseInt(s.ruins?.[best]?.score, 10) || 0) : 0;
+                    return curScore > bestScore ? k : best;
+                }, null);
+
+                if (targetRuin && s.ruins[targetRuin].score > 0) {
+                    s.ruins[targetRuin].score = Math.max(0, s.ruins[targetRuin].score - 1);
+                    notices.push(`🛡 Убежище (${key}): показатель «${ruinNames[targetRuin]}» снижен на 1`);
+                } else {
+                    notices.push(`🛡 Убежище (${key}) захвачено: открыт региональный бонус +2 к Верности/Стабильности`);
+                }
+            }
+
+
             // Рабочие участки учитываются ТОЛЬКО на территории королевства
             const ws = h.workSite || 'none';
             if (ws === 'farmlands' || (ws === 'none' && combined.includes('ферм'))) {
@@ -506,7 +528,6 @@ const KingdomManager = {
         });
     },
 
-
     openSkillCheckModal(skillId) {
         this.saveFromUi();
 
@@ -517,19 +538,43 @@ const KingdomManager = {
         if (existing) existing.remove();
 
         const s = this.state;
-        const skillMod = this.getSkillTotal(skillId);
-        const modStr = skillMod >= 0 ? `+${skillMod}` : `${skillMod}`;
+        const baseSkillMod = this.getSkillTotal(skillId);
         const defaultDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
+
+        // Определяем доступность региональных бонусов (+2) по характеристике навыка
+        const features = typeof this.getRegionalFeatureBonuses === 'function'
+            ? this.getRegionalFeatureBonuses()
+            : { hasLandmark: false, hasRefuge: false };
+
+        const isCultureOrEcon = cfg.ability === 'culture' || cfg.ability === 'economy';
+        const isLoyaltyOrStab = cfg.ability === 'loyalty' || cfg.ability === 'stability';
+        const hasRegionBonus = (isCultureOrEcon && features.hasLandmark) || (isLoyaltyOrStab && features.hasRefuge);
+        const regionLabel = isCultureOrEcon
+            ? '✨ Регион с Достопримечательностью (+2 обст. к Культуре/Экономике)'
+            : '🛡 Зона с Убежищем (+2 обст. к Верности/Стабильности)';
+
+        const hasIsolatedHexes = (parseInt(s.isolatedHexesCount, 10) || 0) > 0;
 
         const overlay = document.createElement('div');
         overlay.id = 'kSkillCheckOverlay';
         overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
 
         overlay.innerHTML = `
-            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:460px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:490px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:12px;">
                     <span style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase;">🎲 Проверка: ${cfg.label}</span>
-                    <span style="background:#040905; border:1px solid #ffd875; padding:3px 10px; border-radius:4px; font-family:monospace; font-size:18px; font-weight:bold; color:#2ecc71;">${modStr}</span>
+                    <span id="kCheckEffectiveModBadge" style="background:#040905; border:1px solid #ffd875; padding:3px 10px; border-radius:4px; font-family:monospace; font-size:18px; font-weight:bold; color:#2ecc71;">${baseSkillMod >= 0 ? '+' + baseSkillMod : baseSkillMod}</span>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px; font-size:13px;">
+                    <label style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(0,0,0,0.35); border:1px solid ${hasRegionBonus ? '#2ecc71' : '#543e0d'}; border-radius:4px; cursor:pointer; opacity:${hasRegionBonus ? '1' : '0.6'};">
+                        <input type="checkbox" id="kCheckRegionBonusCb" ${hasRegionBonus ? 'checked' : ''}>
+                        <span>${regionLabel}</span>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:rgba(0,0,0,0.35); border:1px solid ${hasIsolatedHexes ? '#e74c3c' : '#543e0d'}; border-radius:4px; cursor:pointer; opacity:${hasIsolatedHexes ? '1' : '0.6'};">
+                        <input type="checkbox" id="kCheckIsolatedPenaltyCb">
+                        <span>⚠ Вторичная (изолированная) территория (−2 штраф к управлению)</span>
+                    </label>
                 </div>
 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
@@ -561,36 +606,38 @@ const KingdomManager = {
         const dcInp = overlay.querySelector('#kCheckDcInp');
         const rollInp = overlay.querySelector('#kCheckRollInp');
         const resBox = overlay.querySelector('#kCheckResultBox');
+        const regCb = overlay.querySelector('#kCheckRegionBonusCb');
+        const isoCb = overlay.querySelector('#kCheckIsolatedPenaltyCb');
+        const modBadge = overlay.querySelector('#kCheckEffectiveModBadge');
+
+        const getEffectiveMod = () => {
+            const circAlready = parseInt(s.skills?.[skillId]?.circ, 10) || 0;
+            // Бонус обстоятельства +2 не складывается с другими бонусами обстоятельства, берём максимум
+            const regBonus = regCb.checked ? Math.max(0, 2 - circAlready) : 0;
+            const isoPenalty = isoCb.checked ? -2 : 0;
+            return baseSkillMod + regBonus + isoPenalty;
+        };
 
         const evaluateOutcome = () => {
+            const effMod = getEffectiveMod();
+            const modStr = effMod >= 0 ? `+${effMod}` : `${effMod}`;
+            modBadge.textContent = modStr;
+
             const dc = parseInt(dcInp.value, 10) || defaultDc;
             const d20 = parseInt(rollInp.value, 10);
 
             if (isNaN(d20) || d20 < 1 || d20 > 20) {
-                resBox.innerHTML = `<span style="color:#95a5a6; font-size:14px;">Введите число от 1 до 20</span>`;
+                resBox.innerHTML = `<span style="color:#95a5a6; font-size:14px;">Введите число от 1 до 20 (Итоговый мод.: ${modStr})</span>`;
                 resBox.style.borderColor = '#543e0d';
                 return;
             }
 
-            const total = d20 + skillMod;
+            const total = d20 + effMod;
             const diff = total - dc;
-
-            // Базовая степень успеха: 0 = Крит. провал, 1 = Провал, 2 = Успех, 3 = Крит. успех
-            let degree = 1;
-            if (diff >= 10) degree = 3;
-            else if (diff >= 0) degree = 2;
-            else if (diff <= -10) degree = 0;
-            else degree = 1;
-
-            // Правила натуральной 20 и натуральной 1 в Pathfinder 2e
+            let degree = diff >= 10 ? 3 : (diff >= 0 ? 2 : (diff <= -10 ? 0 : 1));
             let natNote = '';
-            if (d20 === 20) {
-                degree = Math.min(3, degree + 1);
-                natNote = ' (Натуральная 20 ↑)';
-            } else if (d20 === 1) {
-                degree = Math.max(0, degree - 1);
-                natNote = ' (Натуральная 1 ↓)';
-            }
+            if (d20 === 20) { degree = Math.min(3, degree + 1); natNote = ' (Натуральная 20 ↑)'; }
+            else if (d20 === 1) { degree = Math.max(0, degree - 1); natNote = ' (Натуральная 1 ↓)'; }
 
             const degreesMeta = [
                 { label: '💀 КРИТИЧЕСКИЙ ПРОВАЛ', color: '#e74c3c', bg: 'rgba(231, 76, 60, 0.16)' },
@@ -598,23 +645,19 @@ const KingdomManager = {
                 { label: '✔ УСПЕХ',               color: '#2ecc71', bg: 'rgba(46, 204, 113, 0.14)' },
                 { label: '👑 КРИТИЧЕСКИЙ УСПЕХ',  color: '#ffd875', bg: 'rgba(255, 216, 117, 0.2)' }
             ];
-
             const meta = degreesMeta[degree];
-            const diffStr = diff >= 0 ? `+${diff}` : `${diff}`;
-
             resBox.style.borderColor = meta.color;
             resBox.style.background = meta.bg;
             resBox.innerHTML = `
                 <div style="font-size:20px; font-weight:900; color:${meta.color}; letter-spacing:0.6px;">${meta.label}</div>
                 <div style="font-size:15px; color:#ebd291; font-family:monospace;">
-                    Бросок: <b>${d20}</b> (${modStr}) = <b style="color:#fff; font-size:18px;">${total}</b> против СЛ <b>${dc}</b> (${diffStr})${natNote}
+                    Бросок: <b>${d20}</b> (${modStr}) = <b style="color:#fff; font-size:18px;">${total}</b> против СЛ <b>${dc}</b> (${diff >= 0 ? '+' + diff : diff})${natNote}
                 </div>
             `;
         };
 
-        dcInp.addEventListener('input', evaluateOutcome);
-        rollInp.addEventListener('input', evaluateOutcome);
-
+        [dcInp, rollInp, regCb, isoCb].forEach(el => el.addEventListener('input', evaluateOutcome));
+        [regCb, isoCb].forEach(el => el.addEventListener('change', evaluateOutcome));
         overlay.querySelector('#kCheckAutoRollBtn').addEventListener('click', () => {
             rollInp.value = Math.floor(Math.random() * 20) + 1;
             evaluateOutcome();
@@ -623,10 +666,9 @@ const KingdomManager = {
         const closeModal = () => overlay.remove();
         overlay.querySelector('#kCheckCloseBtn').addEventListener('click', closeModal);
         overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-        rollInp.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
         setTimeout(() => rollInp.focus(), 50);
     },
+
 
 
 
@@ -1834,6 +1876,31 @@ const KingdomManager = {
             const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
             this.state.consumption = Math.max(0, totalSettlementCons - farmlandReduction);
         }
+    },
+
+    /**
+     * Сбор активных региональных бонусов от захваченных Достопримечательностей и Убежищ
+     */
+    getRegionalFeatureBonuses() {
+        const hexes = this.mapDataRef?.hexes || {};
+        let hasLandmark = false;
+        let hasRefuge = false;
+
+        Object.values(hexes).forEach(h => {
+            if (!this._isHexClaimed(h)) return;
+            const combined = `${h.title || ''} ${h.text || h.description || ''}`;
+            if (h.type === 'landmark' || /достопримечательност|landmark/i.test(combined)) {
+                hasLandmark = true;
+            }
+            if (/убежищ|refuge/i.test(combined)) {
+                hasRefuge = true;
+            }
+        });
+
+        return {
+            hasLandmark, // +2 обстоятельства к Культуре или Экономике в регионе
+            hasRefuge    // +2 обстоятельства к Верности или Стабильности в зоне
+        };
     },
 
 
