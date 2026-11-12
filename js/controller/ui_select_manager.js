@@ -148,6 +148,8 @@ const UiSelectManager = {
                         ${hasClearedRuins && rawSiteCost > 0 ? `<div style="color:#2ecc71; font-size:11px; margin-top:4px;">✔ Скидка расчищенных руин: цена участка снижена вдвое</div>` : ''}
                     `;
 
+
+
                     hintBox.querySelectorAll('[data-spend-rp]').forEach(btn => {
                         btn.onclick = (ev) => {
                             ev.preventDefault();
@@ -165,9 +167,27 @@ const UiSelectManager = {
                             if (label.includes('Захват') && claimedCb && !claimedCb.checked) {
                                 claimedCb.checked = true;
                             }
+
+                            // Автоматически добавляем метку в первое текстовое поле описания гекса
+                            const descArea = menu.querySelector('textarea');
+                            if (descArea) {
+                                const curText = descArea.value.trim();
+                                if (label.includes('Дорога') && !/дорог|тракт|road/i.test(curText)) {
+                                    descArea.value = curText ? `${curText}\n🛣 Дорога проложена.` : '🛣 Дорога проложена.';
+                                } else if (label.includes('Расчистка') && /руин|ruin/i.test(curText) && !/расчищ|clear/i.test(curText)) {
+                                    descArea.value = `${curText}\n🏛 Руины расчищены.`;
+                                } else if (label.includes('Расчистка') && !/расчищ|clear/i.test(curText)) {
+                                    descArea.value = curText ? `${curText}\n🪓 Территория расчищена.` : '🪓 Территория расчищена.';
+                                }
+                            }
+
                             syncGuard();
                         };
                     });
+
+
+
+
                 }
             }
 

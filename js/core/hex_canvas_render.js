@@ -559,7 +559,6 @@ const HexCanvasRender = {
         });
     },
 
-
     updateTooltipState(tooltip) {
         if (!tooltip) return;
         const hexKey = this.hoveredHexKey;
@@ -606,6 +605,46 @@ const HexCanvasRender = {
         }
 
 
+
+
+        const combinedMeta = `${data.title || ''} ${data.text || ''} ${data.description || ''} ${data.notes || ''}`;
+        const featureTags = [];
+
+        if (/дорог|тракт|road/i.test(combinedMeta)) {
+            featureTags.push('🛣 <b>Дорога проложена</b> (ускоряет передвижение и развитие)');
+        }
+        if (/мост|bridge/i.test(combinedMeta)) {
+            featureTags.push('🌉 <b>Мост</b> (переправа через реку без лишних ОР)');
+        }
+        if (/руин|ruin/i.test(combinedMeta)) {
+            const isCleared = /расчищ|clear/i.test(combinedMeta);
+            featureTags.push(
+                isCleared
+                    ? '🏛 <b>Руины (расчищены):</b> скидка 50% на первое здание/участок'
+                    : '🏚 <b>Руины:</b> требуют расчистки для получения скидки 50%'
+            );
+        }
+        if (/убежищ|refuge/i.test(combinedMeta)) {
+            featureTags.push('🛡 <b>Убежище:</b> −1 к Краху при захвате, +2 к Верности/Стабильности');
+        }
+        if (/вольн.*владен|freehold/i.test(combinedMeta)) {
+            featureTags.push('🏘 <b>Вольное владение:</b> можно присоединить дипломатией');
+        }
+        if (data.type === 'landmark') {
+            featureTags.push('✨ <b>Достопримечательность:</b> −1d4 Беспорядков, +2 к Культуре/Экономике');
+        }
+
+        if (featureTags.length > 0) {
+            paramsBlock += `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(212,175,55,0.3); font-size: 14px; color: #ebd291;">
+                ${featureTags.map(tag => `<div style="margin-bottom: 3px;">${tag}</div>`).join('')}
+            </div>`;
+        }
+
+        // ЭТА СТРОКА ДОЛЖНА ИДТИ ПОСЛЕ featureTags!
+        content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
+
+
+
         if (isRevealed) {
             if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
             if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`;
@@ -634,6 +673,7 @@ const HexCanvasRender = {
 
         tooltip.innerHTML = content; tooltip.style.display = 'block';
     },
+
 
 
     triggerFocus(hexId) {
