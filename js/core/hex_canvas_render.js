@@ -309,6 +309,7 @@ const HexCanvasRender = {
 
 
 
+
     drawSingleHex(cx, cy, r, data, hexKey) {
         const ctx = this.ctx;
 
@@ -363,6 +364,7 @@ const HexCanvasRender = {
 
         const isRevealed = !!(data && (data.explored || data.hasVisited || data.squadHere));
 
+
         if (isRevealed) {
             if (!window.MAP_HIDE_EXPLORED && data.explored) drawAnimatedIcon('🔍', cx - r * 0.42, cy - r * 0.22);
             if (!window.MAP_HIDE_MAPPED && data.mapMapped) drawAnimatedIcon('📜', cx - r * 0.42, cy + r * 0.22);
@@ -372,7 +374,21 @@ const HexCanvasRender = {
             if (!window.MAP_HIDE_TERRAIN && data.terrain && MAP_CONFIG.terrains[data.terrain]) {
                 drawAnimatedIcon(MAP_CONFIG.terrains[data.terrain].icon, cx + r * 0.42, cy + r * 0.22);
             }
+
+            // Иконка рабочего участка (ферма, лесопилка, шахта, каменоломня) строго в центре гекса
+            if (data.workSite && data.workSite !== 'none' && !data.squadHere) {
+                const wsIcons = {
+                    farmlands: '🌾',
+                    lumberCamps: '🪵',
+                    mines: '⛏',
+                    quarries: '🧱'
+                };
+                if (wsIcons[data.workSite]) {
+                    drawAnimatedIcon(wsIcons[data.workSite], cx, cy + 4);
+                }
+            }
         }
+
         if (data && data.squadHere) {
             const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
 
@@ -410,6 +426,7 @@ const HexCanvasRender = {
             if (questTitle !== '') this.drawQuestPlate(ctx, `⚜️ ${questTitle}`, cx, cy - r + 8);
         }
     },
+
 
 
 
@@ -588,6 +605,7 @@ const HexCanvasRender = {
             paramsBlock += `<div style="margin-bottom: 4px;">🏗 <b>Участок:</b> <span class="tooltip-value">${wsLabels[data.workSite]}</span></div>`;
         }
 
+
         if (isRevealed) {
             if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
             if (data.regionLevel) paramsBlock += `<div style="margin-bottom: 4px;">💀 <b>Уровень:</b> <span class="tooltip-value">${data.regionLevel}</span></div>`;
@@ -608,6 +626,7 @@ const HexCanvasRender = {
                 paramsBlock += `<div style="margin-bottom: 4px; font-size: 14px; color: #dfbc6f;">👑 <b>Освоение:</b> Захват/Расчистка <b>СЛ ${claimDc}</b> • Расчистка: <b>${terr.clearCost || 0} ОР</b> • Дорога: <b>${finalRoadCost} ОР</b>${bridgeNote}</div>`;
             }
         }
+
 
         content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
         if (data.text) content += `<div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px;" class="tooltip-desc">${data.text.replace(/\n/g, '<br>')}</div>`;
