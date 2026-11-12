@@ -2370,7 +2370,6 @@ const KingdomManager = {
 
     },
 
-
     getCalendarInfo() {
         const calCfg = MAP_CONFIG.golarionCalendar;
         const c = this.state?.calendar || { day: 1, month: 2, year: 4710, precip: false, cold: false, hazardId: null, secondHazardNote: false };
@@ -2396,51 +2395,6 @@ const KingdomManager = {
         }
     },
 
-
-/*
-    advanceCalendar(daysDelta = 0, monthsDelta = 0, rollNewWeather = true) {
-        this.saveFromUi();
-        const calCfg = MAP_CONFIG.golarionCalendar;
-        const months = calCfg?.months || [];
-        if (months.length === 0) return;
-
-        if (!this.state.calendar) {
-            this.state.calendar = { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' };
-        }
-        const c = this.state.calendar;
-        c.day = (parseInt(c.day, 10) || 1) + daysDelta;
-        c.month = (parseInt(c.month, 10) || 0) + monthsDelta;
-
-        while (c.month >= 12) {
-            c.month -= 12;
-            c.year += 1;
-        }
-        while (c.month < 0) {
-            c.month += 12;
-            c.year -= 1;
-        }
-
-        while (c.day > (months[c.month]?.days || 30)) {
-            c.day -= (months[c.month]?.days || 30);
-            c.month += 1;
-            if (c.month >= 12) {
-                c.month = 0;
-                c.year += 1;
-            }
-        }
-        if (c.day < 1) c.day = 1;
-
-        if (rollNewWeather) {
-            this.rollSeasonalWeather(true);
-            return;
-        }
-
-        this.recalculateModifiers();
-        this._persist();
-        this.renderUi();
-    },
-    */
-
     rollSeasonalWeather(silent = false) {
         const info = this.getCalendarInfo();
         const pool = MAP_CONFIG.golarionCalendar?.weatherBySeason?.[info.season] || [];
@@ -2456,44 +2410,6 @@ const KingdomManager = {
         }
     },
 
-    /*
-    setDailyWeather({ precip, cold, hazardId, secondHazardNote }) {
-        this.saveFromUi();
-        if (!this.state.calendar) {
-            this.state.calendar = { day: 1, month: 2, year: 4710 };
-        }
-        this.state.calendar.precip = !!precip;
-        this.state.calendar.cold = !!cold;
-        this.state.calendar.hazardId = hazardId || null;
-        this.state.calendar.secondHazardNote = !!secondHazardNote;
-
-        this.recalculateModifiers();
-        this._persist();
-        this.renderUi();
-        if (window.CampingManager && typeof window.CampingManager.recalculateCamp === 'function') {
-            window.CampingManager.recalculateCamp();
-        }
-    },
-
-     */
-
-
-    /*
-    setCalendarWeather(weatherId) {
-        this.saveFromUi();
-        if (!this.state.calendar) {
-            this.state.calendar = { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' };
-        }
-        this.state.calendar.weatherId = weatherId;
-        this.recalculateModifiers();
-        this._persist();
-        this.renderUi();
-        if (window.CampingManager && typeof window.CampingManager.recalculateCamp === 'function') {
-            window.CampingManager.recalculateCamp();
-        }
-    },
-
-     */
 };
 
 export default KingdomManager;
