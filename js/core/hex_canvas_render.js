@@ -604,9 +604,6 @@ const HexCanvasRender = {
             paramsBlock += `<div style="margin-bottom: 4px;">🏗 <b>Участок:</b> <span class="tooltip-value">${wsLabels[data.workSite]}</span></div>`;
         }
 
-
-
-
         const combinedMeta = `${data.title || ''} ${data.text || ''} ${data.description || ''} ${data.notes || ''}`;
         const featureTags = [];
 
@@ -639,11 +636,6 @@ const HexCanvasRender = {
                 ${featureTags.map(tag => `<div style="margin-bottom: 3px;">${tag}</div>`).join('')}
             </div>`;
         }
-
-        // ЭТА СТРОКА ДОЛЖНА ИДТИ ПОСЛЕ featureTags!
-        content += `<div style="font-size: 16px; color: #ccc; margin: 8px 0 12px 0; line-height: 1.3;">${paramsBlock}</div>`;
-
-
 
         if (isRevealed) {
             if (data.difficulty) paramsBlock += `<div style="margin-bottom: 4px;">🎲 <b>Сложность:</b> <span class="tooltip-value">${data.difficulty}</span></div>`;
