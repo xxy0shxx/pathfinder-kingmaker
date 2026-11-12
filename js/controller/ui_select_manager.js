@@ -10,7 +10,95 @@ const UiSelectManager = {
     init() {
         this.populateSelectOptions();
         this.initDropdownLogic();
+        this.initWorkSiteGuard();
     },
+
+    /**
+     * Самодостаточная защита списка рабочих участков внутри #hexMenu
+     */
+    initWorkSiteGuard() {
+        const rules = MAP_CONFIG.workSiteRules || {};
+
+        const syncGuard = () => {
+            const menu = document.getElementById('hexMenu');
+            if (!menu) return;
+
+            // Ищем чекбокс «Территория королевства»
+            const claimedCb = Array.from(menu.querySelectorAll('input[type="checkbox"]')).find(cb => {
+                const row = cb.closest('.checkbox-row, label, div');
+                return /королевств/i.test((row?.textContent || '') + ' ' + cb.id);
+            });
+            const isClaimed = !!claimedCb?.checked;
+
+            // Ищем селект местности и селект рабочих участков
+            const allSelects = Array.from(menu.querySelectorAll('.custom-select, select'));
+            const terrainEl = allSelects.find(el =>
+                el.querySelector('[data-value="plains"], option[value="plains"]')
+            );
+            const wsEl = allSelects.find(el =>
+                el.querySelector('[data-value="farmlands"], option[value="farmlands"]')
+            );
+            if (!wsEl) return;
+
+            const terrainVal = terrainEl?.tagName === 'SELECT'
+                ? terrainEl.value
+                : (terrainEl?.querySelector('input[type="hidden"]')?.value || '');
+
+            const isAllowed = (wsVal) => {
+                if (!wsVal || wsVal === 'none') return true;
+                if (!isClaimed) return false;
+                const r = rules[wsVal];
+                return !r || (terrainVal && r.allowedTerrains.includes(terrainVal));
+            };
+
+            // 1. Приглушаем весь селект участков, если гекс не принадлежит королевству
+            wsEl.classList.toggle('is-disabled', !isClaimed);
+            wsEl.style.opacity = isClaimed ? '1' : '0.4';
+            wsEl.style.pointerEvents = isClaimed ? 'auto' : 'none';
+            if (!isClaimed) wsEl.classList.remove('active');
+
+            // 2. Помечаем и блокируем недоступные пункты по рельефу
+            wsEl.querySelectorAll('.custom-option, option').forEach(opt => {
+                const val = opt.dataset?.value ?? opt.value;
+                const ok = isAllowed(val);
+                opt.classList.toggle('option-disabled', !ok);
+                if (opt.tagName === 'OPTION') opt.disabled = !ok;
+                opt.style.opacity = ok ? '1' : '0.35';
+                opt.style.textDecoration = ok ? 'none' : 'line-through';
+            });
+
+            // 3. Сбрасываем выбранный участок в 'none', если он стал запрещён
+            const curVal = wsEl.tagName === 'SELECT'
+                ? wsEl.value
+                : (wsEl.querySelector('input[type="hidden"]')?.value || 'none');
+
+            if (!isAllowed(curVal)) {
+                if (wsEl.tagName === 'SELECT') {
+                    wsEl.value = 'none';
+                } else {
+                    const hid = wsEl.querySelector('input[type="hidden"]');
+                    const trig = wsEl.querySelector('.custom-select-trigger');
+                    const noneOpt = wsEl.querySelector('.custom-option[data-value="none"]');
+                    if (hid) hid.value = 'none';
+                    if (trig) trig.textContent = noneOpt ? noneOpt.textContent : 'Нет';
+                    wsEl.querySelectorAll('.custom-option').forEach(o =>
+                        o.classList.toggle('selected', o.dataset.value === 'none')
+                    );
+                }
+            }
+        };
+
+        document.addEventListener('change', (e) => {
+            if (e.target.closest('#hexMenu')) syncGuard();
+        }, true);
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#hexMenu') || e.target.closest('#mapCanvas')) {
+                setTimeout(syncGuard, 20);
+            }
+        }, true);
+    },
+
 
     /**
      * Динамическая генерация числовых опций (СЛ и Уровни) на основе лимита из конфига
@@ -40,6 +128,7 @@ const UiSelectManager = {
             levelContainer.appendChild(optLvl);
         }
     },
+
     /**
      * Инициализация логики открытия/закрытия списков и выбора элементов
      */
@@ -49,8 +138,16 @@ const UiSelectManager = {
             const container = select.querySelector('.custom-options-container');
             const hiddenInput = select.querySelector('input[type="hidden"]');
 
+
+
+
             trigger.addEventListener('click', (e) => {
                 e.stopPropagation();
+
+                // Если селект заблокирован (например, гекс не принадлежит королевству) — не открываем
+                if (select.classList.contains('is-disabled')) {
+                    return;
+                }
 
                 // Закрываем все остальные открытые списки
                 document.querySelectorAll('.custom-select').forEach(otherSelect => {
@@ -66,6 +163,12 @@ const UiSelectManager = {
                 const option = e.target.closest('.custom-option');
                 if (!option) return;
 
+                // Не даём выбрать недоступную для текущего рельефа опцию
+                if (option.classList.contains('option-disabled')) {
+                    e.stopPropagation();
+                    return;
+                }
+
                 const val = option.getAttribute('data-value');
 
                 select.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
@@ -75,10 +178,15 @@ const UiSelectManager = {
                 trigger.setAttribute('data-value', val);
                 if (hiddenInput) {
                     hiddenInput.value = val;
+                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
                 }
 
                 select.classList.remove('active');
             });
+
+
+
+
         });
 
         // Клик по любому месту экрана закрывает активные списки
@@ -88,6 +196,8 @@ const UiSelectManager = {
             });
         });
     },
+
+
 
     /**
      * Синхронизация и принудительная установка значения списка извне
@@ -117,3 +227,4 @@ const UiSelectManager = {
 };
 
 export default UiSelectManager;
+

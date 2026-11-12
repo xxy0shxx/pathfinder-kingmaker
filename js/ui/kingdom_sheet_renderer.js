@@ -35,6 +35,7 @@ const KingdomSheetRenderer = {
 
 
 
+
     renderSheetTab(s, { roleNames, skillConfig, getSkillTotal }) {
         const ctrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
 
@@ -166,11 +167,34 @@ const KingdomSheetRenderer = {
 
 
 
+
+
+
+        const sizeVal = parseInt(s.size, 10) || 1;
+        const nationInfo = sizeVal >= 100 ? { name: 'Доминион', die: 'd12', cap: 4 }
+            : sizeVal >= 50  ? { name: 'Страна', die: 'd10', cap: 3 }
+                : sizeVal >= 25  ? { name: 'Государство', die: 'd8', cap: 2 }
+                    : sizeVal >= 10  ? { name: 'Провинция', die: 'd6', cap: 1 }
+                        :                  { name: 'Территория', die: 'd4', cap: 1 };
+
+        const diceCount = (parseInt(s.level, 10) || 1) + 4;
+        const isolatedCount = parseInt(s.isolatedHexesCount, 10) || 0;
+        const isolatedBadge = isolatedCount > 0
+            ? `<span style="color:#ff7675; font-weight:bold;">⚠ Вторичных гексов: ${isolatedCount} (штраф к управлению)</span>`
+            : `<span style="color:#2ecc71;">✔ Вся территория связана</span>`;
+
+        const farmlandCount = parseInt(s.workSites?.farmlands, 10) || 0;
+        const bonusYield = s.siteBonusYield || {};
+        const totalBonusSites = (bonusYield.lumberCamps || 0) + (bonusYield.mines || 0) + (bonusYield.quarries || 0);
+
         return `
             <div class="k-grid-2col" style="display:grid; grid-template-columns: 1.1fr 1fr; gap:16px;">
                 <div>
-                
                     <div class="k-panel">
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(212,175,55,0.12); border:1px solid #8a6421; border-radius:4px; padding:5px 10px; margin-bottom:8px; font-size:12px;">
+                            <span>👑 Этап: <b style="color:#ffd875;">${nationInfo.name}</b> • Кость ОР: <b style="color:#2ecc71;">${diceCount}${nationInfo.die}</b> • Потолок предм.: <b style="color:#ffd875;">+${nationInfo.cap}</b></span>
+                            ${isolatedBadge}
+                        </div>
                         <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px; margin-bottom:8px;">
                             <div><label class="k-lbl">Название королевства</label><input type="text" id="k_name" class="k-inp" value="${s.name}"></div>
                             <div><label class="k-lbl">Уровень</label><input type="number" id="k_level" class="k-inp" value="${s.level}"></div>
@@ -190,7 +214,7 @@ const KingdomSheetRenderer = {
                             <div><label class="k-lbl">Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
                             <div><label class="k-lbl">Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
                             <div><label class="k-lbl">Беспорядки</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
-                            <div><label class="k-lbl">Потребление</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="Автоматический расчёт: база поселения + постройки + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                            <div><label class="k-lbl">Потребл. ${farmlandCount > 0 ? `(-${farmlandCount}🌾)` : ''}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселения + здания + перенаселение − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                             <div><label class="k-lbl">Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
                             <div><label class="k-lbl">СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
                         </div>
@@ -199,7 +223,6 @@ const KingdomSheetRenderer = {
                             <tbody>${ruinsHtml}</tbody>
                         </table>
                     </div>
-
 
                     <div class="k-panel" style="margin-top:12px;">
                         <div class="k-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -211,20 +234,19 @@ const KingdomSheetRenderer = {
                 </div>
 
                 <div>
-                
                     <div class="k-panel">
                         <div class="k-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>РЕСУРСЫ И РАБОЧИЕ УЧАСТКИ</span>
+                            <span>РЕСУРСЫ И УЧАСТКИ ${totalBonusSites > 0 ? `<span style="color:#2ecc71; font-size:11px;">(+${totalBonusSites} от залежей 💎)</span>` : ''}</span>
                             <button type="button" class="btn cc" id="kBtnSyncHexMap" style="padding:2px 8px; font-size:11px;" title="Подсчитать захваченные гексы и добывающие участки с основной карты">🗺 С карты гексов</button>
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:8px;">
                             ${[
-                                { id: 'food', label: 'ЕДА' },
-                                { id: 'lumber', label: 'ДРЕВЕСИНА' },
-                                { id: 'luxuries', label: 'ПРЕДМЕТЫ РОСКОШИ' },
-                                { id: 'ore', label: 'РУДА' },
-                                { id: 'stone', label: 'КАМЕНЬ' }
-                            ].map(c => `
+            { id: 'food', label: 'ЕДА' },
+            { id: 'lumber', label: 'ДРЕВЕСИНА' },
+            { id: 'luxuries', label: 'РОСКОШЬ' },
+            { id: 'ore', label: 'РУДА' },
+            { id: 'stone', label: 'КАМЕНЬ' }
+        ].map(c => `
                                 <div>
                                     <label class="k-lbl">${c.label} (Макс ${s.commodities[c.id].max})</label>
                                     <input type="number" id="k_comm_${c.id}" class="k-inp" value="${s.commodities[c.id].value}">
@@ -232,15 +254,15 @@ const KingdomSheetRenderer = {
                             `).join('')}
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
-                            <div><label class="k-lbl">Угодья</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
-                            <div><label class="k-lbl">Лагеря лесорубов</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
-                            <div><label class="k-lbl">Шахты</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
-                            <div><label class="k-lbl">Каменоломни</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
+                            <div><label class="k-lbl">Угодья (-1 Потр.)</label><input type="number" id="k_ws_farmlands" class="k-inp" value="${s.workSites.farmlands}"></div>
+                            <div><label class="k-lbl">Лесорубы ${bonusYield.lumberCamps ? `(+${bonusYield.lumberCamps}💎)` : ''}</label><input type="number" id="k_ws_lumber" class="k-inp" value="${s.workSites.lumberCamps}"></div>
+                            <div><label class="k-lbl">Шахты ${bonusYield.mines ? `(+${bonusYield.mines}💎)` : ''}</label><input type="number" id="k_ws_mines" class="k-inp" value="${s.workSites.mines}"></div>
+                            <div><label class="k-lbl">Каменоломни ${bonusYield.quarries ? `(+${bonusYield.quarries}💎)` : ''}</label><input type="number" id="k_ws_quarries" class="k-inp" value="${s.workSites.quarries}"></div>
                         </div>
                     </div>
 
                     <div class="k-panel" style="margin-top:12px;">
-                        <div class="k-sec-title">НАВЫКИ КОРОЛЕВСТВА</div>
+                        <div class="k-sec-title">НАВЫКИ КОРОЛЕВСТВА (Потолок бонуса предмета: +${nationInfo.cap})</div>
                         <table class="k-table">
                             <thead><tr><th>Навык</th><th>Итог</th><th>Ранг</th><th>Статус</th><th>Обст.</th><th>Предм.</th><th>Проч.</th></tr></thead>
                             <tbody>${skillsHtml}</tbody>
@@ -257,11 +279,10 @@ const KingdomSheetRenderer = {
                             <textarea id="k_abilities_text" class="k-inp" rows="4" placeholder="Особенности королевства...">${s.abilitiesText || ''}</textarea>
                         </div>
                     </div>
-                    
-                    
                 </div>
             </div>
         `;
+
     },
 
 

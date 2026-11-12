@@ -22,6 +22,10 @@ const KingdomManager = {
         fame: 0,
         controlDcBase: 14,
         controlDcSize: 0,
+        claimedMilestones: [],
+        firstLandmarkClaimed: false,
+        isolatedHexesCount: 0,
+        siteBonusYield: { lumberCamps: 0, mines: 0, quarries: 0 },
         stats: {
             culture: { value: 10, modifier: 0 },
             economy: { value: 10, modifier: 0 },
@@ -142,6 +146,45 @@ const KingdomManager = {
         }
     },
 
+    _isHexClaimed(h) {
+        if (!h || typeof h !== 'object') return false;
+        const combined = `${h.title || ''} ${h.text || h.description || ''}`.toLowerCase();
+        return !!(h.kingdomClaimed || combined.includes('королевств') || combined.includes('владен'));
+    },
+
+    _countIsolatedHexes(hexes) {
+        const claimedKeys = new Set(
+            Object.entries(hexes).filter(([, h]) => this._isHexClaimed(h)).map(([k]) => k)
+        );
+        if (claimedKeys.size <= 1) return 0;
+
+        const evenOff = [[0, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0]];
+        const oddOff  = [[0, 1], [1, 1], [1, 0], [0, -1], [-1, 0], [-1, 1]];
+
+        const startKey = claimedKeys.has('hex_0_0') ? 'hex_0_0' : Array.from(claimedKeys)[0];
+        const visited = new Set([startKey]);
+        const queue = [startKey];
+
+        while (queue.length > 0) {
+            const curr = queue.shift();
+            const [, rStr, cStr] = curr.split('_');
+            const r = parseInt(rStr, 10), c = parseInt(cStr, 10);
+            const offsets = (r % 2 === 0) ? evenOff : oddOff;
+
+            for (const [dr, dc] of offsets) {
+                const nKey = `hex_${r + dr}_${c + dc}`;
+                if (claimedKeys.has(nKey) && !visited.has(nKey)) {
+                    visited.add(nKey);
+                    queue.push(nKey);
+                }
+            }
+        }
+        return Math.max(0, claimedKeys.size - visited.size);
+    },
+
+
+
+
     _mergeWithDefaults(saved) {
         const base = JSON.parse(JSON.stringify(this.defaultState));
         const merged = { ...base, ...saved };
@@ -233,57 +276,97 @@ const KingdomManager = {
     },
 
 
+
     syncFromHexMap(silent = false) {
         const hexes = this.mapDataRef?.hexes || {};
-        let claimedCount = 0;
-        let farmlands = 0;
-        let lumberCamps = 0;
-        let mines = 0;
-        let quarries = 0;
+        const s = this.state;
+        if (!Array.isArray(s.claimedMilestones)) s.claimedMilestones = [];
 
-        Object.values(hexes).forEach(h => {
+        let claimedCount = 0, farmlands = 0, lumberCamps = 0, mines = 0, quarries = 0;
+        let bonusLumber = 0, bonusMines = 0, bonusQuarries = 0;
+        const notices = [];
+
+
+
+        Object.entries(hexes).forEach(([key, h]) => {
             if (!h || typeof h !== 'object') return;
+            const combined = `${h.title || ''} ${h.text || h.description || ''}`.toLowerCase();
+            const isClaimed = this._isHexClaimed(h);
 
-            const title = (h.title || '').toLowerCase();
-            const desc = (h.text || h.description || '').toLowerCase();
-            const combined = `${title} ${desc}`;
+            // Игнорируем нейтральные/незахваченные гексы для экономики и рабочих участков
+            if (!isClaimed) return;
 
-            const isClaimed = !!(h.kingdomClaimed || combined.includes('королевств') || combined.includes('владен'));
-            if (isClaimed) {
-                claimedCount++;
+            claimedCount++;
+            const isResourceHex = h.type === 'resource';
+
+            // Достопримечательность (Landmark): первая захваченная даёт +40 XP и -1d4 Unrest
+            if (h.type === 'landmark' && !h._landmarkRewarded) {
+                h._landmarkRewarded = true;
+                const unrestDrop = Math.floor(Math.random() * 4) + 1;
+                s.unrest = Math.max(0, (parseInt(s.unrest, 10) || 0) - unrestDrop);
+                let xpBonus = 0;
+                if (!s.firstLandmarkClaimed) {
+                    s.firstLandmarkClaimed = true;
+                    xpBonus = 40;
+                    s.xp = (parseInt(s.xp, 10) || 0) + 40;
+                }
+                notices.push(`🏛 Достопримечательность (${key}): Беспорядки -${unrestDrop}${xpBonus ? ', +40 XP' : ''}`);
             }
 
+            // Рабочие участки учитываются ТОЛЬКО на территории королевства
             const ws = h.workSite || 'none';
-            if (ws === 'farmlands' || (ws === 'none' && (combined.includes('ферм') || combined.includes('farmland')))) farmlands++;
-            if (ws === 'lumberCamps' || (ws === 'none' && (combined.includes('лесопил') || combined.includes('lumber')))) lumberCamps++;
-            if (ws === 'mines' || (ws === 'none' && (combined.includes('шахт') || combined.includes('mine')))) mines++;
-            if (ws === 'quarries' || (ws === 'none' && (combined.includes('каменолом') || combined.includes('quarr')))) quarries++;
+            if (ws === 'farmlands' || (ws === 'none' && combined.includes('ферм'))) {
+                farmlands++;
+            }
+            if (ws === 'lumberCamps' || (ws === 'none' && combined.includes('лесопил'))) {
+                lumberCamps++;
+                if (isResourceHex) bonusLumber++;
+            }
+            if (ws === 'mines' || (ws === 'none' && combined.includes('шахт'))) {
+                mines++;
+                if (isResourceHex) bonusMines++;
+            }
+            if (ws === 'quarries' || (ws === 'none' && combined.includes('каменолом'))) {
+                quarries++;
+                if (isResourceHex) bonusQuarries++;
+            }
         });
 
-        const s = this.state;
         const sizeBefore = s.size;
         s.size = Math.max(1, claimedCount);
+        s.isolatedHexesCount = this._countIsolatedHexes(hexes);
+
+        // Проверка пороговых вех размера (Milestone XP: 10, 25, 50, 100 гексов)
+        [10, 25, 50, 100].forEach(ms => {
+            if (s.size >= ms && !s.claimedMilestones.includes(ms)) {
+                s.claimedMilestones.push(ms);
+                const rewardXp = ms === 10 ? 40 : (ms === 25 ? 80 : 120);
+                s.xp = (parseInt(s.xp, 10) || 0) + rewardXp;
+                notices.push(`🏆 Веха развития (${ms} гексов): +${rewardXp} XP!`);
+            }
+        });
 
         s.workSites.farmlands = farmlands;
         s.workSites.lumberCamps = lumberCamps;
         s.workSites.mines = mines;
         s.workSites.quarries = quarries;
+        s.siteBonusYield = { lumberCamps: bonusLumber, mines: bonusMines, quarries: bonusQuarries };
 
         this.recalculateModifiers();
         this._persist();
         this.renderUi();
 
-        if (!silent) {
+        if (!silent || notices.length > 0) {
             alert(
-                `🗺 Синхронизация с картой завершена:\n\n` +
-                `• Размер королевства (гексов): ${sizeBefore} → ${s.size}\n` +
-                `• Фермы: ${farmlands}\n` +
-                `• Лесопилки: ${lumberCamps}\n` +
-                `• Шахты: ${mines}\n` +
-                `• Каменоломни: ${quarries}`
+                `🗺 Синхронизация с картой завершена:\n` +
+                `• Размер: ${sizeBefore} → ${s.size} (${this.getNationTierInfo(s.size).name})\n` +
+                `• Изолированных (вторичных) гексов: ${s.isolatedHexesCount}\n` +
+                `• Добыча/ход: Лес ${lumberCamps + bonusLumber}, Руда ${mines + bonusMines}, Камень ${quarries + bonusQuarries}, Фермы -${farmlands} Потребл.` +
+                (notices.length ? `\n\nСобытия:\n${notices.join('\n')}` : '')
             );
         }
     },
+
 
 
     exportCityToPng() {
@@ -566,14 +649,6 @@ const KingdomManager = {
         warden: 'stability'
     },
 
-    getSizeModifier(size) {
-        const s = parseInt(size, 10) || 1;
-        if (s >= 100) return 4;
-        if (s >= 50) return 3;
-        if (s >= 25) return 2;
-        if (s >= 10) return 1;
-        return 0;
-    },
 
     getUnrestPenalty() {
         const u = parseInt(this.state?.unrest, 10) || 0;
@@ -582,42 +657,6 @@ const KingdomManager = {
         if (u >= 5) return -2;
         if (u >= 1) return -1;
         return 0;
-    },
-
-    recalculateModifiers() {
-        // 1. Модификаторы 4 основных характеристик
-        for (let key in this.state.stats) {
-            const val = parseInt(this.state.stats[key].value, 10) || 10;
-            this.state.stats[key].modifier = Math.floor((val - 10) / 2);
-        }
-
-        // 2. Модификатор Control DC от Size и лимит складов Commodities
-        const sizeMod = this.getSizeModifier(this.state.size);
-        this.state.controlDcSize = sizeMod;
-
-        const maxComm = 4 + sizeMod * 4;
-        if (this.state.commodities) {
-            ['food', 'lumber', 'luxuries', 'ore', 'stone'].forEach(c => {
-                if (this.state.commodities[c]) {
-                    this.state.commodities[c].max = maxComm;
-                }
-            });
-        }
-
-        // 3. Пороги (10 + мод. характеристики) и штрафы Упадка (Ruins)
-        if (this.state.ruins) {
-            for (let ruinKey in this.ruinAbilityMap) {
-                const r = this.state.ruins[ruinKey];
-                if (!r) continue;
-                const abKey = this.ruinAbilityMap[ruinKey];
-                const abMod = this.state.stats[abKey]?.modifier || 0;
-                r.threshold = Math.max(1, 10 + abMod);
-                r.penalty = Math.floor((parseInt(r.score, 10) || 0) / r.threshold);
-            }
-        }
-
-        // 4. Синхронизация бонусов построек и Consumption
-        this.syncSettlementStats();
     },
 
     getSkillTotal(skillId) {
@@ -648,51 +687,6 @@ const KingdomManager = {
         return abilityMod + profBonus + investedBonus + (sk.status || 0) + (sk.circ || 0) + (sk.item || 0) + (sk.other || 0) - ruinPenalty + unrestPenalty;
     },
 
-
-
-
-    syncSettlementStats() {
-        if (!this.state || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
-
-        const ug = this.state.urbanGrid;
-        const buildings = ug?.buildings || [];
-        const effects = KingdomBuildings.calculateSettlementEffects(buildings);
-
-        // 1. Синхронизация максимальных Item-бонусов в таблицу навыков
-        if (this.state.skills) {
-            const maxBonuses = effects.maxSkillBonuses || {};
-            this.skillConfig.forEach(cfg => {
-                if (!this.state.skills[cfg.id]) {
-                    this.state.skills[cfg.id] = { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
-                }
-                this.state.skills[cfg.id].item = maxBonuses[cfg.id] || 0;
-            });
-        }
-
-        // 2. Автоматический расчёт перенаселения и Consumption поселения
-        if (ug) {
-            const autoOvercrowded = !!effects.isOvercrowded;
-            ug.overcrowded = autoOvercrowded;
-
-            const baseByType = { village: 1, town: 2, city: 4, metropolis: 6 };
-            const baseCons = baseByType[ug.settlementType] ?? 1;
-            const crowdPenalty = ug.overcrowded ? 2 : 0;
-            const totalSettlementCons = Math.max(0, baseCons + (effects.totalConsumption || 0) + crowdPenalty);
-
-            ug.consumption = totalSettlementCons;
-            this.state.consumption = totalSettlementCons;
-        }
-
-    },
-
-    getResourceDieSides() {
-        const s = parseInt(this.state.size, 10) || 1;
-        if (s >= 100) return 12;
-        if (s >= 50) return 10;
-        if (s >= 25) return 8;
-        if (s >= 10) return 6;
-        return 4;
-    },
 
     openUpkeepModal() {
         this.saveFromUi();
@@ -767,63 +761,57 @@ const KingdomManager = {
 
 
 
+
+
     applyUpkeepWithRoll(rolledRp) {
         const s = this.state;
         const changes = [];
+        const bonus = s.siteBonusYield || {};
 
-        // 1. Сбор ресурсов с рабочих участков (Work Sites)
         const harvests = [
-            { site: 'farmlands', comm: 'food', label: 'Еда' },
-            { site: 'lumberCamps', comm: 'lumber', label: 'Древесина' },
-            { site: 'mines', comm: 'ore', label: 'Руда' },
-            { site: 'quarries', comm: 'stone', label: 'Камень' }
+            { site: 'farmlands',   comm: 'food',   label: 'Еда',       extra: 0 },
+            { site: 'lumberCamps', comm: 'lumber', label: 'Древесина', extra: bonus.lumberCamps || 0 },
+            { site: 'mines',       comm: 'ore',    label: 'Руда',      extra: bonus.mines || 0 },
+            { site: 'quarries',    comm: 'stone',  label: 'Камень',    extra: bonus.quarries || 0 }
         ];
 
-        harvests.forEach(({ site, comm, label }) => {
-            const count = parseInt(s.workSites[site], 10) || 0;
-            if (count > 0) {
+        harvests.forEach(({ site, comm, label, extra }) => {
+            const totalYield = (parseInt(s.workSites[site], 10) || 0) + extra;
+            if (totalYield > 0) {
                 const before = parseInt(s.commodities[comm].value, 10) || 0;
                 const max = parseInt(s.commodities[comm].max, 10) || 4;
-                const after = Math.min(max, before + count);
-                const gained = after - before;
+                const after = Math.min(max, before + totalYield);
                 s.commodities[comm].value = after;
-
-                const capNote = (before + count > max) ? ` <span style="color:#f39c12;">(лимит склада ${max})</span>` : '';
-                changes.push(`<div>• <b>${label}:</b> ${before} → <b style="color:#2ecc71;">${after}</b> (+${gained})${capNote}</div>`);
+                const resNote = extra > 0 ? ` (в т.ч. +${extra} от залежей)` : '';
+                changes.push(`<div>• <b>${label}:</b> ${before} → <b style="color:#2ecc71;">${after}</b> (+${after - before})${resNote}</div>`);
             }
         });
 
-        // 2. Оплата потребления (Consumption) из запасов Food
         const cons = parseInt(s.consumption, 10) || 0;
         if (cons > 0) {
             const foodBefore = parseInt(s.commodities.food.value, 10) || 0;
             if (foodBefore >= cons) {
                 s.commodities.food.value = foodBefore - cons;
-                changes.push(`<div>• <b>Потребление (-${cons} Еды):</b> ${foodBefore} → <b style="color:#ebd291;">${s.commodities.food.value}</b></div>`);
+                changes.push(`<div>• <b>Потребление (-${cons} Еды):</b> ${foodBefore} → <b>${s.commodities.food.value}</b></div>`);
             } else {
                 const deficit = cons - foodBefore;
-                const unrestBefore = parseInt(s.unrest, 10) || 0;
                 s.commodities.food.value = 0;
-                s.unrest = unrestBefore + deficit;
-                changes.push(`<div style="color:#ff7675;">• <b>⚠ Нехватка провизии!</b> Списано ${foodBefore} Еды (остаток 0), <b>Беспорядки:</b> ${unrestBefore} → <b>${s.unrest}</b> (+${deficit})</div>`);
+                s.unrest = (parseInt(s.unrest, 10) || 0) + deficit;
+                changes.push(`<div style="color:#ff7675;">• <b>⚠ Нехватка провизии!</b> Беспорядки +${deficit}</div>`);
             }
-        } else {
-            changes.push(`<div>• <b>Потребление:</b> 0 Food</div>`);
         }
 
-        // 3. Начисление RP из введённого значения костей
         const rpBefore = parseInt(s.rp, 10) || 0;
-        const addedRp = parseInt(rolledRp, 10) || 0;
-        s.rp = rpBefore + addedRp;
-        changes.push(`<div>• <b>Очки ресурсов (RP):</b> ${rpBefore} → <b style="color:#ffd875;">${s.rp}</b> (+${addedRp})</div>`);
+        s.rp = rpBefore + (parseInt(rolledRp, 10) || 0);
+        changes.push(`<div>• <b>Очки ресурсов (RP):</b> ${rpBefore} → <b style="color:#ffd875;">${s.rp}</b></div>`);
 
         this.recalculateModifiers();
         this._persist();
         this.renderUi();
-
-        // Показываем стилизованное окно с результатами хода
         this._showUpkeepResultModal(changes);
     },
+
+
 
     _showUpkeepResultModal(changesHtmlList) {
         const existing = document.getElementById('kUpkeepResultOverlay');
@@ -1757,7 +1745,99 @@ const KingdomManager = {
             });
         });
 
-    }
+    },
+
+    // Таблица ступеней развития нации по Размеру королевства (Pathfinder 2e Kingmaker)
+    getNationTierInfo(size) {
+        const s = parseInt(size, 10) || 1;
+        if (s >= 100) return { name: 'Доминион',    die: 12, dcMod: 4, storage: 20, maxItemBonus: 4 };
+        if (s >= 50)  return { name: 'Страна',      die: 10, dcMod: 3, storage: 16, maxItemBonus: 3 };
+        if (s >= 25)  return { name: 'Государство', die: 8,  dcMod: 2, storage: 12, maxItemBonus: 2 };
+        if (s >= 10)  return { name: 'Провинция',   die: 6,  dcMod: 1, storage: 8,  maxItemBonus: 1 };
+        return               { name: 'Территория',  die: 4,  dcMod: 0, storage: 4,  maxItemBonus: 1 };
+    },
+
+    getSizeModifier(size) {
+        return this.getNationTierInfo(size).dcMod;
+    },
+
+    getResourceDieSides() {
+        return this.getNationTierInfo(this.state?.size).die;
+    },
+
+    recalculateModifiers() {
+        // 1. Модификаторы 4 основных характеристик
+        for (let key in this.state.stats) {
+            const val = parseInt(this.state.stats[key].value, 10) || 10;
+            this.state.stats[key].modifier = Math.floor((val - 10) / 2);
+        }
+
+        // 2. Ступень нации: Control DC Modifier и лимит складов Commodities
+        const tier = this.getNationTierInfo(this.state.size);
+        this.state.controlDcSize = tier.dcMod;
+
+        if (this.state.commodities) {
+            ['food', 'lumber', 'luxuries', 'ore', 'stone'].forEach(c => {
+                if (this.state.commodities[c]) {
+                    this.state.commodities[c].max = tier.storage;
+                }
+            });
+        }
+
+        // 3. Пороги (10 + мод. характеристики) и штрафы Упадка (Ruins)
+        if (this.state.ruins) {
+            for (let ruinKey in this.ruinAbilityMap) {
+                const r = this.state.ruins[ruinKey];
+                if (!r) continue;
+                const abKey = this.ruinAbilityMap[ruinKey];
+                const abMod = this.state.stats[abKey]?.modifier || 0;
+                r.threshold = Math.max(1, 10 + abMod);
+                r.penalty = Math.floor((parseInt(r.score, 10) || 0) / r.threshold);
+            }
+        }
+
+        // 4. Синхронизация бонусов построек (с учётом потолка Item-бонуса) и Consumption (с учётом ферм)
+        this.syncSettlementStats();
+    },
+
+    syncSettlementStats() {
+        if (!this.state || typeof KingdomBuildings.calculateSettlementEffects !== 'function') return;
+
+        const ug = this.state.urbanGrid;
+        const buildings = ug?.buildings || [];
+        const effects = KingdomBuildings.calculateSettlementEffects(buildings);
+        const tier = this.getNationTierInfo(this.state.size);
+
+        // 1. Синхронизация Item-бонусов с ограничением по потолку размера нации (maxItemBonus)
+        if (this.state.skills) {
+            const maxBonuses = effects.maxSkillBonuses || {};
+            this.skillConfig.forEach(cfg => {
+                if (!this.state.skills[cfg.id]) {
+                    this.state.skills[cfg.id] = { prof: 0, status: 0, circ: 0, item: 0, other: 0 };
+                }
+                const rawItemBonus = maxBonuses[cfg.id] || 0;
+                this.state.skills[cfg.id].item = Math.min(tier.maxItemBonus, rawItemBonus);
+            });
+        }
+
+        // 2. Расчёт Consumption поселения и королевства: каждая Ферма снижает Consumption на 1
+        if (ug) {
+            ug.overcrowded = !!effects.isOvercrowded;
+
+            const baseByType = { village: 1, town: 2, city: 4, metropolis: 6 };
+            const baseCons = baseByType[ug.settlementType] ?? 1;
+            const crowdPenalty = ug.overcrowded ? 2 : 0;
+            const totalSettlementCons = Math.max(0, baseCons + (effects.totalConsumption || 0) + crowdPenalty);
+
+            ug.consumption = totalSettlementCons;
+
+            const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
+            this.state.consumption = Math.max(0, totalSettlementCons - farmlandReduction);
+        }
+    },
+
+
+
 };
 
 export default KingdomManager;

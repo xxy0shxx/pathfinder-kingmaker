@@ -24,9 +24,92 @@ const HexModal = {
         this.groupMenuFields();
         this.assembleActionButtons();
         this.ensureKingdomControls();
+        this.initWorkSiteValidation()
         this.initColorPresets();
         this.attachEvents();
     },
+
+
+
+    isWorkSiteCompatible(workSite, terrain, isClaimed = true) {
+        if (!workSite || workSite === 'none' || workSite === '') return { ok: true };
+        if (!isClaimed) {
+            return {
+                ok: false,
+                reason: 'Рабочие участки доступны только на территории королевства. Сначала отметьте галочку «Территория королевства».'
+            };
+        }
+        const rule = MAP_CONFIG.workSiteRules?.[workSite];
+        if (!rule) return { ok: true };
+        if (!terrain || !rule.allowedTerrains.includes(terrain)) {
+            const terrainName = MAP_CONFIG.terrains?.[terrain]?.label || 'не выбран';
+            return { ok: false, reason: `${rule.reason} (Сейчас: ${terrainName})` };
+        }
+        return { ok: true };
+    },
+
+
+
+
+
+    validateWorkSiteForTerrain() {
+        const { wsSelect, wsInput, terrainInput, claimedCb } = this._getWorkSiteControls();
+        if (!wsSelect) return;
+
+        const isClaimed = !!claimedCb?.checked;
+        const terrain = terrainInput?.value || '';
+
+        // 1. Приглушаем и блокируем весь селект участков, если гекс не принадлежит королевству
+        wsSelect.classList.toggle('is-disabled', !isClaimed);
+        wsSelect.style.opacity = isClaimed ? '1' : '0.45';
+        wsSelect.style.pointerEvents = isClaimed ? 'auto' : 'none';
+        wsSelect.title = isClaimed ? '' : 'Сначала отметьте «Территория королевства»';
+        if (!isClaimed) wsSelect.classList.remove('active');
+
+        // 2. Помечаем отдельные опции по рельефу
+        wsSelect.querySelectorAll('.custom-option').forEach(opt => {
+            const check = this.isWorkSiteCompatible(opt.dataset.value, terrain, isClaimed);
+            opt.classList.toggle('option-disabled', !check.ok);
+            opt.style.opacity = check.ok ? '1' : '0.35';
+            opt.style.textDecoration = check.ok ? 'none' : 'line-through';
+            opt.title = check.ok ? '' : check.reason;
+        });
+
+        // 3. Если текущий выбранный участок стал невалидным — сбрасываем в 'none'
+        const currentVal = wsInput?.value || 'none';
+        if (!this.isWorkSiteCompatible(currentVal, terrain, isClaimed).ok) {
+            if (wsInput) wsInput.value = 'none';
+            const trigger = wsSelect.querySelector('.custom-select-trigger');
+            const noneOpt = wsSelect.querySelector('.custom-option[data-value="none"]');
+            if (trigger) {
+                trigger.textContent = noneOpt ? noneOpt.textContent : 'Нет';
+                trigger.setAttribute('data-value', 'none');
+            }
+            wsSelect.querySelectorAll('.custom-option').forEach(o => {
+                o.classList.toggle('selected', o.dataset.value === 'none');
+            });
+        }
+    },
+
+
+
+
+
+    /**
+     * Слушатели чекбокса королевства, местности и выбора участка
+     */
+    initWorkSiteValidation() {
+        const { claimedCb, terrainInput } = this._getWorkSiteControls();
+        if (claimedCb) {
+            claimedCb.addEventListener('change', () => this.validateWorkSiteForTerrain());
+        }
+        if (terrainInput) {
+            terrainInput.addEventListener('change', () => this.validateWorkSiteForTerrain());
+        }
+    },
+
+
+
     ensureKingdomControls() {
         const menu = document.getElementById('hexMenu');
         if (!menu || document.getElementById('hexKingdomClaimed')) return;
@@ -200,6 +283,8 @@ const HexModal = {
             UiSelectManager.setCustomSelectValue('customSelectRegionLevel', '');
         }
 
+        this.validateWorkSiteForTerrain()
+
         if (inpSquadHere) inpSquadHere.checked = hexData ? !!hexData.squadHere : false;
         if (inpColor) inpColor.value = currentColor;
 
@@ -228,6 +313,9 @@ const HexModal = {
         if (selWorkSite) selWorkSite.value = (hexData && hexData.workSite) ? hexData.workSite : 'none';
 
         if (this.modal) this.modal.classList.add('open');
+
+
+
     },
 
     /**
@@ -255,6 +343,16 @@ const HexModal = {
      */
     save() {
         if (!this.currentHexId) return;
+
+        const terrainVal = document.getElementById('hexTerrain')?.value || '';
+        const workSiteVal = document.getElementById('hexWorkSite')?.value || 'none';
+        const isClaimedVal = !!document.getElementById('hexKingdomClaimed')?.checked;
+        const compatCheck = this.isWorkSiteCompatible(workSiteVal, terrainVal, isClaimedVal);
+
+        if (!compatCheck.ok) {
+            alert(`⚠ Невозможно сохранить гекс:\n\n${compatCheck.reason}`);
+            return;
+        }
 
         const questTitleVal = document.getElementById('inpQuestTitle').value.trim();
 
@@ -352,6 +450,47 @@ const HexModal = {
     },
 
      */
+
+    /**
+     * Универсальный поиск элементов управления королевством, местностью и участками в #hexMenu
+     */
+    _getWorkSiteControls() {
+        const menu = document.getElementById('hexMenu');
+        if (!menu) return {};
+
+        // 1. Селект рабочих участков (ищем по наличию опции farmlands или по id)
+        let wsSelect = document.getElementById('hexWorkSite')?.closest('.custom-select')
+            || document.getElementById('inpWorkSite')?.closest('.custom-select');
+        if (!wsSelect) {
+            wsSelect = Array.from(menu.querySelectorAll('.custom-select'))
+                .find(sel => sel.querySelector('.custom-option[data-value="farmlands"]'));
+        }
+
+        // 2. Селект местности (ищем по наличию опции plains или по id)
+        let terrainSelect = document.getElementById('hexTerrain')?.closest('.custom-select')
+            || document.getElementById('inpTerrain')?.closest('.custom-select');
+        if (!terrainSelect) {
+            terrainSelect = Array.from(menu.querySelectorAll('.custom-select'))
+                .find(sel => sel.querySelector('.custom-option[data-value="plains"]'));
+        }
+
+        // 3. Чекбокс «Территория королевства» (по id или по тексту label рядом)
+        let claimedCb = document.getElementById('hexKingdomClaimed')
+            || document.getElementById('inpKingdomClaimed');
+        if (!claimedCb) {
+            const row = Array.from(menu.querySelectorAll('.checkbox-row, label, div'))
+                .find(el => /королевств/i.test(el.textContent || ''));
+            claimedCb = row?.querySelector('input[type="checkbox"]') || null;
+        }
+
+        return {
+            wsSelect,
+            wsInput: wsSelect?.querySelector('input[type="hidden"]') || document.getElementById('hexWorkSite') || document.getElementById('inpWorkSite'),
+            terrainSelect,
+            terrainInput: terrainSelect?.querySelector('input[type="hidden"]') || document.getElementById('hexTerrain') || document.getElementById('inpTerrain'),
+            claimedCb
+        };
+    },
 
     /**
      * Навешивание стандартных слушателей событий на кнопки внутри модального окна
