@@ -388,26 +388,26 @@ const KingdomSheetRenderer = {
 
     renderEventsTab(s) {
         const skillLabelsRu = {
-            agriculture: 'Сельское хозяйство',
-            arts:        'Искусства',
-            boating:     'Мореходство',
-            defense:     'Оборона',
-            engineering: 'Инженерия',
-            exploration: 'Исследование',
-            folklore:    'Традиции',
-            industry:    'Промышленность',
-            intrigue:    'Интрига',
-            magic:       'Магия',
-            politics:    'Политика',
-            scholarship: 'Учёность',
-            statecraft:  'Управление',
-            trade:       'Торговля',
-            warfare:     'Военное дело',
-            wilderness:  'Дикая природа'
+            agriculture: '🌾 Сельское хозяйство',
+            arts:        '🎭 Искусства',
+            boating:     '⛵ Мореходство',
+            defense:     '🛡️ Оборона',
+            engineering: '⚙️ Инженерия',
+            exploration: '🧭 Исследование',
+            folklore:    '📜 Традиции',
+            industry:    '🏭 Промышленность',
+            intrigue:    '🗡️ Интрига',
+            magic:       '🔮 Магия',
+            politics:    '⚖️ Политика',
+            scholarship: '📚 Учёность',
+            statecraft:  '👑 Управление',
+            trade:       '💰 Торговля',
+            warfare:     '⚔️ Военное дело',
+            wilderness:  '🌲 Дикая природа'
         };
 
         const eventsHtml = s.events.length === 0
-            ? `<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">Активных событий королевства нет. Нажмите «🎲 Событие хода» или «+ Добавить событие».</div>`
+            ? `<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">📭 Активных событий королевства нет. Нажмите «🎲 Событие хода» или «+ Добавить событие».</div>`
             : s.events.map(ev => {
                 const evLevel = ev.level !== undefined && ev.level !== '' ? ev.level : (parseInt(s.level, 10) || 1);
                 const evMod = ev.modifier !== undefined && ev.modifier !== '' ? ev.modifier : 0;
@@ -423,26 +423,26 @@ const KingdomSheetRenderer = {
                     <div class="k-panel k-event-card" data-ev-id="${ev.id}" style="position:relative; border-color:${borderCol};">
                         <button type="button" class="k-btn-del-ev" data-del-ev="${ev.id}" title="Удалить событие" style="position:absolute; top:8px; right:8px; background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:4px; cursor:pointer; width:24px; height:24px;">×</button>
                         <div style="display:grid; grid-template-columns: 3fr 1fr; gap:8px; margin-bottom:8px; padding-right:28px;">
-                            <div><label class="k-lbl">Название события</label><input type="text" class="k-inp k-ev-name" value="${ev.name || ev.title || ''}" placeholder="Название события..."></div>
-                            <div><label class="k-lbl">Уровень</label><input type="number" class="k-inp k-ev-level" value="${evLevel}"></div>
+                            <div><label class="k-lbl">📌 Название события</label><input type="text" class="k-inp k-ev-name" value="${ev.name || ev.title || ''}" placeholder="Название события..."></div>
+                            <div><label class="k-lbl">⭐ Уровень</label><input type="number" class="k-inp k-ev-level" value="${evLevel}"></div>
                         </div>
                         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px; margin-bottom:8px;">
                             <div>
-                                <label class="k-lbl">Навык разрешения</label>
+                                <label class="k-lbl">🎲 Навык разрешения</label>
                                 <select class="k-inp k-ev-skill">
                                     ${Object.entries(skillLabelsRu).map(([key, label]) =>
                     `<option value="${key}" ${(ev.skill || 'statecraft') === key ? 'selected' : ''}>${label}</option>`
                 ).join('')}
                                 </select>
                             </div>
-                            <div><label class="k-lbl">Модификатор</label><input type="number" class="k-inp k-ev-mod" value="${evMod}"></div>
+                            <div><label class="k-lbl">⚖️ Модификатор</label><input type="number" class="k-inp k-ev-mod" value="${evMod}"></div>
                         </div>
                         <div style="margin-bottom:8px;">
-                            <label class="k-lbl">Заметки</label>
+                            <label class="k-lbl">📝 Заметки</label>
                             <textarea class="k-inp k-ev-notes" rows="3" placeholder="Описание и последствия...">${ev.notes || ''}</textarea>
                         </div>
                         <div>
-                            <label class="k-lbl">Статус разрешения</label>
+                            <label class="k-lbl">🚦 Статус разрешения</label>
                             <select class="k-inp k-ev-status">
                                 <option value="active" ${isActive ? 'selected' : ''}>⏳ Активно</option>
                                 <option value="resolved" ${isResolved ? 'selected' : ''}>✅ Разрешено</option>
@@ -455,7 +455,7 @@ const KingdomSheetRenderer = {
 
         return `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <span style="font-size:15px; font-weight:bold; color:#ffd875;">ЖУРНАЛ СОБЫТИЙ КОРОЛЕВСТВА</span>
+                <span style="font-size:15px; font-weight:bold; color:#ffd875;">⚡ ЖУРНАЛ СОБЫТИЙ КОРОЛЕВСТВА</span>
                 <div style="display:flex; gap:8px; align-items:center;">
                     <button type="button" class="btn cc" id="kBtnRollKingdomEvent" title="Проверить фазу Событий конца хода (СЛ 16 / СЛ 11 + таблица d100)">🎲 Событие хода</button>
                     <button type="button" class="btn ok" id="kBtnAddEvent">+ Добавить событие</button>
