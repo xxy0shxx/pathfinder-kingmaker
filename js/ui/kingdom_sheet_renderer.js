@@ -44,24 +44,9 @@ const KingdomSheetRenderer = {
                </button>`
             : '';
 
-        const calendarBarHtml = `
-            <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.38); border:1px solid #543e0d; border-radius:6px; padding:6px 12px; margin-bottom:12px; font-size:13px;">
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <span style="color:#ffd875; font-weight:bold;">📅 ${cal.day} ${cal.monthName} ${cal.year} AR</span>
-                    <span style="background:#040905; border:1px solid #8a6421; padding:2px 8px; border-radius:4px; color:#ebd291;">${cal.seasonLabel}</span>
-                    <button type="button" class="btn cc" id="kBtnCalNextDay" style="padding:2px 8px; font-size:11px;">+1 День</button>
-                    <button type="button" class="btn cc" id="kBtnCalNextMonth" style="padding:2px 8px; font-size:11px;">+1 Месяц</button>
-                </div>
-                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <span style="color:#ebd291;">Погода дня: <b style="color:#ffd875;">${bgWeatherLabel}</b></span>
-                    ${hazardBadgeHtml}
-                    <button type="button" class="btn cc" id="kBtnOpenWeatherRoll" style="padding:3px 10px; font-size:12px;">🌦 Подготовка погоды</button>
-                </div>
-            </div>
-        `;
-
-
-
+        const calendarBarHtml = window.WeatherManager
+            ? window.WeatherManager.renderCompactBarHtml()
+            : '';
 
         let bodyHtml = '';
         if (activeSubTab === 'sheet') bodyHtml = this.renderSheetTab(state, helpers);

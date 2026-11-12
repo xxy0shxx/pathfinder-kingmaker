@@ -256,6 +256,8 @@ import TacticalMapManager from './tactical_map/tactical_map_manager.js';
 
 import InitiativeManager from './core/initiative_manager.js';
 
+import WeatherManager from './core/weather_manager.js';
+
 let hasMoved = false;
 let mapData = { hexes: {}, kingdom: null, paths: [] };
 window.FLIGHT_FROM_CAPITAL_MODE = true;
@@ -337,6 +339,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Настройка фокуса по клику из журнала квестов
     QuestManager.init(mapData.hexes, (hexId) => AnimationManager.focusOnHex(hexId));
 
+    // Инициализация независимого календаря и погоды
+    WeatherManager.init(mapData, () => {
+        StorageManager.saveData(mapData);
+    });
+
     // Настройка менеджмента королевства
     KingdomManager.init(mapData, () => {
         StorageManager.saveData(mapData);
@@ -358,6 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
         QuestManager.updateMapData(mapData.hexes);
         if (typeof PathManager.updateMapData === 'function') {
             PathManager.updateMapData(mapData);
+        }
+        if (WeatherManager && typeof WeatherManager.updateMapData === 'function') {
+            WeatherManager.updateMapData(mapData);
         }
         KingdomManager.updateMapData(mapData);
 

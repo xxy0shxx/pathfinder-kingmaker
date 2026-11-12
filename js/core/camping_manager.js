@@ -280,6 +280,7 @@ const CampingManager = {
 
 
 
+
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
         const specEl = document.getElementById('campSpecialIngredients');
@@ -350,7 +351,8 @@ const CampingManager = {
             );
         }
 
-        const cal = window.KingdomManager?.getCalendarInfo?.();
+        // >>> ВСТАВИТЬ СЮДА (вместо старого блока const cal = window.KingdomManager...) <<<
+        const cal = window.WeatherManager?.getCalendarInfo?.() || window.KingdomManager?.getCalendarInfo?.();
         if (cal) {
             if (cal.precip || cal.cold) {
                 const condName = (cal.precip && cal.cold) ? 'Снег и холод' : (cal.precip ? 'Небольшие осадки' : 'Холодный день');
@@ -371,8 +373,25 @@ const CampingManager = {
             }
         }
 
+        // Выводим общую плашку календаря и погоды в левую колонку Привала
+        const leftCol = document.querySelector('#campingTabletContainer .camping-left-col');
+        if (leftCol && window.WeatherManager) {
+            let campWeatherHost = leftCol.querySelector('#campWeatherHost');
+            if (!campWeatherHost) {
+                campWeatherHost = document.createElement('div');
+                campWeatherHost.id = 'campWeatherHost';
+                const hexBanner = leftCol.querySelector('.camp-current-hex-banner');
+                if (hexBanner) hexBanner.after(campWeatherHost);
+                else leftCol.prepend(campWeatherHost);
+            }
+            campWeatherHost.innerHTML = window.WeatherManager.renderCompactBarHtml();
+            window.WeatherManager.bindBarEvents(campWeatherHost);
+        }
+
         this.renderAlliesDock();
+
     },
+
 
 
 
@@ -507,9 +526,11 @@ const CampingManager = {
                 return;
             }
 
+
             // Применяем награды привала в экономику королевства (если лагерь разбит на своей территории)
             const kCtx = this.state.kingdomContext;
             const km = window.KingdomManager;
+
             if (kCtx && kCtx.inKingdom && km?.state) {
                 const prepareRes = this.getSelectedRadio('res_prepare');
                 const camoRes = this.getSelectedRadio('res_camouflage');
@@ -539,6 +560,7 @@ const CampingManager = {
                     if (typeof km.renderUi === 'function') km.renderUi();
                 }
             }
+
 
 
             if (this.mapDataRef) this.mapDataRef.camping = this.state;

@@ -92,6 +92,25 @@ const QuestManager = {
         const tabSettings = document.getElementById('tabSettings');
         const tabInitiative = document.getElementById('tabInitiative');
 
+        if (tabCamping && !document.getElementById('tabWeather')) {
+            const tabWeather = document.createElement('button');
+            tabWeather.type = 'button';
+            tabWeather.id = 'tabWeather';
+            tabWeather.className = 'quest-tab-btn';
+            tabWeather.title = 'Календарь Голариона и Погода';
+            tabWeather.textContent = '🌦';
+            tabCamping.insertAdjacentElement('afterend', tabWeather);
+        }
+
+        // Контейнер планшета Погоды внутри окна журнала
+        const kingdomTablet = document.getElementById('kingdomTabletContainer');
+        if (kingdomTablet && !document.getElementById('weatherTabletContainer')) {
+            const weatherTablet = document.createElement('div');
+            weatherTablet.id = 'weatherTabletContainer';
+            weatherTablet.style.cssText = 'display: none; width: 100%; flex-direction: column; overflow-y: auto;';
+            kingdomTablet.insertAdjacentElement('afterend', weatherTablet);
+        }
+
         if (tabInitiative) {
             tabInitiative.addEventListener('click', () => this.setActiveTab(tabInitiative, 'initiative'));
         }
@@ -104,6 +123,10 @@ const QuestManager = {
 
         if (tabKingdom) tabKingdom.addEventListener('click', () => this.setActiveTab(tabKingdom, 'kingdom'));
         if (tabCamping) tabCamping.addEventListener('click', () => this.setActiveTab(tabCamping, 'camping'));
+
+        const tabWeather = document.getElementById('tabWeather');
+        if (tabWeather) tabWeather.addEventListener('click', () => this.setActiveTab(tabWeather, 'weather'));
+
         if (tabSettings) tabSettings.addEventListener('click', () => this.setActiveTab(tabSettings, 'settings'));
 
         const tabCloseJournal = document.getElementById('tabCloseJournal');
@@ -190,6 +213,7 @@ const QuestManager = {
         this.mapDataRef = newMapData;
     },
 
+
     /**
      * Генерация контента без принудительной перезаписи заголовков шапки HUD
      */
@@ -197,6 +221,7 @@ const QuestManager = {
         const listContainer = document.getElementById('questLogList');
         const kingdomTabletEl = document.getElementById('kingdomTabletContainer');
         const campingTabletEl = document.getElementById('campingTabletContainer');
+        const weatherTabletEl = document.getElementById('weatherTabletContainer');
         const settingsTabletEl = document.getElementById('settingsTabletContainer');
         const initiativeTabletEl = document.getElementById('initiativeTabletContainer');
         if (!this.mapDataRef) return;
@@ -207,6 +232,7 @@ const QuestManager = {
         if (campingTabletEl) campingTabletEl.style.display = 'none';
         if (settingsTabletEl) settingsTabletEl.style.display = 'none';
         if (initiativeTabletEl) initiativeTabletEl.style.display = 'none';
+        if (weatherTabletEl) weatherTabletEl.style.display = 'none';
 
         if (this.currentFilter === 'camping') {
             if (campingTabletEl) campingTabletEl.style.display = 'flex';
@@ -216,6 +242,13 @@ const QuestManager = {
         else if (this.currentFilter === 'kingdom') {
             if (kingdomTabletEl) kingdomTabletEl.style.display = 'flex';
             KingdomManager.renderUi();
+            return;
+        }
+        if (this.currentFilter === 'weather') {
+            if (weatherTabletEl) weatherTabletEl.style.display = 'flex';
+            if (window.WeatherManager && typeof window.WeatherManager.renderTabUi === 'function') {
+                window.WeatherManager.renderTabUi();
+            }
             return;
         }
         else if (this.currentFilter === 'initiative') {
@@ -292,6 +325,7 @@ const QuestManager = {
             listContainer.innerHTML = `<div class="quest-log-empty">${emptyMessage}</div>`;
         }
     }
+
 };
 
 export default QuestManager;
