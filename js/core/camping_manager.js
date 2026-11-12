@@ -84,6 +84,7 @@ const CampingManager = {
     // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
     // ============================================================================
 
+
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -95,6 +96,31 @@ const CampingManager = {
                     break;
                 }
             }
+
+            // 1. Проверка: находится ли отряд на территории своего королевства
+            const km = window.KingdomManager;
+            const isInKingdom = !!(squadHex && km && typeof km._isHexClaimed === 'function' && km._isHexClaimed(squadHex));
+            let kEncounterBonus = 0;
+            let kFoodBonus = 0;
+            let kHexName = squadHex?.title || 'Владения королевства';
+
+            if (isInKingdom) {
+                const combined = `${squadHex.title || ''} ${squadHex.text || ''} ${squadHex.description || ''}`;
+                const hasFarmland = squadHex.workSite === 'farmlands' || /ферм|угодь/i.test(combined);
+                const hasFortOrTown = /убежищ|refuge|город|деревн|посел|посёл|крепост|форт|столиц/i.test(combined);
+
+                kEncounterBonus = hasFortOrTown ? 4 : 2;
+                kFoodBonus = hasFarmland ? 2 : 1;
+            }
+
+            this.state.kingdomContext = {
+                inKingdom: isInKingdom,
+                hexTitle: kHexName,
+                encounterBonus: kEncounterBonus,
+                foodBonus: kFoodBonus
+            };
+
+
 
             let baseRegionDc = 14;
             let currentRegionLevel = 1;
@@ -167,7 +193,9 @@ const CampingManager = {
                 if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
             }
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
+            finalEncounterDc += kEncounterBonus;
             this.state.encounterDc = finalEncounterDc;
+
 
             let calculatedChecks = this.state.baseChecks;
             if (prepareRes === 'crit_success') calculatedChecks -= 1;
@@ -181,19 +209,20 @@ const CampingManager = {
             let specialYieldText = "0";
 
             if (!isCampHorrible) {
+
                 if (huntRes === 'success') {
-                    normalYield = baseRegionDc;
+                    normalYield = baseRegionDc + kFoodBonus;
                     if (currentRegionLevel < 7) specialYieldText = "1d4";
                     else if (currentRegionLevel >= 7 && currentRegionLevel <= 14) specialYieldText = "2d4";
                     else if (currentRegionLevel > 14) specialYieldText = "3d4";
                 }
-                // ИСПРАВЛЕНО: Теперь при критическом успехе охоты количество обычных ингредиентов удваивается (baseRegionDc * 2)
                 else if (huntRes === 'crit_success') {
-                    normalYield = baseRegionDc * 2;
+                    normalYield = (baseRegionDc * 2) + kFoodBonus;
                     if (currentRegionLevel < 7) specialYieldText = "4";
                     else if (currentRegionLevel >= 7 && currentRegionLevel <= 14) specialYieldText = "8";
                     else if (currentRegionLevel > 14) specialYieldText = "12";
                 }
+
                 else if (huntRes === 'failure') {
                     normalYield = baseRegionDc;
                     specialYieldText = "0";
@@ -211,6 +240,8 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
+
+
     formatActionActors(actionIdx) {
         const list = (this.state.assignments && Array.isArray(this.state.assignments[actionIdx]))
             ? this.state.assignments[actionIdx]
@@ -224,6 +255,7 @@ const CampingManager = {
         const helper = `<span class="camp-actor-highlight">${list[1].name}</span>`;
         return ` (${leader}, помощник: ${helper})`;
     },
+
 
 
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
@@ -279,8 +311,25 @@ const CampingManager = {
             }
         }
 
+        const kCtx = this.state.kingdomContext;
+        if (kCtx && kCtx.inKingdom) {
+            const unrestDropReady = (prepareRes === 'success' || prepareRes === 'crit_success' || camoRes === 'success' || camoRes === 'crit_success');
+            const foodSupplyReady = (huntRes === 'success' || huntRes === 'crit_success');
+
+            let bonusParts = [`Безопасность патрулей: СЛ сцен +${kCtx.encounterBonus}`];
+            if (foodSupplyReady) bonusParts.push(`в склад королевства поступит +${kCtx.foodBonus} Еды`);
+            if (unrestDropReady) bonusParts.push(`порядок на землях: −1 Беспорядки`);
+
+            this.addLogLine(
+                effectsList,
+                `Территория королевства (${kCtx.hexTitle}): ${bonusParts.join('; ')}.`,
+                "good"
+            );
+        }
+
         this.renderAlliesDock();
     },
+
 
 
     addLogLine(container, text, type) {
@@ -404,6 +453,7 @@ const CampingManager = {
 
 
 
+
     saveFromUi() {
         try {
             const resultModal = document.getElementById('campResultModal');
@@ -411,6 +461,41 @@ const CampingManager = {
                 this.triggerDiceAndResultModal();
                 return;
             }
+
+            // Применяем награды привала в экономику королевства (если лагерь разбит на своей территории)
+            const kCtx = this.state.kingdomContext;
+            const km = window.KingdomManager;
+            if (kCtx && kCtx.inKingdom && km?.state) {
+                const prepareRes = this.getSelectedRadio('res_prepare');
+                const camoRes = this.getSelectedRadio('res_camouflage');
+                const huntRes = this.getSelectedRadio('res_hunt');
+
+                let kingdomChanged = false;
+
+                // 1. Пополнение склада провизии королевства при успешной охоте
+                if ((huntRes === 'success' || huntRes === 'crit_success') && kCtx.foodBonus > 0 && km.state.commodities?.food) {
+                    const food = km.state.commodities.food;
+                    const maxFood = parseInt(food.max, 10) || 4;
+                    food.value = Math.min(maxFood, (parseInt(food.value, 10) || 0) + kCtx.foodBonus);
+                    kingdomChanged = true;
+                }
+
+                // 2. Снижение Беспорядков королевства на 1 при успешной подготовке или маскировке лагеря
+                if (prepareRes === 'success' || prepareRes === 'crit_success' || camoRes === 'success' || camoRes === 'crit_success') {
+                    const curUnrest = parseInt(km.state.unrest, 10) || 0;
+                    if (curUnrest > 0) {
+                        km.state.unrest = curUnrest - 1;
+                        kingdomChanged = true;
+                    }
+                }
+
+                if (kingdomChanged) {
+                    if (typeof km._persist === 'function') km._persist();
+                    if (typeof km.renderUi === 'function') km.renderUi();
+                }
+            }
+
+
             if (this.mapDataRef) this.mapDataRef.camping = this.state;
             if (this.onSaveCallback) this.onSaveCallback();
             else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
@@ -445,6 +530,8 @@ const CampingManager = {
             }
         } catch (error) { console.error("Критическая ошибка сохранения привала:", error); }
     },
+
+
 
     resetToDefault() {
         try {
