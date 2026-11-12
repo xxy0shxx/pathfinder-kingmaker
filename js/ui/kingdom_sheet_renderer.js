@@ -10,11 +10,14 @@ const KingdomSheetRenderer = {
             ? `<button type="button" class="btn ok" id="kBtnLevelUp" style="border-color:#ffd875; box-shadow:0 0 12px rgba(255,216,117,0.6);">👑 Повысить уровень!</button>`
             : '';
 
+        const armiesCount = Array.isArray(state.armies) ? state.armies.length : 0;
+
         const tabButtons = `
             <div class="k-subtabs-bar" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; border-bottom:2px solid #543e0d; padding-bottom:10px;">
                 <button type="button" class="btn ${activeSubTab === 'sheet' ? 'ok' : ''}" data-k-tab="sheet">📜 Лист и Навыки</button>
                 <button type="button" class="btn ${activeSubTab === 'events' ? 'ok' : ''}" data-k-tab="events">⚡ События</button>
                 <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : ''}" data-k-tab="urban">🏰 Постройки и Город</button>
+                <button type="button" class="btn ${activeSubTab === 'armies' ? 'ok' : ''}" data-k-tab="armies">⚔ Армии (${armiesCount})</button>
                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
                     ${levelUpBtn}
                     <button type="button" class="btn cc" id="kBtnTradeComm" title="Купить или продать ресурсы за RP">⚖ Обмен</button>
@@ -29,6 +32,7 @@ const KingdomSheetRenderer = {
         if (activeSubTab === 'sheet') bodyHtml = this.renderSheetTab(state, helpers);
         else if (activeSubTab === 'events') bodyHtml = this.renderEventsTab(state);
         else if (activeSubTab === 'urban') bodyHtml = this.renderUrbanTab(state);
+        else if (activeSubTab === 'armies') bodyHtml = this.renderArmiesTab(state);
 
         return `<div class="kingdom-sheet-wrapper" style="color:#ebd291;">${tabButtons}${bodyHtml}</div>`;
     },
@@ -319,6 +323,103 @@ const KingdomSheetRenderer = {
             </div>
             <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;">
                 ${eventsHtml}
+            </div>
+        `;
+    },
+
+
+    renderArmiesTab(s) {
+        const armies = Array.isArray(s.armies) ? s.armies : [];
+        const totalArmiesCons = armies.reduce((sum, a) => sum + (parseInt(a.consumption, 10) || 0), 0);
+
+        const unitTypes = {
+            infantry:   '🛡 Пехота',
+            cavalry:    '🐎 Кавалерия',
+            skirmisher: '🏹 Застрельщики / Разведка',
+            siege:      '💣 Осадные орудия'
+        };
+
+        const cardsHtml = armies.length === 0
+            ? `<div style="grid-column: 1 / -1; text-align:center; padding:35px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">
+                   У королевства пока нет сформированных армий. Нажмите «+ Нанять армию», чтобы создать отряд.
+               </div>`
+            : armies.map(a => {
+                const hp = parseInt(a.hp, 10) || 0;
+                const maxHp = Math.max(1, parseInt(a.maxHp, 10) || 4);
+                const isRouted = hp <= Math.floor(maxHp / 2);
+                const borderCol = hp <= 0 ? '#e74c3c' : (isRouted ? '#f39c12' : '#543e0d');
+
+                return `
+                    <div class="k-panel k-army-card" data-army-id="${a.id}" style="position:relative; border-color:${borderCol};">
+                        <button type="button" data-del-army="${a.id}" title="Расформировать армию" style="position:absolute; top:8px; right:8px; background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:4px; cursor:pointer; width:24px; height:24px;">×</button>
+
+                        <div style="display:grid; grid-template-columns: 2fr 1.3fr; gap:8px; margin-bottom:8px; padding-right:28px;">
+                            <div>
+                                <label class="k-lbl">Название армии / отряда</label>
+                                <input type="text" class="k-inp k-army-name" value="${a.name || ''}" placeholder="Например: Стража Столицы...">
+                            </div>
+                            <div>
+                                <label class="k-lbl">Род войск</label>
+                                <select class="k-inp k-army-type">
+                                    ${Object.entries(unitTypes).map(([val, lbl]) =>
+                    `<option value="${val}" ${a.unitType === val ? 'selected' : ''}>${lbl}</option>`
+                ).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; margin-bottom:8px;">
+                            <div><label class="k-lbl">Уровень</label><input type="number" class="k-inp k-army-level" value="${a.level || 1}"></div>
+                            <div><label class="k-lbl">КБ (AC)</label><input type="number" class="k-inp k-army-ac" value="${a.ac || 16}"></div>
+                            <div>
+                                <label class="k-lbl">ОЗ (HP)</label>
+                                <div style="display:flex; align-items:center; gap:2px;">
+                                    <button type="button" data-army-id="${a.id}" data-army-hp-delta="-1" title="Нанести 1 урон ОЗ" style="background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:3px; cursor:pointer; padding:2px 5px; font-weight:bold;">−</button>
+                                    <input type="number" class="k-inp k-army-hp" value="${hp}" style="color:${isRouted ? '#ff7675' : '#2ecc71'}; font-weight:bold; text-align:center; padding:4px 2px;">
+                                    <button type="button" data-army-id="${a.id}" data-army-hp-delta="1" title="Восстановить 1 ОЗ" style="background:#1e3c27; border:1px solid #2ecc71; color:#2ecc71; border-radius:3px; cursor:pointer; padding:2px 5px; font-weight:bold;">+</button>
+                                </div>
+                            </div>
+                            <div><label class="k-lbl">Макс ОЗ</label><input type="number" class="k-inp k-army-maxhp" value="${maxHp}"></div>
+                            <div><label class="k-lbl">Атака (+)</label><input type="number" class="k-inp k-army-atk" value="${a.attack || 7}"></div>
+                            <div><label class="k-lbl">Потребл.</label><input type="number" class="k-inp k-army-cons" value="${a.consumption ?? 1}"></div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:8px; margin-bottom:8px;">
+                            <div>
+                                <label class="k-lbl">Дислокация / Гарнизон</label>
+                                <input type="text" class="k-inp k-army-loc" value="${a.location || ''}" placeholder="Город или гекс [r;c]...">
+                            </div>
+                            <div>
+                                <label class="k-lbl">Состояние</label>
+                                <input type="text" class="k-inp k-army-status" value="${a.status || 'В строю'}">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:8px; align-items:flex-end;">
+                            <div style="flex:1;">
+                                <label class="k-lbl">Тактики и особенности</label>
+                                <input type="text" class="k-inp k-army-tactics" value="${a.tactics || ''}" placeholder="Стена щитов, Натиск, Засада...">
+                            </div>
+                            <button type="button" class="btn ok" data-roll-army="${a.id}" style="padding:5px 12px; font-size:12px; white-space:nowrap;">
+                                🎲 Атака (+${a.attack || 0})
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        return `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:rgba(0,0,0,0.3); padding:8px 12px; border:1px solid #543e0d; border-radius:6px;">
+                <div>
+                    <span style="font-size:15px; font-weight:bold; color:#ffd875;">⚔ ВООРУЖЁННЫЕ СИЛЫ КОРОЛЕВСТВА</span>
+                    <span style="margin-left:14px; font-size:13px; color:#ebd291;">
+                        Отрядов: <b>${armies.length}</b> • Суммарное содержание армий: <b style="color:#ff7675;">+${totalArmiesCons} Потребл.</b>
+                    </span>
+                </div>
+                <button type="button" class="btn ok" id="kBtnAddArmy">+ Нанять армию</button>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;">
+                ${cardsHtml}
             </div>
         `;
     },

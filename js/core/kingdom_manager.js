@@ -26,6 +26,7 @@ const KingdomManager = {
         firstLandmarkClaimed: false,
         isolatedHexesCount: 0,
         siteBonusYield: { lumberCamps: 0, mines: 0, quarries: 0 },
+        armies: [],
         stats: {
             culture: { value: 10, modifier: 0 },
             economy: { value: 10, modifier: 0 },
@@ -225,6 +226,7 @@ const KingdomManager = {
         }
 
         if (!Array.isArray(merged.events)) merged.events = [];
+        if (!Array.isArray(merged.armies)) merged.armies = [];
         return merged;
     },
 
@@ -1197,6 +1199,135 @@ const KingdomManager = {
         this.renderUi();
     },
 
+    addArmyCard() {
+        this.saveFromUi();
+        if (!Array.isArray(this.state.armies)) this.state.armies = [];
+        this.state.armies.push({
+            id: 'army_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            name: '',
+            unitType: 'infantry', // infantry | cavalry | skirmisher | siege
+            level: 1,
+            hp: 4,
+            maxHp: 4,
+            ac: 16,
+            attack: 7,
+            consumption: 1,
+            location: '',
+            tactics: '',
+            status: 'В строю'
+        });
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+    },
+
+    removeArmyCard(armyId) {
+        this.saveFromUi();
+        this.state.armies = (this.state.armies || []).filter(a => a.id !== armyId);
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+    },
+
+    openArmyAttackModal(armyId) {
+        this.saveFromUi();
+        const army = (this.state.armies || []).find(a => a.id === armyId);
+        if (!army) return;
+
+        const existing = document.getElementById('kArmyRollOverlay');
+        if (existing) existing.remove();
+
+        const atkMod = parseInt(army.attack, 10) || 0;
+        const modStr = atkMod >= 0 ? `+${atkMod}` : `${atkMod}`;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kArmyRollOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:440px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9); font-family:'Tinos', serif;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
+                    <span style="font-size:19px; font-weight:bold; color:#ffd875;">⚔ Атака: ${army.name || 'Армия'}</span>
+                    <span style="background:#040905; border:1px solid #ffd875; padding:2px 10px; border-radius:4px; font-family:monospace; font-size:17px; color:#2ecc71;">${modStr}</span>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+                    <div>
+                        <label class="k-lbl">КБ вражеской армии (AC)</label>
+                        <input type="number" id="kArmyTargetAc" class="k-inp" value="16" style="font-size:18px; font-weight:bold; text-align:center;">
+                    </div>
+                    <div>
+                        <label class="k-lbl">Бросок d20</label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="number" id="kArmyRollInp" class="k-inp" min="1" max="20" placeholder="1-20" style="font-size:18px; font-weight:bold; text-align:center; color:#ffd875;">
+                            <button type="button" class="btn cc" id="kArmyAutoRoll" style="padding:0 12px;">🎲</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="kArmyResBox" style="background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:6px; padding:12px; margin-bottom:14px; text-align:center; font-size:15px;">
+                    Введите бросок d20 или нажмите 🎲
+                </div>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn ok" id="kArmyCloseBtn">Закрыть</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const acInp = overlay.querySelector('#kArmyTargetAc');
+        const rollInp = overlay.querySelector('#kArmyRollInp');
+        const resBox = overlay.querySelector('#kArmyResBox');
+
+        const evaluate = () => {
+            const d20 = parseInt(rollInp.value, 10);
+            const ac = parseInt(acInp.value, 10) || 16;
+            if (isNaN(d20) || d20 < 1 || d20 > 20) return;
+
+            const total = d20 + atkMod;
+            const diff = total - ac;
+            let deg = diff >= 10 ? 3 : (diff >= 0 ? 2 : (diff <= -10 ? 0 : 1));
+            if (d20 === 20) deg = Math.min(3, deg + 1);
+            if (d20 === 1) deg = Math.max(0, deg - 1);
+
+            const outcomes = [
+                { t: '💀 КРИТИЧЕСКИЙ ПРОВАЛ (Армия получает 1 урон!)', c: '#e74c3c' },
+                { t: '✖ ПРОМАХ (0 урона)', c: '#ff7675' },
+                { t: '✔ ПОПАДАНИЕ (Враг получает 1 урон ОЗ)', c: '#2ecc71' },
+                { t: '👑 КРИТИЧЕСКОЕ ПОПАДАНИЕ (Враг получает 2 урона ОЗ!)', c: '#ffd875' }
+            ];
+
+            const applySelfDamageHtml = deg === 0
+                ? `<div style="margin-top:8px;"><button type="button" class="btn del" id="kArmyApplySelfDmgBtn" style="padding:4px 12px; font-size:12px;">💔 Списать 1 ОЗ этой армии (остаток: ${Math.max(0, (parseInt(army.hp, 10) || 0) - 1)})</button></div>`
+                : '';
+
+            resBox.style.borderColor = outcomes[deg].c;
+            resBox.innerHTML = `<b style="color:${outcomes[deg].c}; font-size:17px;">${outcomes[deg].t}</b><br>Итог: <b>${total}</b> (${d20} ${modStr}) против КБ <b>${ac}</b>${applySelfDamageHtml}`;
+
+            const dmgBtn = resBox.querySelector('#kArmyApplySelfDmgBtn');
+            if (dmgBtn) {
+                dmgBtn.addEventListener('click', () => {
+                    const maxHp = Math.max(1, parseInt(army.maxHp, 10) || 4);
+                    army.hp = Math.max(0, (parseInt(army.hp, 10) || 0) - 1);
+                    if (army.hp === 0) army.status = 'Уничтожена';
+                    else if (army.hp <= Math.floor(maxHp / 2)) army.status = 'Бегство (Routed)';
+                    this._persist();
+                    this.renderUi();
+                    dmgBtn.disabled = true;
+                    dmgBtn.textContent = `✔ Списано (ОЗ армии: ${army.hp}/${maxHp})`;
+                });
+            }
+        };
+
+        [acInp, rollInp].forEach(el => el.addEventListener('input', evaluate));
+        overlay.querySelector('#kArmyAutoRoll').addEventListener('click', () => {
+            rollInp.value = Math.floor(Math.random() * 20) + 1;
+            evaluate();
+        });
+        overlay.querySelector('#kArmyCloseBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    },
+
+
+
 
     _isAreaFree(targetR, targetC, spanRows, spanCols, ignoreUid = null) {
         if (targetR < 0 || targetC < 0 || targetR + spanRows > 6 || targetC + spanCols > 6) {
@@ -1444,6 +1575,8 @@ const KingdomManager = {
     },
 
 
+
+
     saveFromUi() {
         try {
             const s = this.state;
@@ -1530,6 +1663,23 @@ const KingdomManager = {
                 ['top', 'bottom', 'left', 'right'].forEach(side => {
                     ug.borders[side] = this._readStr(`k_ug_border_${side}`, ug.borders[side]);
                 });
+            } else if (this.activeSubTab === 'armies') {
+                document.querySelectorAll('.k-army-card').forEach(card => {
+                    const army = (s.armies || []).find(item => item.id === card.dataset.armyId);
+                    if (army) {
+                        army.name = card.querySelector('.k-army-name').value;
+                        army.unitType = card.querySelector('.k-army-type').value;
+                        army.level = parseInt(card.querySelector('.k-army-level').value, 10) || 1;
+                        army.ac = parseInt(card.querySelector('.k-army-ac').value, 10) || 16;
+                        army.hp = parseInt(card.querySelector('.k-army-hp').value, 10) || 0;
+                        army.maxHp = parseInt(card.querySelector('.k-army-maxhp').value, 10) || 4;
+                        army.attack = parseInt(card.querySelector('.k-army-atk').value, 10) || 0;
+                        army.consumption = parseInt(card.querySelector('.k-army-cons').value, 10) || 0;
+                        army.location = card.querySelector('.k-army-loc').value;
+                        army.status = card.querySelector('.k-army-status').value;
+                        army.tactics = card.querySelector('.k-army-tactics').value;
+                    }
+                });
             }
 
             this.recalculateModifiers();
@@ -1551,6 +1701,8 @@ const KingdomManager = {
     },
 
 
+
+
     renderUi() {
         const container = document.getElementById('kingdomTabletContainer');
         if (!container) return;
@@ -1567,6 +1719,7 @@ const KingdomManager = {
 
         this._bindEvents(container);
     },
+
 
 
 
@@ -1811,6 +1964,43 @@ const KingdomManager = {
             btnDelSettle.addEventListener('click', () => this.deleteCurrentSettlement());
         }
 
+        const btnAddArmy = container.querySelector('#kBtnAddArmy');
+        if (btnAddArmy) btnAddArmy.addEventListener('click', () => this.addArmyCard());
+
+        container.querySelectorAll('[data-del-army]').forEach(btn => {
+            btn.addEventListener('click', () => this.removeArmyCard(btn.dataset.delArmy));
+        });
+
+        container.querySelectorAll('[data-roll-army]').forEach(btn => {
+            btn.addEventListener('click', () => this.openArmyAttackModal(btn.dataset.rollArmy));
+        });
+
+        // Мгновенный пересчёт ОЗ, статуса (Бегство/Уничтожена) и потребления при изменении полей армии
+        container.querySelectorAll('.k-army-card input, .k-army-card select').forEach(el => {
+            el.addEventListener('change', () => {
+                this.saveFromUi();
+            });
+        });
+
+        // Кнопки быстрого урона/лечения (-1 ОЗ / +1 ОЗ) прямо на карточке армии
+        container.querySelectorAll('[data-army-hp-delta]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.saveFromUi();
+                const army = (this.state.armies || []).find(a => a.id === btn.dataset.armyId);
+                if (!army) return;
+                const delta = parseInt(btn.dataset.armyHpDelta, 10) || 0;
+                const maxHp = Math.max(1, parseInt(army.maxHp, 10) || 4);
+                army.hp = Math.max(0, Math.min(maxHp, (parseInt(army.hp, 10) || 0) + delta));
+
+                if (army.hp === 0) army.status = 'Уничтожена';
+                else if (army.hp <= Math.floor(maxHp / 2)) army.status = 'Бегство (Routed)';
+                else if (army.status === 'Уничтожена' || army.status === 'Бегство (Routed)') army.status = 'В строю';
+
+                this._persist();
+                this.renderUi();
+            });
+        });
+
 
     },
 
@@ -1910,11 +2100,14 @@ const KingdomManager = {
             });
         }
 
-        // 2. Итоговое потребление королевства = сумма потребления всех городов минус фермы
+        // 2. Итоговое потребление королевства = (города + армии) минус фермы
+        const armiesConsumption = (this.state.armies || []).reduce(
+            (sum, a) => sum + (parseInt(a.consumption, 10) || 0),
+            0
+        );
         const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
-        this.state.consumption = Math.max(0, allSettlementsConsumption - farmlandReduction);
+        this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption - farmlandReduction);
     },
-
 
     /**
      * Сбор активных региональных бонусов от захваченных Достопримечательностей и Убежищ
@@ -2173,6 +2366,10 @@ const KingdomManager = {
                 onSuccessCallback(finalName);
             }
         });
+
+
+
+
     },
 
 
