@@ -1,4 +1,6 @@
 import { MAP_CONFIG } from '../config/app_config.js';
+import EventBus from '../services/event_bus.js';
+import ModalManager from '../ui/modal_manager.js';
 
 const WeatherManager = {
     state: {
@@ -26,6 +28,11 @@ const WeatherManager = {
         this.mapDataRef.weather = this.state;
 
         window.WeatherManager = this;
+
+        EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
+        EventBus.on('kingdom:turnEnded', () => this.advanceCalendar(0, 1));
+
+
         this.renderTabUi();
     },
 
@@ -109,13 +116,9 @@ const WeatherManager = {
 
     syncAllViews() {
         this.renderTabUi();
-        if (window.KingdomManager && typeof window.KingdomManager.renderUi === 'function') {
-            window.KingdomManager.renderUi();
-        }
-        if (window.CampingManager && typeof window.CampingManager.recalculateCamp === 'function') {
-            window.CampingManager.recalculateCamp();
-        }
+        EventBus.emit('weather:updated', this.getCalendarInfo());
     },
+
     renderCompactBarHtml() {
         const cal = this.getCalendarInfo();
         let bgWeatherLabel = '⛅ Ясно и благоприятно';
@@ -277,29 +280,23 @@ const WeatherManager = {
             </div>
         `;
     },
+
     openActiveHazardDetailsModal() {
         const hz = this.getCalendarInfo()?.hazard;
         if (!hz) return;
 
-        const existing = document.getElementById('kHazardDetailsOverlay');
-        if (existing) existing.remove();
-
-        const overlay = document.createElement('div');
-        overlay.id = 'kHazardDetailsOverlay';
-        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
-        overlay.innerHTML = `
-            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #e74c3c; border-radius:8px; padding:18px 22px; width:500px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9); font-family:'Tinos', serif;">
-                <div style="font-size:17px; font-weight:bold; color:#ffd875; margin-bottom:4px;">📜 Справка по активному погодному явлению</div>
-                ${this._renderWeatherHazardCardHtml(hz)}
-                <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-                    <button type="button" class="btn ok" id="kCloseHazardDetailsBtn">Закрыть</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        overlay.querySelector('#kCloseHazardDetailsBtn').addEventListener('click', () => overlay.remove());
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        ModalManager.open({
+            id: 'kHazardDetailsOverlay',
+            title: '📜 Справка по активному погодному явлению',
+            borderColor: '#e74c3c',
+            width: '500px',
+            bodyHtml: this._renderWeatherHazardCardHtml(hz),
+            footerButtons: [
+                { label: 'Закрыть', variant: 'ok' }
+            ]
+        });
     },
+
 
 
     openWeatherRollModal() {

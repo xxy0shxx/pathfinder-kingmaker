@@ -32,6 +32,8 @@ const QuestManager = {
             containerId: 'questLogList',
             onOpen: () => this.render('rumors')
         });
+        EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData.hexes));
+
     },
 
     updateMapData(newMapData) {

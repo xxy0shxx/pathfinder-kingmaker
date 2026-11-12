@@ -1,5 +1,6 @@
 import AnimationManager from '../services/animation_manager.js';
 import { MAP_CONFIG } from '../config/app_config.js';
+import EventBus from '../services/event_bus.js';
 
 // ============================================================================
 // МОДУЛЬ: МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 1 ИЗ 3
@@ -31,6 +32,10 @@ const CampingManager = {
             } else {
                 this.mapDataRef.camping = this.state;
             }
+
+            EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
+            EventBus.on('weather:updated', () => this.recalculateCamp());
+
 
             window.CampingManager = this;
             this.syncCountersUi();

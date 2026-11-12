@@ -32,6 +32,7 @@ import TacticalMapManager from './tactical_map/tactical_map_manager.js';
 import InitiativeManager from './core/initiative_manager.js';
 import WeatherManager from './core/weather_manager.js';
 import HudWindowManager from './ui/hud_window_manager.js';
+import EventBus from './services/event_bus.js';
 
 let hasMoved = false;
 let mapData = { hexes: {}, kingdom: null, paths: [] };
@@ -161,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Настройка импорта файлов (FileManager)
     FileManager.init((importedData) => {
+
         if (importedData && !importedData.hexes) {
             mapData = {
                 hexes: importedData,
@@ -171,6 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
             mapData = importedData || { hexes: {}, kingdom: null, paths: [] };
         }
 
+        EventBus.emit('data:imported', mapData);
+
+       /*
         QuestManager.updateMapData(mapData.hexes);
         if (typeof PathManager.updateMapData === 'function') {
             PathManager.updateMapData(mapData);
@@ -183,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (CampingManager && typeof CampingManager.updateMapData === 'function') {
             CampingManager.updateMapData(mapData);
         }
+        */
 
         HexCanvasRender.updateData(mapData.hexes);
         HexCanvasRender.requestFrame();
@@ -235,18 +241,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             FogManager.syncMapFog(mapData.hexes);
-            if (window.KingdomManager && typeof window.KingdomManager.syncFromHexMap === 'function') {
-                window.KingdomManager.syncFromHexMap(true);
-            }
+            EventBus.emit('map:hexesChanged', mapData.hexes);
             HexModal.close();
         },
 
         onDelete: (hexId) => {
             StorageManager.deleteHex(mapData, hexId);
             HexCanvasRender.updateData(mapData.hexes);
-            if (window.KingdomManager && typeof window.KingdomManager.syncFromHexMap === 'function') {
-                window.KingdomManager.syncFromHexMap(true);
-            }
+            EventBus.emit('map:hexesChanged', mapData.hexes);
             HexModal.close();
         }
     });

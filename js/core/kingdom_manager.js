@@ -1,6 +1,8 @@
 import KingdomBuildings from '../services/kingdom_buildings.js';
 import KingdomSheetRenderer from '../ui/kingdom_sheet_renderer.js';
 import { MAP_CONFIG } from '../config/app_config.js';
+import EventBus from '../services/event_bus.js';
+import ModalManager from '../ui/modal_manager.js';
 
 const KingdomManager = {
     state: null,
@@ -140,6 +142,11 @@ const KingdomManager = {
             } else {
                 this.mapDataRef.kingdom = this._mergeWithDefaults(this.mapDataRef.kingdom);
             }
+
+            EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
+            EventBus.on('map:hexesChanged', () => this.syncFromHexMap(true));
+            EventBus.on('weather:updated', () => this.renderUi());
+
 
             this.state = this.mapDataRef.kingdom;
             this._ensureSettlementsList();
@@ -852,48 +859,21 @@ const KingdomManager = {
     },
 
     _showUpkeepResultModal(changesHtmlList) {
-        const existing = document.getElementById('kUpkeepResultOverlay');
-        if (existing) existing.remove();
-
-        const overlay = document.createElement('div');
-        overlay.id = 'kUpkeepResultOverlay';
-        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
-
-        overlay.innerHTML = `
-            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #dfbc6f; border-radius:8px; padding:22px 26px; width:480px; max-width:92vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 30px rgba(255,216,117,0.35); font-family:'Tinos', serif;">
-                <div style="font-size:20px; font-weight:bold; color:#ffd875; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:14px;">
-                    ⚜ Итоги фазы содержания
-                </div>
-
-                <div style="background:rgba(0,0,0,0.4); border:1px solid #543e0d; border-radius:6px; padding:14px 16px; margin-bottom:18px; font-size:16px; line-height:1.65; display:flex; flex-direction:column; gap:6px;">
-                    ${changesHtmlList.join('')}
-                </div>
-
-                <div style="display:flex; justify-content:flex-end;">
-                    <button type="button" class="btn ok" id="kUpkeepResultCloseBtn" style="min-width:130px;">⚜ Готово</button>
-                </div>
+        ModalManager.open({
+            id: 'kUpkeepResultOverlay',
+            title: '⚜ Итоги фазы содержания',
+            borderColor: '#dfbc6f',
+            width: '480px',
+            bodyHtml: `
+            <div style="background:rgba(0,0,0,0.4); border:1px solid #543e0d; border-radius:6px; padding:14px 16px; font-size:16px; line-height:1.65; display:flex; flex-direction:column; gap:6px;">
+                ${changesHtmlList.join('')}
             </div>
-        `;
-
-        document.body.appendChild(overlay);
-
-        const closeBtn = overlay.querySelector('#kUpkeepResultCloseBtn');
-        const closeModal = () => {
-            overlay.remove();
-            window.removeEventListener('keydown', onKey);
-        };
-        const onKey = (e) => {
-            if (e.key === 'Enter' || e.key === 'Escape') closeModal();
-        };
-
-        closeBtn.addEventListener('click', closeModal);
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) closeModal();
+        `,
+            footerButtons: [
+                { label: '⚜ Готово', variant: 'ok', style: 'min-width:130px;' }
+            ]
         });
-        window.addEventListener('keydown', onKey);
-        setTimeout(() => closeBtn.focus(), 50);
     },
-
 
     openEndTurnModal() {
         this.saveFromUi();
@@ -959,7 +939,7 @@ const KingdomManager = {
             overlay.remove();
 
             if (window.WeatherManager && typeof window.WeatherManager.advanceCalendar === 'function') {
-                window.WeatherManager.advanceCalendar(0, 1);
+                EventBus.emit('kingdom:turnEnded');
             }
 
             this.recalculateModifiers();

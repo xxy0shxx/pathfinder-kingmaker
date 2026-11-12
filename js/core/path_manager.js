@@ -12,6 +12,7 @@ const PathManager = {
     init(mapData) {
         this.svgLayer = document.getElementById('mapPathsSvg');
         this.updateMapData(mapData);
+        EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
     },
 
     /**
