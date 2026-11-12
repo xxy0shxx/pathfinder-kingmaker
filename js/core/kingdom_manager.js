@@ -1612,10 +1612,10 @@ const KingdomManager = {
         const finalRp = (cost.rp > 0 && hasConstructionYard) ? Math.max(1, cost.rp - 1) : (cost.rp || 0);
 
         const reqs = [
-            { key: 'rp', label: 'Очки ресурсов (RP)', need: finalRp, have: parseInt(s.rp, 10) || 0 },
+            { key: 'rp', label: '🪙 Очки ресурсов (RP)', need: finalRp, have: parseInt(s.rp, 10) || 0 },
             { key: 'lumber', label: '🪵 Дерево', need: cost.lumber || 0, have: parseInt(s.commodities.lumber?.value, 10) || 0 },
             { key: 'stone', label: '🧱 Камень', need: cost.stone || 0, have: parseInt(s.commodities.stone?.value, 10) || 0 },
-            { key: 'ore', label: '⛏ Руда', need: cost.ore || 0, have: parseInt(s.commodities.ore?.value, 10) || 0 },
+            { key: 'ore', label: '⛏️ Руда', need: cost.ore || 0, have: parseInt(s.commodities.ore?.value, 10) || 0 },
             { key: 'luxuries', label: '💎 Роскошь', need: cost.luxuries || 0, have: parseInt(s.commodities.luxuries?.value, 10) || 0 }
         ].filter(r => r.need > 0);
 

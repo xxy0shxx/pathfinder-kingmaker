@@ -4,6 +4,42 @@ import KingdomBuildings from '../services/kingdom_buildings.js';
  * МОДУЛЬ: РЕНДЕРИНГ ИНТЕРФЕЙСА КОРОЛЕВСТВА
  */
 const KingdomSheetRenderer = {
+    _injectIcons(str) {
+        if (!str) return '';
+        const pairs = [
+            [/\b(RP|ОР)\b/g, '🪙 $1'],
+            [/(Древесин[аыуе]|Дерев[ао]|Lumber)/gi, '🪵 $1'],
+            [/(Кам(?:ен[ьяюе]?|н[ьяюе])|Stone)/gi, '🧱 $1'],
+            [/(Руд[аыуе]|Ore)/gi, '⛏️ $1'],
+            [/(Роскош[ьи]|Люкс[ау]?|Luxuries)/gi, '💎 $1'],
+            [/(Ед[аыуе]|Провизи[ияю]|Food)/gi, '🌾 $1'],
+            [/(Военное дело|Warfare)/gi, '⚔️ $1'],
+            [/(Дикие земли|Wilderness)/gi, '🌲 $1'],
+            [/(Земледелие|Agriculture)/gi, '🌾 $1'],
+            [/(Инженерное дело|Инженерия|Engineering)/gi, '⚙️ $1'],
+            [/(Интрига|Intrigue)/gi, '🗡️ $1'],
+            [/(Искусства|Arts)/gi, '🎭 $1'],
+            [/(Исследование|Exploration)/gi, '🧭 $1'],
+            [/(Лодочный транспорт|Мореходство|Boating)/gi, '⛵ $1'],
+            [/(Магия|Magic)/gi, '🔮 $1'],
+            [/(Оборона|Defense)/gi, '🛡️ $1'],
+            [/(Образование|Учёность|Scholarship)/gi, '📚 $1'],
+            [/(Политика|Politics)/gi, '⚖️ $1'],
+            [/(Производство|Промышленность|Industry)/gi, '🏭 $1'],
+            [/(Торговля|Trade)/gi, '💰 $1'],
+            [/(Традиции|Folklore)/gi, '📜 $1'],
+            [/(Управление|Statecraft)/gi, '👑 $1'],
+            [/(Коррупция|Corruption)/gi, '🐍 $1'],
+            [/(Преступность|Crime)/gi, '🗡️ $1'],
+            [/(Разруха|Упадок|Decay)/gi, '🏚️ $1'],
+            [/(Раздор|Распри|Strife)/gi, '🔥 $1'],
+            [/(Потребл\.?|Consumption)/gi, '🍖 $1']
+        ];
+        let res = String(str);
+        pairs.forEach(([rx, rep]) => { res = res.replace(rx, rep); });
+        return res;
+    },
+
     renderMainLayout(state, activeSubTab, helpers) {
         const canLevelUp = (parseInt(state.xp, 10) || 0) >= 1000;
         const levelUpBtn = canLevelUp
@@ -577,12 +613,16 @@ const KingdomSheetRenderer = {
                 const infoText = typeof KingdomBuildings.getBuildingInfoText === 'function'
                     ? KingdomBuildings.getBuildingInfoText(b.id)
                     : '';
-                const infoHtml = typeof KingdomBuildings.getBuildingInfoHtml === 'function'
+
+
+                const rawInfoHtml = typeof KingdomBuildings.getBuildingInfoHtml === 'function'
                     ? KingdomBuildings.getBuildingInfoHtml(b.id)
                     : infoText;
-                const costText = typeof KingdomBuildings.getBuildingCostText === 'function'
+                const rawCostText = typeof KingdomBuildings.getBuildingCostText === 'function'
                     ? KingdomBuildings.getBuildingCostText(b.id)
                     : '';
+                const infoHtml = this._injectIcons(rawInfoHtml);
+                const costText = this._injectIcons(rawCostText);
                 const bIcon = getBuildingIcon(b);
 
                 return `
@@ -590,7 +630,7 @@ const KingdomSheetRenderer = {
                         <img src="${thumb}" class="k-bld-thumb" alt="${b.name}">
                         <div class="k-bld-info">
                             <div class="k-bld-name">${bIcon} ${b.name}</div>
-                            <div class="k-bld-meta">📐 ${b.cols}×${b.rows} • ⭐ Ур. ${b.level}${costText ? ` • <span style="color:#ffd875;">🪙 ${costText}</span>` : ''}</div>
+                            <div class="k-bld-meta">📐 ${b.cols}×${b.rows} • ⭐ Ур. ${b.level}${costText ? ` • <span style="color:#ffd875;">${costText}</span>` : ''}</div>
                             ${infoHtml ? `<div class="k-bld-bonus-tag">${infoHtml}</div>` : ''}
                         </div>
                     </div>
@@ -651,12 +691,12 @@ const KingdomSheetRenderer = {
             ? `<span style="color:#95a5a6; font-size:12px;">Нет активных бонусов к навыкам</span>`
             : Object.entries(effects.maxSkillBonuses)
                 .sort((a, b) => a[0].localeCompare(b[0]))
-                .map(([skill, val]) => `<span class="k-eff-badge good">+${val} ${skillNamesRu[skill] || skill}</span>`)
+                .map(([skill, val]) => `<span class="k-eff-badge good">+${val} ${this._injectIcons(skillNamesRu[skill] || skill)}</span>`)
                 .join('');
 
         const ruinBadgesHtml = Object.entries(effects.totalRuins)
             .filter(([, val]) => val > 0)
-            .map(([ruin, val]) => `<span class="k-eff-badge bad">+${val} ${ruinNamesRu[ruin] || ruin.toUpperCase()}</span>`)
+            .map(([ruin, val]) => `<span class="k-eff-badge bad">+${val} ${this._injectIcons(ruinNamesRu[ruin] || ruin.toUpperCase())}</span>`)
             .join('');
 
         const consSign = effects.totalConsumption > 0 ? `+${effects.totalConsumption}` : `${effects.totalConsumption}`;
