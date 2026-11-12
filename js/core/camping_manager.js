@@ -85,6 +85,8 @@ const CampingManager = {
     // ============================================================================
 
 
+
+
     recalculateCamp() {
         try {
             if (!this.mapDataRef || !this.mapDataRef.hexes) return;
@@ -170,9 +172,16 @@ const CampingManager = {
             let prepareDcModifier = 0;
             if (prepareRes === 'failure') prepareDcModifier = 2;
 
-            const finalPrepareDc = baseRegionDc;
-            const finalCamoDc = baseRegionDc + prepareDcModifier;
-            const finalHuntDc = baseRegionDc + prepareDcModifier;
+            const getHelperBonus = (actionIdx) => {
+                const list = this.state.assignments?.[actionIdx];
+                if (!Array.isArray(list) || list.length < 2) return 0;
+                const val = parseInt(list[1].aidBonus, 10);
+                return isNaN(val) ? 1 : Math.max(-1, Math.min(2, val));
+            };
+
+            const finalPrepareDc = Math.max(1, baseRegionDc - getHelperBonus(0));
+            const finalCamoDc = Math.max(1, baseRegionDc + prepareDcModifier - getHelperBonus(1));
+            const finalHuntDc = Math.max(1, baseRegionDc + prepareDcModifier - getHelperBonus(2));
 
             const updateSkillDcLabel = (id, skillName, dcValue) => {
                 const el = document.getElementById(id);
@@ -242,6 +251,8 @@ const CampingManager = {
 
 
 
+
+
     formatActionActors(actionIdx) {
         const list = (this.state.assignments && Array.isArray(this.state.assignments[actionIdx]))
             ? this.state.assignments[actionIdx]
@@ -252,9 +263,13 @@ const CampingManager = {
         if (list.length === 1) {
             return ` (${leader})`;
         }
-        const helper = `<span class="camp-actor-highlight">${list[1].name}</span>`;
+        const rawAid = parseInt(list[1].aidBonus, 10);
+        const aidVal = isNaN(rawAid) ? 1 : rawAid;
+        const aidStr = aidVal > 0 ? `+${aidVal}` : `${aidVal}`;
+        const helper = `<span class="camp-actor-highlight">${list[1].name} [${aidStr}]</span>`;
         return ` (${leader}, помощник: ${helper})`;
     },
+
 
 
 
@@ -570,6 +585,8 @@ const CampingManager = {
     },
 
 
+
+
     renderAlliesDock() {
         const campContainer = document.getElementById('campingTabletContainer');
         if (!campContainer) return;
@@ -637,13 +654,15 @@ const CampingManager = {
                         }
                     }
 
+
                     this.state.assignments[idx].push({
                         id: found.id,
                         name: found.name,
-                        avatar: found.avatar || null
+                        avatar: found.avatar || null,
+                        aidBonus: this.state.assignments[idx].length === 1 ? 1 : 0
                     });
 
-                    this.renderAlliesDock();
+                    this.recalculateCamp();
                 });
             }
 
@@ -657,22 +676,47 @@ const CampingManager = {
 
                 assignedList.forEach((hero, heroIdx) => {
                     const isHelper = heroIdx === 1;
+                    if (isHelper && (hero.aidBonus === undefined || isNaN(hero.aidBonus))) {
+                        hero.aidBonus = 1;
+                    }
+                    const aidVal = isHelper ? Math.max(-1, Math.min(2, parseInt(hero.aidBonus, 10) || 0)) : 0;
+                    const aidLabel = aidVal > 0 ? `+${aidVal}` : `${aidVal}`;
+
                     const badge = document.createElement('div');
                     badge.className = isHelper
                         ? 'camp-assigned-ally-badge is-helper'
                         : 'camp-assigned-ally-badge is-leader';
-                    badge.title = `${isHelper ? 'Помощник' : 'Основной'}: ${hero.name} (нажмите, чтобы снять)`;
+                    badge.title = isHelper
+                        ? `Помощник: ${hero.name} (бонус ${aidLabel} | колесо мыши: от -1 до +2 | клик: снять)`
+                        : `Основной: ${hero.name} (нажмите, чтобы снять)`;
 
                     const imgHtml = hero.avatar
                         ? `<img class="camp-assigned-ally-img" src="${hero.avatar}" alt="${hero.name}">`
                         : `<div class="camp-assigned-ally-img">${hero.name.charAt(0).toUpperCase()}</div>`;
 
-                    badge.innerHTML = imgHtml;
+                    const aidBadgeHtml = isHelper
+                        ? `<span class="camp-aid-value-pill ${aidVal < 0 ? 'is-neg' : (aidVal > 0 ? 'is-pos' : '')}">${aidLabel}</span>`
+                        : '';
+
+                    badge.innerHTML = imgHtml + aidBadgeHtml;
+
+                    if (isHelper) {
+                        badge.addEventListener('wheel', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const step = e.deltaY < 0 ? 1 : -1;
+                            const nextVal = Math.max(-1, Math.min(2, aidVal + step));
+                            if (nextVal !== aidVal) {
+                                hero.aidBonus = nextVal;
+                                this.recalculateCamp();
+                            }
+                        }, { passive: false });
+                    }
 
                     badge.addEventListener('click', (e) => {
                         e.stopPropagation();
                         this.state.assignments[idx] = this.state.assignments[idx].filter(a => a.id !== hero.id);
-                        this.renderAlliesDock();
+                        this.recalculateCamp();
                     });
 
                     group.appendChild(badge);
@@ -680,6 +724,10 @@ const CampingManager = {
 
                 cell.appendChild(group);
             }
+
+
+
+
         });
 
         // 2. В нижнем доке оставляем только свободных союзников
@@ -727,6 +775,7 @@ const CampingManager = {
             });
         });
     }
+
 
 };
 export default CampingManager;
