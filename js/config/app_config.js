@@ -148,22 +148,37 @@ export const MAP_CONFIG = {
         defaultVolume: 0.25
     },
 
+
     // Календарь Голариона (12 месяцев, сезоны и сезонная погода для Pathfinder 2e Kingmaker)
     golarionCalendar: {
         startYear: 4710, // Стандартный год начала кампании Kingmaker (AR)
         months: [
-            { id: 0,  name: 'Абадиус',   days: 31, season: 'winter', seasonLabel: '❄️ Зима',  desc: 'Суровые морозы и метели' },
-            { id: 1,  name: 'Калистрил', days: 28, season: 'winter', seasonLabel: '❄️ Зима',  desc: 'Холодные ветра и поздние снегопады' },
-            { id: 2,  name: 'Фараст',    days: 31, season: 'spring', seasonLabel: '🌱 Весна', desc: 'Оттепель, распутица и весенние дожди' },
-            { id: 3,  name: 'Гозран',    days: 30, season: 'spring', seasonLabel: '🌱 Весна', desc: 'Бурные ливни и цветение' },
-            { id: 4,  name: 'Дезнус',    days: 31, season: 'spring', seasonLabel: '🌱 Весна', desc: 'Тёплые ветра и ясные ночи' },
-            { id: 5,  name: 'Саренит',   days: 30, season: 'summer', seasonLabel: '☀️ Лето',  desc: 'Долгие солнечные дни и зной' },
-            { id: 6,  name: 'Эрастус',   days: 31, season: 'summer', seasonLabel: '☀️ Лето',  desc: 'Разгар лета и грозы' },
-            { id: 7,  name: 'Ароднус',   days: 31, season: 'summer', seasonLabel: '☀️ Лето',  desc: 'Жаркий сбор раннего урожая' },
-            { id: 8,  name: 'Рова',      days: 30, season: 'autumn', seasonLabel: '🍂 Осень', desc: 'Ветра, листопад и жатва' },
-            { id: 9,  name: 'Ламаштан',  days: 31, season: 'autumn', seasonLabel: '🍂 Осень', desc: 'Холодные туманы и сырость' },
-            { id: 10, name: 'Нет',       days: 30, season: 'autumn', seasonLabel: '🍂 Осень', desc: 'Первые заморозки и слякоть' },
-            { id: 11, name: 'Кутона',    days: 31, season: 'winter', seasonLabel: '❄️ Зима',  desc: 'Самые тёмные ночи и стужа' }
+            { id: 0,  name: 'Абадиус',   days: 31, season: 'winter', seasonLabel: '❄️ Зима',  precipDc: 8,  coldDc: 16 },
+            { id: 1,  name: 'Калистрил', days: 28, season: 'winter', seasonLabel: '❄️ Зима',  precipDc: 8,  coldDc: 18 },
+            { id: 2,  name: 'Фараст',    days: 31, season: 'spring', seasonLabel: '🌱 Весна', precipDc: 15, coldDc: null },
+            { id: 3,  name: 'Гозран',    days: 30, season: 'spring', seasonLabel: '🌱 Весна', precipDc: 15, coldDc: null },
+            { id: 4,  name: 'Дезнус',    days: 31, season: 'spring', seasonLabel: '🌱 Весна', precipDc: 15, coldDc: null },
+            { id: 5,  name: 'Саренит',   days: 30, season: 'summer', seasonLabel: '☀️ Лето',  precipDc: 20, coldDc: null },
+            { id: 6,  name: 'Эрастус',   days: 31, season: 'summer', seasonLabel: '☀️ Лето',  precipDc: 20, coldDc: null },
+            { id: 7,  name: 'Ароднус',   days: 31, season: 'summer', seasonLabel: '☀️ Лето',  precipDc: 20, coldDc: null },
+            { id: 8,  name: 'Рова',      days: 30, season: 'autumn', seasonLabel: '🍂 Осень', precipDc: 15, coldDc: null },
+            { id: 9,  name: 'Ламаштан',  days: 31, season: 'autumn', seasonLabel: '🍂 Осень', precipDc: 15, coldDc: null },
+            { id: 10, name: 'Нет',       days: 30, season: 'autumn', seasonLabel: '🍂 Осень', precipDc: 15, coldDc: null },
+            { id: 11, name: 'Кутона',    days: 31, season: 'winter', seasonLabel: '❄️ Зима',  precipDc: 8,  coldDc: 18 }
+        ],
+        weatherHazardsTable: [
+            { id: 'fog',          minRoll: 1,  maxRoll: 3,  icon: '🌫️', label: 'Туман',                 levelText: 'Ур. 0',        minLevel: 0 },
+            { id: 'downpour',     minRoll: 4,  maxRoll: 7,  icon: '🌧️', label: 'Ливень',                levelText: 'Ур. 0',        minLevel: 0 },
+            { id: 'cold_snap',    minRoll: 8,  maxRoll: 9,  icon: '🥶', label: 'Резкое похолодание',    levelText: 'Ур. 1',        minLevel: 1 },
+            { id: 'windstorm',    minRoll: 10, maxRoll: 12, icon: '💨', label: 'Ураган',                levelText: 'Ур. 1',        minLevel: 1 },
+            { id: 'hail',         minRoll: 13, maxRoll: 13, icon: '🧊', label: 'Град, сильный',         levelText: 'Ур. 2',        minLevel: 2 },
+            { id: 'blizzard',     minRoll: 14, maxRoll: 14, icon: '🌨️', label: 'Метель',                levelText: 'Ур. 6',        minLevel: 6 },
+            { id: 'supernatural', minRoll: 15, maxRoll: 15, icon: '🔮', label: 'Сверхъестественная буря',levelText: 'Ур. 6+',       minLevel: 6 },
+            { id: 'flash_flood',  minRoll: 16, maxRoll: 16, icon: '🌊', label: 'Ливневый паводок',      levelText: 'Ур. 7',        minLevel: 7 },
+            { id: 'wildfire',     minRoll: 17, maxRoll: 17, icon: '🔥', label: 'Пожар',                 levelText: 'Ур. 4 или 10', minLevel: 4 },
+            { id: 'sinkhole',     minRoll: 18, maxRoll: 18, icon: '🕳️', label: 'Проседание грунта',     levelText: 'Ур. 5 или 12', minLevel: 5 },
+            { id: 'thunderstorm', minRoll: 19, maxRoll: 19, icon: '⛈️', label: 'Гроза',                 levelText: 'Ур. 7 или 13', minLevel: 7 },
+            { id: 'tornado',      minRoll: 20, maxRoll: 20, icon: '🌪️', label: 'Торнадо',               levelText: 'Ур. 12 или 17',minLevel: 12 }
         ],
         weatherBySeason: {
             winter: [
@@ -187,8 +202,8 @@ export const MAP_CONFIG = {
                 { id: 'cold_rain',  minRoll: 18, maxRoll: 20, icon: '🌧️', label: 'Холодный ливень',   huntDcMod: 2,  encDcMod: 1, consMod: 0 }
             ]
         }
-
-
     },
+
+
 
 };

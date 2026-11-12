@@ -2135,11 +2135,8 @@ const KingdomManager = {
             0
         );
 
-        const weatherConsMod = this.getCalendarInfo()?.weather?.consMod || 0;
         const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
-        this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption + weatherConsMod - farmlandReduction);
-
-
+        this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption - farmlandReduction);
     },
 
     /**
@@ -2402,16 +2399,14 @@ const KingdomManager = {
 
     },
 
+
     getCalendarInfo() {
         const calCfg = MAP_CONFIG.golarionCalendar;
-        const c = this.state?.calendar || { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' };
+        const c = this.state?.calendar || { day: 1, month: 2, year: 4710, precip: false, cold: false, hazardId: null, secondHazardNote: false };
         const months = calCfg?.months || [];
-        const mObj = months[c.month] || { id: 2, name: 'Фараст', days: 31, season: 'spring', seasonLabel: '🌱 Весна' };
-
-        const seasonPool = calCfg?.weatherBySeason?.[mObj.season] || [];
-        const weather = seasonPool.find(w => w.id === c.weatherId) || seasonPool[0] || {
-            id: 'clear', icon: '⛅', label: 'Ясно', huntDcMod: 0, encDcMod: 0, consMod: 0
-        };
+        const mObj = months[c.month] || { id: 2, name: 'Фараст', days: 31, season: 'spring', seasonLabel: '🌱 Весна', precipDc: 15, coldDc: null };
+        const hazards = calCfg?.weatherHazardsTable || [];
+        const hazard = c.hazardId ? (hazards.find(h => h.id === c.hazardId) || null) : null;
 
         return {
             day: c.day || 1,
@@ -2421,9 +2416,16 @@ const KingdomManager = {
             year: c.year || 4710,
             season: mObj.season,
             seasonLabel: mObj.seasonLabel,
-            weather
-        };
+            precipDc: mObj.precipDc ?? 15,
+            coldDc: mObj.coldDc ?? null,
+            precip: !!c.precip,
+            cold: !!c.cold,
+            hazard,
+            secondHazardNote: !!c.secondHazardNote
+        }
     },
+
+
 
     advanceCalendar(daysDelta = 0, monthsDelta = 0, rollNewWeather = true) {
         this.saveFromUi();
@@ -2482,72 +2484,151 @@ const KingdomManager = {
         }
     },
 
+    setDailyWeather({ precip, cold, hazardId, secondHazardNote }) {
+        this.saveFromUi();
+        if (!this.state.calendar) {
+            this.state.calendar = { day: 1, month: 2, year: 4710 };
+        }
+        this.state.calendar.precip = !!precip;
+        this.state.calendar.cold = !!cold;
+        this.state.calendar.hazardId = hazardId || null;
+        this.state.calendar.secondHazardNote = !!secondHazardNote;
+
+        this.recalculateModifiers();
+        this._persist();
+        this.renderUi();
+        if (window.CampingManager && typeof window.CampingManager.recalculateCamp === 'function') {
+            window.CampingManager.recalculateCamp();
+        }
+    },
+
     openWeatherRollModal() {
         const info = this.getCalendarInfo();
-        const pool = MAP_CONFIG.golarionCalendar?.weatherBySeason?.[info.season] || [];
-        if (pool.length === 0) return;
-
+        const hazards = MAP_CONFIG.golarionCalendar?.weatherHazardsTable || [];
         const existing = document.getElementById('kWeatherRollOverlay');
         if (existing) existing.remove();
 
         const overlay = document.createElement('div');
         overlay.id = 'kWeatherRollOverlay';
-        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.84); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
 
-        const rowsHtml = pool.map(item => {
-            const minR = item.minRoll || 1;
-            const maxR = item.maxRoll || 20;
-            return `<div data-w-row="${item.id}" style="display:flex; justify-content:space-between; padding:6px 10px; border:1px solid #543e0d; border-radius:4px; background:rgba(0,0,0,0.35); margin-bottom:5px; font-size:13px;">
-                <span><b>${minR}–${maxR}</b>: ${item.icon} ${item.label}</span>
-                <span style="color:#a4b0be;">Охота ${item.huntDcMod >= 0 ? '+' + item.huntDcMod : item.huntDcMod} / Сцены ${item.encDcMod >= 0 ? '+' + item.encDcMod : item.encDcMod}</span>
-            </div>`;
-        }).join('');
+        const coldBlockHtml = info.coldDc
+            ? `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.35); border:1px solid #543e0d; padding:8px 12px; border-radius:4px;">
+                   <div><b>2. Холод (${info.monthName}):</b> чистая проверка <b>СЛ ${info.coldDc}</b><div style="font-size:11px; color:#a4b0be;">Утомление через 4 ч; при осадках идёт снег</div></div>
+                   <input type="number" id="kWInpCold" class="k-inp" min="1" max="20" placeholder="d20" style="width:74px; font-size:18px; font-weight:bold; text-align:center;">
+               </div>`
+            : `<div style="background:rgba(0,0,0,0.25); border:1px solid #543e0d; padding:6px 12px; border-radius:4px; font-size:12px; color:#a4b0be;">
+                   <b>2. Температура:</b> В сезон «${info.seasonLabel}» проверка на холод не требуется (норма)
+               </div>`;
 
         overlay.innerHTML = `
-            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:20px 24px; width:440px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9); font-family:'Tinos', serif;">
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:20px 24px; width:520px; max-width:95vw; max-height:92vh; overflow-y:auto; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9); font-family:'Tinos', serif;">
                 <div style="font-size:18px; font-weight:bold; color:#ffd875; border-bottom:1px solid #543e0d; padding-bottom:8px; margin-bottom:12px;">
-                    🎲 Определение погоды (${info.seasonLabel})
+                    🌦 Ежедневная подготовка: Погода (${info.day} ${info.monthName}, ${info.seasonLabel})
                 </div>
-                <div style="margin-bottom:12px;">${rowsHtml}</div>
-                <div style="margin-bottom:14px;">
-                    <label class="k-lbl">Введите результат броска d20 со стола (1–20):</label>
-                    <input type="number" id="kWeatherD20Inp" class="k-inp" min="1" max="20" placeholder="1–20" style="font-size:20px; font-weight:bold; text-align:center; color:#ffd875; border-color:#ffd875;">
+
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.35); border:1px solid #543e0d; padding:8px 12px; border-radius:4px;">
+                        <div><b>1. Небольшие осадки:</b> чистая проверка <b>СЛ ${info.precipDc}</b><div style="font-size:11px; color:#a4b0be;">Утомление через 4 ч, штраф −1 к Вниманию (зрение)</div></div>
+                        <input type="number" id="kWInpPrecip" class="k-inp" min="1" max="20" placeholder="d20" style="width:74px; font-size:18px; font-weight:bold; text-align:center;">
+                    </div>
+
+                    ${coldBlockHtml}
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.35); border:1px solid #543e0d; padding:8px 12px; border-radius:4px;">
+                        <div><b>3. Погодное явление (опасность):</b> чистая проверка <b>СЛ 17</b><div style="font-size:11px; color:#a4b0be;">При успехе (≥17) введите бросок d20 по таблице ниже</div></div>
+                        <input type="number" id="kWInpEventFlat" class="k-inp" min="1" max="20" placeholder="d20" style="width:74px; font-size:18px; font-weight:bold; text-align:center;">
+                    </div>
                 </div>
+
+                <div id="kWHazardSection" style="display:none; background:rgba(0,0,0,0.45); border:1px solid #ffd875; border-radius:6px; padding:10px 12px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="color:#ffd875; font-weight:bold;">⚡ Бросок по таблице погодных явлений (d20):</span>
+                        <input type="number" id="kWInpHazardRoll" class="k-inp" min="1" max="20" placeholder="1–20" style="width:80px; font-size:18px; font-weight:bold; text-align:center; color:#ffd875; border-color:#ffd875;">
+                    </div>
+                    <div id="kWNat20Hint" style="display:none; color:#2ecc71; font-size:12px; margin-bottom:6px;">
+                        👑 Выпала натуральная 20 на проверке СЛ 17! Можете сделать доп. проверку СЛ 17 на связанное явление.
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; font-size:12px;">
+                        ${hazards.map(h => `
+                            <div data-hz-id="${h.id}" style="padding:4px 8px; border:1px solid #543e0d; border-radius:3px; display:flex; justify-content:space-between;">
+                                <span><b>${h.minRoll === h.maxRoll ? h.minRoll : h.minRoll + '–' + h.maxRoll}</b> ${h.icon} ${h.label}</span>
+                                <span style="color:#a4b0be;">${h.levelText}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div id="kWSummaryPreview" style="background:#040905; border:1px solid #543e0d; border-radius:4px; padding:8px 12px; margin-bottom:12px; font-size:13px; color:#ebd291;">
+                    Введите результаты бросков d20 со стола (пустое поле = провал проверки)
+                </div>
+
                 <div style="display:flex; justify-content:flex-end; gap:8px;">
                     <button type="button" class="btn cc" id="kWeatherCancelBtn">Отмена</button>
-                    <button type="button" class="btn ok" id="kWeatherApplyBtn" disabled>Применить погоду</button>
+                    <button type="button" class="btn ok" id="kWeatherApplyBtn">Применить погоду дня</button>
                 </div>
             </div>
         `;
         document.body.appendChild(overlay);
 
-        const inp = overlay.querySelector('#kWeatherD20Inp');
-        const applyBtn = overlay.querySelector('#kWeatherApplyBtn');
-        let matchedWeather = null;
+        const inpPrecip = overlay.querySelector('#kWInpPrecip');
+        const inpCold = overlay.querySelector('#kWInpCold');
+        const inpEventFlat = overlay.querySelector('#kWInpEventFlat');
+        const hzSec = overlay.querySelector('#kWHazardSection');
+        const inpHzRoll = overlay.querySelector('#kWInpHazardRoll');
+        const nat20Hint = overlay.querySelector('#kWNat20Hint');
+        const preview = overlay.querySelector('#kWSummaryPreview');
 
-        inp.addEventListener('input', () => {
-            const val = parseInt(inp.value, 10);
-            matchedWeather = (!isNaN(val) && val >= 1 && val <= 20)
-                ? pool.find(w => val >= w.minRoll && val <= w.maxRoll) || pool.at(0)
+        let stateDraft = { precip: false, cold: false, hazardId: null, secondHazardNote: false };
+
+        const refresh = () => {
+            const pRoll = parseInt(inpPrecip.value, 10);
+            const cRoll = inpCold ? parseInt(inpCold.value, 10) : NaN;
+            const eFlat = parseInt(inpEventFlat.value, 10);
+            const hRoll = parseInt(inpHzRoll.value, 10);
+
+            const hasPrecip = !isNaN(pRoll) && pRoll >= info.precipDc;
+            const hasCold = !!(info.coldDc && !isNaN(cRoll) && cRoll >= info.coldDc);
+            const hasEvent = !isNaN(eFlat) && eFlat >= 17;
+
+            hzSec.style.display = hasEvent ? 'block' : 'none';
+            nat20Hint.style.display = eFlat === 20 ? 'block' : 'none';
+
+            const matchedHz = (hasEvent && !isNaN(hRoll) && hRoll >= 1 && hRoll <= 20)
+                ? hazards.find(h => hRoll >= h.minRoll && hRoll <= h.maxRoll) || null
                 : null;
 
-            overlay.querySelectorAll('[data-w-row]').forEach(row => {
-                const isHit = matchedWeather && row.dataset.wRow === matchedWeather.id;
-                row.style.borderColor = isHit ? '#2ecc71' : '#543e0d';
-                row.style.background = isHit ? 'rgba(46, 204, 113, 0.16)' : 'rgba(0,0,0,0.35)';
+            overlay.querySelectorAll('[data-hz-id]').forEach(el => {
+                const active = matchedHz && el.dataset.hzId === matchedHz.id;
+                el.style.borderColor = active ? '#2ecc71' : '#543e0d';
+                el.style.background = active ? 'rgba(46, 204, 113, 0.18)' : 'transparent';
             });
-            applyBtn.disabled = !matchedWeather;
-        });
 
-        applyBtn.addEventListener('click', () => {
-            if (!matchedWeather) return;
+            stateDraft = { precip: hasPrecip, cold: hasCold, hazardId: matchedHz?.id || null, secondHazardNote: eFlat === 20 };
+
+            const tags = [];
+            if (hasPrecip && hasCold) tags.push('🌨️ Снег (осадки + холод: утомление через 4 ч, −1 Внимание)');
+            else if (hasPrecip) tags.push('🌧️ Небольшой дождь (утомление через 4 ч, −1 Внимание)');
+            else if (hasCold) tags.push('🥶 Холодный день (утомление через 4 ч)');
+            else tags.push('⛅ Ясно, температура в норме');
+
+            if (matchedHz) tags.push(`⚡ Явление: ${matchedHz.icon} ${matchedHz.label} (${matchedHz.levelText})`);
+            else if (hasEvent) tags.push('⚡ Погодное явление сработало — введите бросок d20 по таблице');
+
+            preview.innerHTML = tags.join('<br>');
+        };
+
+        [inpPrecip, inpCold, inpEventFlat, inpHzRoll].filter(Boolean).forEach(el => el.addEventListener('input', refresh));
+        overlay.querySelector('#kWeatherApplyBtn').addEventListener('click', () => {
             overlay.remove();
-            this.setCalendarWeather(matchedWeather.id);
+            this.setDailyWeather(stateDraft);
         });
         overlay.querySelector('#kWeatherCancelBtn').addEventListener('click', () => overlay.remove());
         overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-        setTimeout(() => inp.focus(), 40);
+        setTimeout(() => inpPrecip.focus(), 40);
     },
+
+
 
     setCalendarWeather(weatherId) {
         this.saveFromUi();

@@ -30,15 +30,18 @@ const KingdomSheetRenderer = {
 
         const cal = window.KingdomManager?.getCalendarInfo
             ? window.KingdomManager.getCalendarInfo()
-            : { day: 1, monthName: 'Фараст', year: 4710, seasonLabel: '🌱 Весна', weather: { icon: '⛅', label: 'Ясно', huntDcMod: 0, encDcMod: 0, consMod: 0 } };
+            : { day: 1, monthName: 'Фараст', year: 4710, seasonLabel: '🌱 Весна', precip: false, cold: false, hazard: null };
 
-        const w = cal.weather;
-        const wEffects = [];
-        if (w.huntDcMod) wEffects.push(`Охота СЛ ${w.huntDcMod > 0 ? '+' + w.huntDcMod : w.huntDcMod}`);
-        if (w.encDcMod)  wEffects.push(`Сцены СЛ ${w.encDcMod > 0 ? '+' + w.encDcMod : w.encDcMod}`);
-        if (w.consMod)   wEffects.push(`Потребл. +${w.consMod}`);
-        const wEffectsText = wEffects.length ? `(${wEffects.join(', ')})` : '(без штрафов)';
+        let bgWeatherLabel = '⛅ Ясно и благоприятно';
+        if (cal.precip && cal.cold) bgWeatherLabel = '🌨️ Снег (утомление 4 ч, −1 Внимание)';
+        else if (cal.precip) bgWeatherLabel = '🌧️ Небольшой дождь (утомление 4 ч, −1 Внимание)';
+        else if (cal.cold) bgWeatherLabel = '🥶 Холодный день (утомление 4 ч)';
 
+        const hazardBadgeHtml = cal.hazard
+            ? `<span style="background:rgba(231, 76, 60, 0.2); border:1px solid #e74c3c; color:#ff7675; padding:2px 8px; border-radius:4px; font-weight:bold;">
+                   ⚡ ${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText})
+               </span>`
+            : '';
 
         const calendarBarHtml = `
             <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.38); border:1px solid #543e0d; border-radius:6px; padding:6px 12px; margin-bottom:12px; font-size:13px;">
@@ -49,8 +52,9 @@ const KingdomSheetRenderer = {
                     <button type="button" class="btn cc" id="kBtnCalNextMonth" style="padding:2px 8px; font-size:11px;">+1 Месяц</button>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <span style="color:#ebd291;">Погода: <b style="color:#ffd875;">${w.icon} ${w.label}</b> <span style="color:#2ecc71; font-size:12px;">${wEffectsText}</span></span>
-                    <button type="button" class="btn cc" id="kBtnOpenWeatherRoll" style="padding:3px 10px; font-size:12px;">🎲 Ввести бросок d20</button>
+                    <span style="color:#ebd291;">Погода дня: <b style="color:#ffd875;">${bgWeatherLabel}</b></span>
+                    ${hazardBadgeHtml}
+                    <button type="button" class="btn cc" id="kBtnOpenWeatherRoll" style="padding:3px 10px; font-size:12px;">🌦 Подготовка погоды</button>
                 </div>
             </div>
         `;

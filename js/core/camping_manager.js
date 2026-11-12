@@ -279,6 +279,7 @@ const CampingManager = {
 
 
 
+
     renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
         const normEl = document.getElementById('campNormalIngredients');
         const specEl = document.getElementById('campSpecialIngredients');
@@ -333,6 +334,7 @@ const CampingManager = {
         }
 
         const kCtx = this.state.kingdomContext;
+
         if (kCtx && kCtx.inKingdom) {
             const unrestDropReady = (prepareRes === 'success' || prepareRes === 'crit_success' || camoRes === 'success' || camoRes === 'crit_success');
             const foodSupplyReady = (huntRes === 'success' || huntRes === 'crit_success');
@@ -348,8 +350,30 @@ const CampingManager = {
             );
         }
 
+        const cal = window.KingdomManager?.getCalendarInfo?.();
+        if (cal) {
+            if (cal.precip || cal.cold) {
+                const condName = (cal.precip && cal.cold) ? 'Снег и холод' : (cal.precip ? 'Небольшие осадки' : 'Холодный день');
+                const penalties = ['утомление наступает через 4 часа перехода вместо 8'];
+                if (cal.precip) penalties.push('ситуативный штраф −1 к Вниманию (зрение)');
+                this.addLogLine(
+                    effectsList,
+                    `Погода (${cal.day} ${cal.monthName}, ${condName}): ${penalties.join('; ')}.`,
+                    "bad"
+                );
+            }
+            if (cal.hazard) {
+                this.addLogLine(
+                    effectsList,
+                    `Погодное явление: ${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText}) — проверьте Выживание для предсказания и поиска укрытия.`,
+                    "bad"
+                );
+            }
+        }
+
         this.renderAlliesDock();
     },
+
 
 
 
