@@ -19,6 +19,7 @@ const UiSelectManager = {
     initWorkSiteGuard() {
         const rules = MAP_CONFIG.workSiteRules || {};
 
+
         const syncGuard = () => {
             const menu = document.getElementById('hexMenu');
             if (!menu) return;
@@ -126,6 +127,7 @@ const UiSelectManager = {
                     const siteCost = (rawSiteCost > 0 && hasClearedRuins) ? Math.max(1, Math.floor(rawSiteCost / 2)) : rawSiteCost;
                     const roadCost = (terrainVal === 'water' && hasBridge) ? 1 : (terr.roadCost ?? 1);
 
+
                     const makeSpendBtn = (id, label, cost, isDone) => {
                         if (cost <= 0 && !isDone) return '';
                         if (isDone) {
@@ -135,14 +137,23 @@ const UiSelectManager = {
                                 ✔ ${label.replace(/^[^\s]+\s/, '')}
                             </button>`;
                         }
-                        const ok = curRp >= cost;
-                        return `<button type="button" data-spend-rp="${cost}" data-spend-label="${label}" ${ok ? '' : 'disabled'}
+
+                        // Пока не отмечена галочка «Территория королевства» — все кнопки работ заблокированы
+                        const isBlockedByClaim = !isClaimed;
+                        const ok = !isBlockedByClaim && curRp >= cost;
+                        const btnTitle = isBlockedByClaim
+                            ? 'Сначала отметьте галочку «Территория королевства»'
+                            : (curRp < cost ? `Недостаточно ОР в казне (нужно ${cost})` : `${label}: списать ${cost} ОР из казны`);
+
+                        return `<button type="button" data-spend-rp="${cost}" data-spend-label="${label}" ${ok ? '' : 'disabled'} title="${btnTitle}"
                             style="padding:3px 7px; font-size:11px; font-weight:bold; border-radius:3px; cursor:${ok ? 'pointer' : 'not-allowed'};
                             background:${ok ? 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)' : '#1a1a1a'};
-                            border:1px solid ${ok ? '#dfbc6f' : '#444'}; color:${ok ? '#ffd875' : '#666'};">
+                            border:1px solid ${ok ? '#dfbc6f' : '#444'}; color:${ok ? '#ffd875' : '#666'}; opacity:${isBlockedByClaim ? '0.5' : '1'};">
                             ${label} (-${cost} ОР)
                         </button>`;
                     };
+
+
 
                     hintBox.style.display = 'block';
                     hintBox.innerHTML = `
@@ -163,6 +174,7 @@ const UiSelectManager = {
                         btn.onclick = (ev) => {
                             ev.preventDefault();
                             ev.stopPropagation();
+                            if (!isClaimed) return;
                             const cost = parseInt(btn.dataset.spendRp, 10) || 0;
                             const label = btn.dataset.spendLabel || 'Работы';
                             const latestRp = parseInt(kState.rp, 10) || 0;
