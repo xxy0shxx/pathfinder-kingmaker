@@ -112,7 +112,16 @@ const KingdomSheetRenderer = {
         }).join('');
 
 
-
+        const roleIcons = {
+            ruler:     '👑',
+            counselor: '📜',
+            general:   '⚔️',
+            emissary:  '🕊️',
+            magister:  '🔮',
+            treasurer: '💰',
+            viceroy:   '🏛️',
+            warden:    '🛡️'
+        };
 
         const leadersHtml = Object.keys(roleNames).map(role => {
             const l = s.leaders[role] || { name: '', invested: false, actionsUsed: 0 };
@@ -143,6 +152,7 @@ const KingdomSheetRenderer = {
                     <label title="Вложенная роль (+1 к связанным навыкам)" style="display:flex; align-items:center; gap:3px; font-size:12px; cursor:pointer;">
                         <input type="checkbox" id="k_leader_inv_${role}" ${l.invested ? 'checked' : ''}> ВКЛ
                     </label>
+                    <span style="width:130px; font-size:13px; font-weight:bold; color:#dfbc6f;">${roleIcons[role] || '⚜️'} ${roleNames[role]}</span>
                     <span style="width:115px; font-size:13px; font-weight:bold; color:#dfbc6f;">${roleNames[role]}</span>
                     <input type="text" id="k_leader_name_${role}" class="k-inp" value="${l.name}" placeholder="Имя..." style="flex:1; min-width:90px;">
                     <div class="k-leader-pips" style="display:flex; gap:3px; flex-shrink:0;" title="Действия лидера в фазу деятельности (${used}/${maxActions})">
@@ -244,38 +254,40 @@ const KingdomSheetRenderer = {
                             <span>👑 Этап: <b style="color:#ffd875;">${nationInfo.name}</b> • Кость ОР: <b style="color:#2ecc71;">${diceCount}${nationInfo.die}</b> • Потолок предм.: <b style="color:#ffd875;">+${nationInfo.cap}</b></span>
                             ${isolatedBadge}
                         </div>
+                        
                         <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:8px; margin-bottom:8px;">
-                            <div><label class="k-lbl">Название королевства</label><input type="text" id="k_name" class="k-inp" value="${s.name}"></div>
-                            <div><label class="k-lbl">Уровень</label><input type="number" id="k_level" class="k-inp" value="${s.level}"></div>
-                            <div><label class="k-lbl">Опыт XP (1000 = Ур.)</label><input type="number" id="k_xp" class="k-inp" value="${s.xp}"></div>
+                            <div><label class="k-lbl">🏰 Название королевства</label><input type="text" id="k_name" class="k-inp" value="${s.name}"></div>
+                            <div><label class="k-lbl">⭐ Уровень</label><input type="number" id="k_level" class="k-inp" value="${s.level}"></div>
+                            <div><label class="k-lbl">✨ Опыт XP (1000 = Ур.)</label><input type="number" id="k_xp" class="k-inp" value="${s.xp}"></div>
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:10px;">
-                            <div><label class="k-lbl">Хартия</label><input type="text" id="k_charter" class="k-inp" value="${s.charter}"></div>
-                            <div><label class="k-lbl">Центр королевства</label><input type="text" id="k_heartland" class="k-inp" value="${s.heartland}"></div>
-                            <div><label class="k-lbl">Форма правления</label><input type="text" id="k_government" class="k-inp" value="${s.government}"></div>
-                            <div><label class="k-lbl">Столица</label><input type="text" id="k_capital" class="k-inp" value="${s.capitalCity}"></div>
+                            <div><label class="k-lbl">📜 Хартия</label><input type="text" id="k_charter" class="k-inp" value="${s.charter}"></div>
+                            <div><label class="k-lbl">🧭 Центр королевства</label><input type="text" id="k_heartland" class="k-inp" value="${s.heartland}"></div>
+                            <div><label class="k-lbl">⚖️ Форма правления</label><input type="text" id="k_government" class="k-inp" value="${s.government}"></div>
+                            <div><label class="k-lbl">👑 Столица</label><input type="text" id="k_capital" class="k-inp" value="${s.capitalCity}"></div>
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">${statsHtml}</div>
                     </div>
+                    
 
                     <div class="k-panel" style="margin-top:12px;">
                         <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; margin-bottom:10px;">
-                            <div><label class="k-lbl">Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
-                            <div><label class="k-lbl">Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
-                            <div><label class="k-lbl">Беспорядки</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
-                            <div><label class="k-lbl">Потребл. ${farmlandCount > 0 ? `(-${farmlandCount}🌾)` : ''}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселения + здания + перенаселение − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
-                            <div><label class="k-lbl">Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
-                            <div><label class="k-lbl">СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
+                            <div><label class="k-lbl">🗺️ Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
+                            <div><label class="k-lbl">🪙 Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
+                            <div><label class="k-lbl">💢 Беспорядки</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
+                            <div><label class="k-lbl">🍖 Потребл. ${farmlandCount > 0 ? `(-${farmlandCount}🌾)` : ''}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселения + здания + перенаселение − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                            <div><label class="k-lbl">🏆 Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
+                            <div><label class="k-lbl">🎯 СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
                         </div>
                         <table class="k-table">
-                            <thead><tr><th>Раздор</th><th>Очки</th><th>Штраф</th><th>Порог</th></tr></thead>
+                            <thead><tr><th>💀 Раздор</th><th>📊 Очки</th><th>⚠️ Штраф</th><th>🚧 Порог</th></tr></thead>
                             <tbody>${ruinsHtml}</tbody>
                         </table>
                     </div>
 
                     <div class="k-panel" style="margin-top:12px;">
                         <div class="k-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>ПРАВИТЕЛИ И СОВЕТНИКИ</span>
+                            <span>👥 ПРАВИТЕЛИ И СОВЕТНИКИ</span>
                             <button type="button" class="btn cc" id="kBtnResetActions" style="padding:2px 8px; font-size:11px;" title="Сбросить использованные действия всех лидеров">🔄 Сбросить действия</button>
                         </div>
                         ${leadersHtml}
@@ -285,7 +297,7 @@ const KingdomSheetRenderer = {
                 <div>
                     <div class="k-panel">
                         <div class="k-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>РЕСУРСЫ И УЧАСТКИ ${totalBonusSites > 0 ? `<span style="color:#2ecc71; font-size:11px;">(+${totalBonusSites} от залежей 💎)</span>` : ''}</span>
+                            <span>📦 РЕСУРСЫ И УЧАСТКИ ${totalBonusSites > 0 ? `<span style="color:#2ecc71; font-size:11px;">(+${totalBonusSites} от залежей 💎)</span>` : ''}</span>
                             <button type="button" class="btn cc" id="kBtnSyncHexMap" style="padding:2px 8px; font-size:11px;" title="Подсчитать захваченные гексы и добывающие участки с основной карты">🗺 С карты гексов</button>
                         </div>
                         <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px; margin-bottom:8px;">
@@ -311,20 +323,20 @@ const KingdomSheetRenderer = {
                     </div>
 
                     <div class="k-panel" style="margin-top:12px;">
-                        <div class="k-sec-title">НАВЫКИ КОРОЛЕВСТВА (Потолок бонуса предмета: +${nationInfo.cap})</div>
+                        <div class="k-sec-title">🎲 НАВЫКИ КОРОЛЕВСТВА (Потолок бонуса предмета: +${nationInfo.cap})</div>
                         <table class="k-table">
-                            <thead><tr><th>Навык</th><th>Итог</th><th>Ранг</th><th>Статус</th><th>Обст.</th><th>Предм.</th><th>Проч.</th></tr></thead>
+                            <thead><tr><th>📋 Навык</th><th>∑ Итог</th><th>🎖️ Ранг</th><th>✨ Статус</th><th>🧭 Обст.</th><th>🏛️ Предм.</th><th>➕ Проч.</th></tr></thead>
                             <tbody>${skillsHtml}</tbody>
                         </table>
                     </div>
 
                     <div class="k-panel" style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                         <div>
-                            <div class="k-sec-title">ЧЕРТЫ</div>
+                            <div class="k-sec-title">🌟 ЧЕРТЫ</div>
                             <textarea id="k_feats_text" class="k-inp" rows="4" placeholder="Список черт королевства...">${s.featsText || ''}</textarea>
                         </div>
                         <div>
-                            <div class="k-sec-title">СПОСОБНОСТИ</div>
+                            <div class="k-sec-title">⚡ СПОСОБНОСТИ</div>
                             <textarea id="k_abilities_text" class="k-inp" rows="4" placeholder="Особенности королевства...">${s.abilitiesText || ''}</textarea>
                         </div>
                     </div>
