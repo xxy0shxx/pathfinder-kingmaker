@@ -380,7 +380,7 @@ const HexCanvasRender = {
                 const wsIcons = {
                     farmlands: '🌾',
                     lumberCamps: '🪵',
-                    mines: '⛏',
+                    mines: '⚒️',
                     quarries: '🧱'
                 };
                 if (wsIcons[data.workSite]) {
@@ -595,7 +595,7 @@ const HexCanvasRender = {
         const wsLabels = {
             farmlands: '🌾 Ферма (Еда)',
             lumberCamps: '🪵 Лесопилка (Дерево)',
-            mines: '⛏ Шахта (Руда)',
+            mines: '⚒️ Шахта (Руда)',
             quarries: '🧱 Каменоломня (Камень)'
         };
         if (data.kingdomClaimed) {

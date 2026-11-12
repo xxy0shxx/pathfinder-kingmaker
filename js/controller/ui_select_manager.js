@@ -87,35 +87,91 @@ const UiSelectManager = {
                 }
             }
 
-            // 4. Вывод расчётной стоимости ОР и СЛ освоения под селектом местности
+
+
+
+            // 4. Вывод расчётной стоимости ОР, СЛ освоения и кнопок быстрого списания из казны
             if (terrainEl) {
                 let hintBox = menu.querySelector('#hexTerrainCostHint');
                 if (!hintBox) {
                     hintBox = document.createElement('div');
                     hintBox.id = 'hexTerrainCostHint';
-                    hintBox.style.cssText = 'margin-top:6px; padding:6px 10px; background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:4px; font-size:12px; color:#ebd291; line-height:1.4;';
+                    hintBox.style.cssText = 'margin-top:6px; padding:8px 10px; background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:4px; font-size:12px; color:#ebd291; line-height:1.4;';
                     (terrainEl.closest('.box') || terrainEl.parentElement).appendChild(hintBox);
                 }
 
                 const terr = MAP_CONFIG.terrains?.[terrainVal];
-                if (!terr) {
+                const km = window.KingdomManager;
+                if (!terr || !km?.state) {
                     hintBox.style.display = 'none';
                 } else {
-                    const kState = window.KingdomManager?.state;
-                    const baseCtrlDc = (parseInt(kState?.controlDcBase, 10) || 14) + (parseInt(kState?.controlDcSize, 10) || 0);
+                    const kState = km.state;
+                    const curRp = parseInt(kState.rp, 10) || 0;
+                    const baseCtrlDc = (parseInt(kState.controlDcBase, 10) || 14) + (parseInt(kState.controlDcSize, 10) || 0);
                     const claimDc = baseCtrlDc + (terr.claimDcMod || 0);
+
                     const titleVal = menu.querySelector('input[type="text"]')?.value || '';
                     const descVal = menu.querySelector('textarea')?.value || '';
-                    const hasBridge = /мост|bridge/i.test(`${titleVal} ${descVal}`);
+                    const combinedText = `${titleVal} ${descVal}`;
+                    const hasBridge = /мост|bridge/i.test(combinedText);
+                    const hasClearedRuins = /руин.*расчищ|расчищ.*руин|ruin.*clear/i.test(combinedText);
+
+                    const claimCost = 1; // Захват гекса (Claim Hex) по правилам PF2e: 1 ОР
+                    const clearCost = terr.clearCost || 0;
+                    const rawSiteCost = terr.workSiteCost || 0;
+                    const siteCost = (rawSiteCost > 0 && hasClearedRuins) ? Math.max(1, Math.floor(rawSiteCost / 2)) : rawSiteCost;
                     const roadCost = (terrainVal === 'water' && hasBridge) ? 1 : (terr.roadCost ?? 1);
 
+                    const makeSpendBtn = (id, label, cost) => {
+                        if (cost <= 0) return '';
+                        const ok = curRp >= cost;
+                        return `<button type="button" data-spend-rp="${cost}" data-spend-label="${label}" ${ok ? '' : 'disabled'}
+                            style="padding:3px 7px; font-size:11px; font-weight:bold; border-radius:3px; cursor:${ok ? 'pointer' : 'not-allowed'};
+                            background:${ok ? 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)' : '#1a1a1a'};
+                            border:1px solid ${ok ? '#dfbc6f' : '#444'}; color:${ok ? '#ffd875' : '#666'};">
+                            ${label} (-${cost} ОР)
+                        </button>`;
+                    };
+
                     hintBox.style.display = 'block';
-                    hintBox.innerHTML =
-                        `👑 <b>Освоение (${terr.label}):</b> Захват / Расчистка <b>СЛ ${claimDc}</b> (база ${baseCtrlDc} + ${terr.claimDcMod || 0})<br>` +
-                        `💰 <b>Затраты:</b> Расчистка <b>${terr.clearCost || 0} ОР</b> • Участок <b>${terr.workSiteCost || 0} ОР</b> • Дорога <b>${roadCost} ОР</b>` +
-                        (hasBridge && terrainVal === 'water' ? ` <span style="color:#2ecc71;">(мост снижает цену)</span>` : '');
+                    hintBox.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span>👑 <b>Освоение (${terr.label}):</b> СЛ <b>${claimDc}</b></span>
+                            <span style="color:#ffd875; font-family:monospace; font-weight:bold;">Казна: ${curRp} ОР</span>
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:6px;">
+                            ${makeSpendBtn('claim', '🚩 Захват', claimCost)}
+                            ${makeSpendBtn('clear', '🪓 Расчистка', clearCost)}
+                            ${makeSpendBtn('site', '🏗 Участок', siteCost)}
+                            ${makeSpendBtn('road', '🛣 Дорога', roadCost)}
+                        </div>
+                        ${hasClearedRuins && rawSiteCost > 0 ? `<div style="color:#2ecc71; font-size:11px; margin-top:4px;">✔ Скидка расчищенных руин: цена участка снижена вдвое</div>` : ''}
+                    `;
+
+                    hintBox.querySelectorAll('[data-spend-rp]').forEach(btn => {
+                        btn.onclick = (ev) => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            const cost = parseInt(btn.dataset.spendRp, 10) || 0;
+                            const label = btn.dataset.spendLabel || 'Работы';
+                            const latestRp = parseInt(kState.rp, 10) || 0;
+                            if (latestRp < cost) return;
+
+                            kState.rp = latestRp - cost;
+                            if (typeof km._persist === 'function') km._persist();
+                            if (typeof km.renderUi === 'function') km.renderUi();
+
+                            // Автоматически ставим галочку «Территория королевства» при оплате захвата
+                            if (label.includes('Захват') && claimedCb && !claimedCb.checked) {
+                                claimedCb.checked = true;
+                            }
+                            syncGuard();
+                        };
+                    });
                 }
             }
+
+
 
 
 
