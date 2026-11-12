@@ -429,6 +429,77 @@ const WeatherManager = {
         overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
         setTimeout(() => inpPrecip.focus(), 40);
     },
+
+    showWeatherAppliedModal() {
+        const cal = this.getCalendarInfo();
+        const existing = document.getElementById('kWeatherSummaryOverlay');
+        if (existing) existing.remove();
+
+        let icon = '⛅';
+        let title = 'Ясно и благоприятно';
+        let effectsList = ['Путешествие без погодных штрафов: утомление наступает через стандартные 8 часов.'];
+
+        if (cal.precip && cal.cold) {
+            icon = '🌨️';
+            title = 'Снег и мороз';
+            effectsList = [
+                'Ускоренное утомление: наступает через 4 часа пешего перехода вместо 8.',
+                'Ухудшение видимости: ситуативный штраф −1 к проверкам Внимания (зрение).'
+            ];
+        } else if (cal.precip) {
+            icon = '🌧️';
+            title = 'Небольшой дождь';
+            effectsList = [
+                'Ускоренное утомление: наступает через 4 часа пешего перехода вместо 8.',
+                'Ухудшение видимости: ситуативный штраф −1 к проверкам Внимания (зрение).'
+            ];
+        } else if (cal.cold) {
+            icon = '🥶';
+            title = 'Холодный день';
+            effectsList = [
+                'Ускоренное утомление: наступает через 4 часа дневной активности вместо 8.'
+            ];
+        }
+
+        const hazardHtml = cal.hazard ? this._renderWeatherHazardCardHtml(cal.hazard) : '';
+        const nat20Html = cal.secondHazardNote
+            ? `<div style="margin-top:10px; padding:8px 12px; background:rgba(46,204,113,0.15); border:1px solid #2ecc71; border-radius:6px; color:#2ecc71; font-size:20px;">
+                   👑 Натуральная 20 на проверке явлений: ведущий может добавить второе связанное явление (СЛ 17).
+               </div>`
+            : '';
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kWeatherSummaryOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.86); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);';
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:3px solid #ffd875; border-radius:12px; padding:32px 40px; width:1100px; max-width:95vw; max-height:92vh; overflow-y:auto; color:#ebd291; box-shadow:0 20px 60px rgba(0,0,0,0.95), 0 0 35px rgba(255,216,117,0.35); font-family:'Tinos', serif;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #543e0d; padding-bottom:14px; margin-bottom:20px;">
+                    <span style="font-size:32px; font-weight:bold; color:#ffd875;">📅 Итоги утренней погоды: ${cal.day} ${cal.monthName} (${cal.seasonLabel})</span>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:20px; background:rgba(0,0,0,0.4); border:2px solid #8a6421; border-radius:8px; padding:18px 24px; margin-bottom:18px;">
+                    <div style="font-size:58px; line-height:1;">${icon}</div>
+                    <div>
+                        <div style="font-size:30px; font-weight:bold; color:#fff; margin-bottom:6px;">${title}</div>
+                        <ul style="margin:0; padding-left:22px; font-size:22px; color:#ebd291; line-height:1.45;">
+                            ${effectsList.map(line => `<li>${line}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                ${nat20Html}
+                ${hazardHtml}
+
+                <div style="display:flex; justify-content:flex-end; margin-top:22px;">
+                    <button type="button" class="btn ok" id="kWeatherSummaryCloseBtn" style="padding:14px 36px; font-size:24px; min-width:220px;">Принять</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#kWeatherSummaryCloseBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    },
+
 };
 
 export default WeatherManager;

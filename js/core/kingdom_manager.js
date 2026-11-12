@@ -186,9 +186,6 @@ const KingdomManager = {
         return Math.max(0, claimedKeys.size - visited.size);
     },
 
-
-
-
     _mergeWithDefaults(saved) {
         const base = JSON.parse(JSON.stringify(this.defaultState));
         const merged = { ...base, ...saved };
@@ -291,8 +288,6 @@ const KingdomManager = {
         this.renderUi();
     },
 
-
-
     syncFromHexMap(silent = false) {
         const hexes = this.mapDataRef?.hexes || {};
         const s = this.state;
@@ -350,7 +345,6 @@ const KingdomManager = {
                 }
             }
 
-
             // Рабочие участки учитываются ТОЛЬКО на территории королевства
             const ws = h.workSite || 'none';
             if (ws === 'farmlands' || (ws === 'none' && combined.includes('ферм'))) {
@@ -404,8 +398,6 @@ const KingdomManager = {
             );
         }
     },
-
-
 
     exportCityToPng() {
         this.saveFromUi();
@@ -685,9 +677,6 @@ const KingdomManager = {
         setTimeout(() => rollInp.focus(), 50);
     },
 
-
-
-
     // Связь характеристик с типами упадка (Ruins) и ролями лидеров (Invested +1)
     ruinAbilityMap: {
         corruption: 'culture',
@@ -706,7 +695,6 @@ const KingdomManager = {
         viceroy: 'economy',
         warden: 'stability'
     },
-
 
     getUnrestPenalty() {
         const u = parseInt(this.state?.unrest, 10) || 0;
@@ -744,7 +732,6 @@ const KingdomManager = {
 
         return abilityMod + profBonus + investedBonus + (sk.status || 0) + (sk.circ || 0) + (sk.item || 0) + (sk.other || 0) - ruinPenalty + unrestPenalty;
     },
-
 
     openUpkeepModal() {
         this.saveFromUi();
@@ -816,11 +803,6 @@ const KingdomManager = {
         });
     },
 
-
-
-
-
-
     applyUpkeepWithRoll(rolledRp) {
         const s = this.state;
         const changes = [];
@@ -868,8 +850,6 @@ const KingdomManager = {
         this.renderUi();
         this._showUpkeepResultModal(changes);
     },
-
-
 
     _showUpkeepResultModal(changesHtmlList) {
         const existing = document.getElementById('kUpkeepResultOverlay');
@@ -968,8 +948,6 @@ const KingdomManager = {
             }
         });
     },
-
-
 
     openLevelUpModal() {
         this.saveFromUi();
@@ -1072,7 +1050,6 @@ const KingdomManager = {
         });
     },
 
-
     openTradeModal() {
         this.saveFromUi();
 
@@ -1094,7 +1071,6 @@ const KingdomManager = {
         const renderModalContent = () => {
             const s = this.state;
             const curRp = parseInt(s.rp, 10) || 0;
-
 
             const rowsHtml = Object.entries(rates).map(([key, info]) => {
                 const c = s.commodities[key] || { value: 0, max: 4 };
@@ -1118,7 +1094,6 @@ const KingdomManager = {
                     </tr>
                 `;
             }).join('');
-
 
             overlay.innerHTML = `
                 <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:2px solid #b89445; border-radius:8px; padding:22px 26px; width:540px; max-width:94vw; color:#ebd291; box-shadow:0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(223,188,111,0.35); font-family:'Tinos', serif;">
@@ -1185,10 +1160,6 @@ const KingdomManager = {
             if (e.target === overlay) overlay.remove();
         });
     },
-
-
-
-
 
     addEventCard() {
         this.state.events.push({
@@ -1336,9 +1307,6 @@ const KingdomManager = {
         overlay.querySelector('#kArmyCloseBtn').addEventListener('click', () => overlay.remove());
         overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     },
-
-
-
 
     _isAreaFree(targetR, targetC, spanRows, spanCols, ignoreUid = null) {
         if (targetR < 0 || targetC < 0 || targetR + spanRows > 6 || targetC + spanCols > 6) {
@@ -1550,8 +1518,6 @@ const KingdomManager = {
         this.renderUi();
     },
 
-
-
     removeBuilding(uid) {
         this.state.urbanGrid.buildings = this.state.urbanGrid.buildings.filter(b => b.uid !== uid);
 
@@ -1584,9 +1550,6 @@ const KingdomManager = {
         const el = document.getElementById(id);
         return el ? el.checked : fallback;
     },
-
-
-
 
     saveFromUi() {
         try {
@@ -1711,9 +1674,6 @@ const KingdomManager = {
         }
     },
 
-
-
-
     renderUi() {
         const container = document.getElementById('kingdomTabletContainer');
         if (!container) return;
@@ -1730,11 +1690,6 @@ const KingdomManager = {
 
         this._bindEvents(container);
     },
-
-
-
-
-
 
     _bindEvents(container) {
         container.querySelectorAll('[data-k-tab]').forEach(btn => {
@@ -2055,9 +2010,12 @@ const KingdomManager = {
         return               { name: 'Территория',  die: 4,  dcMod: 0, storage: 4,  maxItemBonus: 1 };
     },
 
+    /*
     getSizeModifier(size) {
         return this.getNationTierInfo(size).dcMod;
     },
+
+     */
 
     getResourceDieSides() {
         return this.getNationTierInfo(this.state?.size).die;
@@ -2439,7 +2397,7 @@ const KingdomManager = {
     },
 
 
-
+/*
     advanceCalendar(daysDelta = 0, monthsDelta = 0, rollNewWeather = true) {
         this.saveFromUi();
         const calCfg = MAP_CONFIG.golarionCalendar;
@@ -2481,6 +2439,7 @@ const KingdomManager = {
         this._persist();
         this.renderUi();
     },
+    */
 
     rollSeasonalWeather(silent = false) {
         const info = this.getCalendarInfo();
@@ -2497,6 +2456,7 @@ const KingdomManager = {
         }
     },
 
+    /*
     setDailyWeather({ precip, cold, hazardId, secondHazardNote }) {
         this.saveFromUi();
         if (!this.state.calendar) {
@@ -2515,6 +2475,10 @@ const KingdomManager = {
         }
     },
 
+     */
+
+
+    /*
     setCalendarWeather(weatherId) {
         this.saveFromUi();
         if (!this.state.calendar) {
@@ -2528,6 +2492,8 @@ const KingdomManager = {
             window.CampingManager.recalculateCamp();
         }
     },
+
+     */
 };
 
 export default KingdomManager;
