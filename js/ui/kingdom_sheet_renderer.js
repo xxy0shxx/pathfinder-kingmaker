@@ -317,7 +317,27 @@ const KingdomSheetRenderer = {
 
 
 
+
     renderEventsTab(s) {
+        const skillLabelsRu = {
+            agriculture: 'Сельское хозяйство',
+            arts:        'Искусства',
+            boating:     'Мореходство',
+            defense:     'Оборона',
+            engineering: 'Инженерия',
+            exploration: 'Исследование',
+            folklore:    'Традиции',
+            industry:    'Промышленность',
+            intrigue:    'Интрига',
+            magic:       'Магия',
+            politics:    'Политика',
+            scholarship: 'Учёность',
+            statecraft:  'Управление',
+            trade:       'Торговля',
+            warfare:     'Военное дело',
+            wilderness:  'Дикая природа'
+        };
+
         const eventsHtml = s.events.length === 0
             ? `<div style="grid-column: 1 / -1; text-align:center; padding:30px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">Активных событий королевства нет. Нажмите «+ Добавить событие».</div>`
             : s.events.map(ev => `
@@ -328,7 +348,11 @@ const KingdomSheetRenderer = {
                         <div><label class="k-lbl">Уровень</label><input type="number" class="k-inp k-ev-level" value="${ev.level}"></div>
                     </div>
                     <div style="display:grid; grid-template-columns: 2fr 1fr; gap:8px; margin-bottom:8px;">
-                        <div><label class="k-lbl">Навык разрешения</label><input type="text" class="k-inp k-ev-skill" value="${ev.skill}"></div>
+                        <div><label class="k-lbl">Навык разрешения</label><select class="k-inp k-ev-skill">
+            ${Object.entries(skillLabelsRu).map(([key, label]) =>
+                `<option value="${key}" ${(ev.skill || 'statecraft') === key ? 'selected' : ''}>${label}</option>`
+            ).join('')}
+        </select></div>
                         <div><label class="k-lbl">Модификатор</label><input type="number" class="k-inp k-ev-mod" value="${ev.modifier}"></div>
                     </div>
                     <div style="margin-bottom:8px;">
@@ -345,13 +369,17 @@ const KingdomSheetRenderer = {
         return `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                 <span style="font-size:15px; font-weight:bold; color:#ffd875;">ЖУРНАЛ СОБЫТИЙ КОРОЛЕВСТВА</span>
-                <button type="button" class="btn ok" id="kBtnAddEvent">+ Добавить событие</button>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <button type="button" class="btn cc" id="kBtnRollKingdomEvent" title="Проверить фазу Событий конца хода (СЛ 16 / СЛ 11 + таблица d100)">🎲 Событие хода</button>
+                    <button type="button" class="btn ok" id="kBtnAddEvent">+ Добавить событие</button>
+                </div>
             </div>
             <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;">
                 ${eventsHtml}
             </div>
         `;
     },
+
 
 
     renderArmiesTab(s) {

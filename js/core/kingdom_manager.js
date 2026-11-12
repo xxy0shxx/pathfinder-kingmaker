@@ -1181,6 +1181,178 @@ const KingdomManager = {
         this.renderUi();
     },
 
+    openKingdomEventRollModal() {
+        this.saveFromUi();
+        const eventsPool = MAP_CONFIG.kingdomRandomEventsTable || [];
+        if (eventsPool.length === 0) return;
+
+        const existing = document.getElementById('kRandomEventOverlay');
+        if (existing) existing.remove();
+
+        const s = this.state;
+        const baseCtrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
+        const hasUnresolvedEvents = Array.isArray(s.events) && s.events.some(ev => ev.status !== 'resolved');
+        const flatCheckDc = hasUnresolvedEvents ? 11 : 16;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'kRandomEventOverlay';
+        overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.86); z-index:9999999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);';
+
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:3px solid #b89445; border-radius:10px; padding:24px 30px; width:1150px; max-width:95vw; max-height:92vh; overflow-y:auto; color:#ebd291; box-shadow:0 18px 50px rgba(0,0,0,0.95); font-family:'Tinos', serif;">
+                <div style="font-size:26px; font-weight:bold; color:#ffd875; border-bottom:2px solid #543e0d; padding-bottom:10px; margin-bottom:14px;">
+                    ⚡ Фаза Событий королевства (Конец хода)
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px;">
+                    <div style="background:rgba(0,0,0,0.38); border:1px solid #543e0d; border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                        <div>
+                            <div style="font-size:18px; font-weight:bold; color:#ffd875;">1. Чистая проверка события: СЛ ${flatCheckDc}</div>
+                            <div style="font-size:14px; color:#a4b0be;">${hasUnresolvedEvents ? 'Есть нерешённое событие (СЛ 11 вместо 16)' : 'Нет активных событий (стандартная СЛ 16)'}</div>
+                        </div>
+                        <input type="number" id="kEvFlatRollInp" class="k-inp" min="1" max="20" placeholder="d20" style="width:90px; font-size:24px; font-weight:bold; text-align:center;">
+                    </div>
+
+                    <div id="kEvD100Box" style="background:rgba(0,0,0,0.38); border:1px solid #543e0d; border-radius:6px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; opacity:0.45; pointer-events:none;">
+                        <div>
+                            <div style="font-size:18px; font-weight:bold; color:#ffd875;">2. Бросок по таблице событий (d100)</div>
+                            <div style="font-size:14px; color:#a4b0be;">Введите число 1–100 со стола или нажмите на строку ниже</div>
+                        </div>
+                        <input type="number" id="kEvD100RollInp" class="k-inp" min="1" max="100" placeholder="1–100" style="width:105px; font-size:24px; font-weight:bold; text-align:center; color:#ffd875; border-color:#ffd875;">
+                    </div>
+                </div>
+
+                <div id="kEvTableGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:6px 12px; margin-bottom:14px; opacity:0.45; pointer-events:none;">
+                    ${eventsPool.map(ev => {
+            const typeColor = ev.type === 'boon' ? '#2ecc71' : '#ff7675';
+            return `<div data-rand-ev-id="${ev.id}" data-min-roll="${ev.minRoll}" title="Нажмите, чтобы подставить ${ev.minRoll}"
+                                     style="padding:7px 12px; border:1px solid #543e0d; border-radius:5px; background:rgba(0,0,0,0.32); display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:16px;">
+                                    <span><b style="color:${typeColor};">${ev.minRoll}–${ev.maxRoll}</b> ${ev.icon} ${ev.title}</span>
+                                    <span style="color:#a4b0be; font-size:14px;">СЛ ${baseCtrlDc + (ev.dcMod || 0)}</span>
+                                </div>`;
+        }).join('')}
+                </div>
+
+                <div id="kEvPreviewBox" style="background:#040905; border:1px solid #543e0d; border-radius:6px; padding:12px 16px; margin-bottom:14px; font-size:17px; color:#ebd291;">
+                    Введите результат чистой проверки d20 со стола (при результате &lt; ${flatCheckDc} событие не происходит).
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button type="button" class="btn cc" id="kEvCancelBtn" style="font-size:17px; padding:10px 22px;">Закрыть</button>
+                    <button type="button" class="btn ok" id="kEvAddToTabBtn" disabled style="font-size:17px; padding:10px 24px;">⚡ Добавить во вкладку События</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const flatInp = overlay.querySelector('#kEvFlatRollInp');
+        const d100Box = overlay.querySelector('#kEvD100Box');
+        const d100Inp = overlay.querySelector('#kEvD100RollInp');
+        const tableGrid = overlay.querySelector('#kEvTableGrid');
+        const previewBox = overlay.querySelector('#kEvPreviewBox');
+        const addBtn = overlay.querySelector('#kEvAddToTabBtn');
+        let selectedEvent = null;
+
+        const updateModal = () => {
+            const flatVal = parseInt(flatInp.value, 10);
+            const passedFlat = !isNaN(flatVal) && flatVal >= flatCheckDc;
+
+            d100Box.style.opacity = passedFlat ? '1' : '0.45';
+            d100Box.style.pointerEvents = passedFlat ? 'auto' : 'none';
+            tableGrid.style.opacity = passedFlat ? '1' : '0.45';
+            tableGrid.style.pointerEvents = passedFlat ? 'auto' : 'none';
+
+            if (!passedFlat) {
+                selectedEvent = null;
+                addBtn.disabled = true;
+                previewBox.innerHTML = (!isNaN(flatVal) && flatVal >= 1)
+                    ? `<span style="color:#2ecc71;">✔ Выпало <b>${flatVal}</b> (меньше СЛ ${flatCheckDc}) — в этот ход случайных событий не происходит.</span>`
+                    : `Введите результат чистой проверки d20 со стола (СЛ ${flatCheckDc}).`;
+                return;
+            }
+
+            const d100Val = parseInt(d100Inp.value, 10);
+            selectedEvent = (!isNaN(d100Val) && d100Val >= 1 && d100Val <= 100)
+                ? eventsPool.find(e => d100Val >= e.minRoll && d100Val <= e.maxRoll) || null
+                : null;
+
+            overlay.querySelectorAll('[data-rand-ev-id]').forEach(el => {
+                const isHit = selectedEvent && el.dataset.randEvId === selectedEvent.id;
+                el.style.borderColor = isHit ? '#ffd875' : '#543e0d';
+                el.style.background = isHit ? 'rgba(255, 216, 117, 0.16)' : 'rgba(0,0,0,0.32)';
+            });
+
+            if (selectedEvent) {
+                const targetDc = baseCtrlDc + (selectedEvent.dcMod || 0);
+                previewBox.innerHTML = `<b style="color:#ffd875; font-size:19px;">${selectedEvent.icon} ${selectedEvent.title} (СЛ ${targetDc})</b><br>${selectedEvent.desc}`;
+                addBtn.disabled = false;
+            } else {
+                previewBox.innerHTML = `<span style="color:#ffd875;">⚡ Проверка СЛ ${flatCheckDc} пройдена!</span> Введите бросок <b>d100</b> со стола или нажмите на нужную строку в таблице.`;
+                addBtn.disabled = true;
+            }
+        };
+
+        flatInp.addEventListener('input', updateModal);
+        d100Inp.addEventListener('input', updateModal);
+        overlay.querySelectorAll('[data-rand-ev-id]').forEach(row => {
+            row.addEventListener('click', () => {
+                d100Inp.value = row.dataset.minRoll;
+                updateModal();
+            });
+        });
+
+
+        addBtn.addEventListener('click', () => {
+            if (!selectedEvent) return;
+            if (!Array.isArray(this.state.events)) this.state.events = [];
+
+            const skillNamesRu = {
+                warfare:     'Военное дело',
+                defense:     'Оборона',
+                politics:    'Политика',
+                agriculture: 'Сельское хозяйство',
+                wilderness:  'Дикая природа',
+                intrigue:    'Интрига',
+                statecraft:  'Управление',
+                engineering: 'Инженерия',
+                trade:       'Торговля',
+                arts:        'Искусства',
+                folklore:    'Традиции',
+                exploration: 'Исследование',
+                boating:     'Мореходство',
+                industry:    'Промышленность',
+                magic:       'Магия',
+                scholarship: 'Учёность'
+            };
+
+            const rusSkillName = skillNamesRu[selectedEvent.skill] || selectedEvent.skill || 'Управление';
+            const cleanTitle = `${selectedEvent.icon} ${selectedEvent.title}`;
+
+            this.state.events.push({
+                id: 'ev_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                name: cleanTitle,
+                title: cleanTitle,
+                skill: selectedEvent.skill || 'statecraft',
+                skillName: rusSkillName,
+                dc: Number(baseCtrlDc + (selectedEvent.dcMod || 0)) || 14,
+                status: 'active',
+                notes: `Навык разрешения: ${rusSkillName}.\n${selectedEvent.desc}`
+            });
+
+            overlay.remove();
+            this.activeSubTab = 'events';
+            this._persist();
+            this.renderUi();
+        });
+
+
+
+        overlay.querySelector('#kEvCancelBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        setTimeout(() => flatInp.focus(), 40);
+    },
+
+
     addArmyCard() {
         this.saveFromUi();
         if (!Array.isArray(this.state.armies)) this.state.armies = [];
@@ -1750,6 +1922,11 @@ const KingdomManager = {
 
         const btnAddEv = container.querySelector('#kBtnAddEvent');
         if (btnAddEv) btnAddEv.addEventListener('click', () => this.addEventCard());
+
+        const btnRollEvent = container.querySelector('#kBtnRollKingdomEvent');
+        if (btnRollEvent) {
+            btnRollEvent.addEventListener('click', () => this.openKingdomEventRollModal());
+        }
 
         container.querySelectorAll('[data-del-ev]').forEach(btn => {
             btn.addEventListener('click', () => this.removeEventCard(btn.dataset.delEv));

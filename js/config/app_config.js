@@ -262,6 +262,27 @@ export const MAP_CONFIG = {
             ]
         }
     },
+    // Официальная таблица случайных событий королевства (PF2e Kingmaker, d100)
+    kingdomRandomEventsTable: [
+        { id: 'bandit_activity',   minRoll: 1,   maxRoll: 6,   type: 'danger', icon: '🗡️', title: 'Активность разбойников',     skill: 'warfare',     dcMod: 0, desc: 'Разбойники грабят торговые пути. Провал: −1d4 Товаров или +1 Беспорядки.' },
+        { id: 'monster_attack',    minRoll: 7,   maxRoll: 12,  type: 'danger', icon: '🐉', title: 'Нападение чудовищ',          skill: 'defense',     dcMod: 0, desc: 'Опасный зверь или отряд монстров терроризирует пограничный гекс.' },
+        { id: 'feud',              minRoll: 13,  maxRoll: 18,  type: 'danger', icon: '⚖️', title: 'Междоусобица знати / кланов', skill: 'politics',    dcMod: 0, desc: 'Влиятельные семьи вступили в спор. Провал: +1 Беспорядки и штраф −1 к Лояльности.' },
+        { id: 'crop_failure',      minRoll: 19,  maxRoll: 24,  type: 'danger', icon: '🥀', title: 'Неурожай / Мор скота',       skill: 'agriculture', dcMod: 0, desc: 'Часть урожая погибла. Провал: потеря 1d4 Еды со склада или +2 Беспорядки.' },
+        { id: 'plague',            minRoll: 25,  maxRoll: 30,  type: 'danger', icon: '☣️', title: 'Вспышка болезни',            skill: 'wilderness',  dcMod: 2, desc: 'В одном из поселений вспыхнула лихорадка. Требуется карантин и лечение.' },
+        { id: 'cult_activity',     minRoll: 31,  maxRoll: 36,  type: 'danger', icon: '🕯️', title: 'Тайный культ / Заговор',     skill: 'intrigue',    dcMod: 2, desc: 'Подпольная секта мутит воду в столице. Провал: +1 Руины Коррупции.' },
+        { id: 'squatters',         minRoll: 37,  maxRoll: 42,  type: 'danger', icon: '🏚️', title: 'Самозахват земель',          skill: 'statecraft',  dcMod: 0, desc: 'Переселенцы заняли спорный гекс без разрешения короны.' },
+        { id: 'criminal_gang',     minRoll: 43,  maxRoll: 48,  type: 'danger', icon: '🎭', title: 'Воровская гильдия',          skill: 'intrigue',    dcMod: 0, desc: 'Преступники обложили данью ремесленников. Провал: −1d4 Люкса и +1 Коррупция.' },
+        { id: 'border_raid',       minRoll: 49,  maxRoll: 54,  type: 'danger', icon: '⚔️', title: 'Пограничный набег',          skill: 'warfare',     dcMod: 2, desc: 'Соседи или племена совершили вылазку на окраину королевства.' },
+        { id: 'natural_disaster',  minRoll: 55,  maxRoll: 60,  type: 'danger', icon: '🌪️', title: 'Стихийное бедствие',         skill: 'engineering', dcMod: 2, desc: 'Буря, оползень или паводок повредили постройки и дороги.' },
+        { id: 'economic_boom',     minRoll: 61,  maxRoll: 66,  type: 'boon',   icon: '💰', title: 'Экономический подъём',       skill: 'trade',       dcMod: 0, desc: 'Выгодные сделки пополняют казну. Успех: +1d4 ОР в следующем ходу или +1 Люкс.' },
+        { id: 'cultural_festival', minRoll: 67,  maxRoll: 72,  type: 'boon',   icon: '🎪', title: 'Культурный расцвет',         skill: 'arts',        dcMod: 0, desc: 'Барды и мастера прославляют королевство. Успех: −1 Беспорядки и +1 Славы.' },
+        { id: 'pilgrimage',        minRoll: 73,  maxRoll: 78,  type: 'boon',   icon: '🕊️', title: 'Паломничество / Знамение',   skill: 'folklore',    dcMod: 0, desc: 'Благое знамение укрепляет дух народа. Успех: −1d4 Беспорядков.' },
+        { id: 'unexpected_find',   minRoll: 79,  maxRoll: 84,  type: 'boon',   icon: '💎', title: 'Неожиданная находка',        skill: 'exploration', dcMod: 0, desc: 'Разведчики обнаружили залежи или древний тайник. Успех: +1d4 Руды или Камня.' },
+        { id: 'diplomatic_envoy',  minRoll: 85,  maxRoll: 90,  type: 'boon',   icon: '📜', title: 'Дипломатическое посольство', skill: 'politics',    dcMod: 0, desc: 'Соседнее владение предлагает обмен опытом и торговое соглашение.' },
+        { id: 'bumper_harvest',    minRoll: 91,  maxRoll: 95,  type: 'boon',   icon: '🌾', title: 'Богатый урожай',             skill: 'agriculture', dcMod: 0, desc: 'Поля принесли двойной сбор. Успех: +2 Еды на склад королевства.' },
+        { id: 'heroic_volunteer',  minRoll: 96,  maxRoll: 100, type: 'boon',   icon: '🛡️', title: 'Приток добровольцев',        skill: 'defense',     dcMod: 0, desc: 'Опытные воины и ремесленники вступают на службу короне (+30 XP королевства).' }
+    ],
+
 
 
 
