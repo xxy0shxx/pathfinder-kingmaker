@@ -733,9 +733,9 @@ const KingdomSheetRenderer = {
 
         const borderSelect = (side, label) => `
             <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:12px; color:#dfbc6f;">${label}:</span>
-                <select id="k_ug_border_${side}" class="k-inp" style="width:155px;">
-                    <option value="none" ${ug.borders[side] === 'none' ? 'selected' : ''}>Нет</option>
+                <span style="font-size:12px; color:#dfbc6f;">🧭 ${label}:</span>
+                <select id="k_ug_border_${side}" class="k-inp" style="width:165px;">
+                    <option value="none" ${ug.borders[side] === 'none' ? 'selected' : ''}>➖ Нет</option>
                     <option value="water" ${ug.borders[side] === 'water' ? 'selected' : ''}>🌊 Вода</option>
                     <option value="bridge" ${ug.borders[side] === 'bridge' ? 'selected' : ''}>🌉 Мост</option>
                     <option value="wall_wood" ${ug.borders[side] === 'wall_wood' ? 'selected' : ''}>🪵 Деревянная стена</option>
@@ -786,10 +786,12 @@ const KingdomSheetRenderer = {
             </div>
         `;
 
+
+
         return `
             <div style="display:flex; align-items:stretch; gap:0; width:100%;">
                 <div class="k-panel k-catalog-panel" id="kCatalogPanel" style="width:${initialWidth}px; max-height:760px;">
-                    <div class="k-sec-title" style="font-size:15px;">ПОСТРОЙКИ (Перетащите на карту)</div>
+                    <div class="k-sec-title" style="font-size:15px;">🏗️ ПОСТРОЙКИ (Перетащите на карту)</div>
                     <div class="k-catalog-search-wrap">
                         <input type="text" id="kCatalogSearchInput" class="k-inp k-catalog-search-inp" placeholder="🔍 Поиск постройки (англ / рус)..." autocomplete="off">
                         <button type="button" id="kCatalogSearchClear" class="k-catalog-search-clear" title="Очистить поиск" style="display:none;">×</button>
@@ -802,31 +804,29 @@ const KingdomSheetRenderer = {
                 <div class="k-panel" style="flex:1; min-width:540px;">
                     ${settlementSwitcherHtml}
                     <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:8px; margin-bottom:10px;">
-                        <div><label class="k-lbl">Название поселения</label><input type="text" id="k_ug_name" class="k-inp" value="${ug.settlementName}"></div>
+                        <div><label class="k-lbl">🏛️ Название поселения</label><input type="text" id="k_ug_name" class="k-inp" value="${ug.settlementName}"></div>
                         <div>
-                            <label class="k-lbl">Тип</label>
+                            <label class="k-lbl">🏘️ Тип</label>
                             <select id="k_ug_type" class="k-inp">
-                                <option value="village" ${ug.settlementType === 'village' ? 'selected' : ''}>Деревня</option>
-                                <option value="town" ${ug.settlementType === 'town' ? 'selected' : ''}>Посёлок</option>
-                                <option value="city" ${ug.settlementType === 'city' ? 'selected' : ''}>Город</option>
-                                <option value="metropolis" ${ug.settlementType === 'metropolis' ? 'selected' : ''}>Мегаполис</option>
+                                <option value="village" ${ug.settlementType === 'village' ? 'selected' : ''}>🏡 Деревня</option>
+                                <option value="town" ${ug.settlementType === 'town' ? 'selected' : ''}>🏘️ Посёлок</option>
+                                <option value="city" ${ug.settlementType === 'city' ? 'selected' : ''}>🏙️ Город</option>
+                                <option value="metropolis" ${ug.settlementType === 'metropolis' ? 'selected' : ''}>👑 Мегаполис</option>
                             </select>
                         </div>
-                        <div><label class="k-lbl">Уровень</label><input type="number" id="k_ug_level" class="k-inp" value="${ug.level}"></div>
-                        <div><label class="k-lbl">Потребление</label><input type="number" id="k_ug_cons" class="k-inp" value="${ug.consumption}" readonly title="Автоматический расчёт: база типа поселения + модификатор зданий + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                        <div><label class="k-lbl">⭐ Уровень</label><input type="number" id="k_ug_level" class="k-inp" value="${ug.level}"></div>
+                        <div><label class="k-lbl">🍖 Потребление</label><input type="number" id="k_ug_cons" class="k-inp" value="${ug.consumption}" readonly title="Автоматический расчёт: база типа поселения + модификатор зданий + перенаселение" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                     </div>
-
 
                     <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; font-size:12px; align-items:center;">
                         <label title="Рассчитывается автоматически: нужно минимум 1 жилое здание на каждый застроенный блок (2×2)" style="cursor:help;">
-                            <input type="checkbox" id="k_ug_overcrowded" ${ug.overcrowded ? 'checked' : ''} disabled> Перенаселение (+2 Потребл.)
+                            <input type="checkbox" id="k_ug_overcrowded" ${ug.overcrowded ? 'checked' : ''} disabled> ⚠️ Перенаселение (+2 🍖 Потребл.)
                         </label>
-                        <label><input type="checkbox" id="k_ug_lamps" ${ug.infraStreetlamps ? 'checked' : ''}> Магические фонари</label>
-                        <label><input type="checkbox" id="k_ug_paved" ${ug.infraPavedStreets ? 'checked' : ''}> Мощёные улицы</label>
-                        <label><input type="checkbox" id="k_ug_sewer" ${ug.infraSewer ? 'checked' : ''}> Канализация</label>
+                        <label><input type="checkbox" id="k_ug_lamps" ${ug.infraStreetlamps ? 'checked' : ''}> 🏮 Магические фонари</label>
+                        <label><input type="checkbox" id="k_ug_paved" ${ug.infraPavedStreets ? 'checked' : ''}> 🛣️ Мощёные улицы</label>
+                        <label><input type="checkbox" id="k_ug_sewer" ${ug.infraSewer ? 'checked' : ''}> 🚰 Канализация</label>
                         <button type="button" class="btn cc" id="kBtnExportCityPng" style="margin-left:auto; padding:4px 10px; font-size:12px;" title="Сохранить изображение городской сетки в PNG">📸 Скачать PNG</button>
                     </div>
-                    
 
                     ${summaryHtml}
 
@@ -844,12 +844,15 @@ const KingdomSheetRenderer = {
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                        <div><label class="k-lbl">Гарнизонные армии</label><input type="text" id="k_ug_armies" class="k-inp" value="${ug.garrisonedArmies}"></div>
-                        <div><label class="k-lbl">Текущие события</label><input type="text" id="k_ug_events" class="k-inp" value="${ug.ongoingEvents}"></div>
+                        <div><label class="k-lbl">⚔️ Гарнизонные армии</label><input type="text" id="k_ug_armies" class="k-inp" value="${ug.garrisonedArmies}"></div>
+                        <div><label class="k-lbl">⚡ Текущие события</label><input type="text" id="k_ug_events" class="k-inp" value="${ug.ongoingEvents}"></div>
                     </div>
                 </div>
             </div>
         `;
+
+
+
     }
 };
 
