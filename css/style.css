@@ -3736,100 +3736,145 @@ canvas[style*="position: fixed"] {
 
 
 
-
 /* ============================================================================
-   КОМПАКТНАЯ ТВ-УПАКОВКА ЛЕВОЙ КОЛОНКИ ПРИВАЛА БЕЗ ПРОКРУТКИ
+   УВЕЛИЧЕННАЯ ТВ-ВЕРСТКА ЛЕВОЙ КОЛОНКИ ПРИВАЛА (КРУПНЫЕ ШРИФТЫ, КНОПКИ И ПОРТРЕТЫ)
    ============================================================================ */
 
-/* 1. Уменьшаем зазоры между верхними блоками левой колонки */
+/* 1. Блок «Базовые проверки» и верхний баннер */
 #campingTabletContainer .camping-left-col {
-    gap: 8px !important;
+    gap: 12px !important;
     justify-content: space-between !important;
 }
 
 #campingTabletContainer .camp-current-hex-banner {
-    padding: 8px 14px !important;
-    font-size: 20px !important;
+    padding: 12px 18px !important;
+    font-size: 24px !important;
 }
 
 #campingTabletContainer .camping-region-bar {
-    padding: 8px 14px !important;
-    gap: 8px !important;
+    padding: 14px 18px !important;
+    gap: 12px !important;
 }
 
 #campingTabletContainer .camp-param-label {
-    font-size: 20px !important;
+    font-size: 24px !important;
 }
 
-/* 2. Делаем таблицу действий и радиокнопки более компактными по высоте */
+#campingTabletContainer #campEncounterTerrainLabel {
+    font-size: 18px !important;
+    margin-top: 2px !important;
+}
+
+#campingTabletContainer .camp-count-controls {
+    padding: 6px 18px !important;
+    gap: 20px !important;
+}
+
+#campingTabletContainer .camp-count-controls button {
+    font-size: 32px !important;
+}
+
+#campingTabletContainer #campBaseChecksVal,
+#campingTabletContainer #campCheckModVal {
+    font-size: 30px !important;
+    min-width: 38px !important;
+}
+
+/* 2. Таблица «Действие»: увеличенная высота карточек, крупный текст и радиокнопки */
 #campingTabletContainer .camp-gm-inputs-grid {
-    padding: 6px 14px !important;
+    padding: 12px 18px !important;
 }
 
 #campingTabletContainer .camp-invisible-table th {
-    padding: 4px 2px 6px 2px !important;
-    font-size: 18px !important;
+    padding: 8px 4px 12px 4px !important;
+    font-size: 23px !important;
 }
 
 #campingTabletContainer .camp-invisible-table tr {
-    border-bottom: 8px solid transparent !important;
+    border-bottom: 14px solid transparent !important;
 }
 
 #campingTabletContainer .camp-invisible-table td.camp-act-cell {
-    padding: 7px 95px 7px 12px !important;
+    padding: 14px 136px 14px 16px !important;
+    min-height: 86px !important;
 }
 
 #campingTabletContainer .camp-invisible-table .act-name {
-    font-size: 21px !important;
-    margin-bottom: 4px !important;
+    font-size: 26px !important;
+    margin-bottom: 8px !important;
+    letter-spacing: 0.8px !important;
 }
 
 #campingTabletContainer [id^="label_dc_"],
 #campingTabletContainer .camp-invisible-table .skill-name-large {
-    font-size: 16px !important;
-    padding: 3px 10px !important;
+    font-size: 21px !important;
+    padding: 4px 14px !important;
 }
 
-/* Уменьшаем мини-аватарку внутри карточки действия под новую высоту блока */
-#campingTabletContainer .camp-assigned-ally-img {
-    width: 42px !important;
-    height: 42px !important;
-}
-
-#campingTabletContainer .camp-assigned-ally-name {
-    font-size: 10px !important;
-}
-
-/* Делаем радиокнопки аккуратнее (30px), чтобы не растягивали строки */
+/* Крупные радиокнопки с золотой лилией (38px) */
 #campingTabletContainer .camp-invisible-table td:not(.camp-act-cell) {
-    width: 52px !important;
-    padding: 4px 2px !important;
+    width: 62px !important;
+    padding: 8px 4px !important;
 }
 
 #campingTabletContainer .camp-invisible-table input[type="radio"] {
-    width: 30px !important;
-    height: 30px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-width: 2.5px !important;
 }
 
 #campingTabletContainer .camp-invisible-table input[type="radio"]:checked::before {
-    font-size: 17px !important;
+    font-size: 22px !important;
 }
 
-/* 3. Делаем нижний док с 6 союзниками компактным по высоте */
+/* 3. Увеличенные аватарки основного героя и помощника внутри карточки действия */
+#campingTabletContainer .camp-assigned-allies-group {
+    right: 14px !important;
+    gap: 10px !important;
+}
+
+#campingTabletContainer .camp-assigned-ally-badge.is-leader .camp-assigned-ally-img {
+    width: 58px !important;
+    height: 58px !important;
+    border-width: 2.5px !important;
+    border-radius: 7px !important;
+    font-size: 24px !important;
+}
+
+#campingTabletContainer .camp-assigned-ally-badge.is-helper .camp-assigned-ally-img {
+    width: 42px !important;
+    height: 42px !important;
+    border-width: 2px !important;
+    border-radius: 6px !important;
+    font-size: 18px !important;
+}
+
+#campingTabletContainer .camp-aid-value-pill {
+    min-width: 26px !important;
+    height: 20px !important;
+    font-size: 13px !important;
+    line-height: 17px !important;
+    bottom: -6px !important;
+    right: -6px !important;
+}
+
+/* 4. Нижний док с 6 союзниками */
 #campingTabletContainer .camp-allies-dock {
-    padding: 8px 12px !important;
-    gap: 6px !important;
+    padding: 10px 14px !important;
+    gap: 8px !important;
     margin-top: 0 !important;
 }
 
 #campingTabletContainer .camp-allies-dock-title {
-    font-size: 14px !important;
-    padding-bottom: 4px !important;
+    font-size: 16px !important;
+    padding-bottom: 5px !important;
 }
 
 #campingTabletContainer .camp-allies-grid {
-    gap: 8px !important;
+    gap: 10px !important;
 }
+
+
 /* ============================================================================
    ПАРНОЕ НАЗНАЧЕНИЕ ГЕРОЕВ НА ДЕЙСТВИЕ (ОСНОВНОЙ + ПОМОЩНИК)
    ============================================================================ */

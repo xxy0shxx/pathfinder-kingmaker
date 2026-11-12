@@ -725,9 +725,6 @@ const CampingManager = {
                 cell.appendChild(group);
             }
 
-
-
-
         });
 
         // 2. В нижнем доке оставляем только свободных союзников
