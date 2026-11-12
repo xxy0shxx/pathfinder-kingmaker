@@ -503,12 +503,6 @@ const HexModal = {
         if (btnSave) btnSave.addEventListener('click', () => this.save());
         if (btnCancel) btnCancel.addEventListener('click', () => this.close());
         if (btnDelete) btnDelete.addEventListener('click', () => this.delete());
-
-        if (this.modal) {
-            this.modal.addEventListener('click', (e) => {
-                if (e.target === this.modal) this.close();
-            });
-        }
     }
 };
 
