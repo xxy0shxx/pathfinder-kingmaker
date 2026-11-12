@@ -554,6 +554,24 @@ const KingdomSheetRenderer = {
             const isCollapsed = !!collapsedState[group.key];
 
 
+
+            const getBuildingIcon = (b) => {
+                const key = `${b.id || ''} ${b.name || ''}`.toLowerCase();
+                if (/castle|palace|замок|дворец/.test(key)) return '🏰';
+                if (/keep|citadel|fort|watchtower|garrison|barracks|цитадел|крепост|башн|гарнизон|казарм/.test(key)) return '🛡️';
+                if (/cathedral|temple|shrine|abbey|monastery|храм|собор|святилищ|аббатств|монастыр/.test(key)) return '⛪';
+                if (/academy|university|library|school|bardic|академ|университ|библиотек|школ|коллег/.test(key)) return '📚';
+                if (/alchemy|magic|arcane|wizard|occult|алхим|маги|волшеб|оккульт/.test(key)) return '🔮';
+                if (/market|trade|bank|mint|guildhall|рынок|торгов|банк|монетн|гильд/.test(key)) return '💰';
+                if (/tavern|inn|theater|arena|stadium|festival|park|таверн|постоял|театр|арен|парк|фестивал/.test(key)) return '🍺';
+                if (/hospital|herbalist|infirmary|госпитал|лечебн|травник/.test(key)) return '⚕️';
+                if (/pier|waterfront|shipyard|bridge|пристан|порт|верф|мост/.test(key)) return '⚓';
+                if (/smithy|forge|foundry|workshop|mill|sawmill|brewery|granary|stable|stockyard|кузн|мастерск|мельниц|лесопил|пивовар|амбар|конюшн|скотн/.test(key)) return '⚒️';
+                if (/town_hall|courthouse|embassy|jail|prison|ратуш|суд|посольств|тюрьм/.test(key)) return '⚖️';
+                if (/house|mansion|tenement|orphanage|дом|особняк|жиль|барак|приют/.test(key)) return '🏠';
+                return '🏛️';
+            };
+
             const itemsHtml = group.items.map(b => {
                 const thumb = KingdomBuildings.getBuildingDataUrl(b.id);
                 const infoText = typeof KingdomBuildings.getBuildingInfoText === 'function'
@@ -565,18 +583,21 @@ const KingdomSheetRenderer = {
                 const costText = typeof KingdomBuildings.getBuildingCostText === 'function'
                     ? KingdomBuildings.getBuildingCostText(b.id)
                     : '';
+                const bIcon = getBuildingIcon(b);
 
                 return `
-                    <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${b.name}${infoText ? ' — ' + infoText : ''}">
+                    <div class="k-bld-palette-item" draggable="true" data-bld-id="${b.id}" title="${bIcon} ${b.name}${infoText ? ' — ' + infoText : ''}">
                         <img src="${thumb}" class="k-bld-thumb" alt="${b.name}">
                         <div class="k-bld-info">
-                            <div class="k-bld-name">${b.name}</div>
-                            <div class="k-bld-meta">Размер: ${b.cols}×${b.rows} • Ур. ${b.level}${costText ? ` • <span style="color:#ffd875;">${costText}</span>` : ''}</div>
+                            <div class="k-bld-name">${bIcon} ${b.name}</div>
+                            <div class="k-bld-meta">📐 ${b.cols}×${b.rows} • ⭐ Ур. ${b.level}${costText ? ` • <span style="color:#ffd875;">🪙 ${costText}</span>` : ''}</div>
                             ${infoHtml ? `<div class="k-bld-bonus-tag">${infoHtml}</div>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
+
+
 
 
 
