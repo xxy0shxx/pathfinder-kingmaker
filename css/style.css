@@ -4955,3 +4955,122 @@ canvas[style*="position: fixed"] {
     font-weight: 900 !important;
     text-shadow: 0 0 4px #dfbc6f !important;
 }
+/* ============================================================================
+   ТВ-МАСШТАБИРОВАНИЕ МОДАЛЬНЫХ ОКОН ПОГОДЫ И ПОГОДНЫХ ЯВЛЕНИЙ (x2.5 – x3)
+   ============================================================================ */
+#kWeatherRollOverlay > div,
+#kHazardDetailsOverlay > div {
+    width: 1320px !important;
+    max-width: 96vw !important;
+    padding: 36px 46px !important;
+    border-width: 4px !important;
+    border-radius: 12px !important;
+    font-size: 26px !important;
+    line-height: 1.45 !important;
+}
+
+/* Крупные заголовки окон погоды */
+#kWeatherRollOverlay > div > div:first-child,
+#kHazardDetailsOverlay > div > div:first-child {
+    font-size: 36px !important;
+    padding-bottom: 14px !important;
+    margin-bottom: 22px !important;
+    border-bottom-width: 2px !important;
+}
+
+/* Строки чистых проверок (Осадки, Холод, Погодное явление) */
+#kWeatherRollOverlay > div > div:nth-child(2) > div {
+    padding: 18px 24px !important;
+    border-width: 2px !important;
+    border-radius: 8px !important;
+    font-size: 25px !important;
+    gap: 20px !important;
+}
+
+#kWeatherRollOverlay > div > div:nth-child(2) > div div[style*="font-size:11px"],
+#kWeatherRollOverlay > div > div:nth-child(2) > div[style*="font-size:12px"] {
+    font-size: 20px !important;
+    margin-top: 4px !important;
+}
+
+/* Поля ввода d20 */
+#kWeatherRollOverlay input.k-inp {
+    width: 145px !important;
+    height: 68px !important;
+    font-size: 38px !important;
+    border-width: 2.5px !important;
+    border-radius: 8px !important;
+}
+
+/* Секция таблицы опасных погодных явлений */
+#kWHazardSection {
+    padding: 20px 24px !important;
+    border-width: 2.5px !important;
+    margin-bottom: 20px !important;
+}
+
+#kWHazardSection > div:first-child span {
+    font-size: 28px !important;
+}
+
+#kWHazardSection div[style*="grid-template-columns"] {
+    gap: 10px 16px !important;
+    font-size: 22px !important;
+}
+
+#kWHazardSection [data-hz-id] {
+    padding: 10px 14px !important;
+    border-width: 2px !important;
+    border-radius: 6px !important;
+}
+
+#kWNat20Hint {
+    font-size: 22px !important;
+    margin-bottom: 12px !important;
+}
+
+/* Блок предпросмотра и карточка правил опасного явления */
+#kWSummaryPreview {
+    padding: 18px 24px !important;
+    font-size: 25px !important;
+    border-width: 2px !important;
+    margin-bottom: 22px !important;
+}
+
+#kWeatherRollOverlay div[style*="border:1.5px solid #e74c3c"],
+#kHazardDetailsOverlay div[style*="border:1.5px solid #e74c3c"] {
+    padding: 22px 28px !important;
+    border-width: 3px !important;
+    border-radius: 10px !important;
+    font-size: 25px !important;
+    line-height: 1.5 !important;
+    margin-top: 16px !important;
+}
+
+#kWeatherRollOverlay div[style*="border:1.5px solid #e74c3c"] span[style*="font-size:16px"],
+#kHazardDetailsOverlay div[style*="border:1.5px solid #e74c3c"] span[style*="font-size:16px"] {
+    font-size: 34px !important;
+}
+
+#kWeatherRollOverlay div[style*="border:1.5px solid #e74c3c"] span[style*="font-size:12px"],
+#kHazardDetailsOverlay div[style*="border:1.5px solid #e74c3c"] span[style*="font-size:12px"] {
+    font-size: 23px !important;
+    padding: 4px 14px !important;
+}
+
+#kWeatherRollOverlay div[style*="border:1.5px solid #e74c3c"] span[style*="font-size:11px"],
+#kHazardDetailsOverlay div[style*="border:1.5px solid #e74c3c"] span[style*="font-size:11px"],
+#kWeatherRollOverlay div[style*="border:1.5px solid #e74c3c"] div[style*="font-size:11px"],
+#kHazardDetailsOverlay div[style*="border:1.5px solid #e74c3c"] div[style*="font-size:11px"] {
+    font-size: 21px !important;
+    margin-top: 8px !important;
+}
+
+/* Крупные кнопки «Отмена», «Применить погоду дня» и «Закрыть» */
+#kWeatherRollOverlay .btn,
+#kHazardDetailsOverlay .btn {
+    padding: 16px 36px !important;
+    font-size: 24px !important;
+    min-width: 220px !important;
+    border-radius: 6px !important;
+}
