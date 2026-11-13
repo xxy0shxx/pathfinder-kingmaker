@@ -364,22 +364,6 @@ const CampingManager = {
         if (!effectsList) return;
         effectsList.innerHTML = '';
 
-        // 1. Объединяем «СЛ случайной сцены» и «Тип местности» в одну строку
-        const terrainLbl = document.getElementById('campEncounterTerrainLabel');
-        const checkModValEl = document.getElementById('campCheckModVal');
-        if (terrainLbl && checkModValEl) {
-            const terrainRow = terrainLbl.closest('.camp-param-box') || terrainLbl.parentElement;
-            const slRow = checkModValEl.closest('.camp-param-box');
-            if (terrainRow && slRow && terrainRow !== slRow) {
-                const slTitle = slRow.querySelector('.camp-param-label');
-                if (slTitle && !slRow.contains(terrainLbl)) {
-                    terrainLbl.style.cssText = 'display:inline-flex; align-items:center; margin-left:10px; padding:2px 9px; background:#040905; border:1px solid #8a6421; border-radius:4px; font-size:16px; color:#ffd875; white-space:nowrap;';
-                    slTitle.insertAdjacentElement('afterend', terrainLbl);
-                    terrainRow.style.display = 'none';
-                }
-            }
-        }
-
         const prepActors = this.formatActionActors(0);
         const camoActors = this.formatActionActors(1);
         const huntActors = this.formatActionActors(2);
