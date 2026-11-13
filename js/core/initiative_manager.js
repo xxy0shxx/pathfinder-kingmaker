@@ -36,6 +36,7 @@ const InitiativeManager = {
             }
 
             EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
+            EventBus.on('weather:updated', () => this.renderUi());
 
             window.InitiativeManager = this;
             this.renderUi();
@@ -286,6 +287,7 @@ const InitiativeManager = {
         this.state.phraseSeed = Math.floor(Math.random() * 1000);
         this._saveWithoutSort();
     },
+
     renderUi() {
         const container = document.getElementById('initiativeTabletContainer');
         if (!container) return;
@@ -294,6 +296,7 @@ const InitiativeManager = {
             container.innerHTML = `
                 <div class="initiative-tablet-content" style="width: 100%;">
                     <div class="init-header-zone">
+                        <div id="initWeatherHost"></div>
                         <div class="init-master-battle-control-bar">
                             <div class="init-round-counter-badge">
                                 РАУНД <span id="initRoundCounterNum">1</span>
@@ -400,8 +403,13 @@ const InitiativeManager = {
             this._isInputsBound = true;
         }
 
-
-
+        const weatherHost = document.getElementById('initWeatherHost');
+        if (weatherHost && window.WeatherManager) {
+            weatherHost.innerHTML =
+                window.WeatherManager.renderCompactBarHtml() +
+                window.WeatherManager.renderCombatEffectsHtml();
+            window.WeatherManager.bindBarEvents(weatherHost);
+        }
 
         const listContainer = document.getElementById('initiativeCombatantsList');
         if (!listContainer) return;

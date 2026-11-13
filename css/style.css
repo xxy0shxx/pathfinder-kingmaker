@@ -5432,3 +5432,27 @@ canvas[style*="position: fixed"] {
         padding: 5px 5px !important;
     }
 }
+/* ============================================================================
+   ПЛАШКА КАЛЕНДАРЯ И ПОГОДЫ В ТРЕКЕРЕ ИНИЦИАТИВЫ (#initiativeTabletContainer)
+   ============================================================================ */
+#initiativeTabletContainer .w-shared-calendar-bar {
+    font-size: 16px !important;
+    padding: 8px 14px !important;
+    margin-bottom: 10px !important;
+}
+
+#initiativeTabletContainer .w-shared-calendar-bar .btn,
+#initiativeTabletContainer .w-shared-calendar-bar .w-btn-weather-summary,
+#initiativeTabletContainer .w-shared-calendar-bar .w-btn-active-hazard {
+    font-size: 14px !important;
+    padding: 4px 10px !important;
+    line-height: 1.2 !important;
+}
+#initiativeTabletContainer .init-cards-scroll-list:not(.mode-bg3) {
+    max-height: calc(100vh - 265px) !important;
+}
+
+#initiativeTabletContainer .w-combat-weather-banner {
+    font-size: 16px !important;
+    padding: 8px 14px !important;
+}

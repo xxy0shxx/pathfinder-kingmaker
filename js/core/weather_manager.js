@@ -170,6 +170,33 @@ const WeatherManager = {
         rootEl.querySelectorAll('.w-btn-active-hazard').forEach(b => b.onclick = () => this.openActiveHazardDetailsModal());
     },
 
+    renderCombatEffectsHtml() {
+        const cal = this.getCalendarInfo();
+        const alerts = [];
+
+        if (cal.precip) {
+            alerts.push('👁️ <b>Осадки:</b> штраф <b>−1 к Вниманию (зрение)</b>');
+        }
+        if (cal.cold) {
+            alerts.push('🥶 <b>Холод:</b> утомление через <b>4 ч</b> активности');
+        }
+        if (cal.hazard) {
+            alerts.push(`⚡ <b>${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText}):</b> ${cal.hazard.effect}`);
+        }
+
+        if (alerts.length === 0) return '';
+
+        const isHazard = !!cal.hazard;
+        const borderCol = isHazard ? '#e74c3c' : '#3498db';
+        const bgCol = isHazard ? 'rgba(92, 30, 30, 0.28)' : 'rgba(20, 48, 72, 0.35)';
+
+        return `
+            <div class="w-combat-weather-banner" style="background:${bgCol}; border:1.5px solid ${borderCol}; border-radius:6px; padding:7px 14px; margin-bottom:10px; font-size:15px; line-height:1.4; color:#ebd291; display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px;">
+                <span style="color:#ffd875; font-weight:bold; text-transform:uppercase; font-size:13px; letter-spacing:0.5px;">⚔️ Эффекты в бою:</span>
+                ${alerts.map(a => `<span>${a}</span>`).join('')}
+            </div>
+        `;
+    },
 
 
     renderTabUi() {
