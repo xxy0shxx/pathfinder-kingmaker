@@ -68,6 +68,68 @@ const CampingManager = {
         this.recalculateCamp();
     },
 
+    _ensureCampTimeState() {
+        if (this.state.campHour === undefined || isNaN(this.state.campHour)) this.state.campHour = 20;
+        if (this.state.campMinute === undefined || isNaN(this.state.campMinute)) this.state.campMinute = 0;
+        if (this.state.hazardRemainingMin === undefined || isNaN(this.state.hazardRemainingMin)) {
+            this.state.hazardRemainingMin = null; // null = таймер ещё не запущен
+        }
+    },
+
+    advanceCampTime(deltaMinutes) {
+        this._ensureCampTimeState();
+        let totalMin = (this.state.campHour * 60) + this.state.campMinute + deltaMinutes;
+
+        // Если перевалили за полночь — сдвигаем календарь Голариона на +1 день
+        let daysPassed = 0;
+        while (totalMin >= 1440) {
+            totalMin -= 1440;
+            daysPassed++;
+        }
+        while (totalMin < 0) {
+            totalMin += 1440;
+        }
+
+        this.state.campHour = Math.floor(totalMin / 60);
+        this.state.campMinute = totalMin % 60;
+
+        // Уменьшаем остаток длительности погодного явления, если таймер запущен
+        if (this.state.hazardRemainingMin !== null && this.state.hazardRemainingMin > 0) {
+            this.state.hazardRemainingMin = Math.max(0, this.state.hazardRemainingMin - deltaMinutes);
+        }
+
+        if (daysPassed > 0 && window.WeatherManager?.advanceCalendar) {
+            window.WeatherManager.advanceCalendar(daysPassed, 0);
+        }
+
+        EventBus.emit('data:save');
+        this.recalculateCamp();
+    },
+
+    setHazardTimerMinutes(minutes) {
+        this._ensureCampTimeState();
+        this.state.hazardRemainingMin = minutes;
+        EventBus.emit('data:save');
+        this.recalculateCamp();
+    },
+
+    clearActiveWeatherHazard() {
+        this._ensureCampTimeState();
+        this.state.hazardRemainingMin = null;
+        if (window.WeatherManager) {
+            const cal = window.WeatherManager.getCalendarInfo();
+            window.WeatherManager.setDailyWeather({
+                precip: cal.precip,
+                cold: cal.cold,
+                hazardId: null,
+                secondHazardNote: false
+            }, false);
+        }
+        EventBus.emit('data:save');
+        this.recalculateCamp();
+    },
+
+
     syncCountersUi() {
         const baseEl = document.getElementById('campBaseChecksVal');
         const modEl = document.getElementById('campCheckModVal');
@@ -377,9 +439,11 @@ const CampingManager = {
             }
         }
 
-        // Выводим общую плашку календаря и погоды в левую колонку Привала
+
+        // Выводим общую плашку календаря, погоды и таймера привала в левую колонку
         const leftCol = document.querySelector('#campingTabletContainer .camping-left-col');
         if (leftCol && window.WeatherManager) {
+            this._ensureCampTimeState();
             let campWeatherHost = leftCol.querySelector('#campWeatherHost');
             if (!campWeatherHost) {
                 campWeatherHost = document.createElement('div');
@@ -388,9 +452,73 @@ const CampingManager = {
                 if (hexBanner) hexBanner.after(campWeatherHost);
                 else leftCol.prepend(campWeatherHost);
             }
-            campWeatherHost.innerHTML = window.WeatherManager.renderCompactBarHtml();
+
+            const hh = String(this.state.campHour).padStart(2, '0');
+            const mm = String(this.state.campMinute).padStart(2, '0');
+
+            // Блок таймера активного погодного явления
+            let hazardTimerHtml = '';
+            if (cal?.hazard) {
+                const rem = this.state.hazardRemainingMin;
+                const hasPlus = String(cal.hazard.duration || '').includes('+');
+                let statusText = `<span style="color:#ffd875;">Длительность: <b>${cal.hazard.duration}</b> (задайте таймер →)</span>`;
+
+                if (rem !== null) {
+                    if (rem > 0) {
+                        const remH = Math.floor(rem / 60);
+                        const remM = rem % 60;
+                        const remStr = remH > 0 ? `${remH} ч ${remM > 0 ? remM + ' мин' : ''}` : `${remM} мин`;
+                        statusText = `<span style="color:#2ecc71; font-weight:bold;">⏳ Осталось: ${remStr}</span>`;
+                    } else {
+                        statusText = `<span style="color:#ff7675; font-weight:bold;">🔔 Время истекло! ${hasPlus ? 'Проверка СЛ 11 на продление:' : 'Явление закончилось:'}</span>`;
+                    }
+                }
+
+                hazardTimerHtml = `
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; background:rgba(92,30,30,0.25); border:1px solid #e74c3c; border-radius:5px; padding:5px 10px; margin-bottom:8px; font-size:13px;">
+                        <div>${cal.hazard.icon} <b>${cal.hazard.label}:</b> ${statusText}</div>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            <button type="button" class="btn cc" data-hz-set-min="10" style="padding:2px 6px; font-size:11px;">10м</button>
+                            <button type="button" class="btn cc" data-hz-set-min="60" style="padding:2px 6px; font-size:11px;">1ч</button>
+                            <button type="button" class="btn cc" data-hz-set-min="120" style="padding:2px 6px; font-size:11px;">2ч</button>
+                            <button type="button" class="btn cc" data-hz-set-min="240" style="padding:2px 6px; font-size:11px;">4ч</button>
+                            <button type="button" class="btn ok" data-hz-clear="1" style="padding:2px 7px; font-size:11px;">☀ Снять</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                this.state.hazardRemainingMin = null;
+            }
+
+            const timeBarHtml = `
+                <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:5px; padding:5px 10px; margin-bottom:8px; font-size:14px;">
+                    <div style="color:#ffd875; font-weight:bold;">
+                        🕒 Время лагеря: <span style="font-family:monospace; font-size:17px; color:#fff; background:#040905; border:1px solid #8a6421; padding:1px 7px; border-radius:4px;">${hh}:${mm}</span>
+                    </div>
+                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                        <button type="button" class="btn cc" data-camp-time-add="10" style="padding:3px 7px; font-size:12px;">+10м</button>
+                        <button type="button" class="btn cc" data-camp-time-add="60" style="padding:3px 8px; font-size:12px;">+1ч</button>
+                        <button type="button" class="btn cc" data-camp-time-add="120" style="padding:3px 8px; font-size:12px;">+2ч</button>
+                        <button type="button" class="btn ok" data-camp-time-add="480" style="padding:3px 8px; font-size:12px;" title="8 часов отдыха (сдвинет день при переходе через полночь)">+8ч Сон</button>
+                    </div>
+                </div>
+            `;
+
+            campWeatherHost.innerHTML = window.WeatherManager.renderCompactBarHtml() + timeBarHtml + hazardTimerHtml;
             window.WeatherManager.bindBarEvents(campWeatherHost);
+
+            campWeatherHost.querySelectorAll('[data-camp-time-add]').forEach(btn => {
+                btn.onclick = () => this.advanceCampTime(parseInt(btn.dataset.campTimeAdd, 10) || 0);
+            });
+            campWeatherHost.querySelectorAll('[data-hz-set-min]').forEach(btn => {
+                btn.onclick = () => this.setHazardTimerMinutes(parseInt(btn.dataset.hzSetMin, 10) || 60);
+            });
+            campWeatherHost.querySelectorAll('[data-hz-clear]').forEach(btn => {
+                btn.onclick = () => this.clearActiveWeatherHazard();
+            });
         }
+
+
 
         this.renderAlliesDock();
 
@@ -599,8 +727,6 @@ const CampingManager = {
         } catch (error) { console.error("Критическая ошибка сохранения привала:", error); }
     },
 
-
-
     resetToDefault() {
         try {
             const camoRow = document.getElementById('row_camouflage');
@@ -610,6 +736,7 @@ const CampingManager = {
             this.state.baseChecks = 2;
             this.state.checkMod = 12;
             this.state.assignments = {};
+            this.state.hazardRemainingMin = null;
             document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
             this.syncCountersUi();
             this.recalculateCamp();
