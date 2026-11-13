@@ -20,6 +20,26 @@ export const InitiativePhrases = {
             return this._nat1Phrases(activeName);
         }
 
+        // Автоматическое определение карг и болотных ведьм по имени
+        if (this._isHagName(activeName)) {
+            return this._hagPhrases(activeName);
+        }
+
+        // Автоматическое определение огров и великанов по имени
+        if (this._isOgreName(activeName)) {
+            return this._ogrePhrases(activeName);
+        }
+
+        // Автоматическое определение драконов и виверн по имени
+        if (this._isDragonName(activeName)) {
+            return this._dragonPhrases(activeName);
+        }
+
+        // Автоматическое определение разбойников и бандитов по имени
+        if (this._isBanditName(activeName)) {
+            return this._banditPhrases(activeName);
+        }
+
         // Автоматическое определение троллей по имени
         if (this._isTrollName(activeName)) {
             return this._trollPhrases(activeName);
@@ -77,6 +97,37 @@ export const InitiativePhrases = {
             return [...this._enemyBase(activeName), ...this._enemyExtra(activeName)];
         }
         return this._neutralExtra(activeName);
+    },
+
+    _isHagName(name) {
+        if (!name) return false;
+        const lower = String(name).toLowerCase();
+        const hagRoots = ['карга', 'карг', 'ведьм', 'колдун', 'баб-яг', 'баба яг', 'hag'];
+        return hagRoots.some(root => lower.includes(root));
+    },
+
+    _isOgreName(name) {
+        if (!name) return false;
+        const lower = String(name).toLowerCase();
+        const ogreRoots = ['огр', 'великан', 'гигант', 'эттин', 'циклоп', 'ogre', 'giant'];
+        return ogreRoots.some(root => lower.includes(root));
+    },
+
+    _isDragonName(name) {
+        if (!name) return false;
+        const lower = String(name).toLowerCase();
+        const dragonRoots = ['дракон', 'виверн', 'вирм', 'dragon', 'wyvern'];
+        return dragonRoots.some(root => lower.includes(root));
+    },
+
+    _isBanditName(name) {
+        if (!name) return false;
+        const lower = String(name).toLowerCase();
+        const banditRoots = [
+            'разбойник', 'бандит', 'грабител', 'атаман', 'главар',
+            'головорез', 'налетчик', 'налётчик', 'пират', 'вор', 'плут', 'мародер', 'мародёр'
+        ];
+        return banditRoots.some(root => lower.includes(root));
     },
 
     _isTrollName(name) {
@@ -168,6 +219,150 @@ export const InitiativePhrases = {
         const koboldRoots = ['кобольд', 'коболд', 'урд'];
         return koboldRoots.some(root => lower.includes(root));
     },
+
+    _hagPhrases(activeName) {
+        return [
+            `«Куда без стука в мою уютную избушку на курьих ножках?!» — скрипит <span class="gold-unit-focus-name">🏚️ ${activeName} 🏚️</span>!`,
+            `Варит в котле зелье из лягушачьих лапок и слез неудачливых приключенцев коварная <span class="gold-unit-focus-name">🧪 ${activeName} 🧪</span>!`,
+            `«Кто-нибудь, сбейте ей концентрацию, пока она не прокляла всю нашу партию!» — кричит маг про <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span>!`,
+            `Зловеще хихикает, потирая кривые когтистые пальцы, болотная <span class="gold-unit-focus-name">🧙‍♀️ ${activeName} 🧙‍♀️</span>!`,
+            `«Не смотрите на мои бородавки, в душе я прекрасная лесная нимфа!» — кокетничает <span class="gold-unit-focus-name">🌹 ${activeName} 🌹</span>!`,
+            `Шепчет жуткое проклятие, от которого у паладина начинают скрипеть все суставы, злая <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
+            `«У меня в котелке как раз не хватало пары свежих эльфийских ушей для навара!» — облизывается <span class="gold-unit-focus-name">🍲 ${activeName} 🍲</span>!`,
+            `Потирает кривой нос с бородавкой и выискивает самого доверчивого героя в отряде хитрая <span class="gold-unit-focus-name">👃 ${activeName} 👃</span>!`,
+            `«Давайте заключим честную сделку: вы мне — свои души, я вам — скидку на яд!» — предлагает <span class="gold-unit-focus-name">🤝 ${activeName} 🤝</span>!`,
+            `Маскируется под добрую старушку-травницу, но острые когти выдают с потрохами <span class="gold-unit-focus-name">🌿 ${activeName} 🌿</span>!`,
+            `«Осторожно, у нее сопротивление магии и куча мерзких иллюзий!» — предупреждает чародей при виде <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `Взмахивает корявым посохом, насылая на героев сглаз, порчу и плохое настроение, <span class="gold-unit-focus-name">🪄 ${activeName} 🪄</span>!`,
+            `«Кто вообще принес сюда эту слепящую святую магию?! У меня от нее мигрень!» — шипит <span class="gold-unit-focus-name">☀️ ${activeName} ☀️</span>!`,
+            `Бард уже пытается переспорить ее в остроумии, но в ответ получает только проклятие от <span class="gold-unit-focus-name">🪕 ${activeName} 🪕</span>!`,
+            `«Я триста лет собирала эти сушеные поганки, а вы мне всю поляну вытоптали!» — ворчит <span class="gold-unit-focus-name">🍄 ${activeName} 🍄</span>!`,
+            `Жуткий каркающий смех разносится по трясине, заставляя вздрогнуть даже нашего варвара, когда ходит <span class="gold-unit-focus-name">🐦‍⬛ ${activeName} 🐦‍⬛</span>!`,
+            `«Погодите, сейчас я наложу на вашего танка Вредоносный сглаз, и посмотрим, кто засмеется!» — ухмыляется <span class="gold-unit-focus-name">😈 ${activeName} 😈</span>!`,
+            `Пытается уйти в невидимость прямо посреди боя, чтобы ударить в спину из тени, подлая <span class="gold-unit-focus-name">👻 ${activeName} 👻</span>!`,
+            `«У меня в чулане таких героев целый сундук засушен!» — хвастается страшная <span class="gold-unit-focus-name">📦 ${activeName} 📦</span>!`,
+            `Швыряет склянку с вонючим болотным варевом прямо под ноги нашему разбойнику <span class="gold-unit-focus-name">💨 ${activeName} 💨</span>!`,
+            `«Мастер, а она случайно не в ковене с еще двумя такими же бабулями?!» — нервно сглатывает жрец при виде <span class="gold-unit-focus-name">👵 ${activeName} 👵</span>!`,
+            `Скрипит зубами как несмазанная калитка и заносит когтистую лапу для удара <span class="gold-unit-focus-name">🐾 ${activeName} 🐾</span>!`,
+            `«Не смейте называть меня старой каргой, я в самом расцвете темных сил!» — обижается <span class="gold-unit-focus-name">💢 ${activeName} 💢</span>!`,
+            `Подмигивает мутным глазом и шепчет заклинание, от которого стынет кровь в жилах, <span class="gold-unit-focus-name">👁️ ${activeName} 👁️</span>!`,
+            `«Ребята, держитесь подальше от ее котла, оттуда уже что-то шевелится!» — кричит следопыт про <span class="gold-unit-focus-name">🫧 ${activeName} 🫧</span>!`,
+            `Перебирает связку сушеных летучих мышей на поясе и готовит новую пакость зловещая <span class="gold-unit-focus-name">🦇 ${activeName} 🦇</span>!`,
+            `«Если вы сейчас же не уйдете с моего болота, я превращу вас всех в жаб!» — грозится <span class="gold-unit-focus-name">🐸 ${activeName} 🐸</span>!`,
+            `Коварство и черная магия текут в жилах вместо крови у этой обитательницы топей — наступает <span class="gold-unit-focus-name">🌑 ${activeName} 🌑</span>!`,
+            `«Ой, какие славные молодцы сами на ужин пожаловали!» — радуется людоедская <span class="gold-unit-focus-name">🍖 ${activeName} 🍖</span>!`,
+            `С леденящим душу хохотом, от которого гаснут факелы, начинает свой ход темная <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+        ];
+    },
+
+
+    _ogrePhrases(activeName) {
+        return [
+            `«Я считать до трех уметь, и твоя голова сейчас быть три!» — рычит громадный <span class="gold-unit-focus-name">🏏 ${activeName} 🏏</span>!`,
+            `Интеллект ровно пять, зато дубина весит как телега с камнями! Замахивается <span class="gold-unit-focus-name">🪵 ${activeName} 🪵</span>!`,
+            `«Кто вообще пустил этих мелких букашек в мою пещеру?!» — возмущается свирепый <span class="gold-unit-focus-name">👹 ${activeName} 👹</span>!`,
+            `Класс доспеха всего одиннадцать, зато хитов хватит на три раунда упорного труда! Наступает <span class="gold-unit-focus-name">⛰️ ${activeName} ⛰️</span>!`,
+            `«Ребята, кастуйте в него спас-броски Интеллекта, он даже читать не умеет!» — кричит волшебник про <span class="gold-unit-focus-name">🧠 ${activeName} 🧠</span>!`,
+            `С громким топотом сотрясает своды подземелья так, что у мага падает шляпа, тяжелый <span class="gold-unit-focus-name">👣 ${activeName} 👣</span>!`,
+            `«Я не толстый, у меня просто кость огромная и аппетит хороший!» — похлопывает по пузу <span class="gold-unit-focus-name">🍖 ${activeName} 🍖</span>!`,
+            `Бросает булыжник размером с приключенца прямо в задние ряды партии могучий <span class="gold-unit-focus-name">🪨 ${activeName} 🪨</span>!`,
+            `«Эй, железная банка, иди сюда, я из тебя сейчас блинчик делать буду!» — грозит танку <span class="gold-unit-focus-name">🥫 ${activeName} 🥫</span>!`,
+            `Запах немытого великана бьет по ноздрям сильнее любого ядовитого облака! Идет <span class="gold-unit-focus-name">🧦 ${activeName} 🧦</span>!`,
+            `«Мастер, а если он попадет по мне критическим ударом, от моего персонажа хоть что-то останется?!» — дрожит плут при виде <span class="gold-unit-focus-name">💀 ${activeName} 💀</span>!`,
+            `Чешет затылок огромной дубиной, пытаясь вспомнить, зачем вообще вышел из-за угла, тугодумный <span class="gold-unit-focus-name">❓ ${activeName} ❓</span>!`,
+            `«Мне гоблин-шаман сказать, что в блестящих человечках много вкусного!» — облизывается голодный <span class="gold-unit-focus-name">🤤 ${activeName} 🤤</span>!`,
+            `Одним взмахом своей палицы сносит половину колонны и едва не задевает нашего лекаря грозный <span class="gold-unit-focus-name">💥 ${activeName} 💥</span>!`,
+            `«Не бегать так быстро, у меня от вас голова кружиться!» — злится на ловкого разбойника <span class="gold-unit-focus-name">🌀 ${activeName} 🌀</span>!`,
+            `Варвар партии уже завистливо поглядывает на размеры дубины, которой размахивает <span class="gold-unit-focus-name">🪓 ${activeName} 🪓</span>!`,
+            `«Погодите, я сначала доем эту коровью ногу, а потом вами займусь!» — чавкает на ходу <span class="gold-unit-focus-name">🍗 ${activeName} 🍗</span>!`,
+            `Никакой хитрой тактики — только прямой удар сверху вниз со всей дури! Бьет <span class="gold-unit-focus-name">🔨 ${activeName} 🔨</span>!`,
+            `«Кто кидать в меня светящиеся шарики?! Я сейчас этому умнику посох сломать!» — ревет <span class="gold-unit-focus-name">🪄 ${activeName} 🪄</span>!`,
+            `Бард уже пытается заговорить ему зубы сложными словами, пока недоуменно моргает <span class="gold-unit-focus-name">🪕 ${activeName} 🪕</span>!`,
+            `«У меня в мешке много блестящих камушков, но я их не отдать!» — прижимает к груди баул <span class="gold-unit-focus-name">🎒 ${activeName} 🎒</span>!`,
+            `Каждый шаг этого гиганта отзывается гулким эхом по всему этажу подземелья! Наступает <span class="gold-unit-focus-name">📢 ${activeName} 📢</span>!`,
+            `«Сломать щит! Разбить шлем! Забрать блестящий меч!» — скандирует свою боевую стратегию <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `Смотрит на героев сверху вниз с высоты трехметрового роста свирепый и неуклюжий <span class="gold-unit-focus-name">👁️ ${activeName} 👁️</span>!`,
+            `«Я здесь самый большой, значит, я здесь главный!» — железная логика в исполнении <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`,
+            `Пытается поймать нашего полурослика как назойливую муху огромной лапищей <span class="gold-unit-focus-name">✋ ${activeName} ✋</span>!`,
+            `«От этих мелких слишком много шума, пора навести тишину!» — поднимает ствол дерева вместо палицы <span class="gold-unit-focus-name">🌲 ${activeName} 🌲</span>!`,
+            `Сила двадцать один в действии — лучше не попадаться под горячую руку, когда бьет <span class="gold-unit-focus-name">💪 ${activeName} 💪</span>!`,
+            `«Если кто-нибудь укусить меня за пятку — я на него сесть!» — угрожает воинственный <span class="gold-unit-focus-name">🍑 ${activeName} 🍑</span>!`,
+            `С оглушительным ревом, от которого дрожат стены, начинает свой сокрушительный ход <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+        ];
+    },
+
+
+    _dragonPhrases(activeName) {
+        return [
+            `«Кто-нибудь, проверьте, перезарядилось ли у него дыхание на 5 или 6!» — паникует отряд, пока ходит <span class="gold-unit-focus-name">🐉 ${activeName} 🐉</span>!`,
+            `Бард уже настраивает лютню и пытается соблазнить этого ящера, но гордо фыркает <span class="gold-unit-focus-name">🪕 ${activeName} 🪕</span>!`,
+            `«Я не жадный, я просто коллекционирую блестящие монетки и ваших предыдущих персонажей!» — хохочет <span class="gold-unit-focus-name">💰 ${activeName} 💰</span>!`,
+            `Распахивает гигантские крылья, устраивая ураган прямо в пещере, величественный <span class="gold-unit-focus-name">🌪️ ${activeName} 🌪️</span>!`,
+            `«Ребята, не стойте кучей, сейчас будет конус дыхания на пятнадцать кубов урона!» — кричит тактик про <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+            `Легендарное сопротивление сработало так легко, будто маг кинул в него бумажным самолетиком! Ухмыляется <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `«У меня в сокровищнице лежит ваш годовой бюджет, но вам он уже не понадобится!» — рычит <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`,
+            `Спас-бросок Мудрости против Ужасающего присутствия! Коленки трясутся даже у танка, когда ревет <span class="gold-unit-focus-name">😱 ${activeName} 😱</span>!`,
+            `«Мастер, а вторая половина названия игры уже началась, или это еще разминка?!» — шепчет плут при виде <span class="gold-unit-focus-name">📖 ${activeName} 📖</span>!`,
+            `Пафос в этой пещере можно резать двуручным мечом — на сцену выходит древний <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `«Не смейте тыкать в мою чешую своими зубочистками первого уровня!» — возмущается крылатый <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
+            `Взлетает под самый потолок, оставляя воина с двуручным топором грустно смотреть вверх, хитрый <span class="gold-unit-focus-name">🪽 ${activeName} 🪽</span>!`,
+            `«Я триста лет спал на куче золота, а вы приперлись сюда со своими факелами!» — злится <span class="gold-unit-focus-name">🕯️ ${activeName} 🕯️</span>!`,
+            `Мультиатака укусом, когтями и хвостом уже на подходе! Заносит смертоносные лапы <span class="gold-unit-focus-name">💥 ${activeName} 💥</span>!`,
+            `«Жрец, доставай свитки воскрешения, сейчас будет очень жарко!» — предупреждает следопыт, когда вдыхает воздух <span class="gold-unit-focus-name">🌬️ ${activeName} 🌬️</span>!`,
+            `Каждая чешуйка крепче мифрилового доспеха, а взгляд пронзает насквозь! Наступает <span class="gold-unit-focus-name">👁️ ${activeName} 👁️</span>!`,
+            `«У меня на обед сегодня хрустящие рыцари в собственном соку!» — облизывается голодный <span class="gold-unit-focus-name">🥫 ${activeName} 🥫</span>!`,
+            `Удар тяжелым хвостом сбивает с ног сразу половину отряда! Разворачивается громадный <span class="gold-unit-focus-name">☄️ ${activeName} ☄️</span>!`,
+            `«Если кто-нибудь поцарапает мою любимую золотую чашу — пощады не ждите!» — грозит <span class="gold-unit-focus-name">🏆 ${activeName} 🏆</span>!`,
+            `Паладин уже готовит Божественную кару максимального уровня, пока надменно щурится <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span>!`,
+            `«Мастер, а у него точно нет иммунитета ко всем моим заклинаниям?!» — плачет чародей, глядя на <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span>!`,
+            `Легендарное действие в конце чужого хода — классический способ испортить настроение партии от <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+            `«Я не ящерица-переросток, я высшее создание этого мира!» — гордо выпячивает грудь <span class="gold-unit-focus-name">💎 ${activeName} 💎</span>!`,
+            `Земля содрогается от каждого шага этого титана, а воздух пахнет серой и озоном! Идет <span class="gold-unit-focus-name">🌋 ${activeName} 🌋</span>!`,
+            `«Кто вообще додумался зайти в пещеру с горами черепов у входа?!» — кричит волшебник, когда атакует <span class="gold-unit-focus-name">💀 ${activeName} 💀</span>!`,
+            `Снисходительно смотрит на приключенцев с высоты своего полета и величия могучий <span class="gold-unit-focus-name">🦅 ${activeName} 🦅</span>!`,
+            `«Погодите, я только сдую пыль со своих сокровищ вашим отрядом!» — ухмыляется коварный <span class="gold-unit-focus-name">💨 ${activeName} 💨</span>!`,
+            `Истинный владыка небес и подземелий не привык проигрывать смертным! Вступает в битву <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+            `«Спас-бросок Ловкости со сложностью двадцать один! Удачи, смертные!» — ревет беспощадный <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
+            `С громогласным ревом, от которого трескаются щиты и камни, начинает свой ход легендарный <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+        ];
+    },
+
+
+    _banditPhrases(activeName) {
+        return [
+            `«Кошелек или жизнь! Хотя лучше давайте и то, и другое!» — ухмыляется наглый <span class="gold-unit-focus-name">💰 ${activeName} 💰</span>!`,
+            `Плут партии уже ревниво прижимает руки к карманам, когда выходит из засады <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
+            `«Это платный проход по лесной тропе, а у вас, я смотрю, чек не оплачен!» — заявляет <span class="gold-unit-focus-name">🚧 ${activeName} 🚧</span>!`,
+            `Уровень опасности: «Страшнее любого дракона, когда герои без доспехов в таверне». Атакует <span class="gold-unit-focus-name">🍺 ${activeName} 🍺</span>!`,
+            `«Ребята, не переживайте, у него класс доспеха всего двенадцать!» — кричит тактик про <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `Потирает руки, прикидывая, сколько золотых дадут за блестящий паладинский щит, жадный <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `«Я не грабитель, я просто внештатный налоговый инспектор этой дороги!» — шутит <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
+            `Свистит в два пальца, подзывая подельников из кустов, лихой <span class="gold-unit-focus-name">🌲 ${activeName} 🌲</span>!`,
+            `«Спорим, он сейчас попытается срезать кошелек прямо во время удара?!» — ворчит воин на <span class="gold-unit-focus-name">✂️ ${activeName} ✂️</span>!`,
+            `Машет ржавым скимитаром так самоуверенно, будто в руках легендарный клинок, <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+            `«Отдайте магические кольца по-хорошему, а то мне придется их самому снимать!» — требует <span class="gold-unit-focus-name">💍 ${activeName} 💍</span>!`,
+            `Повязка на глазу закрывает обзор на пятьдесят процентов, но в бой лезет <span class="gold-unit-focus-name">🏴‍☠️ ${activeName} 🏴‍☠️</span>!`,
+            `«Мастер, а у него есть Скрытая атака, если рядом стоит его подельник?!» — напрягается маг при виде <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
+            `Уже присмотрел себе новые сапоги нашего следопыта и теперь идет их примерять <span class="gold-unit-focus-name">👢 ${activeName} 👢</span>!`,
+            `«Мы честные лесные труженики, просто работа у нас такая — чужое брать!» — оправдывается <span class="gold-unit-focus-name">🎒 ${activeName} 🎒</span>!`,
+            `Держит арбалет наперевес и нервно оглядывается в поисках путей к отступлению хитрый <span class="gold-unit-focus-name">🏹 ${activeName} 🏹</span>!`,
+            `«Эй, длинноухий, у тебя там в колчане стрелы случайно не серебряные?!» — приценивается <span class="gold-unit-focus-name">🪙 ${activeName} 🪙</span>!`,
+            `Пытается запугать двухметрового варвара своим самым страшным прищуром отчаянный <span class="gold-unit-focus-name">😠 ${activeName} 😠</span>!`,
+            `«Погодите, вы же не те самые герои, которые вчера вырезали соседний лагерь?!» — сглатывает <span class="gold-unit-focus-name">😰 ${activeName} 😰</span>!`,
+            `Бросает горсть песка в глаза сопернику, наплевав на все правила честной дуэли, подлый <span class="gold-unit-focus-name">💨 ${activeName} 💨</span>!`,
+            `«Стой, кто идет! Пароль — три золотых, или будем разговаривать кинжалами!» — грозится <span class="gold-unit-focus-name">🗝️ ${activeName} 🗝️</span>!`,
+            `Вся надежда на быстрые ноги и умение вовремя спрятаться за дерево у <span class="gold-unit-focus-name">🏃 ${activeName} 🏃</span>!`,
+            `«Кажется, мы напали не на тех торговцев, у этого парня в руках посох с черепом!» — шепчет <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span>!`,
+            `Звенит связкой отмычек и чужих колец в кармане, выходя на передовую, <span class="gold-unit-focus-name">🔔 ${activeName} 🔔</span>!`,
+            `«Если что, я здесь просто мимо проходил и к этой шайке отношения не имею!» — заранее готовит алиби <span class="gold-unit-focus-name">🤥 ${activeName} 🤥</span>!`,
+            `Выпрыгивает из-за поваленного бревна с криком «Сюрприз!» и заносит дубинку <span class="gold-unit-focus-name">🪵 ${activeName} 🪵</span>!`,
+            `«У нас в банде строгая дисциплина: кто первый убежал, тому лут не достается!» — храбрится <span class="gold-unit-focus-name">🏆 ${activeName} 🏆</span>!`,
+            `Оценивает стоимость волшебной мантии чародея с точностью опытного ломбардщика <span class="gold-unit-focus-name">🧐 ${activeName} 🧐</span>!`,
+            `«Никакой магии, ребята, давайте разберемся по-простому, на ножах!» — просит <span class="gold-unit-focus-name">🔪 ${activeName} 🔪</span>!`,
+            `Поправляет съехавшую на лоб бандану и бросается в авантюрную атаку лихой <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+        ];
+    },
+
 
     _trollPhrases(activeName) {
         return [
