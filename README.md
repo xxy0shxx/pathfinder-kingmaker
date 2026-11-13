@@ -1,4 +1,4 @@
-✅ [**Рабочая схема по ссылке**](https://github.io) https://github.io
+✅ [**Рабочая схема по ссылке**](https://xxy0shxx.github.io/pathfinder-kingmaker/) https://xxy0shxx.github.io/pathfinder-kingmaker/
 
 # 🗺️ Интерактивная карта и помощник для живой игры Pathfinder Kingmaker
 
