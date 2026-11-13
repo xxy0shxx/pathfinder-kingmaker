@@ -57,7 +57,7 @@ const KingdomSheetRenderer = {
                 <button type="button" class="btn ${activeSubTab === 'sheet' ? 'ok' : 'cc'}" data-k-tab="sheet">📜 Лист и Навыки</button>
                 <button type="button" class="btn ${activeSubTab === 'events' ? 'ok' : 'cc'}" data-k-tab="events">⚡ События</button>
                 <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : 'cc'}" data-k-tab="urban">🏰 Постройки и Город</button>
-                <button type="button" class="btn ${activeSubTab === 'armies' ? 'ok' : 'cc'}" data-k-tab="armies">⚔ Армии (${armiesCount})</button>
+                <button type="button" class="btn ${activeSubTab === 'armies' ? 'ok' : 'cc'}" data-k-tab="armies">⚔️ Армии (${armiesCount})</button>
                 <button type="button" class="btn ${activeSubTab === 'diplomacy' ? 'ok' : 'cc'}" data-k-tab="diplomacy">🕊️ Дипломатия (${diploCount})</button>
 
                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
@@ -446,7 +446,7 @@ const KingdomSheetRenderer = {
                             <div><label class="k-lbl">🗺️ Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
                             <div><label class="k-lbl">🪙 Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
                             <div><label class="k-lbl">💢 Беспорядки</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
-                            <div><label class="k-lbl">🍖 Потребл.${consBadge}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселения + здания + армии + зима (${winterBonus}) − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                            <div><label class="k-lbl">🍖 Потребл.${consBadge}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселения + здания + ⚔️ армии + зима (${winterBonus}) − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                             <div><label class="k-lbl">🏆 Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
                             <div><label class="k-lbl">🎯 СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
                         </div>
