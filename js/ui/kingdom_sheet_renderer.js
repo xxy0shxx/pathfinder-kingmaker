@@ -81,20 +81,24 @@ const KingdomSheetRenderer = {
             if (cal.season === 'winter') {
                 hints.push('❄️ <b>Зимний сезон:</b> +1 к Потреблению королевства на обогрев и запасы.');
             }
+
+            let suggestedEventId = '';
             if (cal.hazard) {
-                const suggestedEvent = ['wildfire', 'drought'].includes(cal.hazard.id)
-                    ? '«🥀 Неурожай / Мор скота»'
-                    : '«🌪️ Стихийное бедствие»';
-                hints.push(`⚡ <b>Фаза событий:</b> из-за явления <i>${cal.hazard.label}</i> в конце хода можно разыграть событие ${suggestedEvent}.`);
+                const isCropHazard = ['wildfire', 'drought', 'cold_snap'].includes(cal.hazard.id);
+                suggestedEventId = isCropHazard ? 'crop_failure' : 'natural_disaster';
+                const suggestedLabel = isCropHazard ? '«🥀 Неурожай / Мор скота»' : '«🌪️ Стихийное бедствие»';
+                hints.push(`⚡ <b>Подсказка ГМу (Фаза событий):</b> из-за явления <i>${cal.hazard.label}</i> в конце хода можно разыграть событие ${suggestedLabel}.`);
             }
             if (hints.length > 0) {
                 gmWeatherHintHtml = `
                     <div style="background:rgba(255, 216, 117, 0.08); border:1px solid #8a6421; border-radius:6px; padding:6px 12px; margin-bottom:10px; font-size:13px; color:#ebd291; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;">
                         <div style="display:flex; flex-direction:column; gap:2px;">${hints.map(h => `<div>${h}</div>`).join('')}</div>
-                        ${cal.hazard ? `<button type="button" class="btn cc" id="kBtnHintOpenEvent" style="padding:3px 10px; font-size:12px; white-space:nowrap;">🎲 К проверке события</button>` : ''}
+                        ${cal.hazard ? `<button type="button" class="btn cc" id="kBtnHintOpenEvent" data-suggest-ev="${suggestedEventId}" style="padding:3px 10px; font-size:12px; white-space:nowrap;">🎲 К проверке события</button>` : ''}
                     </div>
                 `;
             }
+
+
         }
 
         let bodyHtml = '';

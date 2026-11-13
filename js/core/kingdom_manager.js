@@ -725,9 +725,9 @@ const KingdomManager = {
         this.renderUi();
     },
 
-    openKingdomEventRollModal() {
+    openKingdomEventRollModal(recommendedEventId = null) {
         this.saveFromUi();
-        KingdomModals.openEventRoll(this, MAP_CONFIG.kingdomRandomEventsTable || []);
+        KingdomModals.openEventRoll(this, MAP_CONFIG.kingdomRandomEventsTable || [], recommendedEventId);
     },
 
 
@@ -1160,9 +1160,8 @@ const KingdomManager = {
 
         const btnHintEvent = container.querySelector('#kBtnHintOpenEvent');
         if (btnHintEvent) {
-            btnHintEvent.addEventListener('click', () => this.openKingdomEventRollModal());
+            btnHintEvent.addEventListener('click', () => this.openKingdomEventRollModal(btnHintEvent.dataset.suggestEv || null));
         }
-
 
         container.querySelectorAll('[data-del-ev]').forEach(btn => {
             btn.addEventListener('click', () => this.removeEventCard(btn.dataset.delEv));

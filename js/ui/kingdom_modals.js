@@ -379,12 +379,14 @@ const KingdomModals = {
     /**
      * 7. Фаза случайных событий королевства (d100)
      */
-    openEventRoll(km, eventsPool) {
+    openEventRoll(km, eventsPool, recommendedEventId = null) {
         if (!eventsPool || eventsPool.length === 0) return;
         const s = km.state;
         const baseCtrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
         const flatCheckDc = (Array.isArray(s.events) && s.events.some(ev => ev.status !== 'resolved')) ? 11 : 16;
         let selectedEvent = null;
+
+
 
         const { overlay } = ModalManager.open({
             id: 'kRandomEventOverlay',
@@ -402,10 +404,16 @@ const KingdomModals = {
                     </div>
                 </div>
                 <div id="kEvTableGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:6px 12px; margin-bottom:14px; opacity:0.45; pointer-events:none;">
-                    ${eventsPool.map(ev => `<div data-rand-ev-id="${ev.id}" data-min-roll="${ev.minRoll}" style="padding:7px 12px; border:1px solid #543e0d; border-radius:5px; background:rgba(0,0,0,0.32); display:flex; justify-content:space-between; cursor:pointer; font-size:16px;">
-                        <span><b style="color:${ev.type === 'boon' ? '#2ecc71' : '#ff7675'};">${ev.minRoll}–${ev.maxRoll}</b> ${ev.icon} ${ev.title}</span>
-                        <span style="color:#a4b0be; font-size:14px;">СЛ ${baseCtrlDc + (ev.dcMod || 0)}</span>
-                    </div>`).join('')}
+                    ${eventsPool.map(ev => {
+                const isRec = recommendedEventId && (ev.id === recommendedEventId || ev.title.toLowerCase().includes('бедств') || ev.title.toLowerCase().includes('неурожай'));
+                const recBorder = isRec ? '2px solid #ffd875' : '1px solid #543e0d';
+                const recBg = isRec ? 'rgba(255, 216, 117, 0.14)' : 'rgba(0,0,0,0.32)';
+                const recBadge = isRec ? '<span style="color:#ffd875; font-size:11px; margin-left:6px; border:1px solid #ffd875; padding:0 5px; border-radius:3px;">★ ПО ПОГОДЕ</span>' : '';
+                return `<div data-rand-ev-id="${ev.id}" data-min-roll="${ev.minRoll}" style="padding:7px 12px; border:${recBorder}; border-radius:5px; background:${recBg}; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:16px;">
+                            <span><b style="color:${ev.type === 'boon' ? '#2ecc71' : '#ff7675'};">${ev.minRoll}–${ev.maxRoll}</b> ${ev.icon} ${ev.title}${recBadge}</span>
+                            <span style="color:#a4b0be; font-size:14px;">СЛ ${baseCtrlDc + (ev.dcMod || 0)}</span>
+                        </div>`;
+            }).join('')}
                 </div>
                 <div id="kEvPreviewBox" style="background:#040905; border:1px solid #543e0d; border-radius:6px; padding:12px 16px; font-size:17px;">Введите результат чистой проверки d20 (при &lt; ${flatCheckDc} события нет).</div>
             `,
