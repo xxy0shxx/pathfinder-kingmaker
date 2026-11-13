@@ -82,7 +82,7 @@ export const InitiativePhrases = {
             `Первобытный инстинкт ведет в самый центр схватки! Не знает страха свирепый <span class="gold-unit-focus-name">🩸 ${activeName} 🩸</span>!`,
             `«Надеюсь, мои кожаные доспехи не пахнут как свежее жаркое!» — переживает разбойник, пока наступает <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
             `Даже драконы уважают свирепость дикой фауны! Свой ход начинает неукротимый <span class="gold-unit-focus-name">🐉 ${activeName} 🐉</span>!`,
-            `«Кыш! Брысь! Пошел вон!» — машет посохом волшебник, но только сильнее злит <span class="gold-unit-focus-name">🪄 ${activeName} 🪄</span>!`
+            `«Кыш! Брысь! Пошел вон!» — машет посохом волшебник, но только сильнее злит <span class="gold-unit-focus-name">🪄 ${activeName} 🪄</span>!`,
             `Из кустов с громким хрустом веток вылетает разъяренный <span class="gold-unit-focus-name">🐗 ${activeName} 🐗</span>!`,
             `«Я не подписывался на драку с вооруженными людьми, я просто искал желуди!» — фыркает <span class="gold-unit-focus-name">🐿️ ${activeName} 🐿️</span>!`,
             `Друид партии уже пытается договориться с ним на зверином языке, пока рычит <span class="gold-unit-focus-name">🐺 ${activeName} 🐺</span>!`,
@@ -826,7 +826,7 @@ export const InitiativePhrases = {
             `«Если я притворюсь статуей, меня ведь не заденут по площади?» — надеется <span class="gold-unit-focus-name">🗿 ${activeName} 🗿</span>!`,
             `Бард уже пытается его соблазнить, но гордо держит дистанцию неприступный <span class="gold-unit-focus-name">🌹 ${activeName} 🌹</span>!`,
             `«Я пришел сюда жевать жвачку и не участвовать в бою, и жвачка у меня еще есть!» — говорит <span class="gold-unit-focus-name">🌿 ${activeName} 🌿</span>!`,
-            `Свидетель будущих подвигов (или позора) партии! Записывает происходящее в блокнот <span class="gold-unit-focus-name">🖋️ ${activeName} 🖋️</span>!`
+            `Свидетель будущих подвигов (или позора) партии! Записывает происходящее в блокнот <span class="gold-unit-focus-name">🖋️ ${activeName} 🖋️</span>!`,
             `«Я не подписывался на драку с драконом, мне платили за охрану сарая!» — возмущается <span class="gold-unit-focus-name">🏚️ ${activeName} 🏚️</span>!`,
             `Бросает монетку, чтобы решить, кому сегодня помочь, наш непредсказуемый <span class="gold-unit-focus-name">🪙 ${activeName} 🪙</span>!`,
             `«Эй, вы мне всю клумбу потоптали своими огненными шарами!» — ворчит <span class="gold-unit-focus-name">🌻 ${activeName} 🌻</span>!`,
@@ -847,7 +847,6 @@ export const InitiativePhrases = {
             `Случайно оказался не в том подземелье и не в то время! Озирается по сторонам <span class="gold-unit-focus-name">🧭 ${activeName} 🧭</span>!`,
             `«Не смотрите на меня так, я просто местный призрак и болею за красивый бой!» — парит <span class="gold-unit-focus-name">👻 ${activeName} 👻</span>!`,
             `Хранит гробовое молчание и загадочно щурится, наводя жути на обе стороны, таинственный <span class="gold-unit-focus-name">🦉 ${activeName} 🦉</span>!`,
-
         ];
     }
 
