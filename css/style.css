@@ -5330,9 +5330,11 @@ canvas[style*="position: fixed"] {
 }
 
 #kingdomTabletContainer .w-shared-calendar-bar .btn,
+#kingdomTabletContainer .w-shared-calendar-bar .w-btn-weather-summary,
 #kingdomTabletContainer .w-shared-calendar-bar .w-btn-active-hazard {
     font-size: 15px !important;
     padding: 5px 11px !important;
+    line-height: 1.2 !important;
 }
 
 /* 3. Заголовки секций, подписи полей и инпуты */

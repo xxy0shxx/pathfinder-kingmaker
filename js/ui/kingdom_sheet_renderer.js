@@ -54,11 +54,12 @@ const KingdomSheetRenderer = {
 
         const tabButtons = `
             <div class="k-subtabs-bar" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; border-bottom:2px solid #543e0d; padding-bottom:10px;">
-                <button type="button" class="btn ${activeSubTab === 'sheet' ? 'ok' : ''}" data-k-tab="sheet">📜 Лист и Навыки</button>
-                <button type="button" class="btn ${activeSubTab === 'events' ? 'ok' : ''}" data-k-tab="events">⚡ События</button>
-                <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : ''}" data-k-tab="urban">🏰 Постройки и Город</button>
-                <button type="button" class="btn ${activeSubTab === 'armies' ? 'ok' : ''}" data-k-tab="armies">⚔ Армии (${armiesCount})</button>
-                <button type="button" class="btn ${activeSubTab === 'diplomacy' ? 'ok' : ''}" data-k-tab="diplomacy">🕊️ Дипломатия (${diploCount})</button>
+                <button type="button" class="btn ${activeSubTab === 'sheet' ? 'ok' : 'cc'}" data-k-tab="sheet">📜 Лист и Навыки</button>
+                <button type="button" class="btn ${activeSubTab === 'events' ? 'ok' : 'cc'}" data-k-tab="events">⚡ События</button>
+                <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : 'cc'}" data-k-tab="urban">🏰 Постройки и Город</button>
+                <button type="button" class="btn ${activeSubTab === 'armies' ? 'ok' : 'cc'}" data-k-tab="armies">⚔ Армии (${armiesCount})</button>
+                <button type="button" class="btn ${activeSubTab === 'diplomacy' ? 'ok' : 'cc'}" data-k-tab="diplomacy">🕊️ Дипломатия (${diploCount})</button>
+
                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
                     ${levelUpBtn}
                     <button type="button" class="btn cc" id="kBtnTradeComm" title="Купить или продать ресурсы за RP">⚖ Обмен</button>
