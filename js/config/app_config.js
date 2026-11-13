@@ -151,6 +151,15 @@ export const MAP_CONFIG = {
     // Календарь Голариона (12 месяцев, сезоны и сезонная погода для Pathfinder 2e Kingmaker)
     golarionCalendar: {
         startYear: 4710, // Стандартный год начала кампании Kingmaker (AR)
+        weekdays: [
+            { id: 0, name: 'День луны',   rus: 'Пн' },
+            { id: 1, name: 'День труда',   rus: 'Вт' },
+            { id: 2, name: 'День богатств',  rus: 'Ср' },
+            { id: 3, name: 'День клятв',     rus: 'Чт' },
+            { id: 4, name: 'День огня',  rus: 'Пт' },
+            { id: 5, name: 'Суббота',  rus: 'Сб' },
+            { id: 6, name: 'Воскресенье',   rus: 'Вс' }
+        ],
         months: [
             { id: 0,  name: 'Абадиус',   days: 31, season: 'winter', seasonLabel: '❄️ Зима',  precipDc: 8,  coldDc: 16 },
             { id: 1,  name: 'Калистрил', days: 28, season: 'winter', seasonLabel: '❄️ Зима',  precipDc: 8,  coldDc: 18 },

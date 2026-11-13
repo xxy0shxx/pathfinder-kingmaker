@@ -33,7 +33,7 @@ const KingdomManager = {
         armies: [],
         diplomacy: [],
         firstDiplomacyXpClaimed: false,
-        calendar: { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' }, // 1 Фараста 4710 AR (Весна)
+        calendar: { day: 10, month: 3, year: 4710, weatherId: 'clear_mild' }, // 10 Гозрана 4710 AR (Стардей / Суббота)
         stats: {
             culture: { value: 10, modifier: 0 },
             economy: { value: 10, modifier: 0 },
@@ -242,8 +242,8 @@ const KingdomManager = {
         if (!Array.isArray(merged.diplomacy)) merged.diplomacy = [];
 
         merged.calendar = {
-            day: 1,
-            month: 2,
+            day: 10,
+            month: 3,
             year: MAP_CONFIG.golarionCalendar?.startYear || 4710,
             weatherId: 'clear_mild',
             ...(saved.calendar || {})
@@ -1704,8 +1704,11 @@ const KingdomManager = {
     },
 
     getCalendarInfo() {
+        if (window.WeatherManager) {
+            return window.WeatherManager.getCalendarInfo();
+        }
         const calCfg = MAP_CONFIG.golarionCalendar;
-        const c = this.state?.calendar || { day: 1, month: 2, year: 4710, precip: false, cold: false, hazardId: null, secondHazardNote: false };
+        const c = this.state?.calendar || { day: 10, month: 3, year: 4710, precip: false, cold: false, hazardId: null, secondHazardNote: false };
         const months = calCfg?.months || [];
         const mObj = months[c.month] || { id: 2, name: 'Фараст', days: 31, season: 'spring', seasonLabel: '🌱 Весна', precipDc: 15, coldDc: null };
         const hazards = calCfg?.weatherHazardsTable || [];

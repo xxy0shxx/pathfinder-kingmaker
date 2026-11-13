@@ -4,8 +4,8 @@ import ModalManager from '../ui/modal_manager.js';
 
 const WeatherManager = {
     state: {
-        day: 1,
-        month: 2,
+        day: 10,
+        month: 3,
         year: 4710,
         precip: false,
         cold: false,
@@ -51,20 +51,55 @@ const WeatherManager = {
         EventBus.emit('data:save');
     },
 
+    _getWeekdayInfo(day, monthIdx, year) {
+        const calCfg = MAP_CONFIG.golarionCalendar;
+        const months = calCfg?.months || [];
+        const weekdays = calCfg?.weekdays || [
+            { id: 0, name: 'День луны',   rus: 'Пн' },
+            { id: 1, name: 'День труда',   rus: 'Вт' },
+            { id: 2, name: 'День богатств',  rus: 'Ср' },
+            { id: 3, name: 'День клятв',     rus: 'Чт' },
+            { id: 4, name: 'День огня',  rus: 'Пт' },
+            { id: 5, name: 'Суббота',  rus: 'Сб' },
+            { id: 6, name: 'Воскресенье',   rus: 'Вс' }
+        ];
+
+        // Считаем количество дней, прошедших с опорной даты: 10 Гозрана (месяц 3) 4710 AR = Стардей (индекс 5)
+        const baseYear = 4710;
+        let daysInPastMonths = 0;
+        for (let i = 0; i < monthIdx; i++) {
+            daysInPastMonths += (months[i]?.days || 30);
+        }
+        // 10 Гозрана 4710 AR — это (31 + 28 + 31 + 10) = 100-й день 4710 года
+        const baseDayOfYear = 31 + 28 + 31 + 10;
+        const currentDayOfYear = daysInPastMonths + day;
+        const totalDiffDays = ((year - baseYear) * 365) + (currentDayOfYear - baseDayOfYear);
+
+        const weekdayIndex = (((5 + totalDiffDays) % 7) + 7) % 7;
+        return weekdays[weekdayIndex] || weekdays[5];
+    },
+
+
     getCalendarInfo() {
         const calCfg = MAP_CONFIG.golarionCalendar;
         const c = this.state;
         const months = calCfg?.months || [];
-        const mObj = months[c.month] || { id: 2, name: 'Фараст', days: 31, season: 'spring', seasonLabel: '🌱 Весна', precipDc: 15, coldDc: null };
+        const mObj = months[c.month] || { id: 3, name: 'Гозран', days: 30, season: 'spring', seasonLabel: '🌱 Весна', precipDc: 15, coldDc: null };
         const hazards = calCfg?.weatherHazardsTable || [];
         const hazard = c.hazardId ? (hazards.find(h => h.id === c.hazardId) || null) : null;
 
+        const day = c.day || 10;
+        const year = c.year || 4710;
+        const weekday = this._getWeekdayInfo(day, mObj.id, year);
+
         return {
-            day: c.day || 1,
+            day,
             month: mObj.id,
             monthName: mObj.name,
             monthDays: mObj.days,
-            year: c.year || 4710,
+            year,
+            weekdayName: weekday.name,
+            weekdayRus: weekday.rus,
             season: mObj.season,
             seasonLabel: mObj.seasonLabel,
             precipDc: mObj.precipDc ?? 15,
@@ -144,7 +179,7 @@ const WeatherManager = {
         return `
             <div class="w-shared-calendar-bar" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.42); border:1px solid #543e0d; border-radius:6px; padding:7px 12px; margin-bottom:10px; font-size:14px;">
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <span style="color:#ffd875; font-weight:bold;">📅 ${cal.day} ${cal.monthName} ${cal.year} AR</span>
+                    <span style="color:#ffd875; font-weight:bold;">📅 ${cal.day} ${cal.monthName} ${cal.year} AR (${cal.weekdayName} / ${cal.weekdayRus})</span>
                     <span style="background:#040905; border:1px solid #8a6421; padding:2px 8px; border-radius:4px; color:#ebd291;">${cal.seasonLabel}</span>
                     <button type="button" class="btn cc w-btn-next-day" style="padding:3px 8px; font-size:12px;">+1 День</button>
                     <button type="button" class="btn cc w-btn-next-month" style="padding:3px 8px; font-size:12px;">+1 Месяц</button>
@@ -544,7 +579,7 @@ const WeatherManager = {
         overlay.innerHTML = `
             <div style="background:linear-gradient(135deg, #112618 0%, #09140d 100%); border:3px solid #ffd875; border-radius:12px; padding:32px 40px; width:1100px; max-width:95vw; max-height:92vh; overflow-y:auto; color:#ebd291; box-shadow:0 20px 60px rgba(0,0,0,0.95), 0 0 35px rgba(255,216,117,0.35); font-family:'Tinos', serif;">
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #543e0d; padding-bottom:14px; margin-bottom:20px;">
-                    <span style="font-size:32px; font-weight:bold; color:#ffd875;">📅 Итоги утренней погоды: ${cal.day} ${cal.monthName} (${cal.seasonLabel})</span>
+                    <span style="font-size:32px; font-weight:bold; color:#ffd875;">📅 Итоги утренней погоды: ${cal.year} AR (${cal.weekdayName} / ${cal.weekdayRus})</span>
                 </div>
 
                 <div style="display:flex; align-items:center; gap:20px; background:rgba(0,0,0,0.4); border:2px solid #8a6421; border-radius:8px; padding:18px 24px; margin-bottom:18px;">
