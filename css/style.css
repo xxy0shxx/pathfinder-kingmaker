@@ -5456,3 +5456,88 @@ canvas[style*="position: fixed"] {
     font-size: 16px !important;
     padding: 8px 14px !important;
 }
+/* ============================================================================
+   АТМОСФЕРНЫЕ ВИЗУАЛЬНЫЕ ЭФФЕКТЫ ПОГОДЫ В ТРЕКЕРЕ ИНИЦИАТИВЫ
+   ============================================================================ */
+#initiativeTabletContainer {
+    position: relative !important;
+}
+
+.init-weather-fx-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2000001;
+    overflow: hidden;
+}
+
+/* 1. Дождь / Ливень */
+.init-weather-fx-layer.fx-rain {
+    background-image: repeating-linear-gradient(
+            105deg,
+            transparent 0px,
+            transparent 18px,
+            rgba(116, 185, 255, 0.22) 19px,
+            transparent 21px
+    );
+    background-size: 120px 120px;
+    animation: initRainFall 0.45s linear infinite;
+}
+
+@keyframes initRainFall {
+    0%   { background-position: 0 0; }
+    100% { background-position: -32px 120px; }
+}
+
+/* 2. Снег / Метель */
+.init-weather-fx-layer.fx-snow {
+    background-image:
+            radial-gradient(3px 3px at 20px 30px, rgba(255,255,255,0.75), transparent),
+            radial-gradient(4px 4px at 80px 70px, rgba(255,255,255,0.65), transparent),
+            radial-gradient(2px 2px at 140px 20px, rgba(220,240,255,0.8), transparent);
+    background-size: 180px 180px;
+    animation: initSnowFall 3.5s linear infinite;
+}
+
+.init-weather-fx-layer.fx-blizzard {
+    background-image:
+            radial-gradient(3px 3px at 20px 30px, rgba(255,255,255,0.85), transparent),
+            radial-gradient(5px 3px at 80px 70px, rgba(255,255,255,0.75), transparent);
+    background-size: 140px 140px;
+    background-color: rgba(200, 230, 255, 0.08);
+    animation: initBlizzardFall 0.9s linear infinite;
+}
+
+@keyframes initSnowFall {
+    0%   { background-position: 0 0; }
+    100% { background-position: 40px 180px; }
+}
+
+@keyframes initBlizzardFall {
+    0%   { background-position: 0 0; }
+    100% { background-position: -140px 140px; }
+}
+
+/* 3. Туман */
+.init-weather-fx-layer.fx-fog {
+    background: radial-gradient(circle at 50% 50%, rgba(200, 214, 229, 0.14) 0%, rgba(131, 149, 167, 0.28) 100%);
+    animation: initFogPulse 5s ease-in-out infinite alternate;
+}
+
+@keyframes initFogPulse {
+    0%   { opacity: 0.55; }
+    100% { opacity: 0.95; }
+}
+
+/* 4. Вспышка молнии при грозе */
+@keyframes initLightningFlash {
+    0%, 100% { background-color: transparent; }
+    10%      { background-color: rgba(200, 230, 255, 0.45); }
+    20%      { background-color: transparent; }
+    30%      { background-color: rgba(255, 255, 255, 0.65); }
+    50%      { background-color: transparent; }
+}
+
+.init-lightning-active {
+    animation: initLightningFlash 0.75s ease-out;
+}

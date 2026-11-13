@@ -272,6 +272,59 @@ const InitiativeManager = {
         }
     },
 
+    advanceRounds(deltaRounds) {
+        const prevRound = this.state.round || 1;
+        this.state.round = prevRound + deltaRounds;
+        this.triggerRoundFlashEffect();
+        this._saveWithoutSort();
+    },
+
+    _formatBattleTime(roundNum) {
+        const totalSec = Math.max(1, roundNum) * 6;
+        const mins = Math.floor(totalSec / 60);
+        const secs = totalSec % 60;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    },
+
+    _syncWeatherVisualEffects(container) {
+        let fxLayer = container.querySelector('.init-weather-fx-layer');
+        const cal = window.WeatherManager?.getCalendarInfo?.();
+
+        if (!cal || (!cal.precip && !cal.hazard)) {
+            if (fxLayer) fxLayer.remove();
+            return;
+        }
+
+        if (!fxLayer) {
+            fxLayer = document.createElement('div');
+            fxLayer.className = 'init-weather-fx-layer';
+            container.appendChild(fxLayer);
+        }
+
+        fxLayer.className = 'init-weather-fx-layer';
+        const hzId = cal.hazard?.id || '';
+
+        if (hzId === 'blizzard' || hzId === 'tornado') {
+            fxLayer.classList.add('fx-blizzard');
+        } else if (hzId === 'fog') {
+            fxLayer.classList.add('fx-fog');
+        } else if (hzId === 'thunderstorm' || hzId === 'downpour' || hzId === 'hail') {
+            fxLayer.classList.add('fx-rain');
+        } else if (cal.precip && cal.cold) {
+            fxLayer.classList.add('fx-snow');
+        } else if (cal.precip) {
+            fxLayer.classList.add('fx-rain');
+        }
+
+        // При грозе каждый 100-й раунд (каждые 10 минут) запускаем вспышку молнии
+        if (hzId === 'thunderstorm' && this.state.round > 1 && (this.state.round - 1) % 100 === 0) {
+            fxLayer.classList.remove('init-lightning-active');
+            void fxLayer.offsetWidth;
+            fxLayer.classList.add('init-lightning-active');
+        }
+    },
+
+
     clearAll() {
         if (confirm("Полностью очистить боевой трекер инициативы?")) {
             this.state.combatants = [];
@@ -298,10 +351,16 @@ const InitiativeManager = {
                     <div class="init-header-zone">
                         <div id="initWeatherHost"></div>
                         <div class="init-master-battle-control-bar">
-                            <div class="init-round-counter-badge">
-                                РАУНД <span id="initRoundCounterNum">1</span>
+                        
+                            <div class="init-round-counter-badge" style="gap: 8px; padding: 0 14px;">
+                                <span>РАУНД <span id="initRoundCounterNum">1</span></span>
+                                <span id="initBattleTimeBadge" style="font-size: 14px; color: #a4b0be; font-family: monospace; background: rgba(0,0,0,0.45); padding: 2px 7px; border-radius: 4px; border: 1px solid #543e0d;" title="Время с начала сцены (1 раунд = 6 сек)">00:06</span>
+                                <button type="button" id="initBtnAdd1Min" class="init-btn-reset-round-inline" title="Промотать +1 минуту (+10 раундов)" style="font-size: 12px; border: 1px solid #543e0d !important; border-radius: 3px; padding: 2px 5px !important;">+1м</button>
+                                <button type="button" id="initBtnAdd10Min" class="init-btn-reset-round-inline" title="Промотать +10 минут (+100 раундов)" style="font-size: 12px; border: 1px solid #543e0d !important; border-radius: 3px; padding: 2px 5px !important;">+10м</button>
                                 <button type="button" id="initBtnResetRoundOnly" class="init-btn-reset-round-inline" title="Сбросить раунды до 1">🔄</button>
-                            </div>
+                                </div>
+
+                            
                             <select id="initSelectAudioPreset" style="background: #090f0b; border: 1px solid #543e0d; color: #ebd291; height: 50px; padding: 4px 10px; font-weight: bold; font-size: 14px; border-radius: 4px; cursor: pointer;">
                                 <option value="bell">💎 Звук: Колокольчик</option>
                                 <option value="drum">🥁 Звук: Drum&Bass</option>
@@ -352,6 +411,14 @@ const InitiativeManager = {
             document.getElementById('initBtnResetRoundOnly').addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.resetRound();
+            });
+            document.getElementById('initBtnAdd1Min')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.advanceRounds(10);
+            });
+            document.getElementById('initBtnAdd10Min')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.advanceRounds(100);
             });
 
             if (audioSel) {
@@ -421,6 +488,11 @@ const InitiativeManager = {
 
         const roundNumEl = document.getElementById('initRoundCounterNum');
         if (roundNumEl) roundNumEl.textContent = this.state.round;
+
+        const timeBadgeEl = document.getElementById('initBattleTimeBadge');
+        if (timeBadgeEl) timeBadgeEl.textContent = this._formatBattleTime(this.state.round);
+
+        this._syncWeatherVisualEffects(container);
 
         const oldShield = container.querySelector('.init-focus-quote-shield');
         if (oldShield) oldShield.remove();
