@@ -117,16 +117,26 @@ const WeatherManager = {
         EventBus.emit('weather:updated', this.getCalendarInfo());
     },
 
+
     renderCompactBarHtml() {
         const cal = this.getCalendarInfo();
         let bgWeatherLabel = '⛅ Ясно и благоприятно';
-        if (cal.precip && cal.cold) bgWeatherLabel = '🌨️ Снег (утомление 4 ч, −1 Внимание)';
-        else if (cal.precip) bgWeatherLabel = '🌧️ Небольшой дождь (утомление 4 ч, −1 Внимание)';
-        else if (cal.cold) bgWeatherLabel = '🥶 Холодный день (утомление 4 ч)';
+        let badgeStyle = 'background:rgba(46, 204, 113, 0.14); border:1px solid #2ecc71; color:#2ecc71;';
+
+        if (cal.precip && cal.cold) {
+            bgWeatherLabel = '🌨️ Снег (утомление 4 ч, −1 Внимание)';
+            badgeStyle = 'background:rgba(52, 152, 219, 0.2); border:1px solid #3498db; color:#74b9ff;';
+        } else if (cal.precip) {
+            bgWeatherLabel = '🌧️ Небольшой дождь (утомление 4 ч, −1 Внимание)';
+            badgeStyle = 'background:rgba(52, 152, 219, 0.2); border:1px solid #3498db; color:#74b9ff;';
+        } else if (cal.cold) {
+            bgWeatherLabel = '🥶 Холодный день (утомление 4 ч)';
+            badgeStyle = 'background:rgba(116, 185, 255, 0.18); border:1px solid #74b9ff; color:#74b9ff;';
+        }
 
         const hazardBadgeHtml = cal.hazard
             ? `<button type="button" class="w-btn-active-hazard" title="Открыть карточку правил погодного явления"
-                   style="background:rgba(231, 76, 60, 0.22); border:1px solid #e74c3c; color:#ff7675; padding:3px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:inherit; font-size:13px;">
+                   style="background:rgba(231, 76, 60, 0.25); border:1.5px solid #e74c3c; color:#ff7675; padding:3px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:inherit; font-size:13px;">
                    ⚡ ${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText}) ℹ️
                </button>`
             : '';
@@ -140,7 +150,10 @@ const WeatherManager = {
                     <button type="button" class="btn cc w-btn-next-month" style="padding:3px 8px; font-size:12px;">+1 Месяц</button>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <span style="color:#ebd291;">Погода: <b style="color:#ffd875;">${bgWeatherLabel}</b></span>
+                    <button type="button" class="w-btn-weather-summary" title="Открыть сводку итогов погоды дня"
+                            style="${badgeStyle} padding:3px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:inherit; font-size:13px;">
+                        ${bgWeatherLabel} ℹ️
+                    </button>
                     ${hazardBadgeHtml}
                     <button type="button" class="btn cc w-btn-open-roll" style="padding:3px 10px; font-size:12px;">⛅ Подготовка погоды</button>
                 </div>
@@ -153,8 +166,10 @@ const WeatherManager = {
         rootEl.querySelectorAll('.w-btn-next-day').forEach(b => b.onclick = () => this.advanceCalendar(1, 0));
         rootEl.querySelectorAll('.w-btn-next-month').forEach(b => b.onclick = () => this.advanceCalendar(0, 1));
         rootEl.querySelectorAll('.w-btn-open-roll').forEach(b => b.onclick = () => this.openWeatherRollModal());
+        rootEl.querySelectorAll('.w-btn-weather-summary').forEach(b => b.onclick = () => this.showWeatherAppliedModal());
         rootEl.querySelectorAll('.w-btn-active-hazard').forEach(b => b.onclick = () => this.openActiveHazardDetailsModal());
     },
+
 
 
     renderTabUi() {
