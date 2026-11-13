@@ -616,8 +616,22 @@ const InitiativeManager = {
         const mainListUnits = isBg3 ? activeUnits : this.state.combatants;
         mainListUnits.forEach((unit, idx) => listContainer.appendChild(createCardElement(unit, idx)));
 
+
         const quoteShield = document.createElement('div');
         quoteShield.className = 'init-focus-quote-shield';
+
+        if (activeUnit) {
+            if (activeUnit.status === 'dying') {
+                quoteShield.classList.add('quote-state-dying');
+            } else if (activeUnit.status === 'prone') {
+                quoteShield.classList.add('quote-state-prone');
+            } else if (activeUnit.isNat20) {
+                quoteShield.classList.add('quote-state-nat20');
+            } else if (activeUnit.isNat1) {
+                quoteShield.classList.add('quote-state-nat1');
+            }
+        }
+
         quoteShield.innerHTML = `<div class="init-focus-phrase-text">${currentQuoteHTML}</div>`;
         listContainer.parentNode.appendChild(quoteShield);
 

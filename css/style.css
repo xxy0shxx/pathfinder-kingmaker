@@ -5750,3 +5750,45 @@ canvas[style*="position: fixed"] {
 #campingTabletContainer .camp-invisible-table td.camp-act-cell {
     padding-right: 178px !important;
 }
+
+/* Базовый плавный переход для рамки цитаты */
+.init-focus-quote-shield {
+    transition: all 0.35s ease;
+}
+
+/* 🌟 Натуральная 20 — яркое золотое сияние */
+.init-focus-quote-shield.quote-state-nat20 {
+    border-color: #ffd700 !important;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.16), rgba(35, 28, 10, 0.92)) !important;
+    box-shadow: 0 0 22px rgba(255, 215, 0, 0.45), inset 0 0 12px rgba(255, 215, 0, 0.25) !important;
+}
+
+/* 💀 При смерти (dying) — тревожная красная пульсация */
+.init-focus-quote-shield.quote-state-dying {
+    border-color: #ff3838 !important;
+    background: linear-gradient(135deg, rgba(180, 20, 20, 0.25), rgba(25, 8, 8, 0.94)) !important;
+    animation: initQuoteDyingPulse 1.4s infinite ease-in-out;
+}
+
+@keyframes initQuoteDyingPulse {
+    0%, 100% {
+        box-shadow: 0 0 12px rgba(255, 56, 56, 0.35), inset 0 0 8px rgba(255, 56, 56, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 28px rgba(255, 56, 56, 0.85), inset 0 0 18px rgba(255, 56, 56, 0.45);
+    }
+}
+
+/* 💫 Распластан (prone) — янтарно-оранжевый акцент */
+.init-focus-quote-shield.quote-state-prone {
+    border-color: #ff9f1a !important;
+    background: linear-gradient(135deg, rgba(255, 159, 26, 0.14), rgba(28, 20, 10, 0.92)) !important;
+    box-shadow: 0 0 16px rgba(255, 159, 26, 0.3) !important;
+}
+
+/* 🤡 Натуральная 1 — приглушенный холодно-серый тон */
+.init-focus-quote-shield.quote-state-nat1 {
+    border-color: #747d8c !important;
+    background: linear-gradient(135deg, rgba(116, 125, 140, 0.14), rgba(16, 18, 22, 0.94)) !important;
+    box-shadow: 0 0 14px rgba(116, 125, 140, 0.25) !important;
+}
