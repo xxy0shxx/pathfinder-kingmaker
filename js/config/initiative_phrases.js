@@ -6,6 +6,13 @@ export const InitiativePhrases = {
         const activeName = activeUnit ? activeUnit.name : 'Неизвестно';
         const faction = activeUnit ? activeUnit.faction : 'neutral';
 
+        if (activeUnit?.isNat20) {
+            return this._nat20Phrases(activeName);
+        }
+        if (activeUnit?.isNat1) {
+            return this._nat1Phrases(activeName);
+        }
+
         if (faction === 'friend') {
             return [...this._friendBase(activeName), ...this._friendExtra(activeName)];
         }
@@ -13,6 +20,40 @@ export const InitiativePhrases = {
             return [...this._enemyBase(activeName), ...this._enemyExtra(activeName)];
         }
         return this._neutralExtra(activeName);
+    },
+
+    _nat20Phrases(activeName) {
+        return [
+            `НАТУРАЛЬНАЯ ДВАДЦАТКА! Боги рандома целуют в лоб, пока на арену вырывается <span class="gold-unit-focus-name">🌟 ${activeName} 🌟</span>!`,
+            `КРИТИЧЕСКИЙ УСПЕХ НА ИНИЦИАТИВУ! Вся вселенная замерла, ведь первым ходит <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`,
+            `«Кто-нибудь, проверьте этот d20 на магниты!» — кричит зал, пока торжествует <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+            `Молниеносная реакция полубога! Еще никто не моргнул, а уже атакует <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span>!`,
+            `Природная 20! Даже Мастер подземелий уважительно снимает шляпу, когда ходит <span class="gold-unit-focus-name">🎩 ${activeName} 🎩</span>!`,
+            `«Я знал, что благословение кубов сработает!» — сияет от счастья <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `Идеальный бросок! Враги еще не успели достать оружие, а в бой уже вступает <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+            `Чистая двадцатка на грани! Судьба сегодня явно на стороне, которой управляет <span class="gold-unit-focus-name">🍀 ${activeName} 🍀</span>!`,
+            `Двадцать на кубе! Время остановилось, чтобы первым походил неподражаемый <span class="gold-unit-focus-name">⏳ ${activeName} ⏳</span>!`,
+            `«Я просто подул на кубик перед броском!» — хвастается невероятно везучий <span class="gold-unit-focus-name">🌬️ ${activeName} 🌬️</span>!`,
+            `Крит на инициативу! Этот парень явно продал душу за идеальные броски, встречайте — <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+            `Натуральная 20! Даже дракон в соседней пещере зааплодировал, когда вступил в бой <span class="gold-unit-focus-name">🐉 ${activeName} 🐉</span>!`
+        ];
+    },
+
+    _nat1Phrases(activeName) {
+        return [
+            `КРИТИЧЕСКИЙ ПРОВАЛ НА ИНИЦИАТИВУ! Запутался в собственных шнурках и ходит последним <span class="gold-unit-focus-name">🤡 ${activeName} 🤡</span>!`,
+            `ЕДИНИЧКА НА d20! Бой уже почти закончился, когда наконец проснулся <span class="gold-unit-focus-name">💤 ${activeName} 💤</span>!`,
+            `«Погодите, а мы уже деремся?!» — роняет оружие и паникует <span class="gold-unit-focus-name">🤦 ${activeName} 🤦</span>!`,
+            `Природная 1! Этот кубик немедленно отправляется в микроволновку, а в бой плетется <span class="gold-unit-focus-name">🐌 ${activeName} 🐌</span>!`,
+            `Реакция ленивца под сонным зельем! Спустя вечность в драку вступает <span class="gold-unit-focus-name">🐢 ${activeName} 🐢</span>!`,
+            `«Я просто засмотрелся на красивую люстру в подземелье!» — оправдывается <span class="gold-unit-focus-name">🕯️ ${activeName} 🕯️</span>!`,
+            `Единица! Даже табуретка в таверне среагировала быстрее, чем наш <span class="gold-unit-focus-name">🪑 ${activeName} 🪑</span>!`,
+            `Классическая натуральная единица! С грацией мешка картошки вступает в бой <span class="gold-unit-focus-name">🥔 ${activeName} 🥔</span>!`,
+            `«А что мы вообще здесь делаем?» — протирает заспанные глаза неудачливый <span class="gold-unit-focus-name">🥱 ${activeName} 🥱</span>!`,
+            `Единица на кубе! Уронил щит себе на ногу и только сейчас начинает ход <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `Крит-провал! Пока все дрались, завязывал плащ и искал стрелы рассеянный <span class="gold-unit-focus-name">🏹 ${activeName} 🏹</span>!`,
+            `«Кажется, я забыл вытащить меч из ножен...» — краснеет от стыда <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`
+        ];
     },
 
     _friendBase(activeName) {
@@ -55,41 +96,61 @@ export const InitiativePhrases = {
         ];
     },
 
-    _friendExtra(activeName) {
-        return [
-            `Сквозь бурю клинков и стрел пробивается доблестный союзник <span class="gold-unit-focus-name">🟢 ${activeName} 🟢</span>!`,
-            `Каждый удар этого воина приближает долгожданный триумф! Силен и опасен <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
-            `Небесный свет озаряет путь нашей команды! Благородный защитник <span class="gold-unit-focus-name">☀️ ${activeName} ☀️</span> начинает маневр!`,
-            `Ярость праведного гнева сокрушит любые преграды! Сильный атлет <span class="gold-unit-focus-name">💪 ${activeName} 💪</span> рвется вперед!`,
-            `Ни капли сомнения, только чистая воля к победе! Храбрый следопыт <span class="gold-unit-focus-name">🏹 ${activeName} 🏹</span> наготове!`,
-            `Искры сыплются от тяжелых шагов по каменным плитам! Наш танк <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span> держит строй!`,
-            `Старые клятвы верности зовут к великим свершениям! Благородный паладин <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span> начинает ход!`,
-            `Смертоносная сталь поет в руках искусного мастера! Фехтовальщик <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span> выбирает позицию!`,
-            `Энергия стихий покорна этому призыву! Величественный маг <span class="gold-unit-focus-name">✨ ${activeName} ✨</span> готов сотворить чудо!`,
-            `Тактическое преимущество полностью на нашей стороне, пока в бою <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
-            `Гром аплодисментов и крики боевой ярости! Отважное сердце <span class="gold-unit-focus-name">❤️ ${activeName} ❤️</span> бьется в такт войне!`,
-            `Ни шагу назад перед превосходящими силами врага! Бесстрашный боец <span class="gold-unit-focus-name">🔱 ${activeName} 🔱</span> наступает!`,
-            `Легенды о сегодняшнем дне будут жить в веках! Гордый авантюрист <span class="gold-unit-focus-name">👑 ${activeName} 👑</span> начинает штурм!`,
-            `Каждый маневр просчитан до мельчайших деталей! Наш главный стратег <span class="gold-unit-focus-name">📊 ${activeName} 📊</span> ходит!`,
-            `Сквозь пламя битвы к бессмертной славе! Отважный соратник <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span> рвется в бой!`,
-            `Знак геральдической лилии сияет на доспехах! На острие атаки оказывается <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span>!`,
-            `Священное оружие готово обрушить кару на силы зла! Сильный крушитель <span class="gold-unit-focus-name">🔨 ${activeName} 🔨</span> наготове!`,
-            `Никакой паники, строй остается монолитным и крепким! Наш защитник <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span> начинает ход!`,
-            `Ветры перемен несут победу нашей доблестной партии! Храбрый боец <span class="gold-unit-focus-name">🌪️ ${activeName} 🌪️</span> наступает!`,
-            `Чистый разум ведет клинок сквозь любую защиту! Бесстрашный витязь <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span> ходит!`,
-            `Древняя магия крови пробуждается в этот судьбоносный миг! Колдун <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span> начинает ход!`,
-            `«Так, у кого есть свободные ячейки заклинаний третьего уровня?» — паникует <span class="gold-unit-focus-name">🧙 ${activeName} 🧙</span>!`,
-            `Бросок кубика на спас-бросок провален, но мы делаем вид, что так и задумывалось! Ходит <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
-            `«Если мы выживем, я скуплю всю выпивку в этой локации!» — мечтает <span class="gold-unit-focus-name">🍻 ${activeName} 🍺</span>!`,
-            `Молитва великому двадцатиграннику d20 сработала, пришло время тратить очки действия! Ходит <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span>!`,
-            `«Мой персонаж просто стоит в глухой обороне и молится!» — заявляет испуганный <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
-            `Тактика лобовой атаки провалилась, переходим к плану Б — паническому бегу в исполнении <span class="gold-unit-focus-name">🏃 ${activeName} 🏃</span>!`,
-            `«Я забыл прибавить свой модификатор атаки к этому броску!» — внезапно вспоминает <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
-            `Эффект неожиданности утерян, зато у нас есть тяжелый двуручный топор и отчаянный <span class="gold-unit-focus-name">🪓 ${activeName} 🪓</span>!`,
-            `«Кто-нибудь, разбудите нашего мага, его очередь наступила!» — кричит команда ушам <span class="gold-unit-focus-name">💤 ${activeName} 💤</span>!`,
-            `Лист персонажа залит чаем, но боевой задор dnd-партии не сломить! Ход начинает <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`
-        ];
-    },
+        _friendExtra(activeName) {
+            return [
+                `Сквозь бурю клинков и стрел пробивается доблестный союзник <span class="gold-unit-focus-name">🟢 ${activeName} 🟢</span>!`,
+                `Каждый удар этого воина приближает долгожданный триумф! Силен и опасен <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+                `Небесный свет озаряет путь нашей команды! Благородный защитник <span class="gold-unit-focus-name">☀️ ${activeName} ☀️</span> начинает маневр!`,
+                `Ярость праведного гнева сокрушит любые преграды! Сильный атлет <span class="gold-unit-focus-name">💪 ${activeName} 💪</span> рвется вперед!`,
+                `Ни капли сомнения, только чистая воля к победе! Храбрый следопыт <span class="gold-unit-focus-name">🏹 ${activeName} 🏹</span> наготове!`,
+                `Искры сыплются от тяжелых шагов по каменным плитам! Наш танк <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span> держит строй!`,
+                `Старые клятвы верности зовут к великим свершениям! Благородный паладин <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span> начинает ход!`,
+                `Смертоносная сталь поет в руках искусного мастера! Фехтовальщик <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span> выбирает позицию!`,
+                `Энергия стихий покорна этому призыву! Величественный маг <span class="gold-unit-focus-name">✨ ${activeName} ✨</span> готов сотворить чудо!`,
+                `Тактическое преимущество полностью на нашей стороне, пока в бою <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
+                `Гром аплодисментов и крики боевой ярости! Отважное сердце <span class="gold-unit-focus-name">❤️ ${activeName} ❤️</span> бьется в такт войне!`,
+                `Ни шагу назад перед превосходящими силами врага! Бесстрашный боец <span class="gold-unit-focus-name">🔱 ${activeName} 🔱</span> наступает!`,
+                `Легенды о сегодняшнем дне будут жить в веках! Гордый авантюрист <span class="gold-unit-focus-name">👑 ${activeName} 👑</span> начинает штурм!`,
+                `Каждый маневр просчитан до мельчайших деталей! Наш главный стратег <span class="gold-unit-focus-name">📊 ${activeName} 📊</span> ходит!`,
+                `Сквозь пламя битвы к бессмертной славе! Отважный соратник <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span> рвется в бой!`,
+                `Знак геральдической лилии сияет на доспехах! На острие атаки оказывается <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span>!`,
+                `Священное оружие готово обрушить кару на силы зла! Сильный крушитель <span class="gold-unit-focus-name">🔨 ${activeName} 🔨</span> наготове!`,
+                `Никакой паники, строй остается монолитным и крепким! Наш защитник <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span> начинает ход!`,
+                `Ветры перемен несут победу нашей доблестной партии! Храбрый боец <span class="gold-unit-focus-name">🌪️ ${activeName} 🌪️</span> наступает!`,
+                `Чистый разум ведет клинок сквозь любую защиту! Бесстрашный витязь <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span> ходит!`,
+                `Древняя магия крови пробуждается в этот судьбоносный миг! Колдун <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span> начинает ход!`,
+                `«Так, у кого есть свободные ячейки заклинаний третьего уровня?» — паникует <span class="gold-unit-focus-name">🧙 ${activeName} 🧙</span>!`,
+                `Бросок кубика на спас-бросок провален, но мы делаем вид, что так и задумывалось! Ходит <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+                `«Если мы выживем, я скуплю всю выпивку в этой локации!» — мечтает <span class="gold-unit-focus-name">🍻 ${activeName} 🍺</span>!`,
+                `Молитва великому двадцатиграннику d20 сработала, пришло время тратить очки действия! Ходит <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span>!`,
+                `«Мой персонаж просто стоит в глухой обороне и молится!» — заявляет испуганный <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+                `Тактика лобовой атаки провалилась, переходим к плану Б — паническому бегу в исполнении <span class="gold-unit-focus-name">🏃 ${activeName} 🏃</span>!`,
+                `«Я забыл прибавить свой модификатор атаки к этому броску!» — внезапно вспоминает <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
+                `Эффект неожиданности утерян, зато у нас есть тяжелый двуручный топор и отчаянный <span class="gold-unit-focus-name">🪓 ${activeName} 🪓</span>!`,
+                `«Кто-нибудь, разбудите нашего мага, его очередь наступила!» — кричит команда ушам <span class="gold-unit-focus-name">💤 ${activeName} 💤</span>!`,
+                `Лист персонажа залит чаем, но боевой задор dnd-партии не сломить! Ход начинает <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+                `«У меня нет плана, но есть вдохновение барда!» — радостно кричит <span class="gold-unit-focus-name">🎵 ${activeName} 🎵</span>!`,
+                `Огненный шар в закрытой комнате — всегда отличная идея, уверен наш <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+                `«Я просто хотел погладить этого милого мимика!» — оправдывается покусанный <span class="gold-unit-focus-name">📦 ${activeName} 📦</span>!`,
+                `Свободное действие тратится на пафосную речь! Слово берет великий <span class="gold-unit-focus-name">🎭 ${activeName} 🎭</span>!`,
+                `«Мастер, а можно я брошу на Акробатику, чтобы красиво спрыгнуть со стола?» — спрашивает <span class="gold-unit-focus-name">🤸 ${activeName} 🤸</span>!`,
+                `Запас зелий иссяк, осталась только вера в природную двадцатку! В бой идет <span class="gold-unit-focus-name">🍀 ${activeName} 🍀</span>!`,
+                `«Я не ворую лут во время боя, я просто проверяю вес сундука!» — заявляет честный <span class="gold-unit-focus-name">💰 ${activeName} 💰</span>!`,
+                `Когда заканчиваются ячейки заклинаний, в ход идет обычный посох! Наступает суровый <span class="gold-unit-focus-name">🪄 ${activeName} 🪄</span>!`,
+                `«Надеюсь, у этого тролля нет регенерации от огня... погодите-ка!» — замирает <span class="gold-unit-focus-name">🕯️ ${activeName} 🕯️</span>!`,
+                `Бонусное действие уже потрачено впустую, но не унывает наш находчивый <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+                `«Это не отступление, это тактическая перегруппировка к выходу!» — поясняет быстрый <span class="gold-unit-focus-name">💨 ${activeName} 💨</span>!`,
+                `Вся партия замерла в ожидании, пока <span class="gold-unit-focus-name">📖 ${activeName} 📖</span> полчаса читает описание своего заклинания!`,
+                `«Мой фамильяр сейчас сделает всю грязную работу!» — гордо заявляет ленивый <span class="gold-unit-focus-name">🦉 ${activeName} 🦉</span>!`,
+                `Харизма на максимуме, интеллект в минусе! Врага пытается заболтать наш обаятельный <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+                `«Я использую Действие "Рывок", чтобы спрятаться за спину нашего танка!» — решает мудрый <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+                `Кубики отправлены в «тюрьму для плохих кубов», а новый d20 берет в руки <span class="gold-unit-focus-name">⛓️ ${activeName} ⛓️</span>!`,
+                `«У меня темное зрение на 60 футов, я все равно ничего не вижу!» — щурится в темноте <span class="gold-unit-focus-name">👁️ ${activeName} 👁️</span>!`,
+                `Короткий отдых нам только снится, поэтому из последних сил сражается наш <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+                `«А на это срабатывает провоцированная атака?» — с надеждой уточняет неосторожный <span class="gold-unit-focus-name">👣 ${activeName} 👣</span>!`,
+                `Клятва верности требует идти до конца, даже если в хитах остался единичка! Вперед шагает <span class="gold-unit-focus-name">🩸 ${activeName} 🩸</span>!`
+            ];
+        },
 
     _enemyBase(activeName) {
         return [
@@ -127,9 +188,31 @@ export const InitiativePhrases = {
             `Этот парень пришел не за диалогом, он пришел за полным вайпом нашей команды! Жестокий <span class="gold-unit-focus-name">💥 ${activeName} 💥</span> тратит ход!`,
             `Лекарь партии уже приготовил свитки воскрешения на случай худшего сценария! Смертоносный враг <span class="gold-unit-focus-name">🔱 ${activeName} 🔱</span> начинает комбо!`,
             `«Его показатель КД слишком высок, мы не пробьем!» — кричит воин в панике. Наглый противник <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span> ухмыляется!`,
-            `Бросок на инициативу у этого чудовища идеален, готовьтесь страдать! Коварный монстр <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span> ходит первым!`
+            `Бросок на инициативу у этого чудовища идеален, готовьтесь страдать! Коварный монстр <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span> ходит первым!`,
+            // --- 20 новых шуточных фраз (Именительный падеж) ---
+            `«У этого гада есть мультиатака, а у нас даже зелий не осталось!» — паникует отряд, пока наступает <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+            `Показатель опасности этого чудовища явно выше нашей средней зарплаты! Свой ход начинает <span class="gold-unit-focus-name">💀 ${activeName} 💀</span>!`,
+            `«Мастер, а у него точно не было второй фазы босса?!» — шепчет бард, глядя, как рычит <span class="gold-unit-focus-name">👹 ${activeName} 👹</span>!`,
+            `Никакого милосердия, только криты и спас-броски Телосложения! В атаку идет беспощадный <span class="gold-unit-focus-name">🩸 ${activeName} 🩸</span>!`,
+            `«Я пытаюсь притвориться мертвым, может, он пройдет мимо?» — надеется плут, пока рыщет <span class="gold-unit-focus-name">🐺 ${activeName} 🐺</span>!`,
+            `Легендарное сопротивление сработало в третий раз подряд! Нагло ухмыляется неуязвимый <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `«Кто вообще додумался крикнуть "Эй, урод!" в темной пещере?!» — кричит маг, когда выбегает <span class="gold-unit-focus-name">🔨 ${activeName} 🔨</span>!`,
+            `Сейчас кто-то гарантированно улетит в ноль хитов с одного удара! Размахивается громадный <span class="gold-unit-focus-name">⛰️ ${activeName} ⛰️</span>!`,
+            `«Он что, только что съел нашего фамильяра на бонусное действие?!» — ужасается колдун, пока чавкает <span class="gold-unit-focus-name">🐾 ${activeName} 🐾</span>!`,
+            `Заклинание «Огненный шар» лишь приятно согрело этого монстра! Вперед шагает огнеупорный <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+            `«У меня плохое предчувствие насчет этого кубика d12...» — бормочет воин, когда замахивается <span class="gold-unit-focus-name">🪓 ${activeName} 🪓</span>!`,
+            `Похоже, дипломатия провалилась еще на этапе фразы «Мы пришли с миром»! Нападает злой <span class="gold-unit-focus-name">🚩 ${activeName} 🚩</span>!`,
+            `«Если он сейчас наложит на нас Очарование, я буду бить своих!» — предупреждает варвар, пока колдует <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span>!`,
+            `Этот противник явно не читал кодекс рыцарской чести и бьет лежачих! Коварный <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span> атакует!`,
+            `«Мастер, мы же просто зашли спросить дорогу до таверны!» — оправдываются герои, пока наступает <span class="gold-unit-focus-name">👁️ ${activeName} 👁️</span>!`,
+            `Аура ужаса заставляет коленки трястись даже у нашего паладина! На арене властвует жуткий <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`,
+            `«У него иммунитет к немагическому оружию, а у меня только ржавый кинжал!» — плачет разбойник, пока идет <span class="gold-unit-focus-name">⛓️ ${activeName} ⛓️</span>!`,
+            `Бросок атаки у этого чудовища явно превысит тридцатку! Прицеливается смертоносный <span class="gold-unit-focus-name">🏹 ${activeName} 🏹</span>!`,
+            `«Спорим, он сейчас испортит концентрацию на моем лучшем заклинании?!» — кричит жрец, когда бьет <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span>!`,
+            `Свиток воскрешения стоит пятьсот золотых, а похороны еще дороже! Свой ход начинает безжалостный <span class="gold-unit-focus-name">💥 ${activeName} 💥</span>!`
         ];
     },
+
 
     _enemyExtra(activeName) {
         return [
@@ -163,7 +246,27 @@ export const InitiativePhrases = {
             `«У него иммунитет вообще ко всем моим типам стихийного урона!» — плачет чародей перед <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
             `Боевой d20 этого монстра выдает двадцатку за двадцаткой, ломая наши щиты! Жестокий везунчик <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span> ходит!`,
             `«Кто-нибудь, свяжите этого гада дипломатией, иначе нам конец!» — паникует лекарь от <span class="gold-unit-focus-name">👹 ${activeName} 👹</span>!`,
-            `Инициатива врага безупречна, готовьтесь принимать урон на первом же раунде! Опасный монстр <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span> атакует!`
+            `Инициатива врага безупречна, готовьтесь принимать урон на первом же раунде! Опасный монстр <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span> атакует!`,
+            `«Мастер зловеще улыбается и берет горсть шестигранников!» — пугается партия, пока ходит <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+            `У этого парня есть легендарные действия, и одно из них — унижать героев! Наступает <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`,
+            `«А мы точно не забрели в локацию для 15-го уровня?!» — шепчет воин, глядя, как замахивается <span class="gold-unit-focus-name">💀 ${activeName} 💀</span>!`,
+            `Сопротивление магии, иммунитет к яду и полное отсутствие совести! Свой ход начинает <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `«Не переживайте, это всего лишь случайная встреча по дороге в город!» — ухмыляется жестокий <span class="gold-unit-focus-name">👹 ${activeName} 👹</span>!`,
+            `Сейчас кто-то получит состояние «Опутан», «Ослеплен» и «Унижен»! Колдует коварный <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span>!`,
+            `«Он только что проигнорировал мой Контрспелл?!» — кричит волшебник, пока торжествует <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `Похоже, бард слишком неудачно пошутил в таверне, и теперь мстить пришел сам <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
+            `«Кидайте спас-бросок Мудрости со сложностью 22!» — требует беспощадный <span class="gold-unit-focus-name">👁️ ${activeName} 👁️</span>!`,
+            `У него перезарядилось дыхание дракона на шестерке! Вся партия в ужасе, ведь ходит <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+            `«Я просто хотел поторговаться за скидку!» — рыдает плут, которого вот-вот раздавит <span class="gold-unit-focus-name">⛰️ ${activeName} ⛰️</span>!`,
+            `Никакого ролеплея, только чистый, концентрированный урон по площади! В бой врывается <span class="gold-unit-focus-name">💥 ${activeName} 💥</span>!`,
+            `«Мастер, а у него точно не закончились ячейки заклинаний?» — с надеждой спрашивает партия, пока кастует <span class="gold-unit-focus-name">🧙 ${activeName} 🧙</span>!`,
+            `Этот монстр явно не читал правила про честный баланс энкаунтеров! Свирепый <span class="gold-unit-focus-name">🔨 ${activeName} 🔨</span> бьет!`,
+            `«Спорим, он сейчас пойдет бить именно нашего хилого мага?!» — угадывает тактику врага <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
+            `Угроза полного вайпа (TPK) возрастает до ста процентов! На арене свирепствует <span class="gold-unit-focus-name">🩸 ${activeName} 🩸</span>!`,
+            `«Он даже не поцарапался от моей высшей кары!» — в шоке замирает паладин, пока смеется <span class="gold-unit-focus-name">⛓️ ${activeName} ⛓️</span>!`,
+            `Ловушки в этом подземелье были лишь разминкой! Настоящую боль приносит <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
+            `«Кто вообще додумался разделить партию?!» — кричат герои, когда из тени выходит <span class="gold-unit-focus-name">🐾 ${activeName} 🐾</span>!`,
+            `Готовьте чистые листы персонажей! Свою смертоносную серию атак начинает <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`
         ];
     },
 
@@ -200,7 +303,28 @@ export const InitiativePhrases = {
             `«Эй, не бейте меня, я важный квестовый NPC, я сюжетно бессмертный!» — истошно орет испуганный <span class="gold-unit-focus-name">⚜️ ${activeName} ⚜️</span>!`,
             `Этот участник потасовки вообще забыл, зачем пришел, и просто наслаждается хаосом! Рассеянный <span class="gold-unit-focus-name">💥 ${activeName} 💥</span> тратит ход!`,
             `Лекарь партии пытается наложить на него дипломатию, пока воин заносит топор! Непонятливый <span class="gold-unit-focus-name">🔮 ${activeName} 🔮</span> моргает!`,
-            `Бросок d20 на дружелюбие этого существа показал средний результат, ждем подвоха! Нерешительный <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span> думает!`
+            `Бросок d20 на дружелюбие этого существа показал средний результат, ждем подвоха! Нерешительный <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span> думает!`,
+            `«Я не участвую в драке, я тут мебель оцениваю на случай погрома!» — заявляет <span class="gold-unit-focus-name">🪑 ${activeName} 🪑</span>!`,
+            `Мастер забыл придумать этому NPC мотивацию, поэтому в ступоре стоит <span class="gold-unit-focus-name">❓ ${activeName} ❓</span>!`,
+            `«Погодите, а кто из вас нанимал меня в таверне?!» — растерянно оглядывается <span class="gold-unit-focus-name">🍺 ${activeName} 🍺</span>!`,
+            `Мировоззрение «Истинно нейтральный» во всей красе! За битвой с попкорном наблюдает <span class="gold-unit-focus-name">🍿 ${activeName} 🍿</span>!`,
+            `«Если вы разнесете мою телегу с капустой, я стану финальным боссом!» — грозит <span class="gold-unit-focus-name">🥬 ${activeName} 🥬</span>!`,
+            `Плут уже прикидывает, сколько золотых в карманах, пока мирно прогуливается <span class="gold-unit-focus-name">🪙 ${activeName} 🪙</span>!`,
+            `«Не обращайте на меня внимания, я просто случайный прохожий без статблока!» — кричит <span class="gold-unit-focus-name">🏃 ${activeName} 🏃</span>!`,
+            `Стоит задеть его огненным шаром — и он тут же сменит фракцию на враждебную! Осторожничает <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+            `«У меня лапки, я вообще не умею кидать спас-броски!» — жалобно пищит <span class="gold-unit-focus-name">🐾 ${activeName} 🐾</span>!`,
+            `Пока герои и злодеи ломают копья, свои дела спокойно решает хитрый <span class="gold-unit-focus-name">🦊 ${activeName} 🦊</span>!`,
+            `«А вы точно приключенцы, а не налоговая инспекция?» — подозрительно щурится <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
+            `Третья сторона конфликта — это всегда головная боль для тактиков! На сцену выходит <span class="gold-unit-focus-name">🎭 ${activeName} 🎭</span>!`,
+            `«Я нейтрален, но за десять золотых могу кинуть камень вон в того гоблина!» — торгуется <span class="gold-unit-focus-name">💰 ${activeName} 💰</span>!`,
+            `Никто не знает, зачем он в трекере инициативы, даже сам <span class="gold-unit-focus-name">🤷 ${activeName} 🤷</span>!`,
+            `«Моя хата с краю, я в ваши разборки с культистами не лезу!» — отступает в тень <span class="gold-unit-focus-name">🕯️ ${activeName} 🕯️</span>!`,
+            `Дикий выброс магии случайно призвал его прямо в центр заварушки! Недоумевает <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `«Если я притворюсь статуей, меня ведь не заденут по площади?» — надеется <span class="gold-unit-focus-name">🗿 ${activeName} 🗿</span>!`,
+            `Бард уже пытается его соблазнить, но гордо держит дистанцию неприступный <span class="gold-unit-focus-name">🌹 ${activeName} 🌹</span>!`,
+            `«Я пришел сюда жевать жвачку и не участвовать в бою, и жвачка у меня еще есть!» — говорит <span class="gold-unit-focus-name">🌿 ${activeName} 🌿</span>!`,
+            `Свидетель будущих подвигов (или позора) партии! Записывает происходящее в блокнот <span class="gold-unit-focus-name">🖋️ ${activeName} 🖋️</span>!`
         ];
     }
+
 };
