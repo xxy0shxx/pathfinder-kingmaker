@@ -48,6 +48,9 @@ const KingdomSheetRenderer = {
             : '';
 
         const armiesCount = Array.isArray(state.armies) ? state.armies.length : 0;
+        const diploCount = Array.isArray(state.diplomacy)
+            ? state.diplomacy.filter(d => d.status === 'established' || d.status === 'allied').length
+            : 0;
 
         const tabButtons = `
             <div class="k-subtabs-bar" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; border-bottom:2px solid #543e0d; padding-bottom:10px;">
@@ -55,6 +58,7 @@ const KingdomSheetRenderer = {
                 <button type="button" class="btn ${activeSubTab === 'events' ? 'ok' : ''}" data-k-tab="events">⚡ События</button>
                 <button type="button" class="btn ${activeSubTab === 'urban' ? 'ok' : ''}" data-k-tab="urban">🏰 Постройки и Город</button>
                 <button type="button" class="btn ${activeSubTab === 'armies' ? 'ok' : ''}" data-k-tab="armies">⚔ Армии (${armiesCount})</button>
+                <button type="button" class="btn ${activeSubTab === 'diplomacy' ? 'ok' : ''}" data-k-tab="diplomacy">🕊️ Дипломатия (${diploCount})</button>
                 <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
                     ${levelUpBtn}
                     <button type="button" class="btn cc" id="kBtnTradeComm" title="Купить или продать ресурсы за RP">⚖ Обмен</button>
@@ -76,6 +80,7 @@ const KingdomSheetRenderer = {
         else if (activeSubTab === 'events') bodyHtml = this.renderEventsTab(state);
         else if (activeSubTab === 'urban') bodyHtml = this.renderUrbanTab(state);
         else if (activeSubTab === 'armies') bodyHtml = this.renderArmiesTab(state);
+        else if (activeSubTab === 'diplomacy') bodyHtml = this.renderDiplomacyTab(state);
 
         return `
             <div class="kingdom-sheet-wrapper" style="padding:14px 20px; color:#ebd291; font-family:'Tinos', serif;">
@@ -86,6 +91,88 @@ const KingdomSheetRenderer = {
         `;
     },
 
+    renderDiplomacyTab(s) {
+        const factions = Array.isArray(s.diplomacy) ? s.diplomacy : [];
+
+        const statusMeta = {
+            none:        { label: '🌫️ Нет отношений',      color: '#95a5a6' },
+            established: { label: '🤝 Дипотношения',        color: '#2ecc71' },
+            allied:      { label: '👑 Союзник / Вассал',    color: '#ffd875' },
+            hostile:     { label: '⚔️ Враждебность / Блок', color: '#ff7675' }
+        };
+
+        const cardsHtml = factions.length === 0
+            ? `<div style="grid-column: 1 / -1; text-align:center; padding:35px; color:#95a5a6; border:1px dashed #543e0d; border-radius:6px;">
+                   🕊️ Список известных держав и фракций пуст. Нажмите «📜 Загрузить фракции Украденных земель» или «+ Добавить фракцию».
+               </div>`
+            : factions.map(f => {
+                const st = statusMeta[f.status || 'none'] || statusMeta.none;
+                const hasTrade = !!f.tradeAgreement;
+                const isReady = f.status === 'established' || f.status === 'allied';
+                const bonusMod = parseInt(f.circumstanceMod, 10) || 0;
+
+                return `
+                    <div class="k-panel k-diplo-card" data-diplo-id="${f.id}" style="position:relative; border-color:${st.color};">
+                        <button type="button" data-del-diplo="${f.id}" title="Удалить фракцию" style="position:absolute; top:8px; right:8px; background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:4px; cursor:pointer; width:24px; height:24px;">×</button>
+
+                        <div style="display:grid; grid-template-columns: 2.2fr 1fr; gap:8px; margin-bottom:8px; padding-right:28px;">
+                            <div>
+                                <label class="k-lbl">🏛️ Государство / Фракция</label>
+                                <input type="text" class="k-inp k-diplo-name" value="${f.name || ''}" placeholder="Название...">
+                            </div>
+                            <div>
+                                <label class="k-lbl">🎯 СЛ Переговоров</label>
+                                <input type="number" class="k-inp k-diplo-dc" value="${f.negotiationDc || 15}" style="text-align:center; font-weight:bold; color:#ffd875;">
+                            </div>
+                        </div>
+
+                        <div style="display:grid; grid-template-columns: 1.4fr 1fr 0.8fr; gap:8px; margin-bottom:8px; align-items:end;">
+                            <div>
+                                <label class="k-lbl">📜 Статус отношений</label>
+                                <select class="k-inp k-diplo-status" style="color:${st.color}; font-weight:bold;">
+                                    <option value="none" ${f.status === 'none' ? 'selected' : ''}>🌫️ Нет отношений</option>
+                                    <option value="established" ${f.status === 'established' ? 'selected' : ''}>🤝 Дипотношения</option>
+                                    <option value="allied" ${f.status === 'allied' ? 'selected' : ''}>👑 Союзник</option>
+                                    <option value="hostile" ${f.status === 'hostile' ? 'selected' : ''}>⚔️ Враждебность</option>
+                                </select>
+                            </div>
+                            <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; background:rgba(0,0,0,0.35); border:1px solid ${hasTrade ? '#2ecc71' : '#543e0d'}; border-radius:4px; cursor:pointer; font-size:12px;">
+                                <input type="checkbox" class="k-diplo-trade" ${hasTrade ? 'checked' : ''}>
+                                <span style="color:${hasTrade ? '#2ecc71' : '#ebd291'}; font-weight:bold;">⚖ Торг. договор</span>
+                            </label>
+                            <div>
+                                <label class="k-lbl" title="Временный бонус/штраф обстоятельства на переговоры">⚖️ Бонус</label>
+                                <input type="number" class="k-inp k-diplo-mod" value="${bonusMod}" style="text-align:center;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:8px;">
+                            <label class="k-lbl">📝 Условия договоров и заметки</label>
+                            <input type="text" class="k-inp k-diplo-notes" value="${f.notes || ''}" placeholder="Детали торгового пути, обязательства, заложники...">
+                        </div>
+
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; border-top:1px dashed rgba(138,100,33,0.35); padding-top:8px;">
+                            <button type="button" class="btn cc" data-diplo-act="envoy" data-diplo-id="${f.id}" style="padding:4px 10px; font-size:12px;" title="Отправить посла (Управление против Negotiation DC)">🕊️ Посол</button>
+                            <button type="button" class="btn cc" data-diplo-act="trade" data-diplo-id="${f.id}" ${isReady ? '' : 'disabled'} style="padding:4px 10px; font-size:12px; opacity:${isReady ? '1' : '0.45'};" title="Заключить торговое соглашение (требуются дипотношения)">⚖ Торговля</button>
+                            <button type="button" class="btn ok" data-diplo-act="aid" data-diplo-id="${f.id}" ${isReady ? '' : 'disabled'} style="padding:4px 10px; font-size:12px; opacity:${isReady ? '1' : '0.45'};" title="Запросить постороннюю помощь (бонус к проверке или кости ресурсов RP)">🎁 Запрос помощи</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        return `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; background:rgba(0,0,0,0.3); padding:8px 12px; border:1px solid #543e0d; border-radius:6px;">
+                <span style="font-size:15px; font-weight:bold; color:#ffd875;">🕊️ ДИПЛОМАТИЯ И ВНЕШНЯЯ ПОЛИТИКА</span>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button type="button" class="btn cc" id="kBtnLoadPresetFactions">📜 Фракции Украденных земель</button>
+                    <button type="button" class="btn ok" id="kBtnAddFaction">+ Добавить фракцию</button>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;">
+                ${cardsHtml}
+            </div>
+        `;
+    },
 
     renderSheetTab(s, { roleNames, skillConfig, getSkillTotal }) {
         const ctrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);

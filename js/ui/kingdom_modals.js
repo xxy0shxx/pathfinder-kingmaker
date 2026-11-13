@@ -600,7 +600,209 @@ const KingdomModals = {
         overlay.querySelector('#kFhAutoRoll').addEventListener('click', () => { rollInp.value = Math.floor(Math.random() * 20) + 1; evaluate(); });
     },
 
+    /**
+     * 10. Дипломатические переговоры с соседними государствами и фракциями (PF2e Kingmaker)
+     */
+    openDiplomacyAction(km, factionId, actionType = 'envoy') {
+        const s = km.state;
+        const faction = (s.diplomacy || []).find(f => f.id === factionId);
+        if (!faction) return;
 
+        const baseCtrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
+        const negDc = parseInt(faction.negotiationDc, 10) || 15;
+        const dieSides = km.getResourceDieSides();
+
+        const actionsMeta = {
+            envoy: {
+                title: '🕊️ Отправить дипломатического посла',
+                dc: negDc,
+                dcNote: `Negotiation DC фракции (${negDc})`,
+                skills: [
+                    { id: 'statecraft', label: '👑 Управление (Statecraft)' },
+                    { id: 'politics',   label: '⚖️ Политика (Politics)' }
+                ]
+            },
+            trade: {
+                title: '⚖ Заключить торговое соглашение',
+                dc: Math.max(negDc, baseCtrlDc),
+                dcNote: `Максимум из Negotiation DC (${negDc}) и Control DC (${baseCtrlDc})`,
+                skills: [
+                    { id: 'trade',   label: '💰 Торговля (Trade)' },
+                    { id: 'boating', label: '⛵ Лодочный транспорт (речной путь)' },
+                    { id: 'magic',   label: '🔮 Магия (при ранге Мастер+)' }
+                ]
+            },
+            aid: {
+                title: '🎁 Запросить постороннюю помощь',
+                dc: negDc,
+                dcNote: `Negotiation DC фракции (${negDc})`,
+                skills: [
+                    { id: 'statecraft', label: '👑 Управление (Statecraft)' },
+                    { id: 'politics',   label: '⚖️ Политика (Politics)' },
+                    { id: 'trade',      label: '💰 Торговля (Trade)' },
+                    { id: 'intrigue',   label: '🗡️ Интрига (Intrigue)' }
+                ]
+            }
+        };
+
+        const cfg = actionsMeta[actionType] || actionsMeta.envoy;
+        const circBonus = parseInt(faction.circumstanceMod, 10) || 0;
+        let lastDegree = null;
+
+        const { overlay } = ModalManager.open({
+            id: 'kDiplomacyActionOverlay',
+            title: `${cfg.title}: ${faction.name || 'Фракция'}`,
+            borderColor: '#ffd875',
+            width: '540px',
+            bodyHtml: `
+                <div style="font-size:13px; color:#a4b0be; margin-bottom:10px;">
+                    Базовая сложность: <b style="color:#ffd875;">${cfg.dcNote}</b>
+                    ${circBonus !== 0 ? ` • Модификатор отношений: <b style="color:${circBonus > 0 ? '#2ecc71' : '#ff7675'};">${circBonus > 0 ? '+' + circBonus : circBonus}</b>` : ''}
+                </div>
+                <div style="display:grid; grid-template-columns: 1.7fr 0.8fr 1fr; gap:10px; margin-bottom:12px;">
+                    <div>
+                        <label class="k-lbl">Навык лидера</label>
+                        <select id="kDiploSkillSel" class="k-inp">
+                            ${cfg.skills.map(sk => {
+                const mod = km.getSkillTotal(sk.id) + circBonus;
+                return `<option value="${sk.id}">${sk.label} (${mod >= 0 ? '+' + mod : mod})</option>`;
+            }).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="k-lbl">СЛ (DC)</label>
+                        <input type="number" id="kDiploDcInp" class="k-inp" value="${cfg.dc}" style="text-align:center; font-weight:bold;">
+                    </div>
+                    <div>
+                        <label class="k-lbl">Бросок d20</label>
+                        <div style="display:flex; gap:4px;">
+                            <input type="number" id="kDiploRollInp" class="k-inp" min="1" max="20" placeholder="1-20" style="text-align:center; font-weight:bold; color:#ffd875;">
+                            <button type="button" class="btn cc" id="kDiploAutoRoll" style="padding:0 8px;">🎲</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="kDiploResultBox" style="background:rgba(0,0,0,0.45); border:1px solid #543e0d; border-radius:6px; padding:12px; font-size:14px; line-height:1.5; color:#ebd291;">
+                    Выполните проверку переговоров (d20) со стола или нажмите 🎲.
+                </div>
+            `,
+            footerButtons: [
+                { label: 'Отмена', variant: 'cc' },
+                {
+                    label: '⚜ Применить итог переговоров',
+                    variant: 'ok',
+                    id: 'kDiploApplyBtn',
+                    disabled: true,
+                    style: 'opacity:0.45;',
+                    onClick: ({ close }) => {
+                        if (lastDegree === null) return;
+                        this._applyDiplomacyOutcome(km, faction, actionType, lastDegree, dieSides);
+                        close();
+                    }
+                }
+            ]
+        });
+
+        const skillSel = overlay.querySelector('#kDiploSkillSel');
+        const dcInp = overlay.querySelector('#kDiploDcInp');
+        const rollInp = overlay.querySelector('#kDiploRollInp');
+        const resBox = overlay.querySelector('#kDiploResultBox');
+        const applyBtn = overlay.querySelector('#kDiploApplyBtn');
+
+        const evaluate = () => {
+            const d20 = parseInt(rollInp.value, 10);
+            const dc = parseInt(dcInp.value, 10) || cfg.dc;
+            if (isNaN(d20) || d20 < 1 || d20 > 20) {
+                lastDegree = null;
+                applyBtn.disabled = true;
+                applyBtn.style.opacity = '0.45';
+                return;
+            }
+
+            const mod = km.getSkillTotal(skillSel.value) + circBonus;
+            const total = d20 + mod;
+            const diff = total - dc;
+            let deg = diff >= 10 ? 3 : (diff >= 0 ? 2 : (diff <= -10 ? 0 : 1));
+            if (d20 === 20) deg = Math.min(3, deg + 1);
+            if (d20 === 1) deg = Math.max(0, deg - 1);
+            lastDegree = deg;
+
+            const outcomeTexts = {
+                envoy: [
+                    `💀 <b>КРИТИЧЕСКИЙ ПРОВАЛ:</b> Посол схвачен или погиб! Статус «Враждебность» (−2 штраф), +1 Беспорядки.`,
+                    `✖ <b>ПРОВАЛ:</b> Отношения не установлены, но посол изучил этикет (+1 бонус к следующей попытке).`,
+                    `✔ <b>УСПЕХ:</b> Дипломатические отношения установлены!${!s.firstDiplomacyXpClaimed ? ' (+60 XP за первые дипотношения!)' : ''}`,
+                    `👑 <b>КРИТИЧЕСКИЙ УСПЕХ:</b> Блестящий приём! Дипотношения установлены + бонус +2 к переговорам с фракцией!`
+                ],
+                trade: [
+                    `💀 <b>КРИТИЧЕСКИЙ ПРОВАЛ:</b> Торговый скандал! +1 Беспорядки и штраф −1 к следующему обмену.`,
+                    `✖ <b>ПРОВАЛ:</b> Договор не заключён (без штрафов).`,
+                    `✔ <b>УСПЕХ:</b> Торговое соглашение с «${faction.name}» заключено!`,
+                    `👑 <b>КРИТИЧЕСКИЙ УСПЕХ:</b> Выгодный контракт! Соглашение заключено + немедленный доход <b>2d${dieSides} RP</b> в казну!`
+                ],
+                aid: [
+                    `💀 <b>КРИТИЧЕСКИЙ ПРОВАЛ:</b> Союзник оскорблён! Сброс бонуса отношений (−2) и +1 Беспорядки.`,
+                    `✖ <b>ПРОВАЛ:</b> Союзник не готов помочь прямо сейчас, но пришлёт <b>+1d4 RP</b> в начале следующего хода.`,
+                    `✔ <b>УСПЕХ:</b> Помощь получена: <b>+1d${dieSides} RP</b> в казну (или +2 к проверке королевства).`,
+                    `👑 <b>КРИТИЧЕСКИЙ УСПЕХ:</b> Щедрая поддержка: <b>+2d${dieSides} RP</b> в казну и бонус +4 к проверке королевства!`
+                ]
+            };
+
+            const colors = ['#e74c3c', '#ff7675', '#2ecc71', '#ffd875'];
+            resBox.style.borderColor = colors[deg];
+            resBox.innerHTML = `<div style="margin-bottom:4px; font-family:monospace;">Итог: <b>${total}</b> (${d20} ${mod >= 0 ? '+' + mod : mod}) против СЛ <b>${dc}</b></div>
+                <div style="color:${colors[deg]};">${outcomeTexts[actionType][deg]}</div>`;
+
+            applyBtn.disabled = false;
+            applyBtn.style.opacity = '1';
+        };
+
+        [skillSel, dcInp, rollInp].forEach(el => el.addEventListener('input', evaluate));
+        overlay.querySelector('#kDiploAutoRoll').addEventListener('click', () => {
+            rollInp.value = Math.floor(Math.random() * 20) + 1;
+            evaluate();
+        });
+    },
+
+    _applyDiplomacyOutcome(km, faction, actionType, deg, dieSides) {
+        const s = km.state;
+        const rollDice = (count, sides) => Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1).reduce((a, b) => a + b, 0);
+
+        if (actionType === 'envoy') {
+            if (deg >= 2) {
+                faction.status = 'established';
+                faction.circumstanceMod = deg === 3 ? 2 : 0;
+                if (!s.firstDiplomacyXpClaimed) {
+                    s.firstDiplomacyXpClaimed = true;
+                    s.xp = (parseInt(s.xp, 10) || 0) + 60;
+                }
+            } else if (deg === 1) {
+                faction.circumstanceMod = Math.min(2, (parseInt(faction.circumstanceMod, 10) || 0) + 1);
+            } else {
+                faction.status = 'hostile';
+                faction.circumstanceMod = -2;
+                s.unrest = (parseInt(s.unrest, 10) || 0) + 1;
+            }
+        } else if (actionType === 'trade') {
+            if (deg >= 2) {
+                faction.tradeAgreement = true;
+                if (deg === 3) s.rp = (parseInt(s.rp, 10) || 0) + rollDice(2, dieSides);
+            } else if (deg === 0) {
+                s.unrest = (parseInt(s.unrest, 10) || 0) + 1;
+            }
+        } else if (actionType === 'aid') {
+            if (deg === 3) {
+                s.rp = (parseInt(s.rp, 10) || 0) + rollDice(2, dieSides);
+            } else if (deg === 2) {
+                s.rp = (parseInt(s.rp, 10) || 0) + rollDice(1, dieSides);
+            } else if (deg === 0) {
+                faction.circumstanceMod = -2;
+                s.unrest = (parseInt(s.unrest, 10) || 0) + 1;
+            }
+        }
+        km.recalculateModifiers();
+        km._persist();
+        km.renderUi();
+    }
 
 
 

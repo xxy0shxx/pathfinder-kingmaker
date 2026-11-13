@@ -31,6 +31,8 @@ const KingdomManager = {
         isolatedHexesCount: 0,
         siteBonusYield: { lumberCamps: 0, mines: 0, quarries: 0 },
         armies: [],
+        diplomacy: [],
+        firstDiplomacyXpClaimed: false,
         calendar: { day: 1, month: 2, year: 4710, weatherId: 'clear_mild' }, // 1 Фараста 4710 AR (Весна)
         stats: {
             culture: { value: 10, modifier: 0 },
@@ -233,6 +235,8 @@ const KingdomManager = {
 
         if (!Array.isArray(merged.events)) merged.events = [];
         if (!Array.isArray(merged.armies)) merged.armies = [];
+        if (!Array.isArray(merged.diplomacy)) merged.diplomacy = [];
+
         merged.calendar = {
             day: 1,
             month: 2,
@@ -753,6 +757,59 @@ const KingdomManager = {
         this.renderUi();
     },
 
+    addFactionCard() {
+        this.saveFromUi();
+        if (!Array.isArray(this.state.diplomacy)) this.state.diplomacy = [];
+        this.state.diplomacy.push({
+            id: 'diplo_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            name: '',
+            negotiationDc: 15,
+            status: 'none',
+            tradeAgreement: false,
+            circumstanceMod: 0,
+            notes: ''
+        });
+        this._persist();
+        this.renderUi();
+    },
+
+    loadPresetFactions() {
+        this.saveFromUi();
+        if (!Array.isArray(this.state.diplomacy)) this.state.diplomacy = [];
+        const presets = MAP_CONFIG.kingdomFactionsPreset || [];
+        let added = 0;
+
+        presets.forEach(p => {
+            const exists = this.state.diplomacy.some(f => f.presetId === p.id || f.name === p.name);
+            if (!exists) {
+                this.state.diplomacy.push({
+                    id: 'diplo_' + p.id + '_' + Math.floor(Math.random() * 1000),
+                    presetId: p.id,
+                    name: `${p.icon} ${p.name}`,
+                    negotiationDc: p.negotiationDc,
+                    status: 'none',
+                    tradeAgreement: false,
+                    circumstanceMod: 0,
+                    notes: p.desc || ''
+                });
+                added++;
+            }
+        });
+
+        if (added > 0) {
+            this._persist();
+            this.renderUi();
+        }
+    },
+
+    removeFactionCard(factionId) {
+        this.saveFromUi();
+        this.state.diplomacy = (this.state.diplomacy || []).filter(f => f.id !== factionId);
+        this._persist();
+        this.renderUi();
+    },
+
+
     openArmyAttackModal(armyId) {
         this.saveFromUi();
         KingdomModals.openArmyAttack(this, armyId);
@@ -902,6 +959,7 @@ const KingdomManager = {
         return el ? el.checked : fallback;
     },
 
+
     saveFromUi() {
         try {
             const s = this.state;
@@ -1005,6 +1063,18 @@ const KingdomManager = {
                         army.tactics = card.querySelector('.k-army-tactics').value;
                     }
                 });
+            } else if (this.activeSubTab === 'diplomacy') {
+                document.querySelectorAll('.k-diplo-card').forEach(card => {
+                    const f = (s.diplomacy || []).find(item => item.id === card.dataset.diploId);
+                    if (f) {
+                        f.name = card.querySelector('.k-diplo-name').value;
+                        f.negotiationDc = parseInt(card.querySelector('.k-diplo-dc').value, 10) || 15;
+                        f.status = card.querySelector('.k-diplo-status').value;
+                        f.tradeAgreement = card.querySelector('.k-diplo-trade').checked;
+                        f.circumstanceMod = parseInt(card.querySelector('.k-diplo-mod').value, 10) || 0;
+                        f.notes = card.querySelector('.k-diplo-notes').value;
+                    }
+                });
             }
 
             this.recalculateModifiers();
@@ -1042,6 +1112,7 @@ const KingdomManager = {
         this._bindEvents(container);
     },
 
+
     _bindEvents(container) {
         container.querySelectorAll('[data-k-tab]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1070,30 +1141,6 @@ const KingdomManager = {
 
         const btnExportCity = container.querySelector('#kBtnExportCityPng');
         if (btnExportCity) btnExportCity.addEventListener('click', () => this.exportCityToPng());
-
-        /*
-        const btnOpenWeather = container.querySelector('#kBtnOpenWeatherRoll');
-        if (btnOpenWeather) {
-            btnOpenWeather.addEventListener('click', () => this.openWeatherRollModal());
-        }
-         */
-
-        /*
-        const btnHazardInfo = container.querySelector('#kBtnActiveHazardInfo');
-        if (btnHazardInfo) {
-            btnHazardInfo.addEventListener('click', () => this.openActiveHazardDetailsModal());
-        }
-         */
-
-        /*
-        const btnNextDay = container.querySelector('#kBtnCalNextDay');
-        if (btnNextDay) btnNextDay.addEventListener('click', () => this.advanceCalendar(1, 0, false));
-         */
-
-        /*
-        const btnNextMonth = container.querySelector('#kBtnCalNextMonth');
-        if (btnNextMonth) btnNextMonth.addEventListener('click', () => this.advanceCalendar(0, 1, true));
-         */
 
         const btnRollWeather = container.querySelector('#kBtnRollWeather');
         if (btnRollWeather) btnRollWeather.addEventListener('click', () => this.rollSeasonalWeather(false));
@@ -1354,6 +1401,29 @@ const KingdomManager = {
         if (window.WeatherManager && typeof window.WeatherManager.bindBarEvents === 'function') {
             window.WeatherManager.bindBarEvents(container);
         }
+
+        const btnAddFaction = container.querySelector('#kBtnAddFaction');
+        if (btnAddFaction) btnAddFaction.addEventListener('click', () => this.addFactionCard());
+
+        const btnLoadPreset = container.querySelector('#kBtnLoadPresetFactions');
+        if (btnLoadPreset) btnLoadPreset.addEventListener('click', () => this.loadPresetFactions());
+
+        container.querySelectorAll('[data-del-diplo]').forEach(btn => {
+            btn.addEventListener('click', () => this.removeFactionCard(btn.dataset.delDiplo));
+        });
+
+        container.querySelectorAll('[data-diplo-act]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.saveFromUi();
+                KingdomModals.openDiplomacyAction(this, btn.dataset.diploId, btn.dataset.diploAct);
+            });
+        });
+
+        container.querySelectorAll('.k-diplo-card input, .k-diplo-card select').forEach(el => {
+            el.addEventListener('change', () => this.saveFromUi());
+        });
+
+
     },
 
     // Таблица ступеней развития нации по Размеру королевства (Pathfinder 2e Kingmaker)

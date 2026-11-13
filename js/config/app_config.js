@@ -282,8 +282,17 @@ export const MAP_CONFIG = {
         { id: 'bumper_harvest',    minRoll: 91,  maxRoll: 95,  type: 'boon',   icon: '🌾', title: 'Богатый урожай',             skill: 'agriculture', dcMod: 0, desc: 'Поля принесли двойной сбор. Успех: +2 Еды на склад королевства.' },
         { id: 'heroic_volunteer',  minRoll: 96,  maxRoll: 100, type: 'boon',   icon: '🛡️', title: 'Приток добровольцев',        skill: 'defense',     dcMod: 0, desc: 'Опытные воины и ремесленники вступают на службу короне (+30 XP королевства).' }
     ],
-
-
-
+    // Официальные фракции и соседние государства PF2e Kingmaker с их СЛ переговоров (Negotiation DC)
+    kingdomFactionsPreset: [
+        { id: 'sootscale',    name: 'Кобольды Чёрной Чешуи',   icon: '🦎', negotiationDc: 15, desc: 'Племя кобольдов в Зелёном поясе.' },
+        { id: 'rostland',     name: 'Ростланд (Рестов)',        icon: '⚔️', negotiationDc: 15, desc: 'Южная провинция Бревоя и покровители экспедиции.' },
+        { id: 'varnhold',     name: 'Варнхолд',                 icon: '🏰', negotiationDc: 16, desc: 'Соседнее поселение Маэгара Варна на востоке.' },
+        { id: 'lizardfolk',   name: 'Людоящеры Свечного озера', icon: '🐊', negotiationDc: 16, desc: 'Племя ящеролюдов на островах Клыкастого озера.' },
+        { id: 'mivon',        name: 'Мивон (Речные королевства)', icon: '🗡️', negotiationDc: 20, desc: 'Вольный город дуэлянтов к югу от Украденных земель.' },
+        { id: 'nomen',        name: 'Кентавры Номена',          icon: '🏹', negotiationDc: 26, desc: 'Кочевые племена степей на востоке.' },
+        { id: 'fort_drelev',  name: 'Форт Дрелев',              icon: '🛡️', negotiationDc: 30, desc: 'Западное баронство у берегов озера Хук.' },
+        { id: 'pitax',        name: 'Королевство Питакc',       icon: '🎭', negotiationDc: 32, desc: 'Богатое и амбициозное государство на западе.' },
+        { id: 'brevoy',       name: 'Корона Бревоя (Новый Стетвен)', icon: '👑', negotiationDc: 35, desc: 'Северная держава дома Рогаров и Великих домов.' }
+    ],
 
 };
