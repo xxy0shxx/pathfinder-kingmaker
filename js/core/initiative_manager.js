@@ -120,6 +120,11 @@ const InitiativeManager = {
         if (!unit) return;
         unit.status = newStatus || 'active';
 
+        if (this.state.audioPreset !== 'none') {
+            if (unit.status === 'dying') InitiativeAudio.playEventSound('dying');
+            if (unit.status === 'prone') InitiativeAudio.playEventSound('prone');
+        }
+
         // Если текущий активный боец выбыл, передаем ход следующему активному
         if (unit.status === 'out' && this.state.selectedUnitId === id) {
             const activeUnits = this.state.combatants.filter(c => c.status !== 'out');
@@ -145,16 +150,35 @@ const InitiativeManager = {
         const currentIndex = activeUnits.findIndex(c => c.id === this.state.selectedUnitId);
         this.state.phraseSeed = Math.floor(Math.random() * 1000);
 
+        let isNewRound = false;
         if (currentIndex === -1 || currentIndex === activeUnits.length - 1) {
             this.state.selectedUnitId = activeUnits[0].id;
             this.state.round += 1;
+            isNewRound = true;
             this.triggerRoundFlashEffect();
         } else {
             this.state.selectedUnitId = activeUnits[currentIndex + 1].id;
         }
 
+        if (this.state.audioPreset !== 'none') {
+            const nextUnit = activeUnits.find(c => c.id === this.state.selectedUnitId);
+            const triggerUnitSound = () => {
+                if (nextUnit?.status === 'dying') InitiativeAudio.playEventSound('dying');
+                else if (nextUnit?.status === 'prone') InitiativeAudio.playEventSound('prone');
+                else if (nextUnit?.isNat20) InitiativeAudio.playEventSound('nat20');
+                else if (nextUnit?.isNat1) InitiativeAudio.playEventSound('nat1');
+            };
+
+            if (isNewRound) {
+                setTimeout(triggerUnitSound, 650);
+            } else {
+                triggerUnitSound();
+            }
+        }
+
         this._saveWithoutSort();
     },
+
 
     triggerRoundFlashEffect() {
         const oldFlash = document.getElementById('initTvRoundFlashOverlay');
@@ -219,7 +243,10 @@ const InitiativeManager = {
         if (unit) {
             unit.isNat20 = !unit.isNat20;
             unit.isNat1 = false;
-            if (unit.isNat20) unit.score = 20;
+            if (unit.isNat20) {
+                unit.score = 20;
+                if (this.state.audioPreset !== 'none') InitiativeAudio.playEventSound('nat20');
+            }
             this._sortAndSave();
         }
     },
@@ -229,7 +256,10 @@ const InitiativeManager = {
         if (unit) {
             unit.isNat1 = !unit.isNat1;
             unit.isNat20 = false;
-            if (unit.isNat1) unit.score = 1;
+            if (unit.isNat1) {
+                unit.score = 1;
+                if (this.state.audioPreset !== 'none') InitiativeAudio.playEventSound('nat1');
+            }
             this._sortAndSave();
         }
     },

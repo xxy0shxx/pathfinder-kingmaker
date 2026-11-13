@@ -403,7 +403,144 @@ const InitiativeAudio = {
 
         noise.start(t);
         noise.stop(t + duration + 0.01);
-    }
+    },
+
+    playEventSound(eventType) {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = (window.AnimationManager && window.AnimationManager._sharedAudioCtx) || new AudioCtx();
+            if (!ctx) return;
+            if (ctx.state === 'suspended') ctx.resume();
+
+            const now = ctx.currentTime;
+
+            if (eventType === 'nat20') {
+                this._playNat20Fanfare(ctx, now);
+            } else if (eventType === 'nat1') {
+                this._playNat1Fail(ctx, now);
+            } else if (eventType === 'dying') {
+                this._playDyingHeartbeat(ctx, now);
+            } else if (eventType === 'prone') {
+                this._playProneThud(ctx, now);
+            }
+        } catch (audioError) {
+            console.warn("Аудио-движок заблокирован до клика:", audioError);
+        }
+    },
+
+    _playNat20Fanfare(ctx, now) {
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+            const t = now + idx * 0.08;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, t);
+
+            gain.gain.setValueAtTime(0.001, t);
+            gain.gain.linearRampToValueAtTime(0.25, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.46);
+        });
+    },
+
+    _playNat1Fail(ctx, now) {
+        const notes = [293.66, 277.18, 261.63, 246.94]; // D4 -> C#4 -> C4 -> B3
+        notes.forEach((freq, idx) => {
+            const t = now + idx * 0.16;
+            const dur = idx === 3 ? 0.55 : 0.15;
+            const osc = ctx.createOscillator();
+            const filter = ctx.createBiquadFilter();
+            const gain = ctx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, t);
+            if (idx === 3) {
+                osc.frequency.linearRampToValueAtTime(freq - 25, t + dur);
+            }
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(900, t);
+
+            gain.gain.setValueAtTime(0.22, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + dur + 0.02);
+        });
+    },
+
+    _playDyingHeartbeat(ctx, now) {
+        // Двойной удар сердца с обертоном, чтобы хорошо читался на любых колонках
+        [0, 0.25].forEach((offset, idx) => {
+            const t = now + offset;
+            const subOsc = ctx.createOscillator();
+            const bodyOsc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(idx === 0 ? 85 : 75, t);
+            subOsc.frequency.exponentialRampToValueAtTime(35, t + 0.18);
+
+            // Второй осциллятор на октаву выше дает плотный "удар в грудь"
+            bodyOsc.type = 'triangle';
+            bodyOsc.frequency.setValueAtTime(idx === 0 ? 170 : 150, t);
+            bodyOsc.frequency.exponentialRampToValueAtTime(55, t + 0.14);
+
+            const peakVol = idx === 0 ? 0.75 : 0.60;
+            gain.gain.setValueAtTime(0.001, t);
+            gain.gain.linearRampToValueAtTime(peakVol, t + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+
+            subOsc.connect(gain);
+            bodyOsc.connect(gain);
+            gain.connect(ctx.destination);
+
+            subOsc.start(t);
+            bodyOsc.start(t);
+            subOsc.stop(t + 0.23);
+            bodyOsc.stop(t + 0.23);
+        });
+    },
+
+    _playProneThud(ctx, now) {
+        // Плотный глухой удар падения + лязг доспехов
+        const osc = ctx.createOscillator();
+        const midOsc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(42, now + 0.22);
+
+        midOsc.type = 'sawtooth';
+        midOsc.frequency.setValueAtTime(220, now);
+        midOsc.frequency.exponentialRampToValueAtTime(65, now + 0.14);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.65, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        osc.connect(gain);
+        midOsc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        midOsc.start(now);
+        osc.stop(now + 0.26);
+        midOsc.stop(now + 0.26);
+
+        // Звук соприкосновения с землей
+        this._triggerNoise(ctx, now, 0.16, 'bandpass', 650, 0.42);
+    },
+
 };
 
 export default InitiativeAudio;
