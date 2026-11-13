@@ -40,6 +40,7 @@ const KingdomSheetRenderer = {
         return res;
     },
 
+
     renderMainLayout(state, activeSubTab, helpers) {
         const canLevelUp = (parseInt(state.xp, 10) || 0) >= 1000;
         const levelUpBtn = canLevelUp
@@ -64,25 +65,11 @@ const KingdomSheetRenderer = {
             </div>
         `;
 
-        const cal = window.KingdomManager?.getCalendarInfo
-            ? window.KingdomManager.getCalendarInfo()
-            : { day: 1, monthName: 'Фараст', year: 4710, seasonLabel: '🌱 Весна', precip: false, cold: false, hazard: null };
-
-        let bgWeatherLabel = '⛅ Ясно и благоприятно';
-        if (cal.precip && cal.cold) bgWeatherLabel = '🌨️ Снег (утомление 4 ч, −1 Внимание)';
-        else if (cal.precip) bgWeatherLabel = '🌧️ Небольшой дождь (утомление 4 ч, −1 Внимание)';
-        else if (cal.cold) bgWeatherLabel = '🥶 Холодный день (утомление 4 ч)';
-
-        const hazardBadgeHtml = cal.hazard
-            ? `<button type="button" id="kBtnActiveHazardInfo" title="Нажмите, чтобы открыть карточку правил погодного явления"
-                   style="background:rgba(231, 76, 60, 0.22); border:1px solid #e74c3c; color:#ff7675; padding:2px 9px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:inherit; font-size:12px;">
-                   ⚡ ${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText}) ℹ️
-               </button>`
-            : '';
 
         const calendarBarHtml = window.WeatherManager
             ? window.WeatherManager.renderCompactBarHtml()
             : '';
+
 
         let bodyHtml = '';
         if (activeSubTab === 'sheet') bodyHtml = this.renderSheetTab(state, helpers);
@@ -98,6 +85,7 @@ const KingdomSheetRenderer = {
             </div>
         `;
     },
+
 
     renderSheetTab(s, { roleNames, skillConfig, getSkillTotal }) {
         const ctrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);

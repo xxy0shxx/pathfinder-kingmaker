@@ -102,6 +102,7 @@ const AnimationManager = {
             }
         } catch (e) {}
     },
+
     playFlagFlight(oldHexId, currentHexId, onImpactCallback) {
         if (oldHexId === currentHexId) {
             if (typeof onImpactCallback === 'function') onImpactCallback();
@@ -186,12 +187,10 @@ const AnimationManager = {
         document.body.appendChild(flightContainer);
 
         setTimeout(() => {
-            let mode = 'classic';
-            const animSelect = document.getElementById('settingSquadAnimMode');
-            if (animSelect) mode = animSelect.value;
-            else if (window.SettingsManager && window.SettingsManager.state && window.SettingsManager.state.squadAnimMode) {
-                mode = window.SettingsManager.state.squadAnimMode;
-            }
+
+            const mode = window.CURRENT_SQUAD_ANIMATION_MODE
+                || window.SettingsManager?.state?.squadAnimMode
+                || 'classic';
 
             const viewportView = document.getElementById('viewport');
 

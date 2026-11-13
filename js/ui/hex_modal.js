@@ -1,6 +1,8 @@
 import { MAP_CONFIG } from '../config/app_config.js';
 import UiSelectManager from '../controller/ui_select_manager.js';
 import TouchInterfaceAdapter from '../services/touch_interface_adapter.js';
+import ModalManager from './modal_manager.js';
+import EventBus from '../services/event_bus.js';
 
 /**
  * Модуль управления модальным окном редактирования гекса
@@ -52,63 +54,50 @@ const HexModal = {
 
 
 
+
     validateWorkSiteForTerrain() {
-        const { wsSelect, wsInput, terrainInput, claimedCb } = this._getWorkSiteControls();
-        if (!wsSelect) return;
+        const selWorkSite = document.getElementById('hexWorkSiteType');
+        const claimedCb = document.getElementById('hexKingdomClaimed');
+        const terrainInput = document.getElementById('inpTerrain');
+        if (!selWorkSite) return;
 
         const isClaimed = !!claimedCb?.checked;
         const terrain = terrainInput?.value || '';
 
-        // 1. Приглушаем и блокируем весь селект участков, если гекс не принадлежит королевству
-        wsSelect.classList.toggle('is-disabled', !isClaimed);
-        wsSelect.style.opacity = isClaimed ? '1' : '0.45';
-        wsSelect.style.pointerEvents = isClaimed ? 'auto' : 'none';
-        wsSelect.title = isClaimed ? '' : 'Сначала отметьте «Территория королевства»';
-        if (!isClaimed) wsSelect.classList.remove('active');
+        selWorkSite.disabled = !isClaimed;
+        selWorkSite.style.opacity = isClaimed ? '1' : '0.45';
+        selWorkSite.title = isClaimed ? 'Добывающий участок королевства' : 'Сначала отметьте «Территория королевства»';
 
-        // 2. Помечаем отдельные опции по рельефу
-        wsSelect.querySelectorAll('.custom-option').forEach(opt => {
-            const check = this.isWorkSiteCompatible(opt.dataset.value, terrain, isClaimed);
-            opt.classList.toggle('option-disabled', !check.ok);
-            opt.style.opacity = check.ok ? '1' : '0.35';
-            opt.style.textDecoration = check.ok ? 'none' : 'line-through';
-            opt.title = check.ok ? '' : check.reason;
+        Array.from(selWorkSite.options).forEach(opt => {
+            const check = this.isWorkSiteCompatible(opt.value, terrain, isClaimed);
+            opt.disabled = !check.ok;
         });
 
-        // 3. Если текущий выбранный участок стал невалидным — сбрасываем в 'none'
-        const currentVal = wsInput?.value || 'none';
-        if (!this.isWorkSiteCompatible(currentVal, terrain, isClaimed).ok) {
-            if (wsInput) wsInput.value = 'none';
-            const trigger = wsSelect.querySelector('.custom-select-trigger');
-            const noneOpt = wsSelect.querySelector('.custom-option[data-value="none"]');
-            if (trigger) {
-                trigger.textContent = noneOpt ? noneOpt.textContent : 'Нет';
-                trigger.setAttribute('data-value', 'none');
-            }
-            wsSelect.querySelectorAll('.custom-option').forEach(o => {
-                o.classList.toggle('selected', o.dataset.value === 'none');
-            });
+        if (!this.isWorkSiteCompatible(selWorkSite.value, terrain, isClaimed).ok) {
+            selWorkSite.value = 'none';
         }
     },
-
-
-
-
 
     /**
      * Слушатели чекбокса королевства, местности и выбора участка
      */
     initWorkSiteValidation() {
-        const { claimedCb, terrainInput } = this._getWorkSiteControls();
+        const claimedCb = document.getElementById('hexKingdomClaimed');
+        const terrainInput = document.getElementById('inpTerrain');
+        const customTerrain = document.getElementById('customSelectTerrain');
+
         if (claimedCb) {
             claimedCb.addEventListener('change', () => this.validateWorkSiteForTerrain());
         }
         if (terrainInput) {
             terrainInput.addEventListener('change', () => this.validateWorkSiteForTerrain());
         }
+        if (customTerrain) {
+            customTerrain.addEventListener('click', () => {
+                setTimeout(() => this.validateWorkSiteForTerrain(), 0);
+            });
+        }
     },
-
-
 
     ensureKingdomControls() {
         const menu = document.getElementById('hexMenu');
@@ -283,7 +272,7 @@ const HexModal = {
             UiSelectManager.setCustomSelectValue('customSelectRegionLevel', '');
         }
 
-        this.validateWorkSiteForTerrain()
+//        this.validateWorkSiteForTerrain()
 
         if (inpSquadHere) inpSquadHere.checked = hexData ? !!hexData.squadHere : false;
         if (inpColor) inpColor.value = currentColor;
@@ -311,6 +300,8 @@ const HexModal = {
         const selWorkSite = document.getElementById('hexWorkSiteType');
         if (cbClaimed) cbClaimed.checked = !!(hexData && hexData.kingdomClaimed);
         if (selWorkSite) selWorkSite.value = (hexData && hexData.workSite) ? hexData.workSite : 'none';
+
+        this.validateWorkSiteForTerrain();
 
         if (this.modal) this.modal.classList.add('open');
 
@@ -350,7 +341,14 @@ const HexModal = {
         const compatCheck = this.isWorkSiteCompatible(workSiteVal, terrainVal, isClaimedVal);
 
         if (!compatCheck.ok) {
-            alert(`⚠ Невозможно сохранить гекс:\n\n${compatCheck.reason}`);
+            ModalManager.open({
+                id: 'hexValidationErrorModal',
+                title: '⚠ Невозможно сохранить гекс',
+                borderColor: '#e74c3c',
+                width: '440px',
+                bodyHtml: `<div style="font-size:17px; line-height:1.5; color:#ebd291;">${compatCheck.reason}</div>`,
+                footerButtons: [{ label: 'Понятно', variant: 'ok' }]
+            });
             return;
         }
 

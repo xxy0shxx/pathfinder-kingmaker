@@ -1,3 +1,5 @@
+import { MAP_CONFIG } from '../config/app_config.js';
+
 const SoundPlayer = {
     audio: document.getElementById('bg-music'),
     btnMusic: document.getElementById('btnMusic'),
@@ -19,19 +21,23 @@ const SoundPlayer = {
 
     async init() {
         if (!this.audio) return;
-        this.audio.volume = 0.25;
+        this.audio.volume = MAP_CONFIG.audio?.defaultVolume ?? 0.25;
         this.attachEvents();
         await this.loadPlaylist();
     },
 
     async loadPlaylist() {
         try {
-            const response = await fetch('audio/playlist.json');
+            const url = MAP_CONFIG.audio?.playlistUrl || 'audio/playlist.json';
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             this.playlist = await response.json();
             this.renderPlaylistUI();
-            this.loadTrack(this.currentTrackIdx, false);
+            if (this.playlist.length > 0) {
+                this.loadTrack(this.currentTrackIdx, false);
+            }
         } catch (error) {
-            console.error("Ошибка загрузки плейлиста:", error);
+            console.warn("Плейлист не загружен:", error);
         }
     },
 
@@ -86,10 +92,11 @@ const SoundPlayer = {
             this.loadTrack(this.currentTrackIdx, true);
             return;
         }
+
         if (this.audio.paused) {
             this.audio.play()
                 .then(() => this.updateButtonUI(true))
-                .catch(e => alert('Нужен клик на странице'));
+                .catch(e => console.warn('Ожидание взаимодействия со страницей для запуска аудио:', e));
         } else {
             this.audio.pause();
             this.updateButtonUI(false);

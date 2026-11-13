@@ -1,6 +1,8 @@
 import { MAP_CONFIG } from '../config/app_config.js';
 import FrameManager from '../ui/frame_manager.js';
 import HexCanvasRender from '../core/hex_canvas_render.js';
+import EventBus from './event_bus.js';
+
 
 /**
  * Модуль управления вьюпортом: скролл, зум, перемещение и адаптация рамки
@@ -47,9 +49,15 @@ const ViewportManager = {
         FrameManager.init();
 
         // Первичное принудительное центрирование на отряде при старте системы
+        /*
         setTimeout(() => {
             this.updateMapTransform();
         }, 150);
+        */
+
+        EventBus.on('data:imported', () => {
+            setTimeout(() => this.updateMapTransform(), 100);
+        });
     },
 
     getHasMoved() {
@@ -192,8 +200,7 @@ const ViewportManager = {
     focusOnSquad(force = false) {
         if (window.DISABLE_CAMERA_AUTOCENTER) return;
 
-        if (Date.now() < this.lockFocusUntil) return;
-        if (this.isDragging) return;
+        if (!force && (this.isDragging || Date.now() < this.lockFocusUntil)) return;
 
         const TacticalMapManager = window.TacticalMapManager || null;
         if (TacticalMapManager && TacticalMapManager.state && TacticalMapManager.state.currentMapMode === 'camp') {

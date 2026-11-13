@@ -1,12 +1,9 @@
-import ViewportManager from '../services/viewport_manager.js';
-
 /**
  * Модуль для управления структурой интерфейса, ресайзом и аккордеоном легенды
  */
 const LayoutManager = {
     init() {
         this.initLegendAccordion();
-        this.attachResizeEvent();
         this.revealMapFrame();
     },
 
@@ -45,14 +42,6 @@ const LayoutManager = {
                 legendHeader.click();
             });
         }
-    },
-
-    attachResizeEvent() {
-        window.addEventListener('resize', () => {
-            if (ViewportManager && typeof ViewportManager.updateMapTransform === 'function') {
-                ViewportManager.updateMapTransform();
-            }
-        });
     },
 
     revealMapFrame() {

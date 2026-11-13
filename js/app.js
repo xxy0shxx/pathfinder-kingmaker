@@ -158,38 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
     KingdomManager.renderUi();
 
     // Настройка импорта файлов (FileManager)
-    FileManager.init((importedData) => {
+    FileManager.init();
 
-        if (importedData && !importedData.hexes) {
-            mapData = {
-                hexes: importedData,
-                kingdom: importedData.kingdomState || null,
-                paths: importedData.__pathHistory || []
-            };
-        } else {
-            mapData = importedData || { hexes: {}, kingdom: null, paths: [] };
-        }
-
-        EventBus.emit('data:imported', mapData);
-
-       /*
-        QuestManager.updateMapData(mapData.hexes);
-        if (typeof PathManager.updateMapData === 'function') {
-            PathManager.updateMapData(mapData);
-        }
-        if (WeatherManager && typeof WeatherManager.updateMapData === 'function') {
-            WeatherManager.updateMapData(mapData);
-        }
-        KingdomManager.updateMapData(mapData);
-
-        if (CampingManager && typeof CampingManager.updateMapData === 'function') {
-            CampingManager.updateMapData(mapData);
-        }
-        */
-
-        HexCanvasRender.updateData(mapData.hexes);
-        HexCanvasRender.requestFrame();
-
+    EventBus.on('data:imported', (newData) => {
+        mapData = newData;
         setTimeout(() => { PathManager.render(); }, 50);
     });
 

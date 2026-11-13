@@ -2,8 +2,8 @@
  * ИЗОЛИРОВАННЫЙ ПРОЦЕДУРНЫЙ 3D LOW-POLY ДВИЖОК ТОКЕНОВ ДЛЯ КАРТЫ KINGMAKER
  */
 const ThreeDTokenEngine = {
-    _getMaterialColors(intensity, isFlag = false) {
-        const tokenColorMaterial = window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
+    _getMaterialColors(intensity, isFlag = false, materialOverride = null) {
+        const tokenColorMaterial = materialOverride || window.CURRENT_SQUAD_TOKEN_COLOR || 'gold';
         let r = 0, g = 0, b = 0;
         let strokeColor = "rgba(255, 242, 195, 0.4)";
 
@@ -321,7 +321,7 @@ const ThreeDTokenEngine = {
     /**
      * Полноразмерная монолитная Цитадель с донжоном, бойницами и вейв-знаменем
      */
-    draw3DCastleToken(ctx, cx, cy) {
+    draw3DCastleToken(ctx, cx, cy, materialOverride = null) {
         ctx.save();
         ctx.translate(cx, cy + 18);
 
@@ -475,7 +475,7 @@ const ThreeDTokenEngine = {
             else if (poly.type.startsWith('donjon')) matMod = poly.type === 'donjon_roof' ? 0.94 : 1.10;
 
             const isFlag = poly.type === 'donjon_flag_banner';
-            const mat = this._getMaterialColors(intensity, isFlag);
+            const mat = this._getMaterialColors(intensity, isFlag, materialOverride);
 
             ctx.fillStyle = `rgb(${Math.min(255, Math.floor(mat.r * matMod))}, ${Math.min(255, Math.floor(mat.g * matMod))}, ${Math.min(255, Math.floor(mat.b * matMod))})`; ctx.fill();
             ctx.strokeStyle = mat.strokeColor; ctx.lineWidth = 0.5; ctx.stroke();
@@ -506,16 +506,11 @@ const ThreeDTokenEngine = {
      * Компактный 3D low-poly маркер поселения/города на гексе
      */
     draw3DSettlementMarker(ctx, cx, cy, scale = 0.48, materialOverride = 'bronze') {
-        const prevColor = window.CURRENT_SQUAD_TOKEN_COLOR;
-        window.CURRENT_SQUAD_TOKEN_COLOR = materialOverride;
-
         ctx.save();
         ctx.translate(cx, cy);
         ctx.scale(scale, scale);
-        this.draw3DCastleToken(ctx, 0, -10);
+        this.draw3DCastleToken(ctx, 0, -10, materialOverride);
         ctx.restore();
-
-        window.CURRENT_SQUAD_TOKEN_COLOR = prevColor;
     }
 
 };

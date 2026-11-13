@@ -3,6 +3,7 @@ import { ColorConverter } from '../utils/helpers.js';
 import ViewportManager from '../services/viewport_manager.js';
 import DebugManager from '../utils/debug.js';
 import ThreeDTokenEngine from '../services/3d_token_engine.js';
+import EventBus from '../services/event_bus.js';
 
 const HexCanvasRender = {
     canvas: null,
@@ -34,6 +35,16 @@ const HexCanvasRender = {
         this.updateData(initialHexesData);
         this.attachMouseEvents();
         this.requestFrame();
+
+        EventBus.on('data:imported', (newMapData) => {
+            this.updateData(newMapData?.hexes || {});
+            this.requestFrame();
+        });
+
+        EventBus.on('map:hexesChanged', (hexes) => {
+            this.updateData(hexes || {});
+            this.requestFrame();
+        });
     },
 
     /**
@@ -376,7 +387,6 @@ const HexCanvasRender = {
 
         const isRuneStyleActive = localStorage.getItem('kingmakerFrameStyle') === 'runes';
         this.drawKingdomRoads(r);
-        this.drawKingdomBorders(r);
         this.drawKingdomBorders(r);
 
         if (activeTimersCount > 0 || needsOngoingAnimation || this.hiddenSquadHexId || isSquadPresentOnMap) {
