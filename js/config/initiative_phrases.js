@@ -5,7 +5,14 @@ export const InitiativePhrases = {
     getPhrasesForUnit(activeUnit) {
         const activeName = activeUnit ? activeUnit.name : 'Неизвестно';
         const faction = activeUnit ? activeUnit.faction : 'neutral';
+        const status = activeUnit ? activeUnit.status : 'active';
 
+        if (status === 'dying') {
+            return this._dyingPhrases(activeName);
+        }
+        if (status === 'prone') {
+            return this._pronePhrases(activeName);
+        }
         if (activeUnit?.isNat20) {
             return this._nat20Phrases(activeName);
         }
@@ -20,6 +27,36 @@ export const InitiativePhrases = {
             return [...this._enemyBase(activeName), ...this._enemyExtra(activeName)];
         }
         return this._neutralExtra(activeName);
+    },
+
+    _dyingPhrases(activeName) {
+        return [
+            `СПАС-БРОСОК ОТ СМЕРТИ! С того света передает привет и кидает кубик <span class="gold-unit-focus-name">💀 ${activeName} 💀</span>!`,
+            `«Кто-нибудь, залейте в меня зелье лечения, пока я не выкинул единицу!» — хрипит <span class="gold-unit-focus-name">🩸 ${activeName} 🩸</span>!`,
+            `Свет в конце тоннеля уже виден, но все еще держится за жизнь <span class="gold-unit-focus-name">🕯️ ${activeName} 🕯️</span>!`,
+            `Лежит без сознания, но морально поддерживает всех остальных наш <span class="gold-unit-focus-name">💔 ${activeName} 💔</span>!`,
+            `«Мастер, а двадцатка на спас-броске ведь сразу поднимает в один хит?!» — надеется <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+            `Смерть уже занесла косу, но пока не сдается упрямый <span class="gold-unit-focus-name">⏳ ${activeName} ⏳</span>!`,
+            `«Я просто прилег отдохнуть посреди боя, не отвлекайтесь!» — бормочет в бреду <span class="gold-unit-focus-name">💤 ${activeName} 💤</span>!`,
+            `Жрец партии нервно ищет ячейки для исцеления, пока истекает кровью <span class="gold-unit-focus-name">🩹 ${activeName} 🩹</span>!`,
+            `Два провала уже есть, права на ошибку больше не имеет наш <span class="gold-unit-focus-name">⚠️ ${activeName} ⚠️</span>!`,
+            `«Если я сейчас умру, мой новый персонаж будет братом-близнецом!» — обещает <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`
+        ];
+    },
+
+    _pronePhrases(activeName) {
+        return [
+            `РАСПЛАСТАН НА ЗЕМЛЕ! Внимательно изучает узор на полу и тратит половину скорости <span class="gold-unit-focus-name">💫 ${activeName} 💫</span>!`,
+            `«Я не упал, я занял выгодную позицию для стрельбы лежа!» — уверяет <span class="gold-unit-focus-name">🏹 ${activeName} 🏹</span>!`,
+            `Гравитация сегодня беспощадна! С трудом отрывается от земли <span class="gold-unit-focus-name">🪨 ${activeName} 🪨</span>!`,
+            `Помеха на броски атаки, зато от стрел укрываться удобно! Встает с колен <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
+            `«Кто вообще разлил здесь масло?!» — ругается, потирая ушибленный бок, <span class="gold-unit-focus-name">🧴 ${activeName} 🧴</span>!`,
+            `Враги в ближнем бою уже потирают руки от преимущества, пока поднимается <span class="gold-unit-focus-name">🤕 ${activeName} 🤕</span>!`,
+            `«Это был тактический перекат, просто он немного затянулся!» — оправдывается <span class="gold-unit-focus-name">🤸 ${activeName} 🤸</span>!`,
+            `Половина движения ушла на то, чтобы просто встать! Отряхивает доспехи <span class="gold-unit-focus-name">🧹 ${activeName} 🧹</span>!`,
+            `«Подайте руку, я в этих латах как перевернутая черепаха!» — просит помощи <span class="gold-unit-focus-name">🐢 ${activeName} 🐢</span>!`,
+            `Земля-матушка притянула слишком сильно, но уже возвращается в строй <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`
+        ];
     },
 
     _nat20Phrases(activeName) {
@@ -345,6 +382,27 @@ export const InitiativePhrases = {
             `Бард уже пытается его соблазнить, но гордо держит дистанцию неприступный <span class="gold-unit-focus-name">🌹 ${activeName} 🌹</span>!`,
             `«Я пришел сюда жевать жвачку и не участвовать в бою, и жвачка у меня еще есть!» — говорит <span class="gold-unit-focus-name">🌿 ${activeName} 🌿</span>!`,
             `Свидетель будущих подвигов (или позора) партии! Записывает происходящее в блокнот <span class="gold-unit-focus-name">🖋️ ${activeName} 🖋️</span>!`
+            `«Я не подписывался на драку с драконом, мне платили за охрану сарая!» — возмущается <span class="gold-unit-focus-name">🏚️ ${activeName} 🏚️</span>!`,
+            `Бросает монетку, чтобы решить, кому сегодня помочь, наш непредсказуемый <span class="gold-unit-focus-name">🪙 ${activeName} 🪙</span>!`,
+            `«Эй, вы мне всю клумбу потоптали своими огненными шарами!» — ворчит <span class="gold-unit-focus-name">🌻 ${activeName} 🌻</span>!`,
+            `Мастер сам еще не решил, союзник это или тайный босс, но уже ходит <span class="gold-unit-focus-name">🎭 ${activeName} 🎭</span>!`,
+            `«Кто победит — тому и продам зелья лечения втридорога!» — потирает руки <span class="gold-unit-focus-name">🧪 ${activeName} 🧪</span>!`,
+            `Стоит в самом центре перекрестного огня и делает вид, что его тут нет, хитрый <span class="gold-unit-focus-name">🙈 ${activeName} 🙈</span>!`,
+            `«А можно я просто уйду домой, пока вы тут кидаете кубы?» — вежливо интересуется <span class="gold-unit-focus-name">🚪 ${activeName} 🚪</span>!`,
+            `Уровень угрозы: «Случайный свидетель». Нервно сглатывает слюну <span class="gold-unit-focus-name">👀 ${activeName} 👀</span>!`,
+            `«Если кто-нибудь заденет мою любимую шляпу — пощады не ждите!» — предупреждает <span class="gold-unit-focus-name">🎩 ${activeName} 🎩</span>!`,
+            `Ждет, когда обе стороны ослабят друг друга, чтобы собрать весь лут, коварный <span class="gold-unit-focus-name">🎒 ${activeName} 🎒</span>!`,
+            `«Я вообще-то мирный алхимик, но эта колба в руке очень взрывоопасна!» — дрожит <span class="gold-unit-focus-name">⚗️ ${activeName} ⚗️</span>!`,
+            `Проверка Проницательности не помогает понять, что на уме у загадочного <span class="gold-unit-focus-name">🧠 ${activeName} 🧠</span>!`,
+            `«Господа, а у вас есть разрешение на проведение боевых действий в этом лесу?» — спрашивает <span class="gold-unit-focus-name">📋 ${activeName} 📋</span>!`,
+            `Пытается незаметно свистнуть бесхозный кинжал, пока все заняты дракой, ловкий <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
+            `«Я за тех, кто не будет кидать в меня заклинания по площади!» — выдвигает условия <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `Даже боги не знают его мировоззрения, но свой ход уверенно делает <span class="gold-unit-focus-name">⚖️ ${activeName} ⚖️</span>!`,
+            `«Погодите, я только достану блокнот, чтобы зарисовать этот эпический провал!» — радуется <span class="gold-unit-focus-name">🎨 ${activeName} 🎨</span>!`,
+            `Случайно оказался не в том подземелье и не в то время! Озирается по сторонам <span class="gold-unit-focus-name">🧭 ${activeName} 🧭</span>!`,
+            `«Не смотрите на меня так, я просто местный призрак и болею за красивый бой!» — парит <span class="gold-unit-focus-name">👻 ${activeName} 👻</span>!`,
+            `Хранит гробовое молчание и загадочно щурится, наводя жути на обе стороны, таинственный <span class="gold-unit-focus-name">🦉 ${activeName} 🦉</span>!`
+
         ];
     }
 
