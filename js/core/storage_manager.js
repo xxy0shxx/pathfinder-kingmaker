@@ -1,23 +1,39 @@
 import HexCanvasRender from './hex_canvas_render.js';
+import EventBus from '../services/event_bus.js';
 
 const StorageManager = {
     STORAGE_KEY: 'hexMapSystemData',
+    mapDataRef: null,
+    _isInitialized: false,
 
     /**
-     * Загрузка данных карты из localStorage с гарантированной совместимостью и миграцией
+     * Подписка на глобальные события сохранения и импорта
      */
+    init(mapData) {
+        this.mapDataRef = mapData;
+        if (this._isInitialized) return;
+        this._isInitialized = true;
+
+        EventBus.on('data:save', (customData = null) => {
+            const target = customData || this.mapDataRef;
+            if (target) this.saveData(target);
+        });
+
+        EventBus.on('data:imported', (newMapData) => {
+            this.mapDataRef = newMapData;
+            this.saveData(newMapData);
+        });
+    },
+
     loadData() {
         try {
             const raw = localStorage.getItem(this.STORAGE_KEY);
-
-            // Если база абсолютно пуста
             if (!raw) {
                 return { hexes: {}, kingdom: null, paths: [] };
             }
 
             const parsed = JSON.parse(raw);
 
-            // Проверяем формат: если это старая плоская структура (гексы в корне)
             if (parsed && !parsed.hexes) {
                 console.log("Обнаружен старый формат базы гексов. Запуск миграции...");
 
@@ -27,19 +43,16 @@ const StorageManager = {
                     paths: parsed.__pathHistory || []
                 };
 
-                // Переносим только гексы и системные слои во вложенную ветку
                 for (let key in parsed) {
                     if (key.startsWith('hex_') || key === 'visualLayer' || key === 'squadPath') {
                         migrated.hexes[key] = parsed[key];
                     }
                 }
 
-                // Перезаписываем LocalStorage новым форматом
                 this.saveData(migrated);
                 return migrated;
             }
 
-            // Страхуем массивы и ветки, если они отсутствуют
             if (parsed && !parsed.paths) parsed.paths = [];
             if (parsed && !parsed.hexes) parsed.hexes = {};
 
@@ -50,24 +63,18 @@ const StorageManager = {
         }
     },
 
-    /**
-     * Сериализация и запись пакета данных в локальное хранилище браузера
-     */
     saveData(data) {
         try {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+            if (data) this.mapDataRef = data;
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.mapDataRef));
         } catch (e) {
             console.error("Ошибка записи данных карты в localStorage:", e);
         }
     },
 
-    /**
-     * Точечное обновление полей конкретного гекса без создания глубоких копий всей базы
-     */
     updateHex(globalMapData, hexId, formData) {
         if (!globalMapData.hexes) globalMapData.hexes = {};
 
-        // [ОПТИМИЗАЦИЯ] Мутируем гекс быстрой деструктуризацией ссылки
         globalMapData.hexes[hexId] = {
             ...formData,
             hasVisited: !!(formData.squadHere || (globalMapData.hexes[hexId] && globalMapData.hexes[hexId].hasVisited)),
@@ -78,14 +85,10 @@ const StorageManager = {
         return globalMapData.hexes[hexId];
     },
 
-    /**
-     * Перемещение маркера отряда между гексами на уровне ядра данных
-     */
     moveSquad(globalMapData, newHexId) {
         let oldHexId = null;
         if (!globalMapData.hexes) return null;
 
-        // Находим прошлую позицию отряда и снимаем флаг присутствия
         for (let id in globalMapData.hexes) {
             if (globalMapData.hexes[id].squadHere === true) {
                 if (id !== newHexId) {
@@ -95,7 +98,6 @@ const StorageManager = {
             }
         }
 
-        // Помечаем целевую точку как посещенную и занятую отрядом
         if (globalMapData.hexes[newHexId]) {
             globalMapData.hexes[newHexId].squadHere = true;
             globalMapData.hexes[newHexId].hasVisited = true;
@@ -104,15 +106,11 @@ const StorageManager = {
         return oldHexId;
     },
 
-    /**
-     * Полное удаление гекса из дерева объектов с триггером перерисовки холста
-     */
     deleteHex(globalMapData, hexId) {
         if (globalMapData.hexes && globalMapData.hexes[hexId]) {
             delete globalMapData.hexes[hexId];
             this.saveData(globalMapData);
 
-            // [ОПТИМИЗАЦИЯ] Сбрасываем цвет удаленного сектора в кэше рендера
             if (HexCanvasRender && HexCanvasRender.colorCache && HexCanvasRender.colorCache[hexId]) {
                 delete HexCanvasRender.colorCache[hexId];
             }

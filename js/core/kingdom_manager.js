@@ -132,10 +132,9 @@ const KingdomManager = {
         { id: 'folklore', label: 'Традиции', ability: 'culture' },
         { id: 'statecraft', label: 'Управление', ability: 'loyalty' },
     ],
-    init(mapData, onSave) {
+    init(mapData) {
         try {
             this.mapDataRef = mapData || { hexes: {}, kingdom: null };
-            this.onSaveCallback = onSave;
 
             if (!this.mapDataRef.kingdom) {
                 this.mapDataRef.kingdom = JSON.parse(JSON.stringify(this.defaultState));
@@ -1709,16 +1708,12 @@ const KingdomManager = {
         this._persist();
         this.renderUi();
     },
+
     _persist() {
-        if (this.mapDataRef) {
-            this.mapDataRef.kingdom = this.state;
-        }
-        if (this.onSaveCallback) {
-            this.onSaveCallback();
-        } else {
-            localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
-        }
+        if (this.mapDataRef) this.mapDataRef.kingdom = this.state;
+        EventBus.emit('data:save');
     },
+
 
     _readInt(id, fallback = 0) {
         const el = document.getElementById(id);

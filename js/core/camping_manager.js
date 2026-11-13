@@ -19,10 +19,9 @@ const CampingManager = {
     mapDataRef: null,
     onSaveCallback: null,
 
-    init(mapData, onSave) {
+    init(mapData) {
         try {
             this.mapDataRef = mapData || { hexes: {}, kingdom: null, camping: null };
-            this.onSaveCallback = onSave;
 
             if (this.mapDataRef.camping) {
                 this.state = this.mapDataRef.camping;
@@ -569,8 +568,7 @@ const CampingManager = {
 
 
             if (this.mapDataRef) this.mapDataRef.camping = this.state;
-            if (this.onSaveCallback) this.onSaveCallback();
-            else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
+            EventBus.emit('data:save');
 
             if (window.HudWindowManager) window.HudWindowManager.close();
 

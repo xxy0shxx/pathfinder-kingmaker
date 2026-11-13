@@ -1,6 +1,7 @@
 import InitiativeAudio from '../services/initiative_audio.js';
 import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import { InitiativePhrases } from '../config/initiative_phrases.js';
+import EventBus from '../services/event_bus.js';
 
 /**
  * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ С ТВ-СТРЕЛКОЙ ХОДА И ВСПЫШКОЙ НОВОГО РАУНДА
@@ -19,10 +20,9 @@ const InitiativeManager = {
     _isInputsBound: false,
     _isGlobalKeyBound: false,
 
-    init(mapData, onSave) {
+    init(mapData) {
         try {
             this.mapDataRef = mapData || {hexes: {}, kingdom: null, initiative: null};
-            this.onSaveCallback = onSave;
 
             if (this.mapDataRef.initiative) {
                 this.state = this.mapDataRef.initiative;
@@ -34,6 +34,8 @@ const InitiativeManager = {
             } else {
                 this.mapDataRef.initiative = this.state;
             }
+
+            EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
 
             window.InitiativeManager = this;
             this.renderUi();
@@ -197,8 +199,7 @@ const InitiativeManager = {
 
     _saveWithoutSort() {
         if (this.mapDataRef) this.mapDataRef.initiative = this.state;
-        if (this.onSaveCallback) this.onSaveCallback();
-        else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
+        EventBus.emit('data:save');
 
         this.renderUi();
         this.scrollToActiveCombatant();

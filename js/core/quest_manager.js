@@ -1,5 +1,7 @@
 import { MAP_CONFIG } from '../config/app_config.js';
 import HudWindowManager from '../ui/hud_window_manager.js';
+import EventBus from '../services/event_bus.js';
+
 
 /**
  * Модуль для управления Журналом заданий и слухами Королевства

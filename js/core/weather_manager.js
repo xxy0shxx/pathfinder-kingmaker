@@ -15,9 +15,8 @@ const WeatherManager = {
     mapDataRef: null,
     onSaveCallback: null,
 
-    init(mapData, onSave) {
+    init(mapData) {
         this.mapDataRef = mapData || { hexes: {} };
-        this.onSaveCallback = onSave;
 
         // Миграция из старого сохранения королевства, если корневого weather ещё нет
         if (this.mapDataRef.weather) {
@@ -49,8 +48,7 @@ const WeatherManager = {
 
     _persist() {
         if (this.mapDataRef) this.mapDataRef.weather = this.state;
-        if (typeof this.onSaveCallback === 'function') this.onSaveCallback();
-        else localStorage.setItem('hexMapSystemData', JSON.stringify(this.mapDataRef));
+        EventBus.emit('data:save');
     },
 
     getCalendarInfo() {

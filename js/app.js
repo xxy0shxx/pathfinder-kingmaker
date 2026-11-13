@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Загрузка данных
     mapData = StorageManager.loadData();
+    StorageManager.init(mapData);
 
     // 2. Инициализация UI-макета и панелей управления
     LayoutManager.init();
@@ -150,14 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
     QuestManager.init(mapData.hexes, (hexId) => AnimationManager.focusOnHex(hexId));
 
     // Инициализация независимого календаря и погоды
-    WeatherManager.init(mapData, () => {
-        StorageManager.saveData(mapData);
-    });
+    WeatherManager.init(mapData);
 
     // Настройка менеджмента королевства
-    KingdomManager.init(mapData, () => {
-        StorageManager.saveData(mapData);
-    });
+    KingdomManager.init(mapData);
     KingdomManager.renderUi();
 
     // Настройка импорта файлов (FileManager)
@@ -196,9 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { PathManager.render(); }, 50);
     });
 
-    InitiativeManager.init(mapData, () => {
-        StorageManager.saveData(mapData);
-    });
+    InitiativeManager.init(mapData);
 
     // ============================================================================
     // КОЛЛБЭКИ МОДАЛЬНОГО ОКНА ГЕКСА
@@ -254,9 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (CampingManager && typeof CampingManager.init === 'function') {
-        CampingManager.init(mapData, () => {
-            StorageManager.saveData(mapData);
-        });
+        CampingManager.init(mapData);
     }
 
     TacticalMapManager.init();

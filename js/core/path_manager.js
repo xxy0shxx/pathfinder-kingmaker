@@ -1,6 +1,5 @@
-// PathManager.js
-
 import HexCanvasRender from './hex_canvas_render.js';
+import EventBus from '../services/event_bus.js';
 
 /**
  * Универсальный модуль для управления и отрисовки путей/маршрутов отряда (Pathfinding Log).
