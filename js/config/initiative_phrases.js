@@ -115,7 +115,7 @@ export const InitiativePhrases = {
             `«Кто вообще оставил здесь этот скользкий камень?!» — ворчит, вставая с земли, <span class="gold-unit-focus-name">🪨 ${activeName} 🪨</span>!`,
             `Помеха на атаку нипочем, когда в сердце горит ярость! Поднимается с пола <span class="gold-unit-focus-name">💢 ${activeName} 💢</span>!`,
             `«Я прилег буквально на секундочку, уже встаю!» — торопится вернуться в строй <span class="gold-unit-focus-name">⏱️ ${activeName} ⏱️</span>!`,
-            `Земля оказалась тверже, чем ожидалось, но уже снова на ногах <span class="gold-unit-focus-name">🦵 ${activeName} 🦵</span>!`
+            `Земля оказалась тверже, чем ожидалось, но уже снова на ногах <span class="gold-unit-focus-name">🦵 ${activeName} 🦵</span>!`,
             `«Я не упал, я просто резко перешел в режим скрытности на полу!» — уверяет лежащий <span class="gold-unit-focus-name">🥷 ${activeName} 🥷</span>!`,
             `Изучает геологический состав подземелья с максимально близкого расстояния <span class="gold-unit-focus-name">🔍 ${activeName} 🔍</span>!`,
             `«Враги просто не ожидают атаки из положения морской звезды!» — мыслит нестандартно <span class="gold-unit-focus-name">⭐ ${activeName} ⭐</span>!`,
@@ -135,7 +135,7 @@ export const InitiativePhrases = {
             `«Кто подставил мне подножку?! Признавайтесь, пока я не встал!» — грозит кулаком с пола <span class="gold-unit-focus-name">✊ ${activeName} ✊</span>!`,
             `Успел перевести дух на земле и с новыми силами возвращается в бой <span class="gold-unit-focus-name">🔋 ${activeName} 🔋</span>!`,
             `«В следующий раз точно возьму сапоги с шипами против скольжения!» — ворчит <span class="gold-unit-focus-name">🥾 ${activeName} 🥾</span>!`,
-            `Поднимается с колен под драматичную музыку в собственной голове наш <span class="gold-unit-focus-name">🎵 ${activeName} 🎵</span>!`
+            `Поднимается с колен под драматичную музыку в собственной голове наш <span class="gold-unit-focus-name">🎵 ${activeName} 🎵</span>!`,
 
         ];
     },
@@ -173,7 +173,7 @@ export const InitiativePhrases = {
             `«Видели, как кубик красиво крутился?!» — ликует за игровым столом <span class="gold-unit-focus-name">🎉 ${activeName} 🎉</span>!`,
             `Никаких модификаторов не нужно, когда на кубе горит чистая двадцатка! Вперед идет <span class="gold-unit-focus-name">🔱 ${activeName} 🔱</span>!`,
             `«Я почувствовал запах засады еще за три коридора до этой комнаты!» — хвастается <span class="gold-unit-focus-name">🐺 ${activeName} 🐺</span>!`,
-            `Звездный час настал! Под аплодисменты всего Пантеона начинает битву <span class="gold-unit-focus-name">🌠 ${activeName} 🌠</span>!`
+            `Звездный час настал! Под аплодисменты всего Пантеона начинает битву <span class="gold-unit-focus-name">🌠 ${activeName} 🌠</span>!`,
             `«Кто-нибудь, сфотографируйте этот кубик, пока я его не задел!» — кричит от восторга <span class="gold-unit-focus-name">📸 ${activeName} 📸</span>!`,
             `Боевой клич еще не прозвучал, а первый удар уже наносит сверхзвуковой <span class="gold-unit-focus-name">🌪️ ${activeName} 🌪️</span>!`,
             `«Я знал, что утренняя зарядка в таверне даст свои плоды!» — разминает плечи <span class="gold-unit-focus-name">🤸 ${activeName} 🤸</span>!`,
@@ -193,7 +193,7 @@ export const InitiativePhrases = {
             `«Подержите мое зелье, сейчас будет мастер-класс по тактике!» — выбегает вперед <span class="gold-unit-focus-name">🧪 ${activeName} 🧪</span>!`,
             `Грань 20 смотрит прямо в потолок! Звезды сошлись идеально, когда вступает в бой <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
             `«Даже не пытайтесь меня обогнать в этом раунде!» — бросает вызов всем <span class="gold-unit-focus-name">🏁 ${activeName} 🏁</span>!`,
-            `Легендарный старт! История этой великой битвы начинается с того, как ходит <span class="gold-unit-focus-name">📖 ${activeName} 📖</span>!`
+            `Легендарный старт! История этой великой битвы начинается с того, как ходит <span class="gold-unit-focus-name">📖 ${activeName} 📖</span>!`,
 
         ];
     },
@@ -252,7 +252,7 @@ export const InitiativePhrases = {
             `Натуральная 1! Даже слизень в углу подземелья оказался проворнее, чем <span class="gold-unit-focus-name">🦠 ${activeName} 🦠</span>!`,
             `«Кто вообще так криво построил этот стол, что кубы на единицу падают?!» — возмущается <span class="gold-unit-focus-name">😤 ${activeName} 😤</span>!`,
             `Зазевался, зевнул во весь рот и только сейчас понял, что начался замес, бедняга <span class="gold-unit-focus-name">😮 ${activeName} 😮</span>!`,
-            `Единица на инициативе — зато в любви повезет, утешает себя наш невезучий <span class="gold-unit-focus-name">💔 ${activeName} 💔</span>!`
+            `Единица на инициативе — зато в любви повезет, утешает себя наш невезучий <span class="gold-unit-focus-name">💔 ${activeName} 💔</span>!`,
 
         ];
     },
@@ -334,7 +334,7 @@ export const InitiativePhrases = {
             `«Подержите мой факел, сейчас я покажу этим гоблинам настоящий класс!» — кричит <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
             `Никакого страха, только легкая паника и тяжелый двуручник в руках! В бой идет <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
             `«Мастер, а бочка с маслом рядом с врагами ведь чисто случайно стоит?» — подмигивает <span class="gold-unit-focus-name">🛢️ ${activeName} 🛢️</span>!`,
-            `Собрав всю волю в кулак, совершает свой ход бесстрашный <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`
+            `Собрав всю волю в кулак, совершает свой ход бесстрашный <span class="gold-unit-focus-name">👑 ${activeName} 👑</span>!`,
 
         ];
     },
@@ -392,7 +392,7 @@ export const InitiativePhrases = {
                 `«У меня темное зрение на 60 футов, я все равно ничего не вижу!» — щурится в темноте <span class="gold-unit-focus-name">👁️ ${activeName} 👁️</span>!`,
                 `Короткий отдых нам только снится, поэтому из последних сил сражается наш <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span>!`,
                 `«А на это срабатывает провоцированная атака?» — с надеждой уточняет неосторожный <span class="gold-unit-focus-name">👣 ${activeName} 👣</span>!`,
-                `Клятва верности требует идти до конца, даже если в хитах остался единичка! Вперед шагает <span class="gold-unit-focus-name">🩸 ${activeName} 🩸</span>!`
+                `Клятва верности требует идти до конца, даже если в хитах остался единичка! Вперед шагает <span class="gold-unit-focus-name">🩸 ${activeName} 🩸</span>!`,
             ];
         },
 
@@ -472,7 +472,7 @@ export const InitiativePhrases = {
             `«Я сейчас покажу вам, что такое настоящий легендарный босс!» — ревет свирепый <span class="gold-unit-focus-name">🐉 ${activeName} 🐉</span>!`,
             `Вражеская тактика проста как топор, но работает безотказно! В атаку бросается <span class="gold-unit-focus-name">🪓 ${activeName} 🪓</span>!`,
             `«Ой, а у вас, кажется, закончились реакции на этот раунд?» — коварно улыбается <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
-            `Готовьтесь тратить все свои вдохновения и зелья! Свой сокрушительный ход делает <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`
+            `Готовьтесь тратить все свои вдохновения и зелья! Свой сокрушительный ход делает <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
 
         ];
     },
@@ -530,7 +530,7 @@ export const InitiativePhrases = {
             `«Он даже не поцарапался от моей высшей кары!» — в шоке замирает паладин, пока смеется <span class="gold-unit-focus-name">⛓️ ${activeName} ⛓️</span>!`,
             `Ловушки в этом подземелье были лишь разминкой! Настоящую боль приносит <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
             `«Кто вообще додумался разделить партию?!» — кричат герои, когда из тени выходит <span class="gold-unit-focus-name">🐾 ${activeName} 🐾</span>!`,
-            `Готовьте чистые листы персонажей! Свою смертоносную серию атак начинает <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`
+            `Готовьте чистые листы персонажей! Свою смертоносную серию атак начинает <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
         ];
     },
 
@@ -607,7 +607,7 @@ export const InitiativePhrases = {
             `«Погодите, я только достану блокнот, чтобы зарисовать этот эпический провал!» — радуется <span class="gold-unit-focus-name">🎨 ${activeName} 🎨</span>!`,
             `Случайно оказался не в том подземелье и не в то время! Озирается по сторонам <span class="gold-unit-focus-name">🧭 ${activeName} 🧭</span>!`,
             `«Не смотрите на меня так, я просто местный призрак и болею за красивый бой!» — парит <span class="gold-unit-focus-name">👻 ${activeName} 👻</span>!`,
-            `Хранит гробовое молчание и загадочно щурится, наводя жути на обе стороны, таинственный <span class="gold-unit-focus-name">🦉 ${activeName} 🦉</span>!`
+            `Хранит гробовое молчание и загадочно щурится, наводя жути на обе стороны, таинственный <span class="gold-unit-focus-name">🦉 ${activeName} 🦉</span>!`,
 
         ];
     }
