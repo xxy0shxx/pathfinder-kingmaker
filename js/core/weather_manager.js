@@ -127,7 +127,11 @@ const WeatherManager = {
             c.month += 1;
             if (c.month >= 12) { c.month = 0; c.year += 1; }
         }
-        if (c.day < 1) c.day = 1;
+        while (c.day < 1) {
+            c.month -= 1;
+            if (c.month < 0) { c.month = 11; c.year -= 1; }
+            c.day += (months[c.month]?.days || 30);
+        }
 
         this._persist();
         this.syncAllViews();
@@ -178,12 +182,16 @@ const WeatherManager = {
 
         return `
             <div class="w-shared-calendar-bar" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.42); border:1px solid #543e0d; border-radius:6px; padding:7px 12px; margin-bottom:10px; font-size:14px;">
-                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span style="color:#ffd875; font-weight:bold;">📅 ${cal.day} ${cal.monthName} ${cal.year} AR (${cal.weekdayName} / ${cal.weekdayRus})</span>
                     <span style="background:#040905; border:1px solid #8a6421; padding:2px 8px; border-radius:4px; color:#ebd291;">${cal.seasonLabel}</span>
-                    <button type="button" class="btn cc w-btn-next-day" style="padding:3px 8px; font-size:12px;">+1 День</button>
-                    <button type="button" class="btn cc w-btn-next-month" style="padding:3px 8px; font-size:12px;">+1 Месяц</button>
+                    <button type="button" class="btn cc w-btn-prev-day" title="Минус 1 день" style="padding:3px 7px; font-size:12px;">-1Д</button>
+                    <button type="button" class="btn cc w-btn-next-day" title="Плюс 1 день" style="padding:3px 7px; font-size:12px;">+1Д</button>
+                    <button type="button" class="btn cc w-btn-prev-month" title="Минус 1 месяц" style="padding:3px 7px; font-size:12px;">-1М</button>
+                    <button type="button" class="btn cc w-btn-next-month" title="Плюс 1 месяц" style="padding:3px 7px; font-size:12px;">+1М</button>
                 </div>
+                
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <button type="button" class="w-btn-weather-summary" title="Открыть сводку итогов погоды дня"
                             style="${badgeStyle} padding:3px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-family:inherit; font-size:13px;">
@@ -198,7 +206,9 @@ const WeatherManager = {
 
     bindBarEvents(rootEl) {
         if (!rootEl) return;
+        rootEl.querySelectorAll('.w-btn-prev-day').forEach(b => b.onclick = () => this.advanceCalendar(-1, 0));
         rootEl.querySelectorAll('.w-btn-next-day').forEach(b => b.onclick = () => this.advanceCalendar(1, 0));
+        rootEl.querySelectorAll('.w-btn-prev-month').forEach(b => b.onclick = () => this.advanceCalendar(0, -1));
         rootEl.querySelectorAll('.w-btn-next-month').forEach(b => b.onclick = () => this.advanceCalendar(0, 1));
         rootEl.querySelectorAll('.w-btn-open-roll').forEach(b => b.onclick = () => this.openWeatherRollModal());
         rootEl.querySelectorAll('.w-btn-weather-summary').forEach(b => b.onclick = () => this.showWeatherAppliedModal());
