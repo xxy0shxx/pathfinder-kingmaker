@@ -5607,3 +5607,103 @@ canvas[style*="position: fixed"] {
     min-width: 28px !important;
     padding: 2px 8px !important;
 }
+/* ============================================================================
+   ВЫРАВНИВАНИЕ «СЛ СЛУЧАЙНОЙ СЦЕНЫ» И «ТИП МЕСТНОСТИ» В ОДНУ СТРОЧКУ (ПРИВАЛ)
+   ============================================================================ */
+#campingTabletContainer .camping-region-bar .camp-param-box {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+}
+
+/* Левый блок с заголовком «СЛ случайной сцены» и типом местности в одну строку */
+#campingTabletContainer .camping-region-bar .camp-param-box > div:first-child {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px 14px !important;
+    flex: 1 !important;
+}
+
+/* Плашка «Тип местности: 🌾 Равнины (СЛ 12)» в одну линию с заголовком */
+#campingTabletContainer #campEncounterTerrainLabel {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 3px 10px !important;
+    background: rgba(4, 9, 5, 0.85) !important;
+    border: 1px solid #8a6421 !important;
+    border-radius: 5px !important;
+    font-size: 18px !important;
+    color: #ffd875 !important;
+    white-space: nowrap !important;
+}
+
+/* Защита правого блока кнопок (- 12 +) от сжатия */
+#campingTabletContainer .camping-region-bar .camp-count-controls {
+    flex-shrink: 0 !important;
+}
+/* ============================================================================
+   ФИКС ПРИВАЛА: ЗАЗОР МЕЖДУ ПОРТРЕТАМИ И КОМПАКТНАЯ ШАПКА ДЛЯ ДОКА СОЮЗНИКОВ
+   ============================================================================ */
+
+/* 1. Горизонтальный зазор между основным героем и помощником в блоке действия */
+#campingTabletContainer .camp-assigned-allies-group {
+    right: 14px !important;
+    gap: 14px !important;
+}
+
+/* Чуть увеличиваем правый отступ текста действия, чтобы название не наезжало на портреты */
+#campingTabletContainer .camp-invisible-table td.camp-act-cell {
+    padding-right: 175px !important;
+}
+
+/* 2. Компактные отступы верхней панели Привала, чтобы нижний док союзников всегда влезал */
+#campingTabletContainer .camping-left-col {
+    gap: 6px !important;
+    justify-content: flex-start !important;
+}
+
+#campingTabletContainer .camp-current-hex-banner {
+    padding: 7px 14px !important;
+    font-size: 20px !important;
+}
+
+#campingTabletContainer #campWeatherHost .w-shared-calendar-bar,
+#campingTabletContainer #campWeatherHost > div {
+    padding: 4px 10px !important;
+    margin-bottom: 5px !important;
+    font-size: 13px !important;
+}
+
+#campingTabletContainer .camping-region-bar {
+    padding: 8px 14px !important;
+    gap: 6px !important;
+}
+
+#campingTabletContainer .camp-param-label {
+    font-size: 20px !important;
+}
+
+#campingTabletContainer #campEncounterTerrainLabel {
+    font-size: 17px !important;
+}
+
+#campingTabletContainer .camp-invisible-table {
+    border-spacing: 0 7px !important;
+}
+
+#campingTabletContainer .camp-invisible-table td.camp-act-cell {
+    min-height: 76px !important;
+    padding-top: 9px !important;
+    padding-bottom: 9px !important;
+}
+
+#campingTabletContainer .camp-allies-dock {
+    margin-top: auto !important;
+    padding: 8px 12px !important;
+}
