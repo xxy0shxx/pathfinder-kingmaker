@@ -111,6 +111,21 @@ const KingdomSheetRenderer = {
                 const isReady = f.status === 'established' || f.status === 'allied';
                 const bonusMod = parseInt(f.circumstanceMod, 10) || 0;
 
+                const historyList = Array.isArray(f.history) ? f.history : [];
+                const degColors = ['#e74c3c', '#ff7675', '#2ecc71', '#ffd875'];
+                const historyHtml = historyList.length === 0
+                    ? `<div style="font-size:11px; color:#7f8c8d; font-style:italic; padding:4px 0;">Хроника переговоров пока пуста.</div>`
+                    : `<div style="max-height:105px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding-right:4px;">
+                        ${historyList.map(h => `
+                            <div style="font-size:11.5px; line-height:1.35; background:rgba(0,0,0,0.35); border-left:2.5px solid ${degColors[h.degree] || '#8a6421'}; padding:3px 7px; border-radius:3px;">
+                                <span style="color:#a4b0be; font-family:monospace;">[${h.date}]</span>
+                                <b style="color:#ffd875;">${h.action}:</b>
+                                <span style="color:${degColors[h.degree] || '#ebd291'};">${h.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>`;
+
+
                 return `
                     <div class="k-panel k-diplo-card" data-diplo-id="${f.id}" style="position:relative; border-color:${st.color};">
                         <button type="button" data-del-diplo="${f.id}" title="Удалить фракцию" style="position:absolute; top:8px; right:8px; background:#5c1e1e; border:1px solid #ff7675; color:#fff; border-radius:4px; cursor:pointer; width:24px; height:24px;">×</button>
@@ -149,6 +164,14 @@ const KingdomSheetRenderer = {
                         <div style="margin-bottom:8px;">
                             <label class="k-lbl">📝 Условия договоров и заметки</label>
                             <input type="text" class="k-inp k-diplo-notes" value="${f.notes || ''}" placeholder="Детали торгового пути, обязательства, заложники...">
+                        </div>
+                        
+                        <div style="margin-bottom:8px; background:rgba(4,9,5,0.6); border:1px solid rgba(84,62,13,0.5); border-radius:4px; padding:6px 8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                <span style="font-size:11px; font-weight:bold; color:#dfbc6f; text-transform:uppercase;">📜 Хроника отношений (${historyList.length})</span>
+                                ${historyList.length > 0 ? `<button type="button" data-clear-diplo-hist="${f.id}" title="Очистить историю этой фракции" style="background:none; border:none; color:#95a5a6; cursor:pointer; font-size:11px; padding:0;">Очистить</button>` : ''}
+                            </div>
+                            ${historyHtml}
                         </div>
 
                         <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; border-top:1px dashed rgba(138,100,33,0.35); padding-top:8px;">

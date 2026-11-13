@@ -1412,6 +1412,18 @@ const KingdomManager = {
             btn.addEventListener('click', () => this.removeFactionCard(btn.dataset.delDiplo));
         });
 
+        container.querySelectorAll('[data-clear-diplo-hist]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.saveFromUi();
+                const f = (this.state.diplomacy || []).find(item => item.id === btn.dataset.clearDiploHist);
+                if (f) {
+                    f.history = [];
+                    this._persist();
+                    this.renderUi();
+                }
+            });
+        });
+
         container.querySelectorAll('[data-diplo-act]').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.saveFromUi();

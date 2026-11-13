@@ -695,7 +695,15 @@ const KingdomModals = {
                     style: 'opacity:0.45;',
                     onClick: ({ close }) => {
                         if (lastDegree === null) return;
-                        this._applyDiplomacyOutcome(km, faction, actionType, lastDegree, dieSides);
+                        const d20 = parseInt(rollInp.value, 10) || 0;
+                        const dc = parseInt(dcInp.value, 10) || cfg.dc;
+                        const mod = km.getSkillTotal(skillSel.value) + circBonus;
+                        const skillLabel = skillSel.options[skillSel.selectedIndex]?.text || '';
+                        this._applyDiplomacyOutcome(km, faction, actionType, lastDegree, dieSides, {
+                            total: d20 + mod,
+                            dc,
+                            skillLabel
+                        });
                         close();
                     }
                 }
@@ -763,46 +771,94 @@ const KingdomModals = {
         });
     },
 
-    _applyDiplomacyOutcome(km, faction, actionType, deg, dieSides) {
+
+    _applyDiplomacyOutcome(km, faction, actionType, deg, dieSides, rollMeta = null) {
         const s = km.state;
         const rollDice = (count, sides) => Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1).reduce((a, b) => a + b, 0);
 
+        let summaryText = '';
+
         if (actionType === 'envoy') {
-            if (deg >= 2) {
+            if (deg === 3) {
                 faction.status = 'established';
-                faction.circumstanceMod = deg === 3 ? 2 : 0;
-                if (!s.firstDiplomacyXpClaimed) {
-                    s.firstDiplomacyXpClaimed = true;
-                    s.xp = (parseInt(s.xp, 10) || 0) + 60;
-                }
+                faction.circumstanceMod = 2;
+                summaryText = 'Крит. успех: дипотношения установлены (+2 бонус к переговорам).';
+            } else if (deg === 2) {
+                faction.status = 'established';
+                faction.circumstanceMod = 0;
+                summaryText = 'Успех: дипломатические отношения установлены.';
             } else if (deg === 1) {
                 faction.circumstanceMod = Math.min(2, (parseInt(faction.circumstanceMod, 10) || 0) + 1);
+                summaryText = 'Провал: отношения не установлены (+1 бонус к следующей попытке).';
             } else {
                 faction.status = 'hostile';
                 faction.circumstanceMod = -2;
                 s.unrest = (parseInt(s.unrest, 10) || 0) + 1;
+                summaryText = 'Крит. провал: посол схвачен/погиб! Враждебность (−2) и +1 Беспорядки.';
+            }
+
+            if (deg >= 2 && !s.firstDiplomacyXpClaimed) {
+                s.firstDiplomacyXpClaimed = true;
+                s.xp = (parseInt(s.xp, 10) || 0) + 60;
+                summaryText += ' Награда: +60 XP за первые дипотношения!';
             }
         } else if (actionType === 'trade') {
-            if (deg >= 2) {
+            if (deg === 3) {
+                const gain = rollDice(2, dieSides);
                 faction.tradeAgreement = true;
-                if (deg === 3) s.rp = (parseInt(s.rp, 10) || 0) + rollDice(2, dieSides);
-            } else if (deg === 0) {
+                s.rp = (parseInt(s.rp, 10) || 0) + gain;
+                summaryText = `Крит. успех: торговое соглашение заключено + немедленный доход +${gain} RP (2d${dieSides}).`;
+            } else if (deg === 2) {
+                faction.tradeAgreement = true;
+                summaryText = 'Успех: торговое соглашение заключено.';
+            } else if (deg === 1) {
+                summaryText = 'Провал: торговый договор не заключён.';
+            } else {
                 s.unrest = (parseInt(s.unrest, 10) || 0) + 1;
+                summaryText = 'Крит. провал: торговый скандал (+1 Беспорядки).';
             }
         } else if (actionType === 'aid') {
             if (deg === 3) {
-                s.rp = (parseInt(s.rp, 10) || 0) + rollDice(2, dieSides);
+                const gain = rollDice(2, dieSides);
+                s.rp = (parseInt(s.rp, 10) || 0) + gain;
+                summaryText = `Крит. успех: получена щедрая помощь +${gain} RP (2d${dieSides}) и бонус +4 к проверке.`;
             } else if (deg === 2) {
-                s.rp = (parseInt(s.rp, 10) || 0) + rollDice(1, dieSides);
-            } else if (deg === 0) {
+                const gain = rollDice(1, dieSides);
+                s.rp = (parseInt(s.rp, 10) || 0) + gain;
+                summaryText = `Успех: получена помощь +${gain} RP (1d${dieSides}) или +2 к проверке.`;
+            } else if (deg === 1) {
+                summaryText = 'Провал: союзник пришлёт +1d4 RP в начале следующего хода.';
+            } else {
                 faction.circumstanceMod = -2;
                 s.unrest = (parseInt(s.unrest, 10) || 0) + 1;
+                summaryText = 'Крит. провал: союзник оскорблён (−2 бонус отношений и +1 Беспорядки).';
             }
         }
+
+        // Формируем запись в хронику фракции с датой по календарю Голариона
+        if (!Array.isArray(faction.history)) faction.history = [];
+        const cal = window.WeatherManager?.getCalendarInfo?.();
+        const dateLabel = cal ? `${cal.day} ${cal.monthName} ${cal.year} AR` : `Ход королевства (Ур. ${s.level || 1})`;
+
+        const actionTitles = { envoy: '🕊️ Посол', trade: '⚖ Торговля', aid: '🎁 Помощь' };
+        const rollStr = rollMeta ? ` [${rollMeta.total} против СЛ ${rollMeta.dc}]` : '';
+
+        faction.history.unshift({
+            id: 'h_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            date: dateLabel,
+            action: actionTitles[actionType] || actionType,
+            degree: deg,
+            text: `${summaryText}${rollStr}`
+        });
+
+        // Храним до 20 последних записей на фракцию
+        if (faction.history.length > 20) faction.history.length = 20;
+
         km.recalculateModifiers();
         km._persist();
         km.renderUi();
     }
+
 
 
 
