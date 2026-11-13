@@ -92,9 +92,30 @@ export const InitiativePhrases = {
             `Главное в бою — вовремя вспомнить, где лежат лечебные зелья! Рассеянный <span class="gold-unit-focus-name">🧪 ${activeName} 🧪</span> роется в сумке!`,
             `Бросок на скрытность провален, но бой уже начался! Наш неосторожный <span class="gold-unit-focus-name">👣 ${activeName} 👣</span> привлекает всё внимание!`,
             `«Если я выкину единицу, я ухожу жить в таверну!» — торжественно обещает <span class="gold-unit-focus-name">🍺 ${activeName} 🍺</span>!`,
-            `Лист персонажа перечеркан до дыр, но боевой дух силен! Наш отчаянный <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span> начинает ходить!`
+            `Лист персонажа перечеркан до дыр, но боевой дух силен! Наш отчаянный <span class="gold-unit-focus-name">⚔️ ${activeName} ⚔️</span> начинает ходить!`,
+            `«Я трачу свое действие, чтобы пафосно поправить плащ!» — заявляет стильный <span class="gold-unit-focus-name">🧥 ${activeName} 🧥</span>!`,
+            `Математика D&D — штука сложная, поэтому на пальцах складывает бонусы <span class="gold-unit-focus-name">🧮 ${activeName} 🧮</span>!`,
+            `«Мастер, а за креативность будет преимущество на бросок?» — подмигивает хитрый <span class="gold-unit-focus-name">😉 ${activeName} 😉</span>!`,
+            `Когда заканчиваются аргументы и стрелы, в ход идут кулаки! Вперед летит <span class="gold-unit-focus-name">👊 ${activeName} 👊</span>!`,
+            `«Я использую "Уклонение" и молюсь всем богам Пантеона!» — шепчет осторожный <span class="gold-unit-focus-name">🙏 ${activeName} 🙏</span>!`,
+            `Вся надежда партии на то, что не промахнется наш меткий <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
+            `«А можно я сначала поем рацион, а потом ударю?» — уточняет голодный <span class="gold-unit-focus-name">🍗 ${activeName} 🍗</span>!`,
+            `Заклинание «Волшебная стрела» никогда не промахивается, радуется наш <span class="gold-unit-focus-name">✨ ${activeName} ✨</span>!`,
+            `«Если мы победим, я сочиню об этом балладу... и перевру все факты!» — обещает <span class="gold-unit-focus-name">🪕 ${activeName} 🪕</span>!`,
+            `Инвентарь забит хламом на триста фунтов, но в бой уверенно идет <span class="gold-unit-focus-name">🎒 ${activeName} 🎒</span>!`,
+            `«Я точно помню, что брал с собой веревку и крюк-кошку!» — роется в рюкзаке <span class="gold-unit-focus-name">🪢 ${activeName} 🪢</span>!`,
+            `Критическое попадание уже близко, чувствует это наш заряженный <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span>!`,
+            `«Не переживайте, у меня есть Слово Целителя на бонусное действие!» — успокаивает всех <span class="gold-unit-focus-name">💚 ${activeName} 💚</span>!`,
+            `Свиток с неизвестным заклинанием — отличная лотерея! Рискует бесстрашный <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
+            `«Я впадаю в Ярость и перестаю думать о последствиях!» — рычит неудержимый <span class="gold-unit-focus-name">💢 ${activeName} 💢</span>!`,
+            `Пять футов до врага не хватило, но не теряет оптимизма наш быстрый <span class="gold-unit-focus-name">👟 ${activeName} 👟</span>!`,
+            `«Погодите, у меня же есть Реакция на этот случай!» — радостно вспоминает <span class="gold-unit-focus-name">💡 ${activeName} 💡</span>!`,
+            `Вся тактика свелась к простому «бей сильнее», и ее блестяще исполняет <span class="gold-unit-focus-name">🔨 ${activeName} 🔨</span>!`,
+            `«Мастер, а этот гоблин выглядит дружелюбным?» — пытается в дипломатию добрый <span class="gold-unit-focus-name">🕊️ ${activeName} 🕊️</span>!`,
+            `Боевой дух на высоте, даже если хитов осталось на один чих! В бой идет <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`
         ];
     },
+
 
         _friendExtra(activeName) {
             return [
