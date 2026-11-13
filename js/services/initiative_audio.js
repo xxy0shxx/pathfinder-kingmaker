@@ -477,38 +477,57 @@ const InitiativeAudio = {
         });
     },
 
+
     _playDyingHeartbeat(ctx, now) {
-        // Двойной удар сердца с обертоном, чтобы хорошо читался на любых колонках
-        [0, 0.25].forEach((offset, idx) => {
-            const t = now + offset;
-            const subOsc = ctx.createOscillator();
-            const bodyOsc = ctx.createOscillator();
+        // Легендарное 3-нотное "ТУ-ДУ-ДУ" перед Fatality из Mortal Kombat 3 (Sega)
+        const notes = [
+            { freq: 146.83, time: 0.00, dur: 0.13 }, // ТУ (D3)
+            { freq: 155.56, time: 0.16, dur: 0.13 }, // ДУ (D#3)
+            { freq: 110.00, time: 0.32, dur: 0.45 }  // ДУУУ (A2 - низкий тревожный тритон)
+        ];
+
+        notes.forEach((n) => {
+            const t = now + n.time;
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const filter = ctx.createBiquadFilter();
             const gain = ctx.createGain();
 
-            subOsc.type = 'sine';
-            subOsc.frequency.setValueAtTime(idx === 0 ? 85 : 75, t);
-            subOsc.frequency.exponentialRampToValueAtTime(35, t + 0.18);
+            // Пила + квадрат дают характерный плотный FM-рык Sega Mega Drive
+            osc1.type = 'sawtooth';
+            osc2.type = 'square';
 
-            // Второй осциллятор на октаву выше дает плотный "удар в грудь"
-            bodyOsc.type = 'triangle';
-            bodyOsc.frequency.setValueAtTime(idx === 0 ? 170 : 150, t);
-            bodyOsc.frequency.exponentialRampToValueAtTime(55, t + 0.14);
+            osc1.frequency.setValueAtTime(n.freq, t);
+            osc2.frequency.setValueAtTime(n.freq * 0.5, t);
 
-            const peakVol = idx === 0 ? 0.75 : 0.60;
+            // Драматичный спад высоты на третьей длинной ноте
+            if (n.dur > 0.2) {
+                osc1.frequency.exponentialRampToValueAtTime(n.freq * 0.88, t + n.dur);
+                osc2.frequency.exponentialRampToValueAtTime(n.freq * 0.44, t + n.dur);
+            }
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1400, t);
+            filter.frequency.exponentialRampToValueAtTime(450, t + n.dur);
+
+            // Повышенная громкость, чтобы отчетливо пробивать эфир
             gain.gain.setValueAtTime(0.001, t);
-            gain.gain.linearRampToValueAtTime(peakVol, t + 0.015);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+            gain.gain.linearRampToValueAtTime(0.65, t + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + n.dur);
 
-            subOsc.connect(gain);
-            bodyOsc.connect(gain);
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain);
             gain.connect(ctx.destination);
 
-            subOsc.start(t);
-            bodyOsc.start(t);
-            subOsc.stop(t + 0.23);
-            bodyOsc.stop(t + 0.23);
+            osc1.start(t);
+            osc2.start(t);
+            osc1.stop(t + n.dur + 0.02);
+            osc2.stop(t + n.dur + 0.02);
         });
     },
+
+
 
     _playProneThud(ctx, now) {
         // Плотный глухой удар падения + лязг доспехов
