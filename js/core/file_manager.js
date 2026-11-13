@@ -81,7 +81,7 @@ const FileManager = {
             }
             fileInput.value = '';
         };
-        reader.readAsText(files);
+        reader.readAsText(files[0]);
     }
 };
 

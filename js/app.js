@@ -161,8 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Настройка импорта файлов (FileManager)
     FileManager.init();
 
+
     EventBus.on('data:imported', (newData) => {
         mapData = newData;
+        HexCanvasRender.updateData(mapData.hexes);
+        FogManager.syncMapFog(mapData.hexes);
+        if (HudWindowManager.isOpen() && ['active', 'completed', 'rumors'].includes(HudWindowManager.activeTab)) {
+            QuestManager.render();
+        }
         setTimeout(() => { PathManager.render(); }, 50);
     });
 
