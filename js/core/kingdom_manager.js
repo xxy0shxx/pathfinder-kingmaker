@@ -605,12 +605,20 @@ const KingdomManager = {
             }
         }
 
+        // Бонус обстоятельства от активных торговых соглашений (+1 за договор, макс. +3) для Торговли и Лодочного транспорта
+        const tradeAgreements = this.getActiveTradeAgreementsCount();
+        const tradeCircBonus = (['trade', 'boating'].includes(skillId) && tradeAgreements > 0)
+            ? Math.min(3, tradeAgreements)
+            : 0;
+        const effectiveCirc = Math.max(sk.circ || 0, tradeCircBonus);
+
         // Штраф от соответствующего Упадка (Ruin) и Беспокойства (Unrest)
         const ruinKey = Object.keys(this.ruinAbilityMap).find(k => this.ruinAbilityMap[k] === cfg.ability);
         const ruinPenalty = ruinKey ? (parseInt(this.state.ruins?.[ruinKey]?.penalty, 10) || 0) : 0;
         const unrestPenalty = this.getUnrestPenalty();
 
-        return abilityMod + profBonus + investedBonus + (sk.status || 0) + (sk.circ || 0) + (sk.item || 0) + (sk.other || 0) - ruinPenalty + unrestPenalty;
+        return abilityMod + profBonus + investedBonus + (sk.status || 0) + effectiveCirc + (sk.item || 0) + (sk.other || 0) - ruinPenalty + unrestPenalty;
+
     },
 
     openUpkeepModal() {
@@ -657,9 +665,11 @@ const KingdomManager = {
             }
         }
 
+        const tradeIncome = this.getActiveTradeAgreementsCount();
         const rpBefore = parseInt(s.rp, 10) || 0;
-        s.rp = rpBefore + (parseInt(rolledRp, 10) || 0);
-        changes.push(`<div>• <b>Очки ресурсов (RP):</b> ${rpBefore} → <b style="color:#ffd875;">${s.rp}</b></div>`);
+        s.rp = rpBefore + (parseInt(rolledRp, 10) || 0) + tradeIncome;
+        const tradeNote = tradeIncome > 0 ? ` (в т.ч. <b style="color:#2ecc71;">+${tradeIncome} RP</b> от торговых договоров)` : '';
+        changes.push(`<div>• <b>Очки ресурсов (RP):</b> ${rpBefore} → <b style="color:#ffd875;">${s.rp}</b>${tradeNote}</div>`);
 
         this.recalculateModifiers();
         this._persist();
@@ -725,9 +735,9 @@ const KingdomManager = {
         this.renderUi();
     },
 
-    openKingdomEventRollModal(recommendedEventId = null) {
+    openKingdomEventRollModal(suggestedEventId = null) {
         this.saveFromUi();
-        KingdomModals.openEventRoll(this, MAP_CONFIG.kingdomRandomEventsTable || [], recommendedEventId);
+        KingdomModals.openEventRoll(this, MAP_CONFIG.kingdomRandomEventsTable || [], suggestedEventId);
     },
 
 
@@ -1160,7 +1170,9 @@ const KingdomManager = {
 
         const btnHintEvent = container.querySelector('#kBtnHintOpenEvent');
         if (btnHintEvent) {
-            btnHintEvent.addEventListener('click', () => this.openKingdomEventRollModal(btnHintEvent.dataset.suggestEv || null));
+            btnHintEvent.addEventListener('click', () => {
+                this.openKingdomEventRollModal(btnHintEvent.dataset.suggestEv || null);
+            });
         }
 
         container.querySelectorAll('[data-del-ev]').forEach(btn => {
@@ -1466,6 +1478,13 @@ const KingdomManager = {
 
     getResourceDieSides() {
         return this.getNationTierInfo(this.state?.size).die;
+    },
+
+    getActiveTradeAgreementsCount() {
+        if (!Array.isArray(this.state?.diplomacy)) return 0;
+        return this.state.diplomacy.filter(
+            f => f.tradeAgreement && (f.status === 'established' || f.status === 'allied')
+        ).length;
     },
 
     recalculateModifiers() {

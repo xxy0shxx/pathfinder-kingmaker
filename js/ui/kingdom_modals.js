@@ -123,6 +123,7 @@ const KingdomModals = {
             bodyHtml: `
                 <div style="background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:15px; line-height:1.45;">
                     <div>• Добыча: <b>+${s.workSites.farmlands} Еды</b>, <b>+${s.workSites.lumberCamps} Древесины</b>, <b>+${s.workSites.mines} Руды</b>, <b>+${s.workSites.quarries} Камня</b></div>
+                    ${km.getActiveTradeAgreementsCount() > 0 ? `<div>• Торговые договоры: <b style="color:#2ecc71;">+${km.getActiveTradeAgreementsCount()} RP</b> пошлин за ход</div>` : ''}
                     <div>• Расход провизии: <b style="color:#ff7675;">-${s.consumption} Еды</b></div>
                 </div>
                 <label style="display:block; font-size:15px; font-weight:bold; color:#ffd875; margin-bottom:6px;">
@@ -379,12 +380,13 @@ const KingdomModals = {
     /**
      * 7. Фаза случайных событий королевства (d100)
      */
-    openEventRoll(km, eventsPool, recommendedEventId = null) {
+    openEventRoll(km, eventsPool, suggestedEventId = null) {
         if (!eventsPool || eventsPool.length === 0) return;
         const s = km.state;
         const baseCtrlDc = (parseInt(s.controlDcBase, 10) || 14) + (parseInt(s.controlDcSize, 10) || 0);
         const flatCheckDc = (Array.isArray(s.events) && s.events.some(ev => ev.status !== 'resolved')) ? 11 : 16;
         let selectedEvent = null;
+
 
 
 
@@ -403,14 +405,21 @@ const KingdomModals = {
                         <input type="number" id="kEvD100RollInp" class="k-inp" min="1" max="100" placeholder="1–100" style="width:105px; font-size:24px; font-weight:bold; text-align:center; color:#ffd875;">
                     </div>
                 </div>
+                
                 <div id="kEvTableGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:6px 12px; margin-bottom:14px; opacity:0.45; pointer-events:none;">
                     ${eventsPool.map(ev => {
-                const isRec = recommendedEventId && (ev.id === recommendedEventId || ev.title.toLowerCase().includes('бедств') || ev.title.toLowerCase().includes('неурожай'));
-                const recBorder = isRec ? '2px solid #ffd875' : '1px solid #543e0d';
-                const recBg = isRec ? 'rgba(255, 216, 117, 0.14)' : 'rgba(0,0,0,0.32)';
-                const recBadge = isRec ? '<span style="color:#ffd875; font-size:11px; margin-left:6px; border:1px solid #ffd875; padding:0 5px; border-radius:3px;">★ ПО ПОГОДЕ</span>' : '';
-                return `<div data-rand-ev-id="${ev.id}" data-min-roll="${ev.minRoll}" style="padding:7px 12px; border:${recBorder}; border-radius:5px; background:${recBg}; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:16px;">
-                            <span><b style="color:${ev.type === 'boon' ? '#2ecc71' : '#ff7675'};">${ev.minRoll}–${ev.maxRoll}</b> ${ev.icon} ${ev.title}${recBadge}</span>
+                const titleLow = (ev.title || '').toLowerCase();
+                const isSuggested = suggestedEventId && (
+                    ev.id === suggestedEventId ||
+                    (suggestedEventId === 'crop_failure' && (titleLow.includes('неурожай') || titleLow.includes('мор'))) ||
+                    (suggestedEventId === 'natural_disaster' && (titleLow.includes('стихийн') || titleLow.includes('бедств')))
+                );
+                const borderStyle = isSuggested ? '2px solid #ffd875' : '1px solid #543e0d';
+                const bgStyle = isSuggested ? 'rgba(255, 216, 117, 0.14)' : 'rgba(0,0,0,0.32)';
+                const badge = isSuggested ? ' <span style="background:#8a6421; color:#ffd875; font-size:11px; padding:1px 6px; border-radius:3px; margin-left:4px;">⚡ ПОГОДА</span>' : '';
+
+                return `<div data-rand-ev-id="${ev.id}" data-min-roll="${ev.minRoll}" data-suggested="${isSuggested ? '1' : '0'}" style="padding:7px 12px; border:${borderStyle}; border-radius:5px; background:${bgStyle}; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:16px;">
+                            <span><b style="color:${ev.type === 'boon' ? '#2ecc71' : '#ff7675'};">${ev.minRoll}–${ev.maxRoll}</b> ${ev.icon} ${ev.title}${badge}</span>
                             <span style="color:#a4b0be; font-size:14px;">СЛ ${baseCtrlDc + (ev.dcMod || 0)}</span>
                         </div>`;
             }).join('')}
@@ -455,11 +464,14 @@ const KingdomModals = {
             if (!passed) { selectedEvent = null; addBtn.disabled = true; return; }
             const d100 = parseInt(d100Inp.value, 10);
             selectedEvent = eventsPool.find(e => d100 >= e.minRoll && d100 <= e.maxRoll) || null;
+
             overlay.querySelectorAll('[data-rand-ev-id]').forEach(el => {
                 const hit = selectedEvent && el.dataset.randEvId === selectedEvent.id;
-                el.style.borderColor = hit ? '#ffd875' : '#543e0d';
-                el.style.background = hit ? 'rgba(255, 216, 117, 0.16)' : 'rgba(0,0,0,0.32)';
+                const isSug = el.dataset.suggested === '1';
+                el.style.borderColor = (hit || isSug) ? '#ffd875' : '#543e0d';
+                el.style.background = hit ? 'rgba(255, 216, 117, 0.22)' : (isSug ? 'rgba(255, 216, 117, 0.12)' : 'rgba(0,0,0,0.32)');
             });
+
             previewBox.innerHTML = selectedEvent ? `<b style="color:#ffd875;">${selectedEvent.icon} ${selectedEvent.title}</b><br>${selectedEvent.desc}` : 'Введите бросок d100 или выберите строку.';
             addBtn.disabled = !selectedEvent;
         };

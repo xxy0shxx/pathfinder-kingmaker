@@ -222,6 +222,7 @@ const KingdomSheetRenderer = {
                 ${cardsHtml}
             </div>
         `;
+
     },
 
     renderSheetTab(s, { roleNames, skillConfig, getSkillTotal }) {
@@ -311,7 +312,6 @@ const KingdomSheetRenderer = {
                         <input type="checkbox" id="k_leader_inv_${role}" ${l.invested ? 'checked' : ''}> ВКЛ
                     </label>
                     <span style="width:130px; font-size:13px; font-weight:bold; color:#dfbc6f;">${roleIcons[role] || '⚜️'} ${roleNames[role]}</span>
-                    <span style="width:115px; font-size:13px; font-weight:bold; color:#dfbc6f;">${roleNames[role]}</span>
                     <input type="text" id="k_leader_name_${role}" class="k-inp" value="${l.name}" placeholder="Имя..." style="flex:1; min-width:90px;">
                     <div class="k-leader-pips" style="display:flex; gap:3px; flex-shrink:0;" title="Действия лидера в фазу деятельности (${used}/${maxActions})">
                         ${pipsHtml}
@@ -392,11 +392,7 @@ const KingdomSheetRenderer = {
             : `<span style="color:#2ecc71;">✔ Вся территория связана</span>`;
 
         const farmlandCount = parseInt(s.workSites?.farmlands, 10) || 0;
-        const winterMod = parseInt(s.seasonalConsumptionMod, 10) || 0;
-        const consTags = [
-            winterMod > 0 ? `+${winterMod}❄️` : '',
-            farmlandCount > 0 ? `-${farmlandCount}🌾` : ''
-        ].filter(Boolean).join(' ');
+
         const bonusYield = s.siteBonusYield || {};
         const totalBonusSites = (bonusYield.lumberCamps || 0) + (bonusYield.mines || 0) + (bonusYield.quarries || 0);
 
