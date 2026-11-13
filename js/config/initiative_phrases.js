@@ -72,9 +72,31 @@ export const InitiativePhrases = {
             `Двадцать на кубе! Время остановилось, чтобы первым походил неподражаемый <span class="gold-unit-focus-name">⏳ ${activeName} ⏳</span>!`,
             `«Я просто подул на кубик перед броском!» — хвастается невероятно везучий <span class="gold-unit-focus-name">🌬️ ${activeName} 🌬️</span>!`,
             `Крит на инициативу! Этот парень явно продал душу за идеальные броски, встречайте — <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
-            `Натуральная 20! Даже дракон в соседней пещере зааплодировал, когда вступил в бой <span class="gold-unit-focus-name">🐉 ${activeName} 🐉</span>!`
+            `Натуральная 20! Даже дракон в соседней пещере зааплодировал, когда вступил в бой <span class="gold-unit-focus-name">🐉 ${activeName} 🐉</span>!`,
+            // --- 20 новых шуточных фраз (Именительный падеж) ---
+            `«Жаль, что эта двадцатка ушла на инициативу, а не на атаку!» — вздыхает, но ходит первым <span class="gold-unit-focus-name">😅 ${activeName} 😅</span>!`,
+            `Скорость света нервно курит в сторонке, когда врывается в раунд <span class="gold-unit-focus-name">🚀 ${activeName} 🚀</span>!`,
+            `«Я уже успел попить чаю и наточить клинок, пока вы тут инициативу кидали!» — ухмыляется <span class="gold-unit-focus-name">☕ ${activeName} ☕</span>!`,
+            `Этот кубик d20 заслуживает почетного места на бархатной подушечке! Торжествует <span class="gold-unit-focus-name">🏆 ${activeName} 🏆</span>!`,
+            `Реакция мангуста под тремя эспрессо! Первым срывается с места <span class="gold-unit-focus-name">⚡ ${activeName} ⚡</span>!`,
+            `«Мастер, запиши в летопись: я моргнул быстрее, чем началась драка!» — гордится <span class="gold-unit-focus-name">📜 ${activeName} 📜</span>!`,
+            `Природная двадцатка! Враги еще даже не поняли, что враждебны, а уже ходит <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
+            `«Спорим, я сейчас уложу их всех еще до конца первого раунда?!» — самоуверенно кричит <span class="gold-unit-focus-name">💪 ${activeName} 💪</span>!`,
+            `Грань с цифрой 20 сияет ярче солнца! На пике удачи находится <span class="gold-unit-focus-name">☀️ ${activeName} ☀️</span>!`,
+            `«Это не шулерство, это чистый скилл бросания кубов!» — оправдывается перед столом <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+            `Богиня удачи Тимора лично подкрутила этот бросок! Свой ход начинает <span class="gold-unit-focus-name">🪙 ${activeName} 🪙</span>!`,
+            `«Кто не успел, тот опоздал!» — кричит, оставляя всех в пыли, молниеносный <span class="gold-unit-focus-name">💨 ${activeName} 💨</span>!`,
+            `Идеальная двадцатка! Кажется, сегодня весь запас везения партии забрал себе <span class="gold-unit-focus-name">💎 ${activeName} 💎</span>!`,
+            `«А можно мне за такую красивую двадцатку еще одно бонусное действие?» — торгуется <span class="gold-unit-focus-name">😉 ${activeName} 😉</span>!`,
+            `Вражеский босс еще допивает утренний кофе, а перед ним уже стоит <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
+            `Рефлексы уровня «поймал стрелу на лету с закрытыми глазами»! Выступает <span class="gold-unit-focus-name">🦅 ${activeName} 🦅</span>!`,
+            `«Видели, как кубик красиво крутился?!» — ликует за игровым столом <span class="gold-unit-focus-name">🎉 ${activeName} 🎉</span>!`,
+            `Никаких модификаторов не нужно, когда на кубе горит чистая двадцатка! Вперед идет <span class="gold-unit-focus-name">🔱 ${activeName} 🔱</span>!`,
+            `«Я почувствовал запах засады еще за три коридора до этой комнаты!» — хвастается <span class="gold-unit-focus-name">🐺 ${activeName} 🐺</span>!`,
+            `Звездный час настал! Под аплодисменты всего Пантеона начинает битву <span class="gold-unit-focus-name">🌠 ${activeName} 🌠</span>!`
         ];
     },
+
 
     _nat1Phrases(activeName) {
         return [
@@ -89,9 +111,30 @@ export const InitiativePhrases = {
             `«А что мы вообще здесь делаем?» — протирает заспанные глаза неудачливый <span class="gold-unit-focus-name">🥱 ${activeName} 🥱</span>!`,
             `Единица на кубе! Уронил щит себе на ногу и только сейчас начинает ход <span class="gold-unit-focus-name">🛡️ ${activeName} 🛡️</span>!`,
             `Крит-провал! Пока все дрались, завязывал плащ и искал стрелы рассеянный <span class="gold-unit-focus-name">🏹 ${activeName} 🏹</span>!`,
-            `«Кажется, я забыл вытащить меч из ножен...» — краснеет от стыда <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`
+            `«Кажется, я забыл вытащить меч из ножен...» — краснеет от стыда <span class="gold-unit-focus-name">🗡️ ${activeName} 🗡️</span>!`,
+            `«Этот кубик сломан, несите другой!» — требует переброса расстроенный <span class="gold-unit-focus-name">🎲 ${activeName} 🎲</span>!`,
+            `Пинг 999 миллисекунд! Только сейчас прогрузился в боевую сцену наш <span class="gold-unit-focus-name">📡 ${activeName} 📡</span>!`,
+            `«Я просто хотел убедиться, что все остальные походят первыми!» — делает умный вид <span class="gold-unit-focus-name">🧐 ${activeName} 🧐</span>!`,
+            `Единица на инициативу! Споткнулся о воздух на ровном месте грациозный <span class="gold-unit-focus-name">🤸 ${activeName} 🤸</span>!`,
+            `«Ой, а у меня шлем задом наперед надет!» — поправляет экипировку растерянный <span class="gold-unit-focus-name">🪖 ${activeName} 🪖</span>!`,
+            `Пока все раздавали тумаки, внимательно читал инструкцию к зелью наш <span class="gold-unit-focus-name">🧪 ${activeName} 🧪</span>!`,
+            `«Это не единица, это перевернутый восклицательный знак!» — пытается обмануть Мастера <span class="gold-unit-focus-name">❗ ${activeName} ❗</span>!`,
+            `Натуральная 1! Даже камни в этой пещере проявили больше инициативы, чем <span class="gold-unit-focus-name">🪨 ${activeName} 🪨</span>!`,
+            `«Погодите, я еще не доел свой бутерброд!» — жует на ходу неторопливый <span class="gold-unit-focus-name">🥪 ${activeName} 🥪</span>!`,
+            `Кубик d20 предательски повернулся самой грустной гранью! Вздыхает обреченный <span class="gold-unit-focus-name">😩 ${activeName} 😩</span>!`,
+            `«Я не тормоз, я просто тщательно анализирую обстановку!» — оправдывается медленный <span class="gold-unit-focus-name">🧠 ${activeName} 🧠</span>!`,
+            `Единичка! Успел чихнуть, уронить факел и наступить на плащ наш неуклюжий <span class="gold-unit-focus-name">🔥 ${activeName} 🔥</span>!`,
+            `«Мастер, а с отрицательным модификатором Ловкости у меня вообще ноль получается?» — уточняет <span class="gold-unit-focus-name">📉 ${activeName} 📉</span>!`,
+            `Боги рандома сегодня явно встали не с той ноги! С грустной улыбкой вступает в бой <span class="gold-unit-focus-name">🥀 ${activeName} 🥀</span>!`,
+            `«Я просто даю врагам фору, чтобы бой был честным!» — храбрится в самом конце очереди <span class="gold-unit-focus-name">🎭 ${activeName} 🎭</span>!`,
+            `Единица на кубе! Запутался в собственном колчане и роняет стрелы на пол <span class="gold-unit-focus-name">🎯 ${activeName} 🎯</span>!`,
+            `«Кто-нибудь, толкните меня, а то я завис!» — моргает в недоумении застывший <span class="gold-unit-focus-name">🗿 ${activeName} 🗿</span>!`,
+            `С такой инициативой можно успеть только прибраться после боя! Включается в процесс <span class="gold-unit-focus-name">🧹 ${activeName} 🧹</span>!`,
+            `«Зато всю плохую карму я потратил на бросок инициативы!» — ищет плюсы оптимистичный <span class="gold-unit-focus-name">🍀 ${activeName} 🍀</span>!`,
+            `Крит-провал! С громким грохотом выронил мешок с золотом и только сейчас очнулся <span class="gold-unit-focus-name">💰 ${activeName} 💰</span>!`
         ];
     },
+
 
     _friendBase(activeName) {
         return [
