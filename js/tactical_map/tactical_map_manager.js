@@ -1,10 +1,12 @@
 // ============================================================================
-// ЧАСТЬ 1 ИЗ 10: ИМПОРТЫ, СТРУКТУРА ОБЪЕКТА И ВНУТРЕННЕЕ СОСТОЯНИЕ (STATE)
+// ИМПОРТЫ, СТРУКТУРА ОБЪЕКТА И ВНУТРЕННЕЕ СОСТОЯНИЕ (STATE)
 // ============================================================================
 
 import { MAP_CONFIG } from '../config/app_config.js';
 import { ColorConverter } from '../utils/helpers.js';
 import ViewportManager from '../services/viewport_manager.js';
+import EventBus from '../services/event_bus.js';
+import ModalManager from '../ui/modal_manager.js';
 
 /**
  * Модуль управления тактической боевой картой привала / лагеря (Tactical Grid)
@@ -31,7 +33,7 @@ const TacticalMapManager = {
         currentHexId: null
     },
     // ============================================================================
-    // ЧАСТЬ 2 ИЗ 10: МЕТОДЫ ИНИЦИАЛИЗАЦИИ И СМЕНЫ РЕЖИМОВ ОТОБРАЖЕНИЯ (INIT & SWITCH)
+    // МЕТОДЫ ИНИЦИАЛИЗАЦИИ И СМЕНЫ РЕЖИМОВ ОТОБРАЖЕНИЯ (INIT & SWITCH)
     // ============================================================================
 
     /**
@@ -53,6 +55,13 @@ const TacticalMapManager = {
         self.initFormEventListeners();
         self.initFogToggleButton();
         self.initGridEventDelegation();
+
+        EventBus.on('fog:toggled', (isEnabled) => {
+            self.state.isCampFogEnabled = isEnabled;
+            if (self.state.currentMapMode === 'camp') {
+                self.recalculateCampFogOfWar();
+            }
+        });
     },
 
     /**
@@ -127,6 +136,7 @@ const TacticalMapManager = {
 
 
         } else if (mode === 'camp') {
+            self.state.isCampFogEnabled = MAP_CONFIG.isGlobalFogEnabled;
             mapImg.src = self.campParams.src;
             mapContainer.style.width = self.campParams.width + 'px';
             mapContainer.style.height = self.campParams.height + 'px';
@@ -393,25 +403,7 @@ const TacticalMapManager = {
      * Инициализация кнопки глобального переключения Тумана Войны для обеих карт
      */
     initFogToggleButton() {
-        const self = TacticalMapManager;
-        const btnToggleFog = document.getElementById('btnToggleFog');
-        if (!btnToggleFog) return;
-
-        btnToggleFog.addEventListener('click', () => {
-            self.state.isCampFogEnabled = !self.state.isCampFogEnabled;
-
-            MAP_CONFIG.isGlobalFogEnabled = self.state.isCampFogEnabled;
-
-            btnToggleFog.classList.toggle('fog-disabled', !self.state.isCampFogEnabled);
-            btnToggleFog.classList.toggle('active', self.state.isCampFogEnabled);
-            btnToggleFog.textContent = self.state.isCampFogEnabled ? '👁️' : '👓';
-
-            if (self.state.currentMapMode === 'camp') {
-                self.recalculateCampFogOfWar();
-            } else if (self.state.currentMapMode === 'global' && window.HexCanvasRender) {
-                window.HexCanvasRender.requestFrame();
-            }
-        });
+        // Обработка перенесена в единый FogManager.init()
     },
 
     // ============================================================================
@@ -1335,9 +1327,19 @@ const TacticalMapManager = {
                 if (dragData.fromId === squareId) return;
                 const oldData = self.state.campMapData[dragData.fromId];
                 if (!oldData) return;
+
                 if (self.state.campMapData[squareId] && (self.state.campMapData[squareId].heroHere || self.state.campMapData[squareId].monsterHere)) {
-                    alert("Эта клетка уже занята!"); return;
+                    ModalManager.open({
+                        id: 'campCellBusyModal',
+                        title: '⚠ Клетка занята',
+                        borderColor: '#e74c3c',
+                        width: '360px',
+                        bodyHtml: '<div style="font-size:17px; color:#ebd291;">На этой клетке уже находится другой персонаж!</div>',
+                        footerButtons: [{ label: 'Понятно', variant: 'ok' }]
+                    });
+                    return;
                 }
+
                 self.clearVisualPath();
                 self.state.focusedEntityId = null;
                 self.state.campMapData[squareId] = {

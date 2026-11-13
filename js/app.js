@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     UiPanelManager.init();
+    FogManager.init();
     SoundPlayer.init();
     UiSelectManager.init();
     ViewportManager.init();

@@ -13,6 +13,7 @@ const UiSelectManager = {
         this.initWorkSiteGuard();
     },
 
+
     /**
      * Самодостаточная защита списка рабочих участков внутри #hexMenu
      */
@@ -274,12 +275,6 @@ const UiSelectManager = {
         }, true);
 
         document.addEventListener('click', (e) => {
-            if (e.target.closest('#hexMenu') || e.target.closest('#mapCanvas')) {
-                setTimeout(syncGuard, 20);
-            }
-        }, true);
-
-        document.addEventListener('click', (e) => {
             if (e.target.closest('#mapCanvas')) {
                 const menu = document.getElementById('hexMenu');
                 if (menu && window.HexCanvasRender?.hoveredHexKey) {
@@ -293,6 +288,7 @@ const UiSelectManager = {
 
 
     },
+
 
 
     /**
