@@ -479,11 +479,11 @@ const InitiativeAudio = {
 
 
     _playDyingHeartbeat(ctx, now) {
-        // Легендарное 3-нотное "ТУ-ДУ-ДУ" перед Fatality из Mortal Kombat 3 (Sega)
+        // Замедленное 3-нотное "ТУ — ДУ — ДУУУ" перед Fatality из Mortal Kombat 3 (Sega)
         const notes = [
-            { freq: 146.83, time: 0.00, dur: 0.13 }, // ТУ (D3)
-            { freq: 155.56, time: 0.16, dur: 0.13 }, // ДУ (D#3)
-            { freq: 110.00, time: 0.32, dur: 0.45 }  // ДУУУ (A2 - низкий тревожный тритон)
+            { freq: 146.83, time: 0.00, dur: 0.18 }, // ТУ (D3)
+            { freq: 155.56, time: 0.23, dur: 0.18 }, // ДУ (D#3)
+            { freq: 110.00, time: 0.46, dur: 0.62 }  // ДУУУ (A2 - затяжной низкий финал)
         ];
 
         notes.forEach((n) => {
@@ -493,26 +493,24 @@ const InitiativeAudio = {
             const filter = ctx.createBiquadFilter();
             const gain = ctx.createGain();
 
-            // Пила + квадрат дают характерный плотный FM-рык Sega Mega Drive
             osc1.type = 'sawtooth';
             osc2.type = 'square';
 
             osc1.frequency.setValueAtTime(n.freq, t);
             osc2.frequency.setValueAtTime(n.freq * 0.5, t);
 
-            // Драматичный спад высоты на третьей длинной ноте
-            if (n.dur > 0.2) {
-                osc1.frequency.exponentialRampToValueAtTime(n.freq * 0.88, t + n.dur);
-                osc2.frequency.exponentialRampToValueAtTime(n.freq * 0.44, t + n.dur);
+            // Плавный драматичный спад высоты на третьей длинной ноте
+            if (n.dur > 0.3) {
+                osc1.frequency.exponentialRampToValueAtTime(n.freq * 0.86, t + n.dur);
+                osc2.frequency.exponentialRampToValueAtTime(n.freq * 0.43, t + n.dur);
             }
 
             filter.type = 'lowpass';
             filter.frequency.setValueAtTime(1400, t);
-            filter.frequency.exponentialRampToValueAtTime(450, t + n.dur);
+            filter.frequency.exponentialRampToValueAtTime(420, t + n.dur);
 
-            // Повышенная громкость, чтобы отчетливо пробивать эфир
             gain.gain.setValueAtTime(0.001, t);
-            gain.gain.linearRampToValueAtTime(0.65, t + 0.015);
+            gain.gain.linearRampToValueAtTime(0.65, t + 0.02);
             gain.gain.exponentialRampToValueAtTime(0.001, t + n.dur);
 
             osc1.connect(filter);
