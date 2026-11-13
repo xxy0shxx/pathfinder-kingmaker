@@ -5558,3 +5558,52 @@ canvas[style*="position: fixed"] {
         font-size: 14px !important;
     }
 }
+/* ============================================================================
+   КОМПАКТНЫЙ БЛОК «БАЗОВЫЕ ПРОВЕРКИ / СЛ СЛУЧАЙНОЙ СЦЕНЫ» В ПРИВАЛЕ
+   ============================================================================ */
+#campingTabletContainer .camping-left-col {
+    gap: 8px !important;
+}
+
+#campingTabletContainer .camping-region-bar {
+    padding: 8px 14px !important;
+    gap: 6px !important;
+}
+
+#campingTabletContainer .camp-param-box {
+    min-height: 30px !important;
+}
+
+#campingTabletContainer .camp-param-label {
+    font-size: 18px !important;
+    line-height: 1.2 !important;
+}
+
+#campingTabletContainer #campEncounterTerrainLabel {
+    font-size: 16px !important;
+    margin-top: 2px !important;
+    padding-top: 4px !important;
+    border-top: 1px dashed rgba(138, 100, 33, 0.35) !important;
+}
+
+/* Компактное окошко с кнопками - и + */
+#campingTabletContainer .camp-count-controls {
+    padding: 2px 10px !important;
+    gap: 10px !important;
+    border-width: 1.5px !important;
+}
+
+#campingTabletContainer .camp-count-controls button {
+    font-size: 22px !important;
+    line-height: 1 !important;
+    padding: 0 4px !important;
+}
+
+/* Компактные цифры 2 и 12 (включая плашку СЛ случайной сцены) */
+#campingTabletContainer #campBaseChecksVal,
+#campingTabletContainer #campCheckModVal {
+    font-size: 20px !important;
+    line-height: 1.1 !important;
+    min-width: 28px !important;
+    padding: 2px 8px !important;
+}
