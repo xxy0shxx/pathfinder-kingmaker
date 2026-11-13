@@ -96,6 +96,9 @@ const InitiativeManager = {
             return;
         }
 
+        const autoAvatarType = AvatarRegistry.guessAvatarByName(cleanName);
+        const autoAvatarUrl = autoAvatarType ? AvatarRegistry.getAvatarDataUrl(autoAvatarType) : null;
+
         const newUnit = {
             id: 'unit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
             name: cleanName,
@@ -104,8 +107,8 @@ const InitiativeManager = {
             isNat20: !!isNat20,
             isNat1: !!isNat1,
             status: 'active', // 'active' | 'dying' | 'prone' | 'out'
-            avatarType: null,
-            avatar: null
+            avatarType: autoAvatarType,
+            avatar: autoAvatarUrl
         };
 
         this.state.combatants.push(newUnit);

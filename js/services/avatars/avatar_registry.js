@@ -137,7 +137,132 @@ const AvatarRegistry = {
             renderGroup('📜 Сюжетные NPC и Жители', AVATAR_CATALOG.npc),
             renderGroup('⚔️ Герои и Спутники', AVATAR_CATALOG.heroes)
         ].join('');
-    }
+    },
+
+    guessAvatarByName(name) {
+        if (!name) return null;
+        const clean = String(name).toLowerCase().replace(/ё/g, 'е').trim();
+        if (!clean) return null;
+
+        // 1. Собираем все элементы каталога и сортируем по длине названия (от длинных к коротким),
+        // чтобы "Скелет-Воин" матчился раньше, чем просто "Скелет"
+        const allItems = [
+            ...AVATAR_CATALOG.heroes,
+            ...AVATAR_CATALOG.npc,
+            ...AVATAR_CATALOG.monsters
+        ].map(item => {
+            // Убираем эмодзи и текст в скобках для чистого сравнения имени
+            const title = item.label
+                .replace(/^[^\p{L}]+/u, '')
+                .replace(/\(.*?\)/g, '')
+                .toLowerCase()
+                .replace(/ё/g, 'е')
+                .trim();
+            return { id: item.id, title };
+        }).sort((a, b) => b.title.length - a.title.length);
+
+        for (const item of allItems) {
+            if (item.title.length >= 3 && clean.includes(item.title)) {
+                return item.id;
+            }
+        }
+
+        // 2. Словарь корней и синонимов для склонений ("Волки", "Лютоволк", "Бурый медведь", "Совомед")
+        const keywordMap = [
+            // Герои Pathfinder и классы
+            { keys: ['амири'], id: 'amiri' },
+            { keys: ['валери'], id: 'valerie' },
+            { keys: ['харрим'], id: 'harrim' },
+            { keys: ['тристиан'], id: 'tristian' },
+            { keys: ['линдзи'], id: 'linzi' },
+            { keys: ['джейтал'], id: 'jaethal' },
+            { keys: ['джубилост'], id: 'jubilost' },
+            { keys: ['нок-нок', 'нокнок'], id: 'nok_nok' },
+            { keys: ['экандейо', 'экан'], id: 'ekundayo' },
+            { keys: ['октавия'], id: 'octavia' },
+            { keys: ['регонгар'], id: 'regongar' },
+            { keys: ['каликке'], id: 'kalikke' },
+            { keys: ['канера'], id: 'kanerah' },
+            { keys: ['такси', 'табакси', 'котолюд'], id: 'tabaxi_monk' },
+            { keys: ['паладин'], id: 'paladin' },
+            { keys: ['варвар'], id: 'barbarian' },
+            { keys: ['бард'], id: 'bard' },
+            { keys: ['лучник', 'стрелок'], id: 'archer' },
+            { keys: ['волшебниц', 'чародейк', 'колдунь'], id: 'wizardess' },
+            { keys: ['маг', 'волшебник', 'чародей', 'колдун'], id: 'wizard' },
+            { keys: ['жрец', 'клирик'], id: 'priestess' },
+            { keys: ['разбойник', 'плут', 'вор', 'убийц'], id: 'rogue' },
+            { keys: ['охотник', 'следопыт'], id: 'hunter' },
+            { keys: ['дварф', 'гном'], id: 'dwarf' },
+            { keys: ['эльф'], id: 'elf' },
+            { keys: ['полурослик', 'хоббит'], id: 'halfling' },
+
+            // NPC
+            { keys: ['тарт', 'тартуччио'], id: 'halfling_male' },
+            { keys: ['кестен'], id: 'kesten' },
+            { keys: ['джод'], id: 'jhod' },
+            { keys: ['нирисс'], id: 'nyrissa' },
+            { keys: ['празил'], id: 'prazil' },
+            { keys: ['бандит', 'разбойник', 'грабител'], id: 'bandit_captain' },
+            { keys: ['страж', 'охранник'], id: 'guard' },
+            { keys: ['торгов', 'купец'], id: 'merchant' },
+
+            // Монстры и звери
+            { keys: ['лютоволк', 'варг'], id: 'warg' },
+            { keys: ['волк', 'волчиц'], id: 'wolf' },
+            { keys: ['медвесыч', 'совомед'], id: 'owlbear' },
+            { keys: ['медвед'], id: 'bear' },
+            { keys: ['кабан', 'вепр'], id: 'boar' },
+            { keys: ['паук-охотник'], id: 'hunter_spider' },
+            { keys: ['паук-людоед'], id: 'ambush_spider' },
+            { keys: ['паук'], id: 'spider' },
+            { keys: ['скелет-воин'], id: 'skeleton_warrior' },
+            { keys: ['рыцарь смерти'], id: 'death_knight' },
+            { keys: ['циклоп'], id: 'cyclops_skeleton' },
+            { keys: ['скелет'], id: 'skeleton' },
+            { keys: ['зомби', 'мертвец', 'упыр'], id: 'zombie' },
+            { keys: ['гоблин'], id: 'goblin' },
+            { keys: ['кобольд'], id: 'kobold' },
+            { keys: ['орк'], id: 'orc_warrior' },
+            { keys: ['огр'], id: 'ogre' },
+            { keys: ['тролл'], id: 'troll' },
+            { keys: ['великан', 'гигант'], id: 'frost_giant' },
+            { keys: ['виверн'], id: 'bloom_wyvern' },
+            { keys: ['дракончик'], id: 'faerie_dragon' },
+            { keys: ['дракон'], id: 'dragon' },
+            { keys: ['боггард', 'жаболюд'], id: 'boggard' },
+            { keys: ['жаб', 'лягушк'], id: 'toad' },
+            { keys: ['жиж', 'слиз'], id: 'green_ooze' },
+            { keys: ['иллитид', 'свежевател'], id: 'mind_flayer' },
+            { keys: ['карг', 'ведьм'], id: 'hag' },
+            { keys: ['крыс'], id: 'giant_rat' },
+            { keys: ['людоящер', 'ящеролюд'], id: 'lizardfolk' },
+            { keys: ['мантикор'], id: 'manticore' },
+            { keys: ['мамонт'], id: 'grey_mammoth' },
+            { keys: ['митфлит'], id: 'mitflit' },
+            { keys: ['олен', 'лос'], id: 'deer' },
+            { keys: ['птица-рух', 'рух', 'орел', 'орёл'], id: 'black_roc' },
+            { keys: ['ворон'], id: 'raven' },
+            { keys: ['тигр'], id: 'tiger' },
+            { keys: ['тилацин'], id: 'thylacine' },
+            { keys: ['кот', 'кошк'], id: 'cat' },
+            { keys: ['гриб'], id: 'violet_mushroom' },
+            { keys: ['дриад', 'нимф'], id: 'dryad' },
+            { keys: ['сатир'], id: 'satyr_dryad' },
+            { keys: ['ходок', 'шамбл'], id: 'shambling_mound' },
+            { keys: ['черв'], id: 'worm' },
+            { keys: ['клещ'], id: 'tick' }
+        ];
+
+        for (const entry of keywordMap) {
+            if (entry.keys.some(k => clean.includes(k))) {
+                return entry.id;
+            }
+        }
+
+        return null;
+    },
+
 };
 
 export default AvatarRegistry;
