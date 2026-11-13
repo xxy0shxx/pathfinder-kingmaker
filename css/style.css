@@ -5707,3 +5707,46 @@ canvas[style*="position: fixed"] {
     margin-top: auto !important;
     padding: 8px 12px !important;
 }
+/* ============================================================================
+   ОДНА СТРОКА ДЛЯ СЛ СЛУЧАЙНОЙ СЦЕНЫ И ТИПА МЕСТНОСТИ + ОТСТУП МЕЖДУ СОЮЗНИКАМИ
+   ============================================================================ */
+
+/* 1. Выстраиваем «🎲 СЛ случайной сцены» и «Тип местности» строго в одну строку */
+#campingTabletContainer .camping-region-bar .camp-param-box:has(#campEncounterTerrainLabel),
+#campingTabletContainer .camping-region-bar .camp-param-box:has(#campCheckModVal) {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+}
+
+#campingTabletContainer #campEncounterTerrainLabel {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    margin-left: auto !important;
+    padding: 3px 10px !important;
+    background: rgba(4, 9, 5, 0.85) !important;
+    border: 1px solid #8a6421 !important;
+    border-radius: 4px !important;
+    font-size: 18px !important;
+    color: #ffd875 !important;
+}
+
+/* 2. Увеличиваем горизонтальный отступ между 6 портретами в нижнем доке союзников */
+#campingTabletContainer .camp-allies-grid {
+    gap: 18px !important;
+    padding: 4px 2px !important;
+}
+
+/* 3. Увеличиваем горизонтальный отступ между основным героем и помощником в блоках действий */
+#campingTabletContainer .camp-assigned-allies-group {
+    gap: 16px !important;
+}
+
+#campingTabletContainer .camp-invisible-table td.camp-act-cell {
+    padding-right: 178px !important;
+}
