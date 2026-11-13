@@ -194,7 +194,6 @@ const WeatherManager = {
         `;
     },
 
-
     renderCombatEffectsHtml() {
         const cal = this.getCalendarInfo();
         const alerts = [];

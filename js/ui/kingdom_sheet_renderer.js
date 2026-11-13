@@ -396,6 +396,13 @@ const KingdomSheetRenderer = {
         const bonusYield = s.siteBonusYield || {};
         const totalBonusSites = (bonusYield.lumberCamps || 0) + (bonusYield.mines || 0) + (bonusYield.quarries || 0);
 
+        const winterBonus = parseInt(s._winterConsumptionBonus, 10) || 0;
+        const consNotes = [];
+        if (winterBonus > 0) consNotes.push(`+${winterBonus}❄️`);
+        if (farmlandCount > 0) consNotes.push(`-${farmlandCount}🌾`);
+        const consBadge = consNotes.length > 0 ? ` (${consNotes.join(' ')})` : '';
+
+
         return `
             <div class="k-grid-2col" style="display:grid; grid-template-columns: 1.1fr 1fr; gap:16px;">
                 <div>
@@ -425,7 +432,7 @@ const KingdomSheetRenderer = {
                             <div><label class="k-lbl">🗺️ Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
                             <div><label class="k-lbl">🪙 Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
                             <div><label class="k-lbl">💢 Беспорядки</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
-                            <div><label class="k-lbl">🍖 Потребл. ${consTags ? `(${consTags})` : ''}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселений + здания + перенаселение + зима (${winterMod}) − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                            <div><label class="k-lbl">🍖 Потребл.${consBadge}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселения + здания + армии + зима (${winterBonus}) − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                             <div><label class="k-lbl">🏆 Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
                             <div><label class="k-lbl">🎯 СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
                         </div>

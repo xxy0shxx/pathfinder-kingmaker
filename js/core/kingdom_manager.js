@@ -135,6 +135,7 @@ const KingdomManager = {
         { id: 'folklore', label: 'Традиции', ability: 'culture' },
         { id: 'statecraft', label: 'Управление', ability: 'loyalty' },
     ],
+
     init(mapData) {
         try {
             this.mapDataRef = mapData || { hexes: {}, kingdom: null };
@@ -147,7 +148,10 @@ const KingdomManager = {
 
             EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
             EventBus.on('map:hexesChanged', () => this.syncFromHexMap(true));
-            EventBus.on('weather:updated', () => this.renderUi());
+            EventBus.on('weather:updated', () => {
+                this.recalculateModifiers();
+                this.renderUi();
+            });
 
 
             this.state = this.mapDataRef.kingdom;
@@ -1544,18 +1548,19 @@ const KingdomManager = {
             });
         }
 
-        // 2. Итоговое потребление королевства = (города + армии) минус фермы
+        // 2. Итоговое потребление королевства = (города + армии + зима) минус фермы
         const armiesConsumption = (this.state.armies || []).reduce(
             (sum, a) => sum + (parseInt(a.consumption, 10) || 0),
             0
         );
 
         const cal = window.WeatherManager?.getCalendarInfo?.();
-        const winterPenalty = (cal?.season === 'winter') ? 1 : 0;
-        this.state.seasonalConsumptionMod = winterPenalty;
+        const winterPenalty = (cal && cal.season === 'winter') ? 1 : 0;
+        this.state._winterConsumptionBonus = winterPenalty;
 
         const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
         this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption + winterPenalty - farmlandReduction);
+
     },
 
     /**
