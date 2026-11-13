@@ -1154,6 +1154,12 @@ const KingdomManager = {
             btnRollEvent.addEventListener('click', () => this.openKingdomEventRollModal());
         }
 
+        const btnHintEvent = container.querySelector('#kBtnHintOpenEvent');
+        if (btnHintEvent) {
+            btnHintEvent.addEventListener('click', () => this.openKingdomEventRollModal());
+        }
+
+
         container.querySelectorAll('[data-del-ev]').forEach(btn => {
             btn.addEventListener('click', () => this.removeEventCard(btn.dataset.delEv));
         });
@@ -1544,8 +1550,12 @@ const KingdomManager = {
             0
         );
 
+        const cal = window.WeatherManager?.getCalendarInfo?.();
+        const winterPenalty = (cal?.season === 'winter') ? 1 : 0;
+        this.state.seasonalConsumptionMod = winterPenalty;
+
         const farmlandReduction = parseInt(this.state.workSites?.farmlands, 10) || 0;
-        this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption - farmlandReduction);
+        this.state.consumption = Math.max(0, allSettlementsConsumption + armiesConsumption + winterPenalty - farmlandReduction);
     },
 
     /**

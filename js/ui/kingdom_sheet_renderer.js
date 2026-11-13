@@ -70,11 +70,32 @@ const KingdomSheetRenderer = {
             </div>
         `;
 
-
         const calendarBarHtml = window.WeatherManager
             ? window.WeatherManager.renderCompactBarHtml()
             : '';
 
+        const cal = window.WeatherManager?.getCalendarInfo?.();
+        let gmWeatherHintHtml = '';
+        if (cal) {
+            const hints = [];
+            if (cal.season === 'winter') {
+                hints.push('❄️ <b>Зимний сезон:</b> +1 к Потреблению королевства на обогрев и запасы.');
+            }
+            if (cal.hazard) {
+                const suggestedEvent = ['wildfire', 'drought'].includes(cal.hazard.id)
+                    ? '«🥀 Неурожай / Мор скота»'
+                    : '«🌪️ Стихийное бедствие»';
+                hints.push(`⚡ <b>Фаза событий:</b> из-за явления <i>${cal.hazard.label}</i> в конце хода можно разыграть событие ${suggestedEvent}.`);
+            }
+            if (hints.length > 0) {
+                gmWeatherHintHtml = `
+                    <div style="background:rgba(255, 216, 117, 0.08); border:1px solid #8a6421; border-radius:6px; padding:6px 12px; margin-bottom:10px; font-size:13px; color:#ebd291; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;">
+                        <div style="display:flex; flex-direction:column; gap:2px;">${hints.map(h => `<div>${h}</div>`).join('')}</div>
+                        ${cal.hazard ? `<button type="button" class="btn cc" id="kBtnHintOpenEvent" style="padding:3px 10px; font-size:12px; white-space:nowrap;">🎲 К проверке события</button>` : ''}
+                    </div>
+                `;
+            }
+        }
 
         let bodyHtml = '';
         if (activeSubTab === 'sheet') bodyHtml = this.renderSheetTab(state, helpers);
@@ -87,6 +108,7 @@ const KingdomSheetRenderer = {
             <div class="kingdom-sheet-wrapper" style="padding:14px 20px; color:#ebd291; font-family:'Tinos', serif;">
                 ${tabButtons}
                 ${calendarBarHtml}
+                ${gmWeatherHintHtml}
                 ${bodyHtml}
             </div>
         `;
@@ -366,6 +388,11 @@ const KingdomSheetRenderer = {
             : `<span style="color:#2ecc71;">✔ Вся территория связана</span>`;
 
         const farmlandCount = parseInt(s.workSites?.farmlands, 10) || 0;
+        const winterMod = parseInt(s.seasonalConsumptionMod, 10) || 0;
+        const consTags = [
+            winterMod > 0 ? `+${winterMod}❄️` : '',
+            farmlandCount > 0 ? `-${farmlandCount}🌾` : ''
+        ].filter(Boolean).join(' ');
         const bonusYield = s.siteBonusYield || {};
         const totalBonusSites = (bonusYield.lumberCamps || 0) + (bonusYield.mines || 0) + (bonusYield.quarries || 0);
 
@@ -398,7 +425,7 @@ const KingdomSheetRenderer = {
                             <div><label class="k-lbl">🗺️ Размер</label><input type="number" id="k_size" class="k-inp" value="${s.size}"></div>
                             <div><label class="k-lbl">🪙 Очки (RP)</label><input type="number" id="k_rp" class="k-inp" value="${s.rp}"></div>
                             <div><label class="k-lbl">💢 Беспорядки</label><input type="number" id="k_unrest" class="k-inp" value="${s.unrest}"></div>
-                            <div><label class="k-lbl">🍖 Потребл. ${farmlandCount > 0 ? `(-${farmlandCount}🌾)` : ''}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселения + здания + перенаселение − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
+                            <div><label class="k-lbl">🍖 Потребл. ${consTags ? `(${consTags})` : ''}</label><input type="number" id="k_consumption" class="k-inp" value="${s.consumption}" readonly title="База поселений + здания + перенаселение + зима (${winterMod}) − фермы (${farmlandCount})" style="background:#0d2415; border-color:#8a6421; color:#ffd875; font-weight:bold; cursor:help;"></div>
                             <div><label class="k-lbl">🏆 Слава</label><input type="number" id="k_fame" class="k-inp" value="${s.fame}"></div>
                             <div><label class="k-lbl">🎯 СЛ Контроля (${ctrlDc})</label><input type="number" id="k_ctrl_dc_base" class="k-inp" value="${s.controlDcBase}"></div>
                         </div>
