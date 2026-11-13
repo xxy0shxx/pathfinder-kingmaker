@@ -5541,3 +5541,20 @@ canvas[style*="position: fixed"] {
 .init-lightning-active {
     animation: initLightningFlash 0.75s ease-out;
 }
+#initiativeTabletContainer .w-combat-weather-reminder {
+    font-size: 16px !important;
+}
+
+@media (max-height: 1000px) {
+    #initiativeTabletContainer .w-shared-calendar-bar {
+        padding: 5px 10px !important;
+        margin-bottom: 6px !important;
+        font-size: 14px !important;
+    }
+
+    #initiativeTabletContainer .w-combat-weather-reminder {
+        padding: 5px 10px !important;
+        margin-bottom: 6px !important;
+        font-size: 14px !important;
+    }
+}

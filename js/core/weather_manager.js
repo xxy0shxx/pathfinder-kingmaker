@@ -170,6 +170,31 @@ const WeatherManager = {
         rootEl.querySelectorAll('.w-btn-active-hazard').forEach(b => b.onclick = () => this.openActiveHazardDetailsModal());
     },
 
+    renderCombatWeatherAlertHtml() {
+        const cal = this.getCalendarInfo();
+        const alerts = [];
+
+        if (cal.precip) {
+            alerts.push('🌧️ <b>Осадки:</b> ситуативный штраф <b>−1 к Вниманию</b> (зрение)');
+        }
+        if (cal.hazard) {
+            alerts.push(`⚡ <b>${cal.hazard.icon} ${cal.hazard.label} (${cal.hazard.levelText}):</b> ${cal.hazard.effect}`);
+        }
+
+        if (alerts.length === 0) return '';
+
+        const isDanger = !!cal.hazard;
+        const borderCol = isDanger ? '#e74c3c' : '#3498db';
+        const bgCol = isDanger ? 'rgba(92, 30, 30, 0.25)' : 'rgba(52, 152, 219, 0.14)';
+
+        return `
+            <div class="w-combat-weather-reminder" style="background:${bgCol}; border:1.5px solid ${borderCol}; border-radius:6px; padding:7px 14px; margin-bottom:10px; font-size:15px; line-height:1.4; color:#ebd291; display:flex; flex-direction:column; gap:3px;">
+                ${alerts.map(line => `<div>${line}</div>`).join('')}
+            </div>
+        `;
+    },
+
+
     renderCombatEffectsHtml() {
         const cal = this.getCalendarInfo();
         const alerts = [];

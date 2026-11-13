@@ -474,7 +474,7 @@ const InitiativeManager = {
         if (weatherHost && window.WeatherManager) {
             weatherHost.innerHTML =
                 window.WeatherManager.renderCompactBarHtml() +
-                window.WeatherManager.renderCombatEffectsHtml();
+                window.WeatherManager.renderCombatWeatherAlertHtml();
             window.WeatherManager.bindBarEvents(weatherHost);
         }
 
