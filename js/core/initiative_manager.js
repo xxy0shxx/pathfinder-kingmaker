@@ -13,7 +13,8 @@ const InitiativeManager = {
         round: 1,
         viewMode: 'classic',
         phraseSeed: 0,
-        audioPreset: 'gong'
+        audioPreset: 'horn',
+        weatherFxEnabled: true
     },
     mapDataRef: null,
     onSaveCallback: null,
@@ -30,7 +31,8 @@ const InitiativeManager = {
                 if (this.state.round === undefined || isNaN(this.state.round)) this.state.round = 1;
                 if (this.state.viewMode === undefined) this.state.viewMode = 'classic';
                 if (this.state.phraseSeed === undefined) this.state.phraseSeed = 0;
-                if (this.state.audioPreset === undefined) this.state.audioPreset = 'gong';
+                if (this.state.audioPreset === undefined) this.state.audioPreset = 'horn';
+                if (this.state.weatherFxEnabled === undefined) this.state.weatherFxEnabled = true;
             } else {
                 this.mapDataRef.initiative = this.state;
             }
@@ -44,6 +46,11 @@ const InitiativeManager = {
         } catch (e) {
             console.error("Ошибка инициализации InitiativeManager:", e);
         }
+    },
+
+    toggleWeatherFx() {
+        this.state.weatherFxEnabled = !this.state.weatherFxEnabled;
+        this._saveWithoutSort();
     },
 
     bindGlobalHotkeys() {
@@ -319,9 +326,16 @@ const InitiativeManager = {
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     },
 
+
     _syncWeatherVisualEffects(container) {
         let fxLayer = container.querySelector('.init-weather-fx-layer');
         const cal = window.WeatherManager?.getCalendarInfo?.();
+
+        // Если эффекты выключены кнопкой или погоды нет — убираем слой
+        if (this.state.weatherFxEnabled === false || !cal || (!cal.precip && !cal.hazard)) {
+            if (fxLayer) fxLayer.remove();
+            return;
+        }
 
         if (!cal || (!cal.precip && !cal.hazard)) {
             if (fxLayer) fxLayer.remove();
@@ -394,18 +408,20 @@ const InitiativeManager = {
                                 </div>
 
                             
-                            <select id="initSelectAudioPreset" style="background: #090f0b; border: 1px solid #543e0d; color: #ebd291; height: 50px; padding: 4px 10px; font-weight: bold; font-size: 14px; border-radius: 4px; cursor: pointer;">
-                                <option value="bell">💎 Звук: Колокольчик</option>
-                                <option value="drum">🥁 Звук: Drum&Bass</option>
-                                <option value="magic">🔮 Звук: Techno</option>
-                                <option value="horn">📯 Звук: Боевой Рог</option>
-                                <option value="thunder">⚡ Звук: Combat</option>
-                                <option value="blade">⚔️ Звук: Клинки</option>
-                                <option value="anvil">🔨 Звук: Наковальня</option>
-                                <option value="gong">🔔 Звук: Гонг</option>
-                                <option value="none">🔇 Без звука (Только вспышка)</option>
+                            <select id="initSelectAudioPreset" style="background: #090f0b; border: 1px solid #543e0d; color: #ebd291; height: 50px; padding: 4px 6px; font-weight: bold; font-size: 13px; border-radius: 4px; cursor: pointer; max-width: 175px;">
+                                <option value="bell">💎 Колокольчик</option>
+                                <option value="drum">🥁 Drum&Bass</option>
+                                <option value="magic">🔮 Techno</option>
+                                <option value="horn">📯 Боевой Рог</option>
+                                <option value="thunder">⚡ Combat</option>
+                                <option value="blade">⚔️ Клинки</option>
+                                <option value="anvil">🔨 Наковальня</option>
+                                <option value="gong">🔔 Гонг</option>
+                                <option value="none">🔇 Без звука</option>
                             </select>
+                            <button type="button" id="initBtnToggleWeatherFx" class="init-btn-view-toggle" title="Включить/выключить анимацию погоды (снег, дождь, туман)" style="padding: 0 12px !important; font-size: 18px !important;">🌧️</button>
                             <button type="button" id="initBtnToggleView" class="init-btn-view-toggle" title="Сменить стиль отображения">⚔️ Режим: Список / Горизонт</button>
+
                             <button type="button" class="btn ok" id="initBtnNextTurn" style="flex-grow: 1; height: 50px; font-size: 18px; font-weight: 900; letter-spacing: 1px;">🛡️ СЛЕДУЮЩИЙ ХОД</button>
                         </div>
                         <div class="init-quick-input-bar" style="margin-top: 14px;">
@@ -453,6 +469,9 @@ const InitiativeManager = {
                 e.stopPropagation();
                 this.advanceRounds(100);
             });
+
+            document.getElementById('initBtnToggleWeatherFx')?.addEventListener('click', () => this.toggleWeatherFx());
+
 
             if (audioSel) {
                 audioSel.value = this.state.audioPreset || 'gong';
@@ -518,6 +537,14 @@ const InitiativeManager = {
         const isBg3 = this.state.viewMode === 'bg3';
         listContainer.classList.toggle('mode-bg3', isBg3);
         document.getElementById('initBtnToggleView').textContent = isBg3 ? '🏹 Режим: Горизонт' : '📜 Режим: Список';
+
+        const fxBtn = document.getElementById('initBtnToggleWeatherFx');
+        if (fxBtn) {
+            const isFxOn = this.state.weatherFxEnabled !== false;
+            fxBtn.textContent = isFxOn ? '🌧️' : '🚫';
+            fxBtn.classList.toggle('fx-disabled', !isFxOn);
+            fxBtn.title = isFxOn ? 'Анимация погоды: ВКЛ (нажмите, чтобы отключить)' : 'Анимация погоды: ВЫКЛ (нажмите, чтобы включить)';
+        }
 
         const roundNumEl = document.getElementById('initRoundCounterNum');
         if (roundNumEl) roundNumEl.textContent = this.state.round;

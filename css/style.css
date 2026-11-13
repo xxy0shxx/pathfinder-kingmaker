@@ -5792,3 +5792,14 @@ canvas[style*="position: fixed"] {
     background: linear-gradient(135deg, rgba(116, 125, 140, 0.14), rgba(16, 18, 22, 0.94)) !important;
     box-shadow: 0 0 14px rgba(116, 125, 140, 0.25) !important;
 }
+/* Компактная панель управления боем и кнопка отключения погодных эффектов */
+.init-master-battle-control-bar {
+    gap: 10px !important;
+}
+
+#initBtnToggleWeatherFx.fx-disabled {
+    background: linear-gradient(180deg, #5c1e1e 0%, #3a1111 100%) !important;
+    border-color: #823030 !important;
+    color: #f7baba !important;
+    opacity: 0.85;
+}
