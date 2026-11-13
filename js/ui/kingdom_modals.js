@@ -108,6 +108,7 @@ const KingdomModals = {
         setTimeout(() => rollInp.focus(), 50);
     },
 
+
     /**
      * 2. Фаза содержания (Upkeep)
      */
@@ -115,6 +116,7 @@ const KingdomModals = {
         const s = km.state;
         const diceCount = (parseInt(s.level, 10) || 1) + 4;
         const dieSides = km.getResourceDieSides();
+        const tradeIncome = km.getActiveTradeAgreementsCount();
 
         const { overlay, close } = ModalManager.open({
             id: 'kUpkeepModalOverlay',
@@ -123,6 +125,7 @@ const KingdomModals = {
             bodyHtml: `
                 <div style="background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:15px; line-height:1.45;">
                     <div>• Добыча: <b>+${s.workSites.farmlands} Еды</b>, <b>+${s.workSites.lumberCamps} Древесины</b>, <b>+${s.workSites.mines} Руды</b>, <b>+${s.workSites.quarries} Камня</b></div>
+                    ${tradeIncome > 0 ? `<div>• Торговые договоры: <b style="color:#2ecc71;">+${tradeIncome} RP</b> пошлин за ход</div>` : ''}
                     ${km.getActiveTradeAgreementsCount() > 0 ? `<div>• Торговые договоры: <b style="color:#2ecc71;">+${km.getActiveTradeAgreementsCount()} RP</b> пошлин за ход</div>` : ''}
                     <div>• Расход провизии: <b style="color:#ff7675;">-${s.consumption} Еды</b></div>
                 </div>
@@ -289,6 +292,7 @@ const KingdomModals = {
         const renderTrade = () => {
             const s = km.state;
             const curRp = parseInt(s.rp, 10) || 0;
+            const effectiveSell = Math.min(info.buy, info.sell + (activeTrades > 0 ? 1 : 0));
             const rowsHtml = Object.entries(rates).map(([key, info]) => {
                 const c = s.commodities[key] || { value: 0, max: 4 };
                 const canBuy = curRp >= info.buy && c.value < c.max;
@@ -300,6 +304,13 @@ const KingdomModals = {
                     <td style="text-align:center;"><button type="button" class="btn cc k-trade-sell" data-comm="${key}" ${canSell ? '' : 'disabled'} style="padding:5px 10px; font-size:12px; opacity:${canSell ? '1' : '0.4'};">-1 → +${info.sell} RP</button></td>
                 </tr>`;
             }).join('');
+
+            const tradeBanner = activeTrades > 0
+                ? `<div style="background:rgba(46,204,113,0.14); border:1px solid #2ecc71; border-radius:4px; padding:6px 10px; margin-bottom:10px; font-size:13px; color:#2ecc71;">
+                🤝 Активных торговых договоров: <b>${activeTrades}</b> (+1 RP к продаже товаров!)
+                </div>`
+                : '';
+
 
             const { overlay } = ModalManager.open({
                 id: 'kTradeModalOverlay',

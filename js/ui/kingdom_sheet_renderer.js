@@ -121,6 +121,19 @@ const KingdomSheetRenderer = {
     renderDiplomacyTab(s) {
         const factions = Array.isArray(s.diplomacy) ? s.diplomacy : [];
 
+        const activeTradesCount = factions.filter(
+            f => f.tradeAgreement && (f.status === 'established' || f.status === 'allied')
+        ).length;
+        const skillTradeBonus = Math.min(3, activeTradesCount);
+        const tradeBannerHtml = activeTradesCount > 0
+            ? `<div style="background:rgba(46, 204, 113, 0.12); border:1px solid #2ecc71; border-radius:6px; padding:6px 12px; margin-bottom:12px; font-size:13px; color:#ebd291; display:flex; flex-wrap:wrap; gap:14px; align-items:center;">
+                   <span style="color:#2ecc71; font-weight:bold;">⚖ Активных торговых договоров: ${activeTradesCount}</span>
+                   <span>• Пассивный доход в фазу содержания: <b style="color:#ffd875;">+${activeTradesCount} RP / ход</b></span>
+                   <span>• Бонус к навыкам <i>Торговля</i> и <i>Лодочный транспорт</i>: <b style="color:#2ecc71;">+${skillTradeBonus} обст.</b></span>
+               </div>`
+            : '';
+
+
         const statusMeta = {
             none:        { label: '🌫️ Нет отношений',      color: '#95a5a6' },
             established: { label: '🤝 Дипотношения',        color: '#2ecc71' },
@@ -218,6 +231,7 @@ const KingdomSheetRenderer = {
                     <button type="button" class="btn ok" id="kBtnAddFaction">+ Добавить фракцию</button>
                 </div>
             </div>
+            ${tradeBannerHtml}
             <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:14px;">
                 ${cardsHtml}
             </div>

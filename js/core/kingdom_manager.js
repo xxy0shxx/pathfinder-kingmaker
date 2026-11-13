@@ -605,20 +605,17 @@ const KingdomManager = {
             }
         }
 
-        // Бонус обстоятельства от активных торговых соглашений (+1 за договор, макс. +3) для Торговли и Лодочного транспорта
         const tradeAgreements = this.getActiveTradeAgreementsCount();
         const tradeCircBonus = (['trade', 'boating'].includes(skillId) && tradeAgreements > 0)
             ? Math.min(3, tradeAgreements)
             : 0;
         const effectiveCirc = Math.max(sk.circ || 0, tradeCircBonus);
 
-        // Штраф от соответствующего Упадка (Ruin) и Беспокойства (Unrest)
         const ruinKey = Object.keys(this.ruinAbilityMap).find(k => this.ruinAbilityMap[k] === cfg.ability);
         const ruinPenalty = ruinKey ? (parseInt(this.state.ruins?.[ruinKey]?.penalty, 10) || 0) : 0;
         const unrestPenalty = this.getUnrestPenalty();
 
         return abilityMod + profBonus + investedBonus + (sk.status || 0) + effectiveCirc + (sk.item || 0) + (sk.other || 0) - ruinPenalty + unrestPenalty;
-
     },
 
     openUpkeepModal() {
