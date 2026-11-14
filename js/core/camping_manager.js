@@ -21,6 +21,26 @@ const CampingManager = {
 
     init(mapData) {
         try {
+            const campTableBody = document.querySelector('#campingTabletContainer .camp-invisible-table tbody')
+                || document.querySelector('#campingTabletContainer .camp-invisible-table');
+
+            if (campTableBody && !document.getElementById('row_watch')) {
+                const rowWatch = document.createElement('tr');
+                rowWatch.id = 'row_watch';
+                rowWatch.style.display = 'table-row';
+                rowWatch.innerHTML = `
+        <td class="camp-act-cell">
+            <span class="act-name">👁️ Дозор</span>
+            <div id="label_dc_watch"><span class="skill-name-large">внимание СЛ 14</span></div>
+        </td>
+        <td><label class="cs"><input type="radio" name="res_watch" value="crit_success"></label></td>
+        <td><label class="ss"><input type="radio" name="res_watch" value="success"></label></td>
+        <td><label class="ff"><input type="radio" name="res_watch" value="failure"></label></td>
+        <td><label class="cf"><input type="radio" name="res_watch" value="crit_failure"></label></td>
+    `;
+                campTableBody.appendChild(rowWatch);
+            }
+
             this.mapDataRef = mapData || { hexes: {}, kingdom: null, camping: null };
 
             if (this.mapDataRef.camping) {
@@ -35,13 +55,15 @@ const CampingManager = {
             EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
             EventBus.on('weather:updated', () => this.recalculateCamp());
 
-
             window.CampingManager = this;
             this.syncCountersUi();
             this.recalculateCamp();
             this.attachInputListeners();
-        } catch (e) { console.error("Ошибка инициализации CampingManager:", e); }
+        } catch (e) {
+            console.error("Ошибка инициализации CampingManager:", e);
+        }
     },
+
 
     updateMapData(newMapData) {
         try {
@@ -141,15 +163,6 @@ const CampingManager = {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
         return checked ? checked.value : null;
     },
-    // ============================================================================
-    // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
-    // ============================================================================
-
-
-    // ============================================================================
-    // МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 2 ИЗ 3
-    // ============================================================================
-
 
 
 
@@ -221,19 +234,23 @@ const CampingManager = {
             const prepareRes = this.getSelectedRadio('res_prepare');
             const camoRow = document.getElementById('row_camouflage');
             const huntRow = document.getElementById('row_hunt');
+            const watchRow = document.getElementById('row_watch');
             const isCampHorrible = (prepareRes === 'crit_failure');
 
             if (isCampHorrible) {
                 if (camoRow) camoRow.style.display = 'none';
                 if (huntRow) huntRow.style.display = 'none';
-                document.querySelectorAll('input[name="res_camouflage"], input[name="res_hunt"]').forEach(r => r.checked = false);
+                if (watchRow) watchRow.style.display = 'none';
+                document.querySelectorAll('input[name="res_camouflage"], input[name="res_hunt"], input[name="res_watch"]').forEach(r => r.checked = false); // <-- ОБНОВИТЬ
             } else {
                 if (camoRow) camoRow.style.display = 'table-row';
                 if (huntRow) huntRow.style.display = 'table-row';
+                if (watchRow) watchRow.style.display = 'table-row';
             }
 
             const camoRes = this.getSelectedRadio('res_camouflage');
             const huntRes = this.getSelectedRadio('res_hunt');
+            const watchRes = this.getSelectedRadio('res_watch');
 
             let prepareDcModifier = 0;
             if (prepareRes === 'failure') prepareDcModifier = 2;
@@ -245,13 +262,18 @@ const CampingManager = {
                 return isNaN(val) ? 1 : Math.max(-1, Math.min(2, val));
             };
 
-            const calWeather = window.KingdomManager?.getCalendarInfo?.()?.weather || { huntDcMod: 0, encDcMod: 0 };
+            const calInfo = window.WeatherManager?.getCalendarInfo?.() || window.KingdomManager?.getCalendarInfo?.() || {};
+            const calWeather = calInfo.weather || { huntDcMod: 0, encDcMod: 0 };
             const weatherHuntMod = parseInt(calWeather.huntDcMod, 10) || 0;
             const weatherEncMod = parseInt(calWeather.encDcMod, 10) || 0;
+            const weatherWatchMod = calInfo.precip ? 1 : 0; // Осадки дают -1 к Вниманию (+1 к СЛ дозора)
 
             const finalPrepareDc = Math.max(1, baseRegionDc - getHelperBonus(0));
             const finalCamoDc = Math.max(1, baseRegionDc + prepareDcModifier - getHelperBonus(1));
             const finalHuntDc = Math.max(1, baseRegionDc + prepareDcModifier + weatherHuntMod - getHelperBonus(2));
+            const finalWatchDc = Math.max(1, baseRegionDc + prepareDcModifier + weatherWatchMod - getHelperBonus(3));
+
+
 
 
             const updateSkillDcLabel = (id, skillName, dcValue) => {
@@ -265,24 +287,32 @@ const CampingManager = {
             updateSkillDcLabel('label_dc_prepare', 'Выживание', finalPrepareDc);
             updateSkillDcLabel('label_dc_camouflage', 'Скрытность', finalCamoDc);
             updateSkillDcLabel('label_dc_hunt', 'Выживание', finalHuntDc);
+            updateSkillDcLabel('label_dc_watch', 'Внимание', finalWatchDc);
 
             let finalEncounterDc = this.state.checkMod;
             if (!isCampHorrible) {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
                 if (camoRes === 'success') finalEncounterDc += 1;
                 if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
+
+                // Влияние дозора на СЛ обнаружения лагеря чудовищами
+                if (watchRes === 'crit_success') finalEncounterDc += 2;
+                if (watchRes === 'success') finalEncounterDc += 1;
+                if (watchRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
             }
+
+
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
 
             finalEncounterDc += kEncounterBonus + weatherEncMod;
             this.state.encounterDc = finalEncounterDc;
-
 
             let calculatedChecks = this.state.baseChecks;
             if (prepareRes === 'crit_success') calculatedChecks -= 1;
             if (prepareRes === 'crit_failure') calculatedChecks += 1;
             if (!isCampHorrible && camoRes === 'crit_success') calculatedChecks -= 1;
             if (!isCampHorrible && huntRes === 'crit_failure') calculatedChecks += 1;
+            if (!isCampHorrible && watchRes === 'crit_failure') calculatedChecks += 1; // <-- ДОБАВИТЬ
 
             this.state.totalChecks = Math.max(0, calculatedChecks);
 
@@ -317,7 +347,7 @@ const CampingManager = {
             this.state.normalIngredients = normalYield;
             this.state.specialIngredients = specialYieldText;
 
-            this.renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, currentRegionLevel, specialYieldText);
+            this.renderCalculatedUi(camoRes, prepareRes, huntRes, watchRes, isCampHorrible, currentRegionLevel, specialYieldText);
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
@@ -347,7 +377,9 @@ const CampingManager = {
 
 
 
-    renderCalculatedUi(camoRes, prepareRes, huntRes, isCampHorrible, lvl, specialYieldText) {
+    renderCalculatedUi(camoRes, prepareRes, huntRes, watchRes, isCampHorrible, lvl, specialYieldText) {
+        watchRes = watchRes || this.getSelectedRadio('res_watch');
+
         const normEl = document.getElementById('campNormalIngredients');
         const specEl = document.getElementById('campSpecialIngredients');
         const encEl = document.getElementById('calcEncounterDc');
@@ -367,6 +399,7 @@ const CampingManager = {
         const prepActors = this.formatActionActors(0);
         const camoActors = this.formatActionActors(1);
         const huntActors = this.formatActionActors(2);
+        const watchActors = this.formatActionActors(3);
 
         if (prepareRes === 'crit_success') {
             this.addLogLine(effectsList, `Подготовка${prepActors}: <span class='outcome-crit-success'>Критический успех</span>: вы нашли идеальное место для лагеря. Чистые проверки для сцен во время стоянки в течении следующих 24 часов проводятся со СЛ +2, а первый час, проведённый в лагере, не влечёт за собой обычную проверку на случайную сцену.`, "good");
@@ -397,6 +430,18 @@ const CampingManager = {
                 this.addLogLine(effectsList, `Охота${huntActors}: <span class='outcome-failure'>Провал</span>: вы находите обычные ингредиенты в количесте, равном СЛ региона ${this.state.normalIngredients} шт.`, "generic");
             } else if (huntRes === 'crit_failure') {
                 this.addLogLine(effectsList, `Охота${huntActors}: <span class='outcome-crit-failure'>Критический провал</span>: вы находите ${this.state.normalIngredients} обычных ингредиента, максимум ${this.state.encounterDc}. Кроме того вы привлекли внимание. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc}, чтобы определить, произойдет ли случайная сцена в вашем лагере после этого занятия.`, "bad");
+            }
+        }
+
+        if (!isCampHorrible) {
+            if (watchRes === 'crit_success') {
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-crit-success'>Критический успех</span>: часовые заметили угрозу издалека. Сложность случайной сцены увеличена на +2, а в случае нападения отряд не может быть застигнут врасплох и получает бонус +2 к проверкам инициативы.`, "good");
+            } else if (watchRes === 'success') {
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-success'>Успех</span>: бдительный караул вовремя предупреждает об опасности. Сложность случайной сцены увеличена на +1, отряд успевает подготовиться к бою.`, "good");
+            } else if (watchRes === 'failure') {
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-failure'>Провал</span>: часовые не заметили ничего необычного, но и не выдали себя. Изменений нет.`, "generic");
+            } else if (watchRes === 'crit_failure') {
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-crit-failure'>Критический провал</span>: часовые уснули на посту или случайно привлекли хищников. Сложность случайной сцены снижена на -2. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc} на внезапное нападение (отряд застигнут врасплох).`, "bad");
             }
         }
 
@@ -438,7 +483,6 @@ const CampingManager = {
                 );
             }
         }
-
 
         // Выводим общую плашку календаря, погоды и таймера привала в левую колонку
         const leftCol = document.querySelector('#campingTabletContainer .camping-left-col');
@@ -576,14 +620,16 @@ const CampingManager = {
         grid.addEventListener('mousedown', this._handleGridMouseDown);
     },
 
+
     checkCampPhaseCompletion() {
         this.recalculateCamp();
         const prepareRes = this.getSelectedRadio('res_prepare');
         const camoRes = this.getSelectedRadio('res_camouflage');
         const huntRes = this.getSelectedRadio('res_hunt');
+        const watchRes = this.getSelectedRadio('res_watch');
         let isFinished = false;
 
-        if (prepareRes === 'crit_failure' || (prepareRes && camoRes && huntRes)) {
+        if (prepareRes === 'crit_failure' || (prepareRes && camoRes && huntRes && watchRes)) {
             isFinished = true;
         }
         if (isFinished) this.triggerDiceAndResultModal();
@@ -667,6 +713,8 @@ const CampingManager = {
                 const prepareRes = this.getSelectedRadio('res_prepare');
                 const camoRes = this.getSelectedRadio('res_camouflage');
                 const huntRes = this.getSelectedRadio('res_hunt');
+                const watchRes = this.getSelectedRadio('res_watch');
+//                const isCampHorrible = (prepareRes === 'crit_failure');
 
                 let kingdomChanged = false;
 
@@ -731,8 +779,10 @@ const CampingManager = {
         try {
             const camoRow = document.getElementById('row_camouflage');
             const huntRow = document.getElementById('row_hunt');
+            const watchRow = document.getElementById('row_watch');
             if (camoRow) camoRow.style.display = 'table-row';
             if (huntRow) huntRow.style.display = 'table-row';
+            if (watchRow) watchRow.style.display = 'table-row';
             this.state.baseChecks = 2;
             this.state.checkMod = 12;
             this.state.assignments = {};
@@ -854,8 +904,8 @@ const CampingManager = {
                 const group = document.createElement('div');
                 group.className = 'camp-assigned-allies-group';
 
-                group.style.cssText = 'position:absolute; right:14px; top:50%; transform:translateY(-50%); display:flex; align-items:flex-end; gap:18px; z-index:5;';
-                cell.style.setProperty('padding-right', '185px', 'important');
+                group.style.cssText = 'position:absolute; right:6px; top:50%; transform:translateY(-50%); display:flex; align-items:flex-end; gap:10px; z-index:5;';
+                cell.style.setProperty('padding-right', '130px', 'important');
 
 
                 assignedList.forEach((hero, heroIdx) => {

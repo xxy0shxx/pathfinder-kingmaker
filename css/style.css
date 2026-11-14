@@ -2476,14 +2476,16 @@ canvas[style*="position: fixed"] {
     background: rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(84, 62, 13, 0.5);
     border-radius: 6px;
-    padding: 10px 20px;
+    padding: 6px 16px !important; /* Чуть уменьшаем внутренние отступы */
+    max-height: 480px;            /* Предотвращает уползание дока вниз */
+    overflow: visible;
 }
 
 .camp-invisible-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate !important; /* Меняем collapse на separate */
+    border-spacing: 0 12px !important;    /* Фиксируем ровный шаг строк и колонок */
 }
-
 .camp-invisible-table th {
     padding: 12px 4px 15px 4px !important;
     font-size: 22px !important;
@@ -3798,8 +3800,10 @@ canvas[style*="position: fixed"] {
 }
 
 #campingTabletContainer .camp-invisible-table td.camp-act-cell {
-    padding: 12px 150px 12px 14px !important;
-    min-height: 82px !important;
+    display: table-cell !important;      /* <-- ИЗМЕНИТЬ: возвращаем ячейку в поток таблицы */
+    padding: 12px 178px 12px 16px !important;
+    min-height: auto !important;         /* <-- ИЗМЕНИТЬ */
+    vertical-align: middle !important;   /* <-- ДОБАВИТЬ */
 }
 
 #campingTabletContainer .camp-invisible-table .act-name {
@@ -3816,10 +3820,11 @@ canvas[style*="position: fixed"] {
 
 /* Крупные радиокнопки с золотой лилией (38px) */
 #campingTabletContainer .camp-invisible-table td:not(.camp-act-cell) {
-    width: 56px !important;
+    text-align: center !important;
+    width: 70px !important;              /* <-- ИЗМЕНИТЬ: фиксируем ширину под одну кнопку */
     padding: 6px 4px !important;
+    vertical-align: middle !important;
 }
-
 #campingTabletContainer .camp-invisible-table input[type="radio"] {
     width: 34px !important;
     height: 34px !important;
@@ -5152,12 +5157,17 @@ canvas[style*="position: fixed"] {
 }
 
 #campingTabletContainer .camp-gm-inputs-grid {
-    padding: 10px 16px !important;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(84, 62, 13, 0.5);
+    border-radius: 6px;
+    padding: 4px 16px !important;
 }
 
 #campingTabletContainer .camp-invisible-table {
-    border-collapse: separate !important;
-    border-spacing: 0 12px !important;
+    width: 100%;
+    border-collapse: separate !important; /* <-- ИЗМЕНИТЬ */
+    border-spacing: 0 10px !important;    /* <-- ДОБАВИТЬ: создает ровный зазор между строками */
 }
 
 #campingTabletContainer .camp-invisible-table th {
@@ -5171,11 +5181,11 @@ canvas[style*="position: fixed"] {
 }
 
 #campingTabletContainer .camp-invisible-table td.camp-act-cell {
-    height: auto !important;
-    min-height: 78px !important;
+    display: table-cell !important;      /* Возвращаем в нативный поток ячеек */
     padding: 12px 148px 12px 16px !important;
     vertical-align: middle !important;
 }
+
 
 #campingTabletContainer .camp-invisible-table .act-name {
     font-size: 21px !important;
@@ -5192,8 +5202,10 @@ canvas[style*="position: fixed"] {
 }
 
 #campingTabletContainer .camp-invisible-table td:not(.camp-act-cell) {
-    height: auto !important;
+    text-align: center !important;
+    width: 70px !important;              /* Фиксируем ширину под одну колонку кнопок */
     padding: 8px 4px !important;
+    vertical-align: middle !important;
 }
 
 #campingTabletContainer .camp-invisible-table input[type="radio"] {
