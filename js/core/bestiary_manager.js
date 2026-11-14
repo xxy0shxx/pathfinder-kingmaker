@@ -1,5 +1,42 @@
 import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
+import ModalManager from '../ui/modal_manager.js';
+
+const PF2E_SHEET_CONFIG = {
+    attributes: [
+        { key: 'str', label: 'Сила' },
+        { key: 'dex', label: 'Ловкость' },
+        { key: 'con', label: 'Выносливость' },
+        { key: 'int', label: 'Интеллект' },
+        { key: 'wis', label: 'Мудрость' },
+        { key: 'cha', label: 'Харизма' }
+    ],
+    defenses: [
+        { key: 'perception', label: '👁️ Внимание' },
+        { key: 'fortitude', label: '🛡️ Стойкость' },
+        { key: 'reflex', label: '⚡ Реакция' },
+        { key: 'will', label: '🧠 Воля' }
+    ],
+    skills: [
+        { key: 'acrobatics', label: 'Акробатика (Лвк)' },
+        { key: 'arcana', label: 'Аркана (Инт)' },
+        { key: 'athletics', label: 'Атлетика (Сил)' },
+        { key: 'crafting', label: 'Ремесло (Инт)' },
+        { key: 'deception', label: 'Обман (Хар)' },
+        { key: 'diplomacy', label: 'Дипломатия (Хар)' },
+        { key: 'intimidation', label: 'Запугивание (Хар)' },
+        { key: 'lore', label: 'Знания / Lore (Инт)' },
+        { key: 'medicine', label: 'Медицина (Мдр)' },
+        { key: 'nature', label: 'Природа (Мдр)' },
+        { key: 'occultism', label: 'Оккультизм (Инт)' },
+        { key: 'performance', label: 'Выступление (Хар)' },
+        { key: 'religion', label: 'Религия (Мдр)' },
+        { key: 'society', label: 'Общество (Инт)' },
+        { key: 'stealth', label: 'Скрытность (Лвк)' },
+        { key: 'survival', label: 'Выживание (Мдр)' },
+        { key: 'thievery', label: 'Воровство (Лвк)' }
+    ]
+};
 
 const BestiaryManager = {
     state: {
@@ -43,6 +80,24 @@ const BestiaryManager = {
         }
     },
 
+    _ensureCharacterStats(item) {
+        if (!item.stats || typeof item.stats !== 'object') {
+            item.stats = {};
+        }
+        const allKeys = [
+            ...PF2E_SHEET_CONFIG.attributes,
+            ...PF2E_SHEET_CONFIG.defenses,
+            ...PF2E_SHEET_CONFIG.skills
+        ];
+        allKeys.forEach(({ key }) => {
+            if (item.stats[key] === undefined || item.stats[key] === null) {
+                item.stats[key] = 0;
+            }
+        });
+        return item.stats;
+    },
+
+
     addPreset(name, faction = 'enemy', defaultScore = 10) {
         const cleanName = String(name || '').trim();
         if (!cleanName) {
@@ -64,6 +119,7 @@ const BestiaryManager = {
         };
 
         if (faction === 'friend') {
+            this._ensureCharacterStats(entry);
             this.state.party.push(entry);
         } else {
             this.state.monsters.push(entry);
@@ -125,6 +181,76 @@ const BestiaryManager = {
         }
 
         this._save();
+    },
+
+    openCharacterSheetModal(heroId) {
+        const hero = this.state.party.find(x => x.id === heroId);
+        if (!hero) return;
+
+        const stats = this._ensureCharacterStats(hero);
+
+        const renderNumberField = (key, label) => `
+            <div class="bst-stat-row">
+                <label class="bst-stat-label" for="bstStat_${key}">${label}</label>
+                <input type="number" id="bstStat_${key}" data-stat-key="${key}" class="k-inp bst-stat-inp" value="${stats[key] ?? 0}">
+            </div>
+        `;
+
+        const bodyHtml = `
+            <div class="bst-sheet-grid">
+                <div class="bst-sheet-col">
+                    <div class="k-panel" style="margin-bottom: 12px;">
+                        <div class="k-sec-title">⚔️ Характеристики (модификаторы)</div>
+                        <div class="bst-stats-2col">
+                            ${PF2E_SHEET_CONFIG.attributes.map(a => renderNumberField(a.key, a.label)).join('')}
+                        </div>
+                    </div>
+
+                    <div class="k-panel">
+                        <div class="k-sec-title">🛡️ Внимание и Спасброски</div>
+                        <div class="bst-stats-2col">
+                            ${PF2E_SHEET_CONFIG.defenses.map(d => renderNumberField(d.key, d.label)).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bst-sheet-col">
+                    <div class="k-panel" style="height: 100%;">
+                        <div class="k-sec-title">📜 Навыки Pathfinder</div>
+                        <div class="bst-skills-2col">
+                            ${PF2E_SHEET_CONFIG.skills.map(s => renderNumberField(s.key, s.label)).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const { overlay, close } = ModalManager.open({
+            id: 'bstHeroSheetModal',
+            title: `🛡️ Лист персонажа: ${hero.name}`,
+            width: '920px',
+            borderColor: '#dfbc6f',
+            bodyHtml,
+            footerButtons: [
+                {
+                    label: 'Отмена',
+                    variant: 'cc'
+                },
+                {
+                    label: '⚜ Сохранить параметры',
+                    variant: 'ok',
+                    onClick: () => {
+                        overlay.querySelectorAll('[data-stat-key]').forEach(inp => {
+                            const k = inp.dataset.statKey;
+                            const val = parseInt(inp.value, 10);
+                            hero.stats[k] = isNaN(val) ? 0 : val;
+                        });
+                        this._save();
+                        close();
+                    }
+                }
+            ]
+        });
     },
 
 
@@ -321,50 +447,68 @@ const BestiaryManager = {
                 this.removePreset(groupKey, item.id);
             });
 
+
             const nameEl = card.querySelector('.init-card-name-text');
             if (nameEl) {
-                nameEl.title = 'Нажмите, чтобы переименовать';
+                nameEl.title = isParty
+                    ? 'Клик — переименовать | Двойной клик — лист персонажа (статы и навыки)'
+                    : 'Нажмите, чтобы переименовать';
+
+                let clickTimer = null;
+
                 nameEl.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (nameEl.querySelector('input')) return;
 
-                    const currentName = item.name;
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.className = 'init-inline-name-input';
-                    input.value = currentName;
+                    clearTimeout(clickTimer);
+                    clickTimer = setTimeout(() => {
+                        const currentName = item.name;
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'init-inline-name-input';
+                        input.value = currentName;
 
-                    let isFinished = false;
-                    const finishEdit = (save) => {
-                        if (isFinished) return;
-                        isFinished = true;
-                        const val = input.value.trim();
-                        if (save && val && val !== currentName) {
-                            this.updatePresetName(groupKey, item.id, val);
-                        } else {
-                            nameEl.textContent = currentName;
-                        }
-                    };
+                        let isFinished = false;
+                        const finishEdit = (save) => {
+                            if (isFinished) return;
+                            isFinished = true;
+                            const val = input.value.trim();
+                            if (save && val && val !== currentName) {
+                                this.updatePresetName(groupKey, item.id, val);
+                            } else {
+                                nameEl.textContent = currentName;
+                            }
+                        };
 
-                    input.addEventListener('click', (ev) => ev.stopPropagation());
-                    input.addEventListener('keydown', (ev) => {
-                        ev.stopPropagation();
-                        if (ev.key === 'Enter') {
-                            ev.preventDefault();
-                            finishEdit(true);
-                        } else if (ev.key === 'Escape') {
-                            ev.preventDefault();
-                            finishEdit(false);
-                        }
-                    });
-                    input.addEventListener('blur', () => finishEdit(true));
+                        input.addEventListener('click', (ev) => ev.stopPropagation());
+                        input.addEventListener('keydown', (ev) => {
+                            ev.stopPropagation();
+                            if (ev.key === 'Enter') {
+                                ev.preventDefault();
+                                finishEdit(true);
+                            } else if (ev.key === 'Escape') {
+                                ev.preventDefault();
+                                finishEdit(false);
+                            }
+                        });
+                        input.addEventListener('blur', () => finishEdit(true));
 
-                    nameEl.textContent = '';
-                    nameEl.appendChild(input);
-                    input.focus();
-                    input.select();
+                        nameEl.textContent = '';
+                        nameEl.appendChild(input);
+                        input.focus();
+                        input.select();
+                    }, 220);
                 });
+
+                if (isParty) {
+                    nameEl.addEventListener('dblclick', (e) => {
+                        e.stopPropagation();
+                        clearTimeout(clickTimer);
+                        this.openCharacterSheetModal(item.id);
+                    });
+                }
             }
+
 
             grid.appendChild(card);
         });
