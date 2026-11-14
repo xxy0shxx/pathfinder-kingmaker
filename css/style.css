@@ -6460,3 +6460,42 @@ canvas[style*="position: fixed"] {
 #bestiaryTabletContainer .init-card-name-text {
     padding-right: 24px !important;
 }
+/* ============================================================================
+   ПЛОТНАЯ ГОРИЗОНТАЛЬНАЯ ЛЕНТА ИНИЦИАТИВЫ И РАЗДВИЖЕНИЕ ТОЛЬКО АКТИВНЫМ БОЙЦОМ
+   ============================================================================ */
+
+/* Уменьшаем внутренние отступы слева и справа с 30px до 8px */
+#questLogContainer #initiativeCombatantsList.mode-bg3 {
+    gap: 6px !important;
+    padding: 12px 8px !important;
+}
+
+/* 2. Плавная анимация ширины и отступов при смене хода */
+#questLogContainer #initiativeCombatantsList.mode-bg3 .init-combatant-card {
+    margin: 0 !important;
+    transition: width 0.25s cubic-bezier(0.25, 0.8, 0.25, 1),
+    min-width 0.25s cubic-bezier(0.25, 0.8, 0.25, 1),
+    margin 0.25s cubic-bezier(0.25, 0.8, 0.25, 1),
+    box-shadow 0.25s ease !important;
+}
+
+/* 3. Только активный боец получает отступы слева и справа, раздвигая соседей */
+#questLogContainer #initiativeCombatantsList.mode-bg3 .init-combatant-card.selected-turn-gold {
+    margin-left: 16px !important;
+    margin-right: 16px !important;
+}
+
+/* Если активный боец стоит самым первым в ленте — не сдвигаем его от левого края */
+#questLogContainer #initiativeCombatantsList.mode-bg3 .init-combatant-card.selected-turn-gold:first-child {
+    margin-left: 0 !important;
+}
+
+/* 4. В зоне выбывших бойцов тоже делаем карточки компактнее по горизонтали */
+#questLogContainer .init-out-zone-grid.mode-bg3 {
+    gap: 8px !important;
+}
+/* Подгоняем ширину рамки цитаты и зоны выбывших под новые края ленты */
+#questLogContainer .init-cards-scroll-list.mode-bg3 + .init-focus-quote-shield,
+#questLogContainer .init-out-combatants-zone {
+    width: calc(100% - 16px) !important;
+}
