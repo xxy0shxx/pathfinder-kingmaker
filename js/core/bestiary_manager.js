@@ -326,6 +326,7 @@ const BestiaryManager = {
     },
 
 
+
     renderUi() {
         const container = document.getElementById('bestiaryTabletContainer');
         if (!container) return;
@@ -333,8 +334,7 @@ const BestiaryManager = {
         if (!container.querySelector('.bestiary-tablet-root')) {
             container.innerHTML = `
                 <div class="bestiary-tablet-root">
-                
-                    <div class="init-quick-input-bar" style="margin-bottom: 16px;">
+                    <div class="init-quick-input-bar" style="margin-bottom: 14px;">
                         <div class="init-name-autocomplete-wrap" style="position: relative; flex-grow: 1; display: flex;">
                             <input type="text" id="bstInputName" autocomplete="off" placeholder="Поиск героя, NPC или монстра для заготовки..." style="width: 100%;">
                             <div id="bstNameSuggestions" class="init-name-suggestions" style="display: none;"></div>
@@ -353,10 +353,21 @@ const BestiaryManager = {
                         <button type="button" class="btn ok" id="bstBtnAdd" style="padding: 6px 20px; font-size: 14px; height: 38px;">⚜ В заготовки</button>
                     </div>
 
-                    
+                    <div class="bst-workspace-layout">
+                        <aside class="bst-catalog-sidebar">
+                            <div class="bst-catalog-sidebar-header">
+                                <span>📖 Справочник существ</span>
+                                <span id="bstCatalogTotalCount" class="bst-catalog-badge">0</span>
+                            </div>
+                            <input type="text" id="bstSidebarFilter" class="bst-sidebar-filter-inp" autocomplete="off" placeholder="Фильтр по каталогу...">
+                            <div id="bstFullCatalogList" class="bst-full-catalog-list"></div>
+                        </aside>
 
-                    <div id="bstZoneParty" class="init-out-combatants-zone bestiary-zone-party"></div>
-                    <div id="bstZoneMonsters" class="init-out-combatants-zone bestiary-zone-monsters" style="margin-top: 20px;"></div>
+                        <div class="bst-zones-main">
+                            <div id="bstZoneParty" class="init-out-combatants-zone bestiary-zone-party"></div>
+                            <div id="bstZoneMonsters" class="init-out-combatants-zone bestiary-zone-monsters" style="margin-top: 16px;"></div>
+                        </div>
+                    </div>
                 </div>
             `;
             this._isBound = false;
@@ -367,6 +378,7 @@ const BestiaryManager = {
             const scoreInp = document.getElementById('bstInputScore');
             const factionSel = document.getElementById('bstInputFaction');
             const suggestBox = document.getElementById('bstNameSuggestions');
+            const sidebarFilter = document.getElementById('bstSidebarFilter');
             let activeIdx = -1;
 
             const hideSuggest = () => {
@@ -435,9 +447,17 @@ const BestiaryManager = {
                 nameInp.focus();
             });
 
+            if (sidebarFilter) {
+                sidebarFilter.addEventListener('input', () => {
+                    this._renderCatalogSidebar(sidebarFilter.value);
+                });
+            }
+
             this._isBound = true;
         }
 
+        const filterVal = document.getElementById('bstSidebarFilter')?.value || '';
+        this._renderCatalogSidebar(filterVal);
         this._renderZone('bstZoneParty', '🛡️ Текущий отряд (Герои)', 'party', this.state.party, true);
         this._renderZone('bstZoneMonsters', '👹 Заготовленные монстры и NPC', 'monsters', this.state.monsters, false);
     },
@@ -570,7 +590,118 @@ const BestiaryManager = {
         });
 
 
-    }
+    },
+
+    _renderCatalogSidebar(filterQuery = '') {
+        const listEl = document.getElementById('bstFullCatalogList');
+        const countEl = document.getElementById('bstCatalogTotalCount');
+        if (!listEl) return;
+
+        // 1. Собираем полный список существ из AvatarRegistry любым доступным способом
+        let allItems = [];
+        if (typeof AvatarRegistry.getAllCatalogItems === 'function') {
+            allItems = AvatarRegistry.getAllCatalogItems();
+        } else if (Array.isArray(AvatarRegistry.catalog)) {
+            allItems = AvatarRegistry.catalog;
+        } else if (Array.isArray(AvatarRegistry.items)) {
+            allItems = AvatarRegistry.items;
+        } else if (AvatarRegistry.AVATARS && typeof AvatarRegistry.AVATARS === 'object') {
+            allItems = Object.entries(AvatarRegistry.AVATARS).map(([id, data]) => ({
+                id,
+                displayName: data.name || data.label || id,
+                defaultFaction: data.faction || data.defaultFaction || 'enemy'
+            }));
+        } else if (typeof AvatarRegistry.searchCatalog === 'function') {
+            // Если список закрыт внутри функции searchCatalog, собираем уникальные совпадения по буквам
+            const seen = new Set();
+            const probes = ['а', 'е', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я', 'к', 'с', 'в', 'м', 'л', 'р', 'д', 'г', 'п', 'т', 'б', 'н', 'a', 'e', 'i', 'o', 'u'];
+            probes.forEach(ch => {
+                const found = AvatarRegistry.searchCatalog(ch) || [];
+                found.forEach(item => {
+                    const key = item.id || item.displayName || item.label;
+                    if (key && !seen.has(key)) {
+                        seen.add(key);
+                        allItems.push(item);
+                    }
+                });
+            });
+            allItems.sort((a, b) =>
+                String(a.displayName || a.label || '').localeCompare(String(b.displayName || b.label || ''), 'ru')
+            );
+        }
+
+        const q = String(filterQuery || '').trim().toLowerCase();
+        const filtered = q
+            ? allItems.filter(item =>
+                String(item.displayName || item.label || '').toLowerCase().includes(q)
+            )
+            : allItems;
+
+
+
+        if (countEl) countEl.textContent = filtered.length;
+
+        if (!filtered.length) {
+            listEl.innerHTML = `<div class="bst-catalog-empty">Ничего не найдено</div>`;
+            return;
+        }
+
+
+
+        listEl.innerHTML = filtered.map(item => {
+            const name = item.displayName || item.label || item.id;
+            const avatarUrl = item.avatarUrl || (item.id ? AvatarRegistry.getAvatarDataUrl(item.id) : null);
+            const faction = item.defaultFaction || 'enemy';
+            const factionDot = faction === 'friend' ? '🟢' : (faction === 'neutral' ? '🟡' : '🔴');
+
+            return `
+                <div class="bst-catalog-row" data-cat-id="${item.id || ''}" data-cat-name="${name}" data-cat-faction="${faction}">
+                    <div class="bst-catalog-row-main" title="Нажмите, чтобы подставить в форму, или выберите кнопку справа">
+                        ${avatarUrl
+                ? `<img src="${avatarUrl}" class="bst-catalog-thumb">`
+                : `<div class="bst-catalog-thumb bst-catalog-thumb-empty">⚔️</div>`
+            }
+                        <span class="bst-catalog-name">${factionDot} ${name}</span>
+                    </div>
+                    <div class="bst-catalog-actions">
+                        <button type="button" class="bst-cat-btn-party" title="Добавить в Текущий отряд">🛡️</button>
+                        <button type="button" class="bst-cat-btn-monster" title="Добавить в Заготовки монстров/NPC">👹</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        listEl.querySelectorAll('.bst-catalog-row').forEach(row => {
+            const catId = row.dataset.catId || null;
+            const catName = row.dataset.catName;
+            const catFaction = row.dataset.catFaction;
+// Клик по самой строке подставляет персонажа в верхнюю форму для тонкой настройки
+            row.querySelector('.bst-catalog-row-main').addEventListener('click', () => {
+                const nameInp = document.getElementById('bstInputName');
+                const factionSel = document.getElementById('bstInputFaction');
+                this._pendingAvatarType = catId;
+                if (nameInp) {
+                    nameInp.value = catName;
+                    nameInp.focus();
+                }
+                if (factionSel && catFaction) {
+                    factionSel.value = catFaction;
+                }
+            });
+// Быстрое добавление в Отряд (Герои)
+            row.querySelector('.bst-cat-btn-party').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this._pendingAvatarType = catId;
+                this.addPreset(catName, 'friend', 10);
+            });
+// Быстрое добавление в Монстры / NPC
+            row.querySelector('.bst-cat-btn-monster').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this._pendingAvatarType = catId;
+                this.addPreset(catName, catFaction === 'friend' ? 'neutral' : catFaction, 10);
+            });
+        });
+    },
 
 
 
