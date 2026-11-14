@@ -44,8 +44,7 @@
 
 <img width="1666" height="992" alt="Снимок экрана_20261115_042411" src="https://github.com/user-attachments/assets/89d29a6e-bd41-49e3-b73d-b83051a88370" />
 <img width="1666" height="992" alt="Снимок экрана_20261115_042528" src="https://github.com/user-attachments/assets/7c6a650b-4704-4591-972b-5f6edfa56410" />
-
-
+<img width="1666" height="992" alt="Снимок экрана_20261115_042553" src="https://github.com/user-attachments/assets/a9ef7d74-4576-4a3e-a1ba-81e9eb03489d" />
 
 ---
 
