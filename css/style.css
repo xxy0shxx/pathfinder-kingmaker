@@ -7280,3 +7280,34 @@ canvas[style*="position: fixed"] {
     transform: scale(1.1);
     filter: brightness(1.25);
 }
+/* ============================================================================
+   КНОПКА РЕЗЕРВА (💤 / 🛡️) В ЛЕВОМ ВЕРХНЕМ УГЛУ КАРТОЧКИ БЕСТИАРИЯ
+   ============================================================================ */
+#bestiaryTabletContainer .init-combatant-card .bst-reserve-move-btn,
+#bestiaryTabletContainer .init-combatant-card .bst-reserve-btn {
+    position: absolute !important;
+    top: 2px !important;
+    left: 2px !important;
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 12px !important;
+    border-radius: 4px !important;
+    opacity: 0.8 !important;
+    z-index: 35 !important;
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+#bestiaryTabletContainer .init-combatant-card:hover .bst-reserve-move-btn,
+#bestiaryTabletContainer .init-combatant-card .bst-reserve-move-btn:hover,
+#bestiaryTabletContainer .init-combatant-card:hover .bst-reserve-btn,
+#bestiaryTabletContainer .init-combatant-card .bst-reserve-btn:hover {
+    opacity: 1 !important;
+    transform: scale(1.08) !important;
+}
+
+/* Симметричный отступ слева и справа у имени, чтобы не залезало под угловые кнопки */
+#bestiaryTabletContainer .bestiary-zone-party .init-card-name-text,
+#bestiaryTabletContainer .bestiary-zone-inactive .init-card-name-text {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+}

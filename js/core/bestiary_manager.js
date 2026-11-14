@@ -127,8 +127,11 @@ const BestiaryManager = {
         this.renderUi();
     },
 
+
     moveHeroReserve(fromGroup, toGroup, id) {
+        if (!Array.isArray(this.state.party)) this.state.party = [];
         if (!Array.isArray(this.state.inactive)) this.state.inactive = [];
+
         const sourceList = this.state[fromGroup];
         const targetList = this.state[toGroup];
         if (!Array.isArray(sourceList) || !Array.isArray(targetList)) return;
@@ -140,6 +143,7 @@ const BestiaryManager = {
         targetList.push(hero);
         this._save();
     },
+
 
     _save() {
         if (this.mapDataRef) this.mapDataRef.bestiary = this.state;
@@ -728,6 +732,7 @@ const BestiaryManager = {
 
 
 
+
     _renderZone(elId, title, groupKey, items, isParty) {
         const zone = document.getElementById(elId);
         if (!zone) return;
@@ -751,30 +756,13 @@ const BestiaryManager = {
             </div>
         `;
 
-
-
         const deployAllBtn = zone.querySelector('#bstBtnDeployAllParty');
         if (deployAllBtn) {
             deployAllBtn.addEventListener('click', () => this.deployWholeParty());
         }
 
         const grid = zone.querySelector('.init-out-zone-grid');
-
-
         items.forEach((item, idx) => {
-
-
-
-            const reserveBtnHtml = groupKey === 'party'
-                ? `<button type="button" class="bst-reserve-btn to-reserve" title="Отправить в неактивные (сохранить статы)">💤</button>`
-                : (groupKey === 'inactive'
-                    ? `<button type="button" class="bst-reserve-btn to-party" title="Вернуть в активный отряд">⬆️</button>`
-                    : '');
-
-
-
-
-
             const card = document.createElement('div');
             card.className = `init-combatant-card faction-${item.faction} ${isInactive ? 'bst-card-inactive' : ''}`;
 
@@ -785,35 +773,36 @@ const BestiaryManager = {
                     : '');
 
             card.innerHTML = `
+                ${reserveActionBtn}
+                <button type="button" class="init-btn-delete-card" title="Удалить навсегда">×</button>
                 <div class="init-card-left">
                     <div class="init-card-name-text" title="${item.name}">${item.name}</div>
                     <div class="init-avatar-shield-circle active">${item.avatar ? `<img src="${item.avatar}">` : (idx + 1)}</div>
                 </div>
                 <div class="init-card-right">
                     <button type="button" class="bst-quick-send-btn" title="Добавить сразу в трекер инициативы">⚔️</button>
-                    ${reserveActionBtn}
                     <div class="init-score-massive-block">
                         <input type="number" class="init-inline-score-input" value="${item.defaultScore}" title="Базовая инициатива">
                     </div>
                 </div>
-                <button type="button" class="init-btn-delete-card" title="Удалить навсегда">×</button>
             `;
+
+            const moveBtn = card.querySelector('.bst-reserve-move-btn');
+            if (moveBtn) {
+                moveBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (isParty) {
+                        this.moveHeroReserve('party', 'inactive', item.id);
+                    } else if (isInactive) {
+                        this.moveHeroReserve('inactive', 'party', item.id);
+                    }
+                });
+            }
 
             card.querySelector('.bst-quick-send-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.deployToInitiative(item);
             });
-
-            card.querySelector('.bst-reserve-move-btn')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (isParty || isInactive) {
-                    this.moveHeroReserve('party', 'inactive', item.id);
-                } else if (isInactive) {
-                    this.moveHeroReserve('inactive', 'party', item.id);
-                }
-            });
-
-
 
             card.querySelector('.init-inline-score-input').addEventListener('change', (e) => {
                 this.updatePresetScore(groupKey, item.id, e.target.value);
@@ -823,7 +812,6 @@ const BestiaryManager = {
                 e.stopPropagation();
                 this.removePreset(groupKey, item.id);
             });
-
 
             const nameEl = card.querySelector('.init-card-name-text');
             if (nameEl) {
@@ -886,12 +874,11 @@ const BestiaryManager = {
                 }
             }
 
-
             grid.appendChild(card);
         });
-
-
     },
+
+
 
     _renderCatalogSidebar(filterQuery = '') {
         const listEl = document.getElementById('bstFullCatalogList');
