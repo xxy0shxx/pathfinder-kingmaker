@@ -375,12 +375,11 @@ const InitiativeManager = {
     },
 
     _formatBattleTime(roundNum) {
-        const totalSec = Math.max(1, roundNum) * 6;
+        const totalSec = (Math.max(1, roundNum) - 1) * 6;
         const mins = Math.floor(totalSec / 60);
         const secs = totalSec % 60;
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     },
-
 
     _syncWeatherVisualEffects(container) {
         let fxLayer = container.querySelector('.init-weather-fx-layer');
