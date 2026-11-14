@@ -705,10 +705,10 @@ const InitiativeManager = {
 
 
             card.innerHTML = `
-                <div class="init-card-left" style="pointer-events: none;">
+                <div class="init-card-left">
                     <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
                     ${avatarHtml}
-                    <div class="init-card-name-text">${unit.name}</div>
+                    <div class="init-card-name-text" title="Двойной клик для переименования">${unit.name}</div>
                 </div>
                 <div class="init-card-right">
                     <select class="init-inline-status-select status-${unit.status || 'active'}" data-id="${unit.id}" title="Состояние бойца">
@@ -780,12 +780,68 @@ const InitiativeManager = {
 
     },
 
+
     _bindCardEvents(card, unit) {
         card.addEventListener('click', (e) => {
+            if (e.target.closest('.init-card-name-text')) return;
+
             if (!['SELECT', 'INPUT', 'BUTTON'].includes(e.target.tagName) && unit.status !== 'out') {
                 this.toggleSelectUnit(unit.id);
             }
         });
+
+        const nameEl = card.querySelector('.init-card-name-text');
+        if (nameEl) {
+            nameEl.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                if (nameEl.querySelector('input')) return;
+
+                // Отключаем перетаскивание карточки, чтобы можно было выделять текст мышью
+                card.setAttribute('draggable', 'false');
+
+                const currentName = unit.name;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'init-inline-name-input';
+                input.value = currentName;
+
+                let isFinished = false;
+                const finishEdit = (save) => {
+                    if (isFinished) return;
+                    isFinished = true;
+
+                    // Возвращаем возможность перетаскивать карточку
+                    card.setAttribute('draggable', 'true');
+
+                    const val = input.value.trim();
+                    if (save && val && val !== currentName) {
+                        this.updateName(unit.id, val);
+                    } else {
+                        nameEl.textContent = currentName;
+                    }
+                };
+
+                input.addEventListener('click', (ev) => ev.stopPropagation());
+                input.addEventListener('dblclick', (ev) => ev.stopPropagation());
+                input.addEventListener('keydown', (ev) => {
+                    ev.stopPropagation();
+                    if (ev.key === 'Enter') {
+                        ev.preventDefault();
+                        finishEdit(true);
+                    } else if (ev.key === 'Escape') {
+                        ev.preventDefault();
+                        finishEdit(false);
+                    }
+                });
+                input.addEventListener('blur', () => finishEdit(true));
+
+                nameEl.textContent = '';
+                nameEl.appendChild(input);
+                input.focus();
+                input.select();
+            });
+        }
+
 
         card.querySelector('.init-inline-status-select').addEventListener('change', (e) => {
             this.updateStatus(unit.id, e.target.value);
@@ -804,6 +860,7 @@ const InitiativeManager = {
                 this._sortAndSave();
             }
         });
+
 
         const scoreInp = card.querySelector('.init-inline-score-input');
         scoreInp.addEventListener('wheel', (e) => {
@@ -841,8 +898,28 @@ const InitiativeManager = {
                 this._saveWithoutSort();
             }
         });
-    }
+    },
 
+
+
+    updateName(id, newName) {
+        const cleanName = String(newName || '').trim();
+        if (!cleanName) return;
+
+        const unit = this.state.combatants.find(c => c.id === id);
+        if (unit && unit.name !== cleanName) {
+            unit.name = cleanName;
+            // Если аватар ещё не был выбран вручную, пробуем подобрать по новому имени
+            if (!unit.avatarType) {
+                const guessed = AvatarRegistry.guessAvatarByName(cleanName);
+                if (guessed) {
+                    unit.avatarType = guessed;
+                    unit.avatar = AvatarRegistry.getAvatarDataUrl(guessed);
+                }
+            }
+            this._saveWithoutSort();
+        }
+    },
 
 };
 

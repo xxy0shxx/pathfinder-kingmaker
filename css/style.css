@@ -5862,3 +5862,42 @@ canvas[style*="position: fixed"] {
     text-overflow: ellipsis;
     font-weight: bold;
 }
+/* ============================================================================
+   РЕДАКТИРОВАНИЕ ИМЕНИ БОЙЦА В ТРЕКЕРЕ ИНИЦИАТИВЫ
+   ============================================================================ */
+.init-card-name-text {
+    cursor: text;
+}
+
+.init-inline-name-input {
+    background: #020503 !important;
+    border: 1.5px solid #ffd875 !important;
+    border-radius: 4px !important;
+    color: #ffd875 !important;
+    font-family: inherit !important;
+    font-size: 22px !important;
+    font-weight: bold !important;
+    padding: 2px 8px !important;
+    width: 280px !important;
+    max-width: 100% !important;
+    outline: none !important;
+    box-shadow: 0 0 10px rgba(255, 216, 117, 0.45) !important;
+}
+
+/* Компактное поле редактирования в режиме Горизонт (BG3) */
+#questLogContainer .mode-bg3 .init-inline-name-input {
+    width: 100% !important;
+    font-size: 14px !important;
+    padding: 1px 4px !important;
+    text-align: center !important;
+}
+/* Разрешаем клики по тексту имени в любом режиме */
+.init-card-name-text,
+#questLogContainer .mode-bg3 .init-card-name-text {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+.init-card-name-text:hover {
+    text-decoration: underline dashed #ffd875;
+}
