@@ -214,9 +214,6 @@ const BestiaryManager = {
         return item.stats;
     },
 
-
-
-
     addPreset(name, faction = 'enemy', defaultScore = 10) {
         const cleanName = String(name || '').trim();
         if (!cleanName) {
@@ -240,8 +237,8 @@ const BestiaryManager = {
         };
 
 
+        this._ensureCharacterStats(entry);
         if (faction === 'friend') {
-            this._ensureCharacterStats(entry);
             this.state.party.push(entry);
         } else {
             this.state.monsters.push(entry);
@@ -316,10 +313,10 @@ const BestiaryManager = {
         this._save();
     },
 
-
     openCharacterSheetModal(heroId, pageNum = 1) {
         const hero = this.state.party.find(x => x.id === heroId)
-            || (this.state.inactive || []).find(x => x.id === heroId);
+            || (this.state.inactive || []).find(x => x.id === heroId)
+            || (this.state.monsters || []).find(x => x.id === heroId);
         if (!hero) return;
 
         const stats = this._ensureCharacterStats(hero);
@@ -733,6 +730,8 @@ const BestiaryManager = {
         const zone = document.getElementById(elId);
         if (!zone) return;
 
+
+
         const isInactive = groupKey === 'inactive';
         const isHeroGroup = isParty || isInactive;
         const headerColor = isParty ? '#2ecc71' : (isInactive ? '#a4b0be' : '#ff7675');
@@ -862,11 +861,20 @@ const BestiaryManager = {
                 });
 
                 if (isHeroGroup) {
-                    nameEl.addEventListener('dblclick', (e) => {
-                        e.stopPropagation();
-                        clearTimeout(clickTimer);
-                        this.openCharacterSheetModal(item.id);
-                    });
+                    const canShowTooltip = isHeroGroup || !!window.SHOW_ENEMY_TOOLTIPS;
+                    if (nameEl) {
+                        nameEl.title = 'Клик — переименовать | Двойной клик — бланк существа (статы и навыки)';
+                        // ... существующий обработчик click ...
+                        nameEl.addEventListener('dblclick', (e) => {
+                            e.stopPropagation();
+                            clearTimeout(clickTimer);
+                            this.openCharacterSheetModal(item.id);
+                        });
+                    }
+
+                    if (canShowTooltip) {
+                        this._attachPresetTooltip(card, item);
+                    }
                 }
             }
 
@@ -877,6 +885,140 @@ const BestiaryManager = {
             grid.appendChild(card);
         });
     },
+
+    _hidePresetTooltip() {
+        const tip = document.getElementById('initUnitHoverTooltip');
+        if (tip) tip.style.display = 'none';
+    },
+
+    _positionPresetTooltip(e, tip) {
+        const pad = 16;
+        const rect = tip.getBoundingClientRect();
+        let left = e.clientX + pad;
+        let top = e.clientY + pad;
+
+        if (left + rect.width > window.innerWidth - 12) {
+            left = e.clientX - rect.width - pad;
+        }
+        if (top + rect.height > window.innerHeight - 12) {
+            top = e.clientY - rect.height - pad;
+        }
+        tip.style.left = `${Math.max(8, left)}px`;
+        tip.style.top = `${Math.max(8, top)}px`;
+    },
+
+    _attachPresetTooltip(card, item) {
+        card.addEventListener('mouseenter', (e) => {
+            if (item.faction !== 'friend' && !window.SHOW_ENEMY_TOOLTIPS) return;
+
+            let tip = document.getElementById('initUnitHoverTooltip');
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.id = 'initUnitHoverTooltip';
+                tip.className = 'init-unit-hover-tooltip';
+                document.body.appendChild(tip);
+            }
+
+            const factionMap = {
+                friend: '🟢 Отряд / Союзник',
+                enemy: '🔴 Монстр / Враг',
+                neutral: '🟡 Нейтрал / NPC'
+            };
+
+            const stats = this._ensureCharacterStats(item);
+            const fmtMod = (val) => {
+                const n = Number(val) || 0;
+                return n > 0 ? `+${n}` : `${n}`;
+            };
+
+            const attrs = [
+                ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
+                ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
+            ];
+            const defenses = [
+                ['🛡️ КБ (AC)', stats.ac],
+                ['❤️ ПЗ (HP)', `${stats.hpCurrent ?? stats.hpMax ?? 10}/${stats.hpMax ?? 10}`],
+                ['👁️ Внимание', fmtMod(stats.perception ?? stats.perc)],
+                ['🛡️ Стойкость', fmtMod(stats.fortitude ?? stats.fort)],
+                ['⚡ Реакция', fmtMod(stats.reflex ?? stats.ref)],
+                ['🧠 Воля', fmtMod(stats.will)]
+            ];
+            const skills = [
+                ['Акробатика', stats.acrobatics ?? stats.acro],
+                ['Аркана', stats.arcana ?? stats.arca],
+                ['Атлетика', stats.athletics ?? stats.athl],
+                ['Ремесло', stats.crafting],
+                ['Обман', stats.deception ?? stats.dece],
+                ['Дипломатия', stats.diplomacy ?? stats.dipl],
+                ['Запугивание', stats.intimidation ?? stats.inti],
+                ['Знания (Lore)', stats.lore],
+                ['Медицина', stats.medicine ?? stats.medi],
+                ['Природа', stats.nature ?? stats.natu],
+                ['Оккультизм', stats.occultism ?? stats.occu],
+                ['Выступление', stats.performance],
+                ['Религия', stats.religion ?? stats.reli],
+                ['Общество', stats.society],
+                ['Скрытность', stats.stealth ?? stats.stea],
+                ['Выживание', stats.survival ?? stats.surv],
+                ['Воровство', stats.thievery]
+            ].filter(([, v]) => v !== undefined);
+
+            const attacks = [
+                stats.melee1Name ? `⚔️ ${stats.melee1Name} ${stats.melee1Atk} (${stats.melee1Dmg})` : '',
+                stats.melee2Name ? `🗡️ ${stats.melee2Name} ${stats.melee2Atk} (${stats.melee2Dmg})` : '',
+                stats.rangedName ? `🏹 ${stats.rangedName} ${stats.rangedAtk} (${stats.rangedDmg})` : ''
+            ].filter(Boolean);
+
+            tip.innerHTML = `
+                <div class="init-tip-header">
+                    <span class="init-tip-name">${item.name}</span>
+                    <span class="init-tip-turn-tag">Ур. ${stats.level ?? 1}</span>
+                </div>
+                <div class="init-tip-top-row">
+                    <span>🎲 Баз. иниц.: <b>${item.defaultScore ?? 10}</b></span>
+                    <span>${factionMap[item.faction] || item.faction}</span>
+                </div>
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title">⚔️ Характеристики</div>
+                    <div class="init-tip-2col">
+                        ${attrs.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                    </div>
+                </div>
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title">🛡️ Защита, ПЗ и Спасброски</div>
+                    <div class="init-tip-2col">
+                        ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${v}</b></div>`).join('')}
+                    </div>
+                </div>
+                ${attacks.length ? `
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title">🗡️ Атаки</div>
+                    <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
+                        ${attacks.map(a => `<div>${a}</div>`).join('')}
+                    </div>
+                </div>` : ''}
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title">📜 Навыки</div>
+                    <div class="init-tip-3col">
+                        ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            tip.style.display = 'block';
+            this._positionPresetTooltip(e, tip);
+        });
+
+        card.addEventListener('mousemove', (e) => {
+            const tip = document.getElementById('initUnitHoverTooltip');
+            if (tip && tip.style.display === 'block') {
+                this._positionPresetTooltip(e, tip);
+            }
+        });
+
+        card.addEventListener('mouseleave', () => this._hidePresetTooltip());
+    },
+
 
     _hideHeroTooltip() {
         const tip = document.getElementById('bstHeroHoverTooltip');

@@ -9,7 +9,7 @@ const SettingsManager = {
         squadAnimMode: 'classic',
         squadTokenSkin: 'flag',
         squadTokenColor: 'gold',
-        roundAudioMode: 'gong', // НОВОЕ: Способ оповещения раунда ('gong', 'bell', 'drum')
+        roundAudioMode: 'horn',
         hideDc: false,
         hideLevel: false,
         hideObjTitle: false,
@@ -18,7 +18,8 @@ const SettingsManager = {
         hideExplored: false,
         hideMapped: false,
         hideQuestMarkers: false,
-        hideKingdomBorders: false
+        hideKingdomBorders: false,
+        showEnemyTooltips: false
     },
 
     init() {
@@ -45,7 +46,8 @@ const SettingsManager = {
             { id: 'settingHideExplored', key: 'hideExplored', type: 'check' },
             { id: 'settingHideMapped', key: 'hideMapped', type: 'check' },
             { id: 'settingHideQuestMarkers', key: 'hideQuestMarkers', type: 'check' },
-            { id: 'settingHideKingdomBorders', key: 'hideKingdomBorders', type: 'check' }
+            { id: 'settingHideKingdomBorders', key: 'hideKingdomBorders', type: 'check' },
+            { id: 'settingShowEnemyTooltips', key: 'showEnemyTooltips', type: 'check' }
         ];
 
         // Автоматически добавляем чекбокс «Скрыть границы королевства» в блок настроек карты
@@ -68,6 +70,26 @@ const SettingsManager = {
             }
         }
 
+        // Автоматически добавляем чекбокс «Включить тултипы для монстров / врагов»
+        const enemyAnchorCb = document.getElementById('settingHideKingdomBorders') || document.getElementById('settingHideQuestMarkers');
+        if (enemyAnchorCb && !document.getElementById('settingShowEnemyTooltips')) {
+            const anchorRow = enemyAnchorCb.closest('.checkbox-row') || enemyAnchorCb.parentElement;
+            if (anchorRow && anchorRow.parentNode) {
+                const newRow = anchorRow.cloneNode(true);
+                const newInput = newRow.querySelector('input[type="checkbox"]');
+                const newLabel = newRow.querySelector('label');
+                if (newInput) {
+                    newInput.id = 'settingShowEnemyTooltips';
+                    newInput.checked = !!this.state.showEnemyTooltips;
+                }
+                if (newLabel) {
+                    newLabel.setAttribute('for', 'settingShowEnemyTooltips');
+                    newLabel.textContent = '👹 Включить тултипы для монстров / врагов';
+                }
+                anchorRow.parentNode.insertBefore(newRow, anchorRow.nextSibling);
+            }
+        }
+
         ids.forEach(item => {
             const el = document.getElementById(item.id);
             if (!el) return;
@@ -83,7 +105,7 @@ const SettingsManager = {
         const audioContainer = document.getElementById('customSelectRoundAudioMode');
         const audioHiddenInput = document.getElementById('settingRoundAudioMode');
         if (audioContainer && audioHiddenInput) {
-            const savedAudio = this.state.roundAudioMode || 'gong';
+            const savedAudio = this.state.roundAudioMode || 'horn';
             audioHiddenInput.value = savedAudio;
 
             if (window.UiSelectManager && typeof window.UiSelectManager.setCustomSelectValue === 'function') {
@@ -200,7 +222,7 @@ const SettingsManager = {
 
         // Передаем выбранный пресет звука раунда в трекер инициативы
         if (window.InitiativeManager) {
-            window.InitiativeManager.state.audioPreset = this.state.roundAudioMode || 'gong';
+            window.InitiativeManager.state.audioPreset = this.state.roundAudioMode || 'horn';
         }
 
         window.MAP_HIDE_DC = this.state.hideDc;
@@ -216,7 +238,7 @@ const SettingsManager = {
             window.HexCanvasRender.showQuestTooltips = !this.state.hideQuestMarkers;
         }
         window.MAP_HIDE_KINGDOM_BORDERS = !!this.state.hideKingdomBorders;
-
+        window.SHOW_ENEMY_TOOLTIPS = !!this.state.showEnemyTooltips;
 
         const fpsCounter = document.getElementById('fpsCounter') || document.querySelector('.fps-monitor');
         if (fpsCounter) fpsCounter.style.display = this.state.enableFpsMonitor ? 'block' : 'none';

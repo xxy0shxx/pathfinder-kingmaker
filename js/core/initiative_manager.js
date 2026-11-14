@@ -1072,7 +1072,7 @@ const InitiativeManager = {
 
 
     _attachUnitTooltip(card, unit) {
-        if (unit.faction !== 'friend') return;
+        if (unit.faction !== 'friend' && !window.SHOW_ENEMY_TOOLTIPS) return;
 
         card.addEventListener('mouseenter', (e) => {
             let tip = document.getElementById('initUnitHoverTooltip');
