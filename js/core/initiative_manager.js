@@ -3,7 +3,7 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import { InitiativePhrases } from '../config/initiative_phrases.js';
 import EventBus from '../services/event_bus.js';
 import { STAT_CATEGORIES, createDefaultStats } from './bestiary_manager.js';
-
+import ModalManager from '../ui/modal_manager.js';
 
 /**
  * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ С ТВ-СТРЕЛКОЙ ХОДА И ВСПЫШКОЙ НОВОГО РАУНДА
@@ -359,13 +359,48 @@ const InitiativeManager = {
     },
 
     resetRound() {
-        if (this.state.round === 1) return;
-        if (confirm("Сбросить счетчик текущих раундов боя до 1?")) {
-            this.state.round = 1;
-            this.state.phraseSeed = Math.floor(Math.random() * 1000);
-            this._saveWithoutSort();
-        }
+        const activeUnits = this.state.combatants.filter(c => c.status !== 'out');
+        const firstActive = activeUnits.length > 0 ? activeUnits[0] : null;
+        const firstActiveId = firstActive ? firstActive.id : null;
+
+        if (this.state.round === 1 && this.state.selectedUnitId === firstActiveId) return;
+
+        const targetHint = firstActive
+            ? `<div style="margin-top: 8px; color: #2ecc71; font-weight: bold;">▶ Ход перейдёт к первому бойцу: ${firstActive.name}</div>`
+            : '';
+
+        ModalManager.open({
+            id: 'initResetRoundModal',
+            title: '🔄 Сброс боя к 1-му раунду',
+            width: '460px',
+            borderColor: '#dfbc6f',
+            bodyHtml: `
+                <div style="font-size: 16px; line-height: 1.5; color: #ebd291;">
+                    Сбросить счётчик раундов до <b>1</b> (время вернётся на <b>00:00</b>)?
+                    ${targetHint}
+                </div>
+            `,
+            footerButtons: [
+                {
+                    label: '✖ Отмена',
+                    variant: 'cc'
+                },
+                {
+                    label: '🔄 Сбросить раунд',
+                    variant: 'ok',
+                    onClick: (close) => {
+                        this.state.round = 1;
+                        this.state.selectedUnitId = firstActiveId;
+                        this.state.phraseSeed = Math.floor(Math.random() * 1000);
+                        this._saveWithoutSort();
+                        if (typeof close === 'function') close();
+                        else ModalManager.close('initResetRoundModal');
+                    }
+                }
+            ]
+        });
     },
+
 
     advanceRounds(deltaRounds) {
         const prevRound = this.state.round || 1;
@@ -422,17 +457,6 @@ const InitiativeManager = {
             fxLayer.classList.remove('init-lightning-active');
             void fxLayer.offsetWidth;
             fxLayer.classList.add('init-lightning-active');
-        }
-    },
-
-
-    clearAll() {
-        if (confirm("Полностью очистить боевой трекер инициативы?")) {
-            this.state.combatants = [];
-            this.state.selectedUnitId = null;
-            this.state.round = 1;
-            this.state.phraseSeed = 0;
-            this._saveWithoutSort();
         }
     },
 
