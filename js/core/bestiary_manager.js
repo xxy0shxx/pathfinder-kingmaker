@@ -54,15 +54,14 @@ export function createDefaultStats() {
     return stats;
 }
 
-
 const PF2E_SHEET_CONFIG = {
     attributes: [
-        { key: 'str', label: 'Сила' },
-        { key: 'dex', label: 'Ловкость' },
-        { key: 'con', label: 'Выносливость' },
-        { key: 'int', label: 'Интеллект' },
-        { key: 'wis', label: 'Мудрость' },
-        { key: 'cha', label: 'Харизма' }
+        { key: 'str', label: '💪 Сила (СИЛ)' },
+        { key: 'dex', label: '🤸 Ловкость (ЛВК)' },
+        { key: 'con', label: '🫀 Выносливость (ВЫН)' },
+        { key: 'int', label: '📘 Интеллект (ИНТ)' },
+        { key: 'wis', label: '🦉 Мудрость (МДР)' },
+        { key: 'cha', label: '🎭 Харизма (ХАР)' }
     ],
     defenses: [
         { key: 'perception', label: '👁️ Внимание' },
@@ -71,23 +70,23 @@ const PF2E_SHEET_CONFIG = {
         { key: 'will', label: '🧠 Воля' }
     ],
     skills: [
-        { key: 'acrobatics', label: 'Акробатика (Лвк)' },
-        { key: 'arcana', label: 'Аркана (Инт)' },
-        { key: 'athletics', label: 'Атлетика (Сил)' },
-        { key: 'crafting', label: 'Ремесло (Инт)' },
-        { key: 'deception', label: 'Обман (Хар)' },
-        { key: 'diplomacy', label: 'Дипломатия (Хар)' },
-        { key: 'intimidation', label: 'Запугивание (Хар)' },
-        { key: 'lore', label: 'Знания / Lore (Инт)' },
-        { key: 'medicine', label: 'Медицина (Мдр)' },
-        { key: 'nature', label: 'Природа (Мдр)' },
-        { key: 'occultism', label: 'Оккультизм (Инт)' },
-        { key: 'performance', label: 'Выступление (Хар)' },
-        { key: 'religion', label: 'Религия (Мдр)' },
-        { key: 'society', label: 'Общество (Инт)' },
-        { key: 'stealth', label: 'Скрытность (Лвк)' },
-        { key: 'survival', label: 'Выживание (Мдр)' },
-        { key: 'thievery', label: 'Воровство (Лвк)' }
+        { key: 'acrobatics', label: '🤸 Акробатика (Лвк)' },
+        { key: 'athletics', label: '🏋️ Атлетика (Сил)' },
+        { key: 'thievery', label: '🗝️ Воровство (Лвк)' },
+        { key: 'survival', label: '🏕️ Выживание (Мдр)' },
+        { key: 'diplomacy', label: '🤝 Дипломатия (Хар)' },
+        { key: 'intimidation', label: '😠 Запугивание (Хар)' },
+        { key: 'lore', label: '📚 Знание (Инт)' },
+        { key: 'performance', label: '🎵 Исполнение (Хар)' },
+        { key: 'medicine', label: '⚕️ Медицина (Мдр)' },
+        { key: 'arcana', label: '🔮 Мистицизм (Инт)' },
+        { key: 'deception', label: '🎭 Обман (Хар)' },
+        { key: 'society', label: '🏛️ Общество (Инт)' },
+        { key: 'occultism', label: '🕯️ Оккультизм (Инт)' },
+        { key: 'nature', label: '🌿 Природа (Мдр)' },
+        { key: 'religion', label: '☀️ Религия (Мдр)' },
+        { key: 'crafting', label: '🔨 Ремесло (Инт)' },
+        { key: 'stealth', label: '🥷 Скрытность (Лвк)' }
     ]
 };
 
@@ -137,18 +136,63 @@ const BestiaryManager = {
         if (!item.stats || typeof item.stats !== 'object') {
             item.stats = {};
         }
-        const allKeys = [
+
+        const numDefaults = {
+            level: 1, xp: 0, speed: 25,
+            hpMax: 10, hpCurrent: 10, hpTemp: 0,
+            ac: 10, acDex: 0, acProf: 0, acItem: 0, acOther: 0,
+            spellAttack: 0, spellDc: 10,
+            cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
+            coinsCopper: 0, coinsSilver: 0, coinsGold: 0
+        };
+
+        Object.entries(numDefaults).forEach(([k, def]) => {
+            if (item.stats[k] === undefined || item.stats[k] === null) {
+                item.stats[k] = def;
+            }
+        });
+
+        const allModKeys = [
             ...PF2E_SHEET_CONFIG.attributes,
             ...PF2E_SHEET_CONFIG.defenses,
             ...PF2E_SHEET_CONFIG.skills
         ];
-        allKeys.forEach(({ key }) => {
+        allModKeys.forEach(({ key }) => {
             if (item.stats[key] === undefined || item.stats[key] === null) {
                 item.stats[key] = 0;
             }
         });
+
+        const textDefaults = {
+            pronouns: '', alignment: '', playerName: '',
+            ancestry: '', heritage: '', ancestryFeat: '',
+            background: '', backgroundFeat: '',
+            charClass: '', classFeatsLvl1: '', classFeatsLvl2: '', classFeatsLvl3: '',
+            perceptionNotes: '', armorType: 'unarmored', armorNotes: '',
+            weaponProfNotes: '',
+            melee1Name: '', melee1Atk: '', melee1Dmg: '', melee1Traits: '',
+            melee2Name: '', melee2Atk: '', melee2Dmg: '', melee2Traits: '',
+            rangedName: '', rangedAtk: '', rangedDmg: '', rangedTraits: '',
+            skillOtherNotes: '',
+            equipmentText: '',
+            cantripsPrepared: '',
+            lvl1Prepared: '',
+            lvl2Prepared: '',
+            spellbookText: '',
+            adventureLogText: '',
+            notesText: ''
+        };
+
+        Object.entries(textDefaults).forEach(([k, def]) => {
+            if (item.stats[k] === undefined || item.stats[k] === null) {
+                item.stats[k] = def;
+            }
+        });
+
         return item.stats;
     },
+
+
 
 
     addPreset(name, faction = 'enemy', defaultScore = 10) {
@@ -239,68 +283,244 @@ const BestiaryManager = {
         this._save();
     },
 
-    openCharacterSheetModal(heroId) {
+
+    openCharacterSheetModal(heroId, pageNum = 1) {
         const hero = this.state.party.find(x => x.id === heroId);
         if (!hero) return;
 
         const stats = this._ensureCharacterStats(hero);
 
-        const renderNumberField = (key, label) => `
-            <div class="bst-stat-row">
-                <label class="bst-stat-label" for="bstStat_${key}">${label}</label>
-                <input type="number" id="bstStat_${key}" data-stat-key="${key}" class="k-inp bst-stat-inp" value="${stats[key] ?? 0}">
-            </div>
-        `;
+        const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
+        const numInp = (key, cls = 'bst-stat-inp') =>
+            `<input type="number" data-sheet-num="${key}" class="k-inp ${cls}" value="${stats[key] ?? 0}">`;
+        const txtInp = (key, placeholder = '') =>
+            `<input type="text" data-sheet-txt="${key}" class="k-inp bst-txt-inp" placeholder="${placeholder}" value="${esc(stats[key])}">`;
+        const txtArea = (key, rows = 4, placeholder = '') =>
+            `<textarea data-sheet-txt="${key}" class="k-inp bst-area-inp" rows="${rows}" placeholder="${placeholder}">${String(stats[key] ?? '')}</textarea>`;
 
-        const bodyHtml = `
-            <div class="bst-sheet-grid">
+        const collectFormData = (overlayEl) => {
+            overlayEl.querySelectorAll('[data-sheet-num]').forEach(inp => {
+                const k = inp.dataset.sheetNum;
+                const val = parseInt(inp.value, 10);
+                hero.stats[k] = isNaN(val) ? 0 : val;
+            });
+            overlayEl.querySelectorAll('[data-sheet-txt]').forEach(inp => {
+                const k = inp.dataset.sheetTxt;
+                hero.stats[k] = inp.value;
+            });
+        };
+
+        const page1Html = `
+            <div class="bst-sheet-top-bar">
+                <div class="bst-top-field"><span>🧬 Народ</span>${txtInp('ancestry', 'Человек, Эльф...')}</div>
+                <div class="bst-top-field"><span>📜 Происхождение</span>${txtInp('background', 'Воин, Учёный...')}</div>
+                <div class="bst-top-field"><span>⚔️ Класс</span>${txtInp('charClass', 'Воин, Жрец...')}</div>
+                <div class="bst-top-field"><span>⚖️ Мировоззрение</span>${txtInp('alignment', 'НД, ПЗ...')}</div>
+                <div class="bst-top-field bst-narrow"><span>⭐ Уровень</span>${numInp('level', 'bst-mini-num')}</div>
+                <div class="bst-top-field bst-narrow"><span>✨ Опыт</span>${numInp('xp', 'bst-mini-num')}</div>
+                <div class="bst-top-field"><span>👤 Игрок</span>${txtInp('playerName', 'Имя игрока')}</div>
+            </div>
+
+            <div class="bst-sheet-page1-grid">
                 <div class="bst-sheet-col">
-                    <div class="k-panel" style="margin-bottom: 12px;">
-                        <div class="k-sec-title">⚔️ Характеристики (модификаторы)</div>
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">⚔️ Модификаторы характеристик</div>
                         <div class="bst-stats-2col">
-                            ${PF2E_SHEET_CONFIG.attributes.map(a => renderNumberField(a.key, a.label)).join('')}
+                            ${PF2E_SHEET_CONFIG.attributes.map(a => `
+                                <div class="bst-stat-row">
+                                    <label class="bst-stat-label">${a.label}</label>
+                                    ${numInp(a.key)}
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
 
                     <div class="k-panel">
-                        <div class="k-sec-title">🛡️ Внимание и Спасброски</div>
-                        <div class="bst-stats-2col">
-                            ${PF2E_SHEET_CONFIG.defenses.map(d => renderNumberField(d.key, d.label)).join('')}
+                        <div class="k-sec-title">📜 Навыки Pathfinder</div>
+                        <div class="bst-skills-2col">
+                            ${PF2E_SHEET_CONFIG.skills.map(s => `
+                                <div class="bst-stat-row">
+                                    <label class="bst-stat-label">${s.label}</label>
+                                    ${numInp(s.key)}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 8px;">
+                            ${txtInp('skillOtherNotes', '📝 Прочие навыки / заметки...')}
                         </div>
                     </div>
                 </div>
 
                 <div class="bst-sheet-col">
-                    <div class="k-panel" style="height: 100%;">
-                        <div class="k-sec-title">📜 Навыки Pathfinder</div>
-                        <div class="bst-skills-2col">
-                            ${PF2E_SHEET_CONFIG.skills.map(s => renderNumberField(s.key, s.label)).join('')}
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">❤️ Пункты здоровья, Скорость и Защита</div>
+                        <div class="bst-vitals-row">
+                            <div class="bst-vital-box"><span>❤️ Макс. ПЗ</span>${numInp('hpMax', 'bst-vital-num')}</div>
+                            <div class="bst-vital-box"><span>🩸 Текущие ПЗ</span>${numInp('hpCurrent', 'bst-vital-num')}</div>
+                            <div class="bst-vital-box"><span>💠 Врем. ПЗ</span>${numInp('hpTemp', 'bst-vital-num')}</div>
+                            <div class="bst-vital-box"><span>👟 Скорость</span>${numInp('speed', 'bst-vital-num')}</div>
+                            <div class="bst-vital-box bst-ac-highlight"><span>🛡️ КБ (AC)</span>${numInp('ac', 'bst-vital-num')}</div>
+                        </div>
+                        <div class="bst-ac-breakdown">
+                            <select data-sheet-txt="armorType" class="k-inp" style="width: auto; font-size: 13px;">
+                                <option value="unarmored" ${stats.armorType === 'unarmored' ? 'selected' : ''}>👕 Без брони</option>
+                                <option value="light" ${stats.armorType === 'light' ? 'selected' : ''}>🧥 Лёгкая броня</option>
+                                <option value="medium" ${stats.armorType === 'medium' ? 'selected' : ''}>🦺 Средняя броня</option>
+                                <option value="heavy" ${stats.armorType === 'heavy' ? 'selected' : ''}>🛡️ Тяжёлая броня</option>
+                            </select>
+                            <label>🤸 Лвк: ${numInp('acDex', 'bst-tiny-num')}</label>
+                            <label>🎓 Умение: ${numInp('acProf', 'bst-tiny-num')}</label>
+                            <label>💍 Предмет: ${numInp('acItem', 'bst-tiny-num')}</label>
+                            <label>➕ Прочее: ${numInp('acOther', 'bst-tiny-num')}</label>
+                        </div>
+                    </div>
+
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">👁️ Внимание и Испытания</div>
+                        <div class="bst-stats-2col">
+                            ${PF2E_SHEET_CONFIG.defenses.map(d => `
+                                <div class="bst-stat-row">
+                                    <label class="bst-stat-label">${d.label}</label>
+                                    ${numInp(d.key)}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 6px;">
+                            ${txtInp('perceptionNotes', '👀 Восприятие и прочее (сумеречное зрение и т.д.)...')}
+                        </div>
+                    </div>
+
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">🗡️ Оружие и Атаки</div>
+                        <div class="bst-weapon-row">
+                            ${txtInp('melee1Name', '⚔️ Ближний бой 1')}
+                            ${txtInp('melee1Atk', '🎯 Атака (+)')}
+                            ${txtInp('melee1Dmg', '💥 Урон (1d8+3)')}
+                            ${txtInp('melee1Traits', '🏷️ Дескрипторы')}
+                        </div>
+                        <div class="bst-weapon-row">
+                            ${txtInp('melee2Name', '🗡️ Ближний бой 2')}
+                            ${txtInp('melee2Atk', '🎯 Атака (+)')}
+                            ${txtInp('melee2Dmg', '💥 Урон')}
+                            ${txtInp('melee2Traits', '🏷️ Дескрипторы')}
+                        </div>
+                        <div class="bst-weapon-row">
+                            ${txtInp('rangedName', '🏹 Дистанционное')}
+                            ${txtInp('rangedAtk', '🎯 Атака (+)')}
+                            ${txtInp('rangedDmg', '💥 Урон / Дист.')}
+                            ${txtInp('rangedTraits', '🏷️ Дескрипторы')}
+                        </div>
+                        <div style="margin-top: 6px;">
+                            ${txtInp('weaponProfNotes', '🥋 Умения в оружии (Простое, Особое, Кулак)...')}
+                        </div>
+                    </div>
+
+                    <div class="k-panel">
+                        <div class="k-sec-title">🌟 Способности народа, происхождения и класса</div>
+                        <div class="bst-feats-grid">
+                            ${txtInp('heritage', '🧬 Родословная и способность народа')}
+                            ${txtInp('backgroundFeat', '📜 Способность происхождения')}
+                            ${txtInp('classFeatsLvl1', '⚔️ Классовые способности (1 ур.)')}
+                            ${txtInp('classFeatsLvl2', '🔥 Классовые способности (2-3 ур.)')}
                         </div>
                     </div>
                 </div>
             </div>
         `;
+        const page2Html = `
+            <div class="bst-sheet-page2-grid">
+                <div class="bst-sheet-col">
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">🎒 Снаряжение и Деньги</div>
+                        <div class="bst-coins-row">
+                            <label>🥉 ММ: ${numInp('coinsCopper', 'bst-mini-num')}</label>
+                            <label>🥈 СМ: ${numInp('coinsSilver', 'bst-mini-num')}</label>
+                            <label>🥇 ЗМ: ${numInp('coinsGold', 'bst-mini-num')}</label>
+                        </div>
+                        ${txtArea('equipmentText', 6, '🎒 Список снаряжения, зелий, свитков и предметов...')}
+                    </div>
 
+                    <div class="k-panel">
+                        <div class="k-sec-title">✨ Сотворение заклинаний</div>
+                        <div class="bst-spell-stats-row">
+                            <label>🎯 Проверка атаки: ${numInp('spellAttack', 'bst-mini-num')}</label>
+                            <label>🔮 СЛ заклинаний: ${numInp('spellDc', 'bst-mini-num')}</label>
+                        </div>
+
+                        <div class="bst-spell-tier">
+                            <div class="bst-spell-tier-head">
+                                <span>✨ Фокусы (подготовлено)</span>
+                                <label>📅 В день: ${numInp('cantripsPerDay', 'bst-tiny-num')}</label>
+                            </div>
+                            ${txtArea('cantripsPrepared', 2, 'Список подготовленных фокусов...')}
+                        </div>
+
+                        <div class="bst-spell-tier">
+                            <div class="bst-spell-tier-head">
+                                <span>1️⃣ Заклинания 1 круга</span>
+                                <label>📅 В день: ${numInp('lvl1PerDay', 'bst-tiny-num')}</label>
+                            </div>
+                            ${txtArea('lvl1Prepared', 3, 'Заклинания 1 круга...')}
+                        </div>
+
+                        <div class="bst-spell-tier">
+                            <div class="bst-spell-tier-head">
+                                <span>2️⃣ Заклинания 2 круга</span>
+                                <label>📅 В день: ${numInp('lvl2PerDay', 'bst-tiny-num')}</label>
+                            </div>
+                            ${txtArea('lvl2Prepared', 3, 'Заклинания 2 круга...')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bst-sheet-col">
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">📖 Журнал приключений</div>
+                        ${txtArea('adventureLogText', 5, '📅 Дата — Описание события — Опыт...')}
+                    </div>
+
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">📝 Заметки персонажа</div>
+                        ${txtArea('notesText', 5, '🗒️ Личные заметки, клятвы, связи, особенности...')}
+                    </div>
+
+                    <div class="k-panel">
+                        <div class="k-sec-title">📚 Книга заклинаний / Репертуар</div>
+                        ${txtArea('spellbookText', 5, '📖 Все изученные заклинания...')}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const isPage1 = pageNum === 1;
         const { overlay, close } = ModalManager.open({
             id: 'bstHeroSheetModal',
-            title: `🛡️ Лист персонажа: ${hero.name}`,
-            width: '920px',
+            title: isPage1
+                ? `🛡️ Бланк персонажа: ${hero.name} — Стр. 1 (Бой и Навыки)`
+                : `📜 Бланк персонажа: ${hero.name} — Стр. 2 (Снаряжение и Магия)`,
+            width: '1120px',
             borderColor: '#dfbc6f',
-            bodyHtml,
+            bodyHtml: isPage1 ? page1Html : page2Html,
             footerButtons: [
                 {
-                    label: 'Отмена',
+                    label: isPage1 ? '📜 Стр. 2: Снаряжение и Магия ➔' : '⬅ 🛡️ Стр. 1: Бой и Навыки',
+                    variant: 'cc',
+                    onClick: () => {
+                        collectFormData(overlay);
+                        this._save();
+                        close();
+                        this.openCharacterSheetModal(heroId, isPage1 ? 2 : 1);
+                    }
+                },
+                {
+                    label: '✖ Отмена',
                     variant: 'cc'
                 },
                 {
-                    label: '⚜ Сохранить параметры',
+                    label: '⚜ Сохранить бланк',
                     variant: 'ok',
                     onClick: () => {
-                        overlay.querySelectorAll('[data-stat-key]').forEach(inp => {
-                            const k = inp.dataset.statKey;
-                            const val = parseInt(inp.value, 10);
-                            hero.stats[k] = isNaN(val) ? 0 : val;
-                        });
+                        collectFormData(overlay);
                         this._save();
                         close();
                     }
@@ -308,7 +528,6 @@ const BestiaryManager = {
             ]
         });
     },
-
 
     deployToInitiative(item, customScore = null) {
         if (!window.InitiativeManager) return;
