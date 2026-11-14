@@ -56,6 +56,28 @@ const HudWindowManager = {
             weatherTablet.style.cssText = 'display: none; width: 100%; flex-direction: column; overflow-y: auto;';
             kingdomTablet.insertAdjacentElement('afterend', weatherTablet);
         }
+
+        // Динамическая вкладка Бестиария
+        const tabInitiative = document.getElementById('tabInitiative');
+        if (tabInitiative && !document.getElementById('tabBestiary')) {
+            const tabBestiary = document.createElement('button');
+            tabBestiary.type = 'button';
+            tabBestiary.id = 'tabBestiary';
+            tabBestiary.className = 'quest-tab-btn';
+            tabBestiary.title = 'Бестиарий: Отряд и заготовки монстров';
+            tabBestiary.textContent = '🐉';
+            tabInitiative.insertAdjacentElement('afterend', tabBestiary);
+        }
+
+        // Контейнер планшета Бестиария
+        const initTablet = document.getElementById('initiativeTabletContainer');
+        if (initTablet && !document.getElementById('bestiaryTabletContainer')) {
+            const bestiaryTablet = document.createElement('div');
+            bestiaryTablet.id = 'bestiaryTabletContainer';
+            bestiaryTablet.style.cssText = 'display: none; width: 100%; flex-direction: column; overflow-y: auto;';
+            initTablet.insertAdjacentElement('afterend', bestiaryTablet);
+        }
+
     },
 
     _bindCloseControls() {

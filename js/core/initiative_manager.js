@@ -20,6 +20,7 @@ const InitiativeManager = {
     onSaveCallback: null,
     _isInputsBound: false,
     _isGlobalKeyBound: false,
+    _isDrawerOpen: false,
 
     init(mapData) {
         try {
@@ -422,8 +423,9 @@ const InitiativeManager = {
                             </select>
                             <button type="button" id="initBtnToggleWeatherFx" class="init-btn-view-toggle" title="Включить/выключить анимацию погоды (снег, дождь, туман)" style="padding: 0 12px !important; font-size: 18px !important;">🌧️</button>
                             <button type="button" id="initBtnToggleView" class="init-btn-view-toggle" title="Сменить стиль отображения">⚔️ Режим: Список / Горизонт</button>
-
+                            <button type="button" id="initBtnToggleBestiaryDrawer" class="init-btn-view-toggle" title="Открыть панель заготовок героев и монстров">🐉 Заготовки</button>
                             <button type="button" class="btn ok" id="initBtnNextTurn" style="flex-grow: 1; height: 50px; font-size: 18px; font-weight: 900; letter-spacing: 1px;">🛡️ СЛЕДУЮЩИЙ ХОД</button>
+
                         </div>
                         <div class="init-quick-input-bar" style="margin-top: 14px;">
                         
@@ -448,7 +450,14 @@ const InitiativeManager = {
                             <button type="button" class="btn ok" id="initBtnAdd" style="padding: 6px 20px; font-size: 14px; min-width: auto; height: 38px;">⚜ Добавить</button>
                         </div>
                     </div>
-                    <div id="initiativeCombatantsList" class="init-cards-scroll-list"></div>
+                    
+                    <div class="init-battle-workspace">
+                        <aside id="initBestiaryDrawer" class="init-bestiary-drawer" style="display: none;"></aside>
+                        <div id="initBattleMainArea" class="init-battle-main-area">
+                            <div id="initiativeCombatantsList" class="init-cards-scroll-list"></div>
+                        </div>
+                    </div>
+                    
                 </div>
             `;
             this._isInputsBound = false;
@@ -478,6 +487,37 @@ const InitiativeManager = {
 
             document.getElementById('initBtnToggleWeatherFx')?.addEventListener('click', () => this.toggleWeatherFx());
 
+            document.getElementById('initBtnToggleBestiaryDrawer')?.addEventListener('click', () => {
+                this._isDrawerOpen = !this._isDrawerOpen;
+                this.renderUi();
+            });
+
+            const mainArea = document.getElementById('initBattleMainArea');
+            if (mainArea) {
+                mainArea.addEventListener('dragover', (e) => {
+                    if (e.dataTransfer.types.includes('application/x-bestiary-item')) {
+                        e.preventDefault();
+                        mainArea.classList.add('init-drop-target-active');
+                    }
+                });
+                mainArea.addEventListener('dragleave', () => {
+                    mainArea.classList.remove('init-drop-target-active');
+                });
+                mainArea.addEventListener('drop', (e) => {
+                    const raw = e.dataTransfer.getData('application/x-bestiary-item');
+                    mainArea.classList.remove('init-drop-target-active');
+                    if (!raw) return;
+                    e.preventDefault();
+                    try {
+                        const preset = JSON.parse(raw);
+                        if (window.BestiaryManager) {
+                            window.BestiaryManager.deployToInitiative(preset);
+                        }
+                    } catch (err) {
+                        console.error('Ошибка перетаскивания из бестиария:', err);
+                    }
+                });
+            }
 
             if (audioSel) {
                 audioSel.value = this.state.audioPreset || 'gong';
@@ -778,7 +818,15 @@ const InitiativeManager = {
             listContainer.parentNode.appendChild(outZone);
         }
 
+        this._renderBestiaryDrawer();
+
     },
+
+
+
+
+
+
 
 
     _bindCardEvents(card, unit) {
@@ -790,15 +838,20 @@ const InitiativeManager = {
             }
         });
 
+
         const nameEl = card.querySelector('.init-card-name-text');
         if (nameEl) {
-            nameEl.addEventListener('dblclick', (e) => {
+            // Отключаем перетаскивание карточки, когда курсор наведён на имя
+            nameEl.addEventListener('mouseenter', () => card.setAttribute('draggable', 'false'));
+            nameEl.addEventListener('mouseleave', () => {
+                if (!nameEl.querySelector('input')) card.setAttribute('draggable', 'true');
+            });
+
+            nameEl.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (nameEl.querySelector('input')) return;
 
-                // Отключаем перетаскивание карточки, чтобы можно было выделять текст мышью
                 card.setAttribute('draggable', 'false');
-
                 const currentName = unit.name;
                 const input = document.createElement('input');
                 input.type = 'text';
@@ -809,8 +862,6 @@ const InitiativeManager = {
                 const finishEdit = (save) => {
                     if (isFinished) return;
                     isFinished = true;
-
-                    // Возвращаем возможность перетаскивать карточку
                     card.setAttribute('draggable', 'true');
 
                     const val = input.value.trim();
@@ -822,7 +873,6 @@ const InitiativeManager = {
                 };
 
                 input.addEventListener('click', (ev) => ev.stopPropagation());
-                input.addEventListener('dblclick', (ev) => ev.stopPropagation());
                 input.addEventListener('keydown', (ev) => {
                     ev.stopPropagation();
                     if (ev.key === 'Enter') {
@@ -841,6 +891,8 @@ const InitiativeManager = {
                 input.select();
             });
         }
+
+
 
         card.querySelector('.init-inline-status-select').addEventListener('change', (e) => {
             this.updateStatus(unit.id, e.target.value);
@@ -900,6 +952,8 @@ const InitiativeManager = {
 
 
 
+
+
     updateName(id, newName) {
         const cleanName = String(newName || '').trim();
         if (!cleanName) return;
@@ -907,7 +961,6 @@ const InitiativeManager = {
         const unit = this.state.combatants.find(c => c.id === id);
         if (unit && unit.name !== cleanName) {
             unit.name = cleanName;
-            // Если аватар ещё не был выбран вручную, пробуем подобрать по новому имени
             if (!unit.avatarType) {
                 const guessed = AvatarRegistry.guessAvatarByName(cleanName);
                 if (guessed) {
@@ -918,6 +971,81 @@ const InitiativeManager = {
             this._saveWithoutSort();
         }
     },
+
+
+
+    _renderBestiaryDrawer() {
+        const drawer = document.getElementById('initBestiaryDrawer');
+        const toggleBtn = document.getElementById('initBtnToggleBestiaryDrawer');
+        if (!drawer) return;
+
+        if (toggleBtn) {
+            toggleBtn.classList.toggle('active-drawer-btn', this._isDrawerOpen);
+        }
+
+        if (!this._isDrawerOpen) {
+            drawer.style.display = 'none';
+            return;
+        }
+
+        drawer.style.display = 'flex';
+        const party = window.BestiaryManager?.state?.party || [];
+        const monsters = window.BestiaryManager?.state?.monsters || [];
+
+        const renderMiniGroup = (title, items, badgeColor) => `
+            <div class="init-drawer-section">
+                <div class="init-drawer-sec-title" style="color:${badgeColor};">${title} (${items.length})</div>
+                <div class="init-drawer-cards-grid">
+                    ${items.length === 0 ? `<div class="init-drawer-empty">Пусто (настройте во вкладке 🐉)</div>` : ''}
+                    ${items.map(item => `
+                        <div class="init-drawer-card faction-${item.faction}" draggable="true" data-preset='${JSON.stringify(item).replace(/'/g, "&apos;")}' title="Перетащите на ленту инициативы или нажмите +">
+                            <div class="init-drawer-card-top">${item.name}</div>
+                            <div class="init-drawer-card-img">
+                                ${item.avatar ? `<img src="${item.avatar}">` : `<span>⚔️</span>`}
+                            </div>
+                            <div class="init-drawer-card-bot">
+                                <span class="init-drawer-score">${item.defaultScore}</span>
+                                <button type="button" class="init-drawer-add-one" title="Добавить в бой">+</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        drawer.innerHTML = `
+            <div class="init-drawer-header">
+                <span>🐉 Заготовки боя</span>
+                <button type="button" id="initDrawerGoTab" class="btn cc" style="padding:2px 8px; font-size:12px;">Настроить</button>
+            </div>
+            <div class="init-drawer-scroll">
+                ${renderMiniGroup('🛡️ Отряд', party, '#2ecc71')}
+                ${renderMiniGroup('👹 Монстры', monsters, '#ff7675')}
+            </div>
+        `;
+
+        drawer.querySelector('#initDrawerGoTab')?.addEventListener('click', () => {
+            if (window.HudWindowManager) window.HudWindowManager.open('bestiary');
+        });
+
+        drawer.querySelectorAll('.init-drawer-card').forEach(cardEl => {
+            const preset = JSON.parse(cardEl.dataset.preset);
+
+            cardEl.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('application/x-bestiary-item', cardEl.dataset.preset);
+                cardEl.classList.add('dragging');
+            });
+            cardEl.addEventListener('dragend', () => cardEl.classList.remove('dragging'));
+
+            cardEl.querySelector('.init-drawer-add-one')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (window.BestiaryManager) {
+                    window.BestiaryManager.deployToInitiative(preset);
+                }
+            });
+        });
+    },
+
 
 };
 

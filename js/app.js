@@ -33,6 +33,7 @@ import InitiativeManager from './core/initiative_manager.js';
 import WeatherManager from './core/weather_manager.js';
 import HudWindowManager from './ui/hud_window_manager.js';
 import EventBus from './services/event_bus.js';
+import BestiaryManager from './core/bestiary_manager.js';
 
 let hasMoved = false;
 let mapData = { hexes: {}, kingdom: null, paths: [] };
@@ -172,7 +173,15 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { PathManager.render(); }, 50);
     });
 
+    BestiaryManager.init(mapData);
     InitiativeManager.init(mapData);
+
+    HudWindowManager.registerTab('bestiary', {
+        tabBtnId: 'tabBestiary',
+        containerId: 'bestiaryTabletContainer',
+        onOpen: () => BestiaryManager.renderUi()
+    });
+
 
     // ============================================================================
     // КОЛЛБЭКИ МОДАЛЬНОГО ОКНА ГЕКСА

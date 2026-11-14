@@ -5901,3 +5901,244 @@ canvas[style*="position: fixed"] {
 .init-card-name-text:hover {
     text-decoration: underline dashed #ffd875;
 }
+/* ============================================================================
+   ВКЛАДКА «БЕСТИАРИЙ» И ВЫДВИЖНАЯ ЛЕВАЯ ПАНЕЛЬ В ИНИЦИАТИВЕ
+   ============================================================================ */
+#bestiaryTabletContainer {
+    flex-grow: 1 !important;
+    width: 100% !important;
+    padding: 16px 30px !important;
+    max-height: calc(100vh - 90px) !important;
+    box-sizing: border-box !important;
+}
+
+.bestiary-tablet-root .init-out-combatants-zone {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+.bst-quick-send-btn {
+    background: #1e3c27;
+    border: 1px solid #2ecc71;
+    color: #ffd875;
+    border-radius: 4px;
+    width: 28px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bst-quick-send-btn:hover {
+    filter: brightness(1.25);
+}
+
+/* Рабочая область боя: слева панель заготовок, справа лента инициативы */
+.init-battle-workspace {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.init-battle-main-area {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.init-battle-main-area.init-drop-target-active {
+    background: rgba(46, 204, 113, 0.08);
+    box-shadow: inset 0 0 0 2px #2ecc71;
+}
+
+/* Левая выдвижная панель с 2 колонками/блоками (Герои и Монстры) */
+.init-bestiary-drawer {
+    width: 310px;
+    min-width: 310px;
+    max-height: calc(100vh - 235px);
+    background: rgba(6, 11, 7, 0.96);
+    border: 2px solid #8a6421;
+    border-radius: 8px;
+    padding: 10px;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+    flex-shrink: 0;
+}
+
+.init-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    color: #ffd875;
+    text-transform: uppercase;
+    border-bottom: 1px solid #543e0d;
+    padding-bottom: 6px;
+}
+
+.init-drawer-scroll {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 4px;
+}
+
+.init-drawer-sec-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+.init-drawer-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.init-drawer-empty {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    color: #7f8c8d;
+    padding: 6px 0;
+}
+
+.init-drawer-card {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #543e0d;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #0d1a10;
+    cursor: grab;
+    user-select: none;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.init-drawer-card:hover {
+    transform: translateY(-2px);
+    border-color: #ffd875;
+}
+
+.init-drawer-card.faction-friend  { border-color: #2ecc71; }
+.init-drawer-card.faction-enemy   { border-color: #e74c3c; }
+.init-drawer-card.faction-neutral { border-color: #f1c40f; }
+
+.init-drawer-card-top {
+    background: #020503;
+    color: #ffd875;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    padding: 2px 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.init-drawer-card-img {
+    width: 100%;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #09140d;
+}
+
+.init-drawer-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.init-drawer-card-bot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #020503;
+    padding: 2px 4px;
+    border-top: 1px solid rgba(223, 188, 111, 0.3);
+}
+
+.init-drawer-score {
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ebd291;
+}
+
+.init-drawer-add-one {
+    background: #1e3c27;
+    border: 1px solid #2ecc71;
+    color: #2ecc71;
+    font-weight: 900;
+    font-size: 13px;
+    line-height: 1;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.init-drawer-add-one:hover {
+    background: #2ecc71;
+    color: #020503;
+}
+
+#initBtnToggleBestiaryDrawer.active-drawer-btn {
+    border-color: #ffd875 !important;
+    background: linear-gradient(180deg, #1e3c27 0%, #112417 100%) !important;
+    color: #ffd875 !important;
+    box-shadow: 0 0 12px rgba(255, 216, 117, 0.4) !important;
+}
+/* ============================================================================
+   РЕДАКТИРОВАНИЕ ИМЕНИ БОЙЦА В ТРЕКЕРЕ ИНИЦИАТИВЫ
+   ============================================================================ */
+.init-card-name-text,
+#questLogContainer .mode-bg3 .init-card-name-text {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 25 !important;
+}
+
+.init-card-name-text:hover {
+    text-decoration: underline dashed #ffd875;
+}
+
+.init-inline-name-input {
+    background: #020503 !important;
+    border: 1.5px solid #ffd875 !important;
+    border-radius: 4px !important;
+    color: #ffd875 !important;
+    font-family: inherit !important;
+    font-size: 22px !important;
+    font-weight: bold !important;
+    padding: 2px 8px !important;
+    width: 280px !important;
+    max-width: 100% !important;
+    outline: none !important;
+    box-shadow: 0 0 10px rgba(255, 216, 117, 0.45) !important;
+}
+
+#questLogContainer .mode-bg3 .init-inline-name-input {
+    width: 100% !important;
+    font-size: 14px !important;
+    padding: 1px 4px !important;
+    text-align: center !important;
+}
