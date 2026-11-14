@@ -207,7 +207,10 @@ const WeatherManager = {
     bindBarEvents(rootEl) {
         if (!rootEl) return;
         rootEl.querySelectorAll('.w-btn-prev-day').forEach(b => b.onclick = () => this.advanceCalendar(-1, 0));
-        rootEl.querySelectorAll('.w-btn-next-day').forEach(b => b.onclick = () => this.advanceCalendar(1, 0));
+        rootEl.querySelectorAll('.w-btn-next-day').forEach(b => b.onclick = () => {
+            this.advanceCalendar(1, 0);
+            this.openWeatherRollModal();
+        });
         rootEl.querySelectorAll('.w-btn-prev-month').forEach(b => b.onclick = () => this.advanceCalendar(0, -1));
         rootEl.querySelectorAll('.w-btn-next-month').forEach(b => b.onclick = () => this.advanceCalendar(0, 1));
         rootEl.querySelectorAll('.w-btn-open-roll').forEach(b => b.onclick = () => this.openWeatherRollModal());
