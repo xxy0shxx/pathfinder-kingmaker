@@ -90,10 +90,12 @@ const PF2E_SHEET_CONFIG = {
     ]
 };
 
+
 const BestiaryManager = {
     state: {
-        party: [],     // Текущий отряд (Герои / Союзники)
-        monsters: []   // Подготовленные монстры / NPC / Враги
+        party: [],     // Текущий отряд Герои / Союзники
+        monsters: [],  // Подготовленные монстры / NPC / Враги
+        inactive: []   // Неактивные герои в резерве
     },
     mapDataRef: null,
     _pendingAvatarType: null,
@@ -105,6 +107,7 @@ const BestiaryManager = {
             this.state = this.mapDataRef.bestiary;
             if (!Array.isArray(this.state.party)) this.state.party = [];
             if (!Array.isArray(this.state.monsters)) this.state.monsters = [];
+            if (!Array.isArray(this.state.inactive)) this.state.inactive = [];
         } else {
             this.mapDataRef.bestiary = this.state;
         }
@@ -115,12 +118,27 @@ const BestiaryManager = {
                 this.state = this.mapDataRef.bestiary;
                 if (!Array.isArray(this.state.party)) this.state.party = [];
                 if (!Array.isArray(this.state.monsters)) this.state.monsters = [];
+                if (!Array.isArray(this.state.inactive)) this.state.inactive = [];
             }
             this.renderUi();
         });
 
         window.BestiaryManager = this;
         this.renderUi();
+    },
+
+    moveHeroReserve(fromGroup, toGroup, id) {
+        if (!Array.isArray(this.state.inactive)) this.state.inactive = [];
+        const sourceList = this.state[fromGroup];
+        const targetList = this.state[toGroup];
+        if (!Array.isArray(sourceList) || !Array.isArray(targetList)) return;
+
+        const idx = sourceList.findIndex(x => x.id === id);
+        if (idx === -1) return;
+
+        const [hero] = sourceList.splice(idx, 1);
+        targetList.push(hero);
+        this._save();
     },
 
     _save() {
@@ -230,6 +248,8 @@ const BestiaryManager = {
     removePreset(groupKey, id) {
         if (groupKey === 'party') {
             this.state.party = this.state.party.filter(x => x.id !== id);
+        } else if (groupKey === 'inactive') {
+            this.state.inactive = (this.state.inactive || []).filter(x => x.id !== id);
         } else {
             this.state.monsters = this.state.monsters.filter(x => x.id !== id);
         }
@@ -238,13 +258,22 @@ const BestiaryManager = {
 
     updatePresetScore(groupKey, id, val) {
         const num = Math.max(1, Math.min(100, parseInt(val, 10) || 10));
-        const list = groupKey === 'party' ? this.state.party : this.state.monsters;
-        const item = list.find(x => x.id === id);
+        const item = this._getGroupList(groupKey).find(x => x.id === id);
         if (item) {
             item.defaultScore = num;
             this._save();
         }
     },
+
+    _getGroupList(groupKey) {
+        if (groupKey === 'party') return this.state.party;
+        if (groupKey === 'inactive') {
+            if (!Array.isArray(this.state.inactive)) this.state.inactive = [];
+            return this.state.inactive;
+        }
+        return this.state.monsters;
+    },
+
 
     updatePresetName(groupKey, id, newName) {
         const cleanName = String(newName || '').trim();
@@ -285,7 +314,8 @@ const BestiaryManager = {
 
 
     openCharacterSheetModal(heroId, pageNum = 1) {
-        const hero = this.state.party.find(x => x.id === heroId);
+        const hero = this.state.party.find(x => x.id === heroId)
+            || (this.state.inactive || []).find(x => x.id === heroId);
         if (!hero) return;
 
         const stats = this._ensureCharacterStats(hero);
@@ -585,7 +615,9 @@ const BestiaryManager = {
                         <div class="bst-zones-main">
                             <div id="bstZoneParty" class="init-out-combatants-zone bestiary-zone-party"></div>
                             <div id="bstZoneMonsters" class="init-out-combatants-zone bestiary-zone-monsters" style="margin-top: 16px;"></div>
+                            <div id="bstZoneInactive" class="init-out-combatants-zone bestiary-zone-inactive" style="margin-top: 16px;"></div>
                         </div>
+                        
                     </div>
                 </div>
             `;
@@ -679,6 +711,17 @@ const BestiaryManager = {
         this._renderCatalogSidebar(filterVal);
         this._renderZone('bstZoneParty', '🛡️ Текущий отряд (Герои)', 'party', this.state.party, true);
         this._renderZone('bstZoneMonsters', '👹 Заготовленные монстры и NPC', 'monsters', this.state.monsters, false);
+        this._renderZone('bstZoneInactive', '💤 Неактивные персонажи (Резерв)', 'inactive', this.state.inactive || [], false);
+
+        this._renderZone(
+            'bstZoneInactive',
+            '💤 Неактивные персонажи (Резерв)',
+            'inactive',
+            this.state.inactive || [],
+            false
+        );
+
+
     },
 
 
@@ -689,17 +732,26 @@ const BestiaryManager = {
         const zone = document.getElementById(elId);
         if (!zone) return;
 
+        const isInactive = groupKey === 'inactive';
+        const isHeroGroup = isParty || isInactive;
+        const headerColor = isParty ? '#2ecc71' : (isInactive ? '#a4b0be' : '#ff7675');
+        const emptyHint = isInactive
+            ? 'Резерв пуст. Нажмите 💤 на карточке героя в отряде, чтобы убрать его сюда без потери параметров.'
+            : 'Список пуст. Добавьте персонажей через строку поиска выше или справочник слева.';
+
         zone.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <div class="init-out-zone-title" style="margin:0; font-size:16px; color:${isParty ? '#2ecc71' : '#ff7675'};">
+                <div class="init-out-zone-title" style="margin:0; font-size:16px; color:${headerColor};">
                     ${title} (${items.length})
                 </div>
                 ${isParty && items.length > 0 ? `<button type="button" class="btn ok" id="bstBtnDeployAllParty" style="padding:4px 12px; font-size:13px;">⚔️ Весь отряд в бой</button>` : ''}
             </div>
             <div class="init-cards-scroll-list mode-bg3 init-out-zone-grid">
-                ${items.length === 0 ? `<div style="color:#7f8c8d; font-size:15px; padding:12px;">Список пуст. Добавьте персонажей через строку поиска выше.</div>` : ''}
+                ${items.length === 0 ? `<div style="color:#7f8c8d; font-size:15px; padding:12px;">${emptyHint}</div>` : ''}
             </div>
         `;
+
+
 
         const deployAllBtn = zone.querySelector('#bstBtnDeployAllParty');
         if (deployAllBtn) {
@@ -707,13 +759,31 @@ const BestiaryManager = {
         }
 
         const grid = zone.querySelector('.init-out-zone-grid');
+
+
         items.forEach((item, idx) => {
+
+
+
+            const reserveBtnHtml = groupKey === 'party'
+                ? `<button type="button" class="bst-reserve-btn to-reserve" title="Отправить в неактивные (сохранить статы)">💤</button>`
+                : (groupKey === 'inactive'
+                    ? `<button type="button" class="bst-reserve-btn to-party" title="Вернуть в активный отряд">⬆️</button>`
+                    : '');
+
 
 
 
 
             const card = document.createElement('div');
-            card.className = `init-combatant-card faction-${item.faction}`;
+            card.className = `init-combatant-card faction-${item.faction} ${isInactive ? 'bst-card-inactive' : ''}`;
+
+            const reserveActionBtn = isParty
+                ? `<button type="button" class="bst-reserve-move-btn to-reserve" title="Отправить в неактивные (сохранить статы)">💤</button>`
+                : (isInactive
+                    ? `<button type="button" class="bst-reserve-move-btn to-party" title="Вернуть в текущий отряд">🛡️</button>`
+                    : '');
+
             card.innerHTML = `
                 <div class="init-card-left">
                     <div class="init-card-name-text" title="${item.name}">${item.name}</div>
@@ -721,17 +791,29 @@ const BestiaryManager = {
                 </div>
                 <div class="init-card-right">
                     <button type="button" class="bst-quick-send-btn" title="Добавить сразу в трекер инициативы">⚔️</button>
+                    ${reserveActionBtn}
                     <div class="init-score-massive-block">
                         <input type="number" class="init-inline-score-input" value="${item.defaultScore}" title="Базовая инициатива">
                     </div>
                 </div>
-                <button type="button" class="init-btn-delete-card" title="Удалить из заготовок">×</button>
+                <button type="button" class="init-btn-delete-card" title="Удалить навсегда">×</button>
             `;
 
             card.querySelector('.bst-quick-send-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.deployToInitiative(item);
             });
+
+            card.querySelector('.bst-reserve-move-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isParty || isInactive) {
+                    this.moveHeroReserve('party', 'inactive', item.id);
+                } else if (isInactive) {
+                    this.moveHeroReserve('inactive', 'party', item.id);
+                }
+            });
+
+
 
             card.querySelector('.init-inline-score-input').addEventListener('change', (e) => {
                 this.updatePresetScore(groupKey, item.id, e.target.value);
@@ -745,7 +827,7 @@ const BestiaryManager = {
 
             const nameEl = card.querySelector('.init-card-name-text');
             if (nameEl) {
-                nameEl.title = isParty
+                nameEl.title = isHeroGroup
                     ? 'Клик — переименовать | Двойной клик — лист персонажа (статы и навыки)'
                     : 'Нажмите, чтобы переименовать';
 
@@ -795,7 +877,7 @@ const BestiaryManager = {
                     }, 220);
                 });
 
-                if (isParty) {
+                if (isHeroGroup) {
                     nameEl.addEventListener('dblclick', (e) => {
                         e.stopPropagation();
                         clearTimeout(clickTimer);
