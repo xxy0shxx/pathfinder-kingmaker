@@ -581,6 +581,7 @@ const BestiaryManager = {
 
 
     renderUi() {
+        this._hideHeroTooltip();
         const container = document.getElementById('bestiaryTabletContainer');
         if (!container) return;
 
@@ -728,11 +729,6 @@ const BestiaryManager = {
 
     },
 
-
-
-
-
-
     _renderZone(elId, title, groupKey, items, isParty) {
         const zone = document.getElementById(elId);
         if (!zone) return;
@@ -874,9 +870,141 @@ const BestiaryManager = {
                 }
             }
 
+            if (isHeroGroup) {
+                this._attachHeroTooltip(card, item, isInactive);
+            }
+
             grid.appendChild(card);
         });
     },
+
+    _hideHeroTooltip() {
+        const tip = document.getElementById('bstHeroHoverTooltip');
+        if (tip) tip.style.display = 'none';
+    },
+
+    _positionHeroTooltip(e, tip) {
+        const pad = 16;
+        const rect = tip.getBoundingClientRect();
+        let left = e.clientX + pad;
+        let top = e.clientY + pad;
+
+        if (left + rect.width > window.innerWidth - 12) {
+            left = e.clientX - rect.width - pad;
+        }
+        if (top + rect.height > window.innerHeight - 12) {
+            top = e.clientY - rect.height - pad;
+        }
+
+        tip.style.left = `${Math.max(8, left)}px`;
+        tip.style.top = `${Math.max(8, top)}px`;
+    },
+
+    _attachHeroTooltip(card, hero, isInactive) {
+        card.addEventListener('mouseenter', (e) => {
+            if (card.querySelector('input.init-inline-name-input')) return;
+
+            let tip = document.getElementById('bstHeroHoverTooltip');
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.id = 'bstHeroHoverTooltip';
+                tip.className = 'init-unit-hover-tooltip';
+                document.body.appendChild(tip);
+            }
+
+            const stats = hero.stats || {};
+            const fmtMod = (val) => {
+                const n = Number(val) || 0;
+                return n > 0 ? `+${n}` : `${n}`;
+            };
+
+            const metaParts = [
+                stats.charClass,
+                stats.ancestry,
+                stats.level ? `Ур. ${stats.level}` : ''
+            ].filter(Boolean);
+
+            const attrs = [
+                ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
+                ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
+            ];
+
+            const defenses = [
+                ['👁️ Внимание', stats.perception ?? stats.perc],
+                ['🛡️ Стойкость', stats.fortitude ?? stats.fort],
+                ['⚡ Реакция', stats.reflex ?? stats.ref],
+                ['🧠 Воля', stats.will]
+            ];
+
+            const skills = [
+                ['Акробатика', stats.acrobatics ?? stats.acro],
+                ['Аркана', stats.arcana ?? stats.arca],
+                ['Атлетика', stats.athletics ?? stats.athl],
+                ['Ремесло', stats.crafting],
+                ['Обман', stats.deception ?? stats.dece],
+                ['Дипломатия', stats.diplomacy ?? stats.dipl],
+                ['Запугивание', stats.intimidation ?? stats.inti],
+                ['Знания (Lore)', stats.lore],
+                ['Медицина', stats.medicine ?? stats.medi],
+                ['Природа', stats.nature ?? stats.natu],
+                ['Оккультизм', stats.occultism ?? stats.occu],
+                ['Выступление', stats.performance],
+                ['Религия', stats.religion ?? stats.reli],
+                ['Общество', stats.society],
+                ['Скрытность', stats.stealth ?? stats.stea],
+                ['Выживание', stats.survival ?? stats.surv],
+                ['Воровство', stats.thievery]
+            ].filter(([, v]) => v !== undefined);
+
+            const statusTag = isInactive
+                ? '<span class="init-tip-turn-tag" style="border-color:#95a5a6; color:#b2bec3; background:rgba(149,165,166,0.18);">💤 В РЕЗЕРВЕ</span>'
+                : '<span class="init-tip-turn-tag">🛡️ В ОТРЯДЕ</span>';
+
+            tip.innerHTML = `
+                <div class="init-tip-header">
+                    <span class="init-tip-name">${hero.name}</span>
+                    ${statusTag}
+                </div>
+                <div class="init-tip-top-row">
+                    <span>🎲 Иниц.: <b>${hero.defaultScore || 10}</b></span>
+                    <span>❤️ ПЗ: <b>${stats.hpCurrent ?? 10}/${stats.hpMax ?? 10}</b></span>
+                    <span>🛡️ КБ: <b>${stats.ac ?? 10}</b></span>
+                </div>
+                ${metaParts.length ? `<div style="font-size:14px; color:#dfbc6f; margin-top:4px;">${metaParts.join(' • ')}</div>` : ''}
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title">⚔️ Характеристики</div>
+                    <div class="init-tip-2col">
+                        ${attrs.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                    </div>
+                </div>
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title">🛡️ Внимание и Спасброски</div>
+                    <div class="init-tip-2col">
+                        ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                    </div>
+                </div>
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title">📜 Навыки</div>
+                    <div class="init-tip-3col">
+                        ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            tip.style.display = 'block';
+            this._positionHeroTooltip(e, tip);
+        });
+
+        card.addEventListener('mousemove', (e) => {
+            const tip = document.getElementById('bstHeroHoverTooltip');
+            if (tip && tip.style.display === 'block') {
+                this._positionHeroTooltip(e, tip);
+            }
+        });
+
+        card.addEventListener('mouseleave', () => this._hideHeroTooltip());
+    },
+
 
 
 
