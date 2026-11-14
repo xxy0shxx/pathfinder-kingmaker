@@ -6404,3 +6404,59 @@ canvas[style*="position: fixed"] {
     color: #ffd875 !important;
     box-shadow: 0 0 12px rgba(255, 216, 117, 0.4) !important;
 }
+/* ============================================================================
+   ФИКС БЕСТИАРИЯ: ТЁМНОЕ ПОЛЕ ПОИСКА И ВИДИМЫЙ КРЕСТИК УДАЛЕНИЯ КАРТОЧКИ
+   ============================================================================ */
+
+/* 1. Перебиваем правило с белым фоном и возвращаем тёмный стиль */
+#bestiaryTabletContainer .init-name-autocomplete-wrap #bstInputName {
+    background: #040905 !important;
+    color: #ebd291 !important;
+    border: 1px solid #543e0d !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.85) !important;
+}
+
+#bestiaryTabletContainer .init-name-autocomplete-wrap #bstInputName::placeholder {
+    color: rgba(235, 210, 145, 0.45) !important;
+}
+
+#bestiaryTabletContainer .init-name-autocomplete-wrap #bstInputName:focus,
+#bestiaryTabletContainer .init-name-autocomplete-wrap #bstInputName:hover {
+    border-color: #ffd875 !important;
+    box-shadow: 0 0 10px rgba(255, 216, 117, 0.4), inset 0 0 6px rgba(0, 0, 0, 0.85) !important;
+}
+
+/* 2. Делаем крестик удаления в правом верхнем углу карточки бестиария видимым */
+#bestiaryTabletContainer .init-combatant-card .init-btn-delete-card {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+    background: rgba(92, 30, 30, 0.92) !important;
+    border: 1px solid #ff7675 !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+    opacity: 0.75 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 35 !important;
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+#bestiaryTabletContainer .init-combatant-card:hover .init-btn-delete-card,
+#bestiaryTabletContainer .init-combatant-card .init-btn-delete-card:hover {
+    opacity: 1 !important;
+    transform: scale(1.08) !important;
+}
+
+/* Небольшой отступ справа у имени, чтобы длинный текст не залезал под крестик */
+#bestiaryTabletContainer .init-card-name-text {
+    padding-right: 24px !important;
+}
