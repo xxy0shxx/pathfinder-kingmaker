@@ -1134,7 +1134,7 @@ const InitiativeManager = {
                     </div>
 
                     <div class="init-tip-section">
-                        <div class="init-tip-sec-title">📜 Навыки Pathfinder</div>
+                        <div class="init-tip-sec-title">📜 Навыки</div>
                         <div class="init-tip-3col">
                             ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
                         </div>
