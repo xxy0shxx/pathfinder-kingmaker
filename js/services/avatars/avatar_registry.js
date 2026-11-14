@@ -6,17 +6,17 @@ const AVATAR_CATALOG = {
     heroes: [
         { id: 'amiri', label: '🗡️🐻 Амири (Варварша)' },
         { id: 'valerie', label: '🛡️⚔️ Валери (Защитница)' },
-        { id: 'harrim', label: '🌑⛏️ Харрим (Жрец Гротуса)' },
-        { id: 'tristian', label: '☀️🔥 Тристиан (Жрец Саренрэй)' },
-        { id: 'linzi', label: '🪶📖 Линдзи (Бард)' },
         { id: 'jaethal', label: '💀⚔️ Джейтал (Инквизитор)' },
         { id: 'jubilost', label: '🧪💣 Джубилост (Алхимик)' },
+        { id: 'linzi', label: '🪶📖 Линдзи (Бард)' },
         { id: 'nok_nok', label: '🗡️👑 Нок-Нок (Гоблин-герой)' },
-        { id: 'ekundayo', label: '🏹🐺 Экандейо (Следопыт)' },
         { id: 'octavia', label: '✨🪄 Октавия (Трикстер)' },
-        { id: 'regongar', label: '⚡🗡️ Регонгар (Магус)' },
         { id: 'kalikke', label: '💧😈 Каликке (Кинетик воды)' },
         { id: 'kanerah', label: '🔥😈 Канера (Кинетик огня)' },
+        { id: 'regongar', label: '⚡🗡️ Регонгар (Магус)' },
+        { id: 'tristian', label: '☀️🔥 Тристиан (Жрец Саренрэй)' },
+        { id: 'harrim', label: '🌑⛏️ Харрим (Жрец Гротуса)' },
+        { id: 'ekundayo', label: '🏹🐺 Экандейо (Следопыт)' },
         { id: 'bard', label: '🎵 Бард' },
         { id: 'barbarian', label: '🪓 Варвар' },
         { id: 'warrior_female', label: '⚔️ Воительница' },
@@ -262,6 +262,41 @@ const AvatarRegistry = {
 
         return null;
     },
+
+    // Внутри объекта AvatarRegistry (перед закрывающей скобкой)
+    searchCatalog(query) {
+        const clean = String(query || '').toLowerCase().replace(/ё/g, 'е').trim();
+        if (!clean) return [];
+
+        const groups = [
+            { list: AVATAR_CATALOG.heroes, defaultFaction: 'friend' },
+            { list: AVATAR_CATALOG.npc, defaultFaction: 'neutral' },
+            { list: AVATAR_CATALOG.monsters, defaultFaction: 'enemy' }
+        ];
+
+        const results = [];
+        for (const group of groups) {
+            for (const item of group.list) {
+                const cleanLabel = item.label.toLowerCase().replace(/ё/g, 'е');
+                if (cleanLabel.includes(clean)) {
+                    const displayName = item.label
+                        .replace(/^[^\p{L}]+/u, '')
+                        .replace(/\(.*?\)/g, '')
+                        .trim();
+
+                    results.push({
+                        id: item.id,
+                        label: item.label,
+                        displayName,
+                        defaultFaction: group.defaultFaction,
+                        avatarUrl: this.getAvatarDataUrl(item.id)
+                    });
+                }
+            }
+        }
+        return results.slice(0, 12);
+    }
+
 
 };
 

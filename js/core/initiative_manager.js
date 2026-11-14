@@ -103,8 +103,9 @@ const InitiativeManager = {
             return;
         }
 
-        const autoAvatarType = AvatarRegistry.guessAvatarByName(cleanName);
+        const autoAvatarType = this._pendingAvatarType || AvatarRegistry.guessAvatarByName(cleanName);
         const autoAvatarUrl = autoAvatarType ? AvatarRegistry.getAvatarDataUrl(autoAvatarType) : null;
+        this._pendingAvatarType = null;
 
         const newUnit = {
             id: 'unit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
@@ -425,7 +426,12 @@ const InitiativeManager = {
                             <button type="button" class="btn ok" id="initBtnNextTurn" style="flex-grow: 1; height: 50px; font-size: 18px; font-weight: 900; letter-spacing: 1px;">🛡️ СЛЕДУЮЩИЙ ХОД</button>
                         </div>
                         <div class="init-quick-input-bar" style="margin-top: 14px;">
-                            <input type="text" id="initInputName" placeholder="Имя персонажа / Название монстра...">
+                        
+                            <div class="init-name-autocomplete-wrap" style="position: relative; flex-grow: 1; display: flex;">
+                                <input type="text" id="initInputName" autocomplete="off" placeholder="Имя персонажа / Название монстра...">
+                                <div id="initNameSuggestions" class="init-name-suggestions" style="display: none;"></div>
+                            </div>
+
                             <div class="camp-count-controls" style="padding: 2px 8px;">
                                 <span class="camp-param-label" style="font-size: 16px; margin-right: 4px;">Иниц:</span>
                                 <button type="button" onclick="document.getElementById('initInputScore').value = Math.max(1, parseInt(document.getElementById('initInputScore').value, 10) - 1)">-</button>
@@ -519,6 +525,83 @@ const InitiativeManager = {
                 scoreInp.value = '10';
                 nameInp.focus();
             });
+
+            const suggestBox = document.getElementById('initNameSuggestions');
+            const factionSel = document.getElementById('initInputFaction');
+            let activeSuggestIdx = -1;
+
+            const hideSuggestions = () => {
+                if (suggestBox) {
+                    suggestBox.style.display = 'none';
+                    suggestBox.innerHTML = '';
+                    activeSuggestIdx = -1;
+                }
+            };
+
+            const applySuggestion = (item) => {
+                nameInp.value = item.displayName;
+                this._pendingAvatarType = item.id;
+                if (factionSel && item.defaultFaction) {
+                    factionSel.value = item.defaultFaction;
+                }
+                hideSuggestions();
+                scoreInp.focus();
+                scoreInp.select();
+            };
+
+            nameInp.addEventListener('input', () => {
+                this._pendingAvatarType = null;
+                const matches = AvatarRegistry.searchCatalog(nameInp.value);
+                if (matches.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+
+                activeSuggestIdx = -1;
+                suggestBox.innerHTML = matches.map((m, idx) => `
+                    <div class="init-suggest-item" data-idx="${idx}">
+                        ${m.avatarUrl ? `<img src="${m.avatarUrl}" class="init-suggest-thumb">` : ''}
+                        <span class="init-suggest-label">${m.label}</span>
+                    </div>
+                `).join('');
+                suggestBox.style.display = 'block';
+
+                suggestBox.querySelectorAll('.init-suggest-item').forEach((el, idx) => {
+                    el.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        applySuggestion(matches[idx]);
+                    });
+                });
+            });
+
+            nameInp.addEventListener('keydown', (e) => {
+                const items = suggestBox.querySelectorAll('.init-suggest-item');
+                if (suggestBox.style.display === 'none' || items.length === 0) {
+                    if (e.key === 'Enter') document.getElementById('initBtnAdd').click();
+                    return;
+                }
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeSuggestIdx = (activeSuggestIdx + 1) % items.length;
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeSuggestIdx = (activeSuggestIdx - 1 + items.length) % items.length;
+                } else if (e.key === 'Enter' && activeSuggestIdx >= 0) {
+                    e.preventDefault();
+                    items[activeSuggestIdx].dispatchEvent(new MouseEvent('mousedown'));
+                    return;
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
+                    return;
+                }
+
+                items.forEach((el, idx) => el.classList.toggle('active', idx === activeSuggestIdx));
+                if (activeSuggestIdx >= 0) items[activeSuggestIdx].scrollIntoView({ block: 'nearest' });
+            });
+
+            nameInp.addEventListener('blur', () => setTimeout(hideSuggestions, 150));
+
             this._isInputsBound = true;
         }
 
