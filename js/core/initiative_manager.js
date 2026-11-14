@@ -538,20 +538,36 @@ const InitiativeManager = {
                 }
             };
 
+
             const applySuggestion = (item) => {
-                nameInp.value = item.displayName;
+                nameInp.value = item.displayName + ' ';
                 this._pendingAvatarType = item.id;
                 if (factionSel && item.defaultFaction) {
                     factionSel.value = item.defaultFaction;
                 }
                 hideSuggestions();
-                scoreInp.focus();
-                scoreInp.select();
+
+                nameInp.focus();
+                const len = nameInp.value.length;
+                nameInp.setSelectionRange(len, len);
             };
 
+
+
             nameInp.addEventListener('input', () => {
-                this._pendingAvatarType = null;
-                const matches = AvatarRegistry.searchCatalog(nameInp.value);
+                const rawVal = nameInp.value;
+                if (!rawVal.trim()) {
+                    this._pendingAvatarType = null;
+                    hideSuggestions();
+                    return;
+                }
+
+                if (this._pendingAvatarType && rawVal.endsWith(' ')) {
+                    hideSuggestions();
+                    return;
+                }
+
+                const matches = AvatarRegistry.searchCatalog(rawVal);
                 if (matches.length === 0) {
                     hideSuggestions();
                     return;
