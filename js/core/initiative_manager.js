@@ -403,7 +403,7 @@ const InitiativeManager = {
                         
                             <div class="init-round-counter-badge" style="gap: 8px; padding: 0 14px;">
                                 <span>РАУНД <span id="initRoundCounterNum">1</span></span>
-                                <span id="initBattleTimeBadge" style="font-size: 14px; color: #a4b0be; font-family: monospace; background: rgba(0,0,0,0.45); padding: 2px 7px; border-radius: 4px; border: 1px solid #543e0d;" title="Время с начала сцены (1 раунд = 6 сек)">00:06</span>
+                                <span id="initBattleTimeBadge" style="font-size: 14px; color: #a4b0be; font-family: monospace; background: rgba(0,0,0,0.45); padding: 2px 7px; border-radius: 4px; border: 1px solid #543e0d;" title="Время с начала сцены (1 раунд = 6 сек)">00:00</span>
                                 <button type="button" id="initBtnAdd1Min" class="init-btn-reset-round-inline" title="Промотать +1 минуту (+10 раундов)" style="font-size: 12px; border: 1px solid #543e0d !important; border-radius: 3px; padding: 2px 5px !important;">+1м</button>
                                 <button type="button" id="initBtnAdd10Min" class="init-btn-reset-round-inline" title="Промотать +10 минут (+100 раундов)" style="font-size: 12px; border: 1px solid #543e0d !important; border-radius: 3px; padding: 2px 5px !important;">+10м</button>
                                 <button type="button" id="initBtnResetRoundOnly" class="init-btn-reset-round-inline" title="Сбросить раунды до 1">🔄</button>
