@@ -842,7 +842,6 @@ const InitiativeManager = {
             });
         }
 
-
         card.querySelector('.init-inline-status-select').addEventListener('change', (e) => {
             this.updateStatus(unit.id, e.target.value);
         });
@@ -860,7 +859,6 @@ const InitiativeManager = {
                 this._sortAndSave();
             }
         });
-
 
         const scoreInp = card.querySelector('.init-inline-score-input');
         scoreInp.addEventListener('wheel', (e) => {

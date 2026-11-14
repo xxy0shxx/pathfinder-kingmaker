@@ -157,8 +157,8 @@ export const MAP_CONFIG = {
             { id: 2, name: 'День богатств',  rus: 'Ср' },
             { id: 3, name: 'День клятв',     rus: 'Чт' },
             { id: 4, name: 'День огня',  rus: 'Пт' },
-            { id: 5, name: 'Суббота',  rus: 'Сб' },
-            { id: 6, name: 'Воскресенье',   rus: 'Вс' }
+            { id: 5, name: 'День звезд',  rus: 'Сб' },
+            { id: 6, name: 'День солнца',   rus: 'Вс' }
         ],
         months: [
             { id: 0,  name: 'Абадиус',   days: 31, season: 'winter', seasonLabel: '❄️ Зима',  precipDc: 8,  coldDc: 16 },
