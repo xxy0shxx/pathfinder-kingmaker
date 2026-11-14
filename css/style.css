@@ -5803,3 +5803,62 @@ canvas[style*="position: fixed"] {
     color: #f7baba !important;
     opacity: 0.85;
 }
+/* ============================================================================
+   АВТОДОПОЛНЕНИЕ ИМЕНИ БОЙЦА В ТРЕКЕРЕ ИНИЦИАТИВЫ
+   ============================================================================ */
+.init-name-autocomplete-wrap #initInputName {
+    width: 100%;
+}
+
+.init-name-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 290px;
+    overflow-y: auto;
+    background: #060b07;
+    border: 2px solid #b89445;
+    border-radius: 6px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.92), 0 0 15px rgba(255, 216, 117, 0.25);
+    z-index: 2000500;
+}
+
+.init-suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.35);
+    color: #ebd291;
+    font-size: 16px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.init-suggest-item:last-child {
+    border-bottom: none;
+}
+
+.init-suggest-item:hover,
+.init-suggest-item.active {
+    background: #1e3c27;
+    color: #ffd875;
+}
+
+.init-suggest-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid #dfbc6f;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #020503;
+}
+
+.init-suggest-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: bold;
+}
