@@ -6799,3 +6799,37 @@ canvas[style*="position: fixed"] {
     font-family: monospace;
     font-size: 15px;
 }
+/* ============================================================================
+   КНОПКА СВОРАЧИВАНИЯ / РАЗВОРАЧИВАНИЯ СТАТОВ В ВЕРТИКАЛЬНОМ СПИСКЕ
+   ============================================================================ */
+.init-btn-toggle-stats {
+    background: #040905;
+    border: 1px solid #543e0d;
+    color: #ebd291;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 5px 10px;
+    height: 34px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.init-btn-toggle-stats:hover {
+    border-color: #ffd875;
+    color: #ffd875;
+}
+
+.init-btn-toggle-stats.active {
+    background: #1e3c27;
+    border-color: #2ecc71;
+    color: #2ecc71;
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.35);
+}
+
+/* В режиме «Горизонт» скрываем кнопку */
+.init-cards-scroll-list.mode-bg3 .init-btn-toggle-stats {
+    display: none !important;
+}

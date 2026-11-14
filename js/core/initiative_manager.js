@@ -771,6 +771,11 @@ const InitiativeManager = {
             const isOut = unit.status === 'out';
             const isActive = !isOut && this.state.selectedUnitId === unit.id;
             const isFriend = unit.faction === 'friend';
+            const isStatsOpen = isFriend && this._expandedStatsIds?.has(unit.id);
+
+            const toggleStatsBtnHtml = isFriend
+                ? `<button type="button" class="init-btn-toggle-stats ${isStatsOpen ? 'active' : ''}" title="Показать/скрыть характеристики и навыки">📊 Статы</button>`
+                : '';
 
             card.className = `init-combatant-card faction-${unit.faction} state-${unit.status || 'active'}`;
             if (isOut) card.classList.add('status-out');
@@ -798,36 +803,40 @@ const InitiativeManager = {
             // Сетка статов рендерится ТОЛЬКО для союзников
             const statsBlockHtml = isFriend ? this._buildStatsCategoriesHtml(unit) : '';
 
+
             card.innerHTML = `
-                <div class="init-card-main-row">
-                    <div class="init-card-left">
-                        <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
-                        ${avatarHtml}
-                        <div class="init-card-name-text" title="Клик для переименования">${unit.name}</div>
-                    </div>
-                    <div class="init-card-right">
-                        ${statusSelectHtml}
-                        <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
-                            <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
-                                ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
-                            </select>
-                        </div>
-                        <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button>
-                        <div class="init-select-wrapper">
-                            <select class="init-inline-faction-select" data-id="${unit.id}">
-                                <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
-                                <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>🟡 Нейтрал</option>
-                                <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
-                            </select>
-                        </div>
-                        <div class="init-score-massive-block">
-                            <input type="number" class="${scoreClass}" data-id="${unit.id}" value="${unit.score}">
-                        </div>
-                        <button type="button" class="init-btn-delete-card">×</button>
-                    </div>
-                </div>
-                ${statsBlockHtml}
-            `;
+    <div class="init-card-main-row">
+        <div class="init-card-left">
+            <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
+            ${avatarHtml}
+            <div class="init-card-name-text" title="Клик для переименования">${unit.name}</div>
+        </div>
+        <div class="init-card-right">
+            ${statusSelectHtml}
+            <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
+                <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
+                    ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
+                </select>
+            </div>
+            ${toggleStatsBtnHtml}
+            <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button>
+            <div class="init-select-wrapper">
+                <select class="init-inline-faction-select" data-id="${unit.id}">
+                    <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
+                    <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>🟡 Нейтрал</option>
+                    <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
+                </select>
+            </div>
+            <div class="init-score-massive-block">
+                <input type="number" class="${scoreClass}" data-id="${unit.id}" value="${unit.score}">
+            </div>
+            <button type="button" class="init-btn-delete-card">×</button>
+        </div>
+    </div>
+    ${isStatsOpen ? this._buildStatsCategoriesHtml(unit) : ''}
+`;
+
+
 
             this._bindCardEvents(card, unit);
             return card;
@@ -905,6 +914,20 @@ const InitiativeManager = {
                 this.updateUnitStat(unit.id, statKey, cur + step);
             }, { passive: false });
         });
+
+        const statsBtn = card.querySelector('.init-btn-toggle-stats');
+        if (statsBtn) {
+            statsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!this._expandedStatsIds) this._expandedStatsIds = new Set();
+                if (this._expandedStatsIds.has(unit.id)) {
+                    this._expandedStatsIds.delete(unit.id);
+                } else {
+                    this._expandedStatsIds.add(unit.id);
+                }
+                this.renderUi();
+            });
+        }
 
         const nameEl = card.querySelector('.init-card-name-text');
         if (nameEl) {
