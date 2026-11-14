@@ -23,6 +23,7 @@ const InitiativeManager = {
     _isInputsBound: false,
     _isGlobalKeyBound: false,
     _isDrawerOpen: false,
+    _expandedStatsIds: new Set(),
 
     init(mapData) {
         try {
@@ -90,6 +91,7 @@ const InitiativeManager = {
     },
 
 
+
     addCombatant(name, score, faction, isNat20, isNat1 = false) {
         const cleanName = String(name).trim();
         let parsedScore = parseInt(score, 10);
@@ -110,20 +112,22 @@ const InitiativeManager = {
         const autoAvatarUrl = autoAvatarType ? AvatarRegistry.getAvatarDataUrl(autoAvatarType) : null;
         this._pendingAvatarType = null;
 
-        const pendingStats = this._pendingStats || createDefaultStats();
+        // Забираем переданные из Бестиария статы и очищаем временное поле
+        const unitFaction = faction || 'neutral';
+        const pendingStats = this._pendingStats || (unitFaction === 'friend' ? createDefaultStats() : null);
         this._pendingStats = null;
 
         const newUnit = {
             id: 'unit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
             name: cleanName,
             score: parsedScore,
-            faction: faction || 'neutral',
+            faction: unitFaction,
             isNat20: !!isNat20,
             isNat1: !!isNat1,
-            status: 'active',
+            status: 'active', // 'active' | 'dying' | 'prone' | 'out'
             avatarType: autoAvatarType,
             avatar: autoAvatarUrl,
-            stats: pendingStats // <-- Все характеристики и навыки
+            stats: pendingStats
         };
 
         this.state.combatants.push(newUnit);
@@ -132,6 +136,7 @@ const InitiativeManager = {
         }
         this._sortAndSave();
     },
+
 
     updateUnitStat(id, statKey, rawVal) {
         const unit = this.state.combatants.find(c => c.id === id);
@@ -760,15 +765,14 @@ const InitiativeManager = {
         const currentQuoteHTML = phrases[this.state.phraseSeed % phrases.length];
 
 
+
         const createCardElement = (unit, index) => {
             const card = document.createElement('div');
             const isOut = unit.status === 'out';
             const isActive = !isOut && this.state.selectedUnitId === unit.id;
+            const isFriend = unit.faction === 'friend';
 
-            card.className = `init-combatant-card faction-${unit.faction}`;
             card.className = `init-combatant-card faction-${unit.faction} state-${unit.status || 'active'}`;
-
-
             if (isOut) card.classList.add('status-out');
             if (isActive) card.classList.add('selected-turn-gold');
             card.setAttribute('draggable', 'true');
@@ -782,7 +786,6 @@ const InitiativeManager = {
             if (unit.isNat20) scoreClass += ' nat-20';
             if (unit.isNat1) scoreClass += ' nat-1';
 
-
             const statusSelectHtml = `
                 <select class="init-inline-status-select status-${unit.status || 'active'}" data-id="${unit.id}" title="Состояние бойца">
                     <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>${isBg3 ? '⚔' : '⚔ В строю'}</option>
@@ -792,77 +795,43 @@ const InitiativeManager = {
                 </select>
             `;
 
-
+            // Сетка статов рендерится ТОЛЬКО для союзников
+            const statsBlockHtml = isFriend ? this._buildStatsCategoriesHtml(unit) : '';
 
             card.innerHTML = `
-                <div class="init-card-left">
-                    <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
-                    ${avatarHtml}
-                    <div class="init-card-name-text" title="Двойной клик для переименования">${unit.name}</div>
+                <div class="init-card-main-row">
+                    <div class="init-card-left">
+                        <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
+                        ${avatarHtml}
+                        <div class="init-card-name-text" title="Клик для переименования">${unit.name}</div>
+                    </div>
+                    <div class="init-card-right">
+                        ${statusSelectHtml}
+                        <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
+                            <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
+                                ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
+                            </select>
+                        </div>
+                        <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button>
+                        <div class="init-select-wrapper">
+                            <select class="init-inline-faction-select" data-id="${unit.id}">
+                                <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
+                                <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>🟡 Нейтрал</option>
+                                <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
+                            </select>
+                        </div>
+                        <div class="init-score-massive-block">
+                            <input type="number" class="${scoreClass}" data-id="${unit.id}" value="${unit.score}">
+                        </div>
+                        <button type="button" class="init-btn-delete-card">×</button>
+                    </div>
                 </div>
-                <div class="init-card-right">
-                    <select class="init-inline-status-select status-${unit.status || 'active'}" data-id="${unit.id}" title="Состояние бойца">
-                        <option value="active" ${(!unit.status || unit.status === 'active') ? 'selected' : ''}>⚔️ В строю</option>
-                        <option value="dying" ${unit.status === 'dying' ? 'selected' : ''}>🩸 При смерти</option>
-                        <option value="prone" ${unit.status === 'prone' ? 'selected' : ''}>💫 Распластан</option>
-                        <option value="out" ${unit.status === 'out' ? 'selected' : ''}>💀 Выбыл</option>
-                    </select>
-                    <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
-                        <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
-                            ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
-                        </select>
-                    </div>
-                    <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button>
-                    <div class="init-select-wrapper">
-                        <select class="init-inline-faction-select" data-id="${unit.id}">
-                            <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
-                            <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>🟡 Нейтрал</option>
-                            <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
-                        </select>
-                    </div>
-                    <div class="init-score-massive-block">
-                        <input type="number" class="${scoreClass}" data-id="${unit.id}" value="${unit.score}">
-                    </div>
-                    <button type="button" class="init-btn-delete-card">×</button>
-                </div>
+                ${statsBlockHtml}
             `;
-
-            card.innerHTML = `
-    <div class="init-card-main-row">
-        <div class="init-card-left">
-            <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
-            ${avatarHtml}
-            <div class="init-card-name-text" title="Клик для переименования">${unit.name}</div>
-        </div>
-        <div class="init-card-right">
-            ${statusSelectHtml}
-            <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
-                <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
-                    ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
-                </select>
-            </div>
-            <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button>
-            <div class="init-select-wrapper">
-                <select class="init-inline-faction-select" data-id="${unit.id}">
-                    <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
-                    <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>🟡 Нейтрал</option>
-                    <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
-                </select>
-            </div>
-            <div class="init-score-massive-block">
-                <input type="number" class="${scoreClass}" data-id="${unit.id}" value="${unit.score}">
-            </div>
-            <button type="button" class="init-btn-delete-card">×</button>
-        </div>
-    </div>
-    ${this._buildStatsCategoriesHtml(unit)}
-`;
-
 
             this._bindCardEvents(card, unit);
             return card;
         };
-
 
         // В режиме списка выбывшие идут в конце общего списка, в горизонте — уходят под цитату
         const mainListUnits = isBg3 ? activeUnits : this.state.combatants;
