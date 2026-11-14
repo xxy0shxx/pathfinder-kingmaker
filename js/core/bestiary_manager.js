@@ -143,6 +143,7 @@ const BestiaryManager = {
         });
     },
 
+
     renderUi() {
         const container = document.getElementById('bestiaryTabletContainer');
         if (!container) return;
@@ -150,14 +151,17 @@ const BestiaryManager = {
         if (!container.querySelector('.bestiary-tablet-root')) {
             container.innerHTML = `
                 <div class="bestiary-tablet-root">
+                
                     <div class="init-quick-input-bar" style="margin-bottom: 16px;">
                         <div class="init-name-autocomplete-wrap" style="position: relative; flex-grow: 1; display: flex;">
-                            <input type="text" id="bstInputName" autocomplete="off" placeholder="Поиск героя, NPC или монстра для заготовки...">
+                            <input type="text" id="bstInputName" autocomplete="off" placeholder="Поиск героя, NPC или монстра для заготовки..." style="width: 100%;">
                             <div id="bstNameSuggestions" class="init-name-suggestions" style="display: none;"></div>
                         </div>
                         <div class="camp-count-controls" style="padding: 2px 8px;">
                             <span class="camp-param-label" style="font-size: 16px; margin-right: 4px;">Баз. иниц:</span>
-                            <input type="number" id="bstInputScore" value="10" min="1" max="100" style="width: 55px; text-align: center; background: #000; border: 1px solid #543e0d; color: #fff; font-weight: bold;">
+                            <button type="button" onclick="const inp = document.getElementById('bstInputScore'); inp.value = Math.max(1, (parseInt(inp.value, 10) || 10) - 1)">-</button>
+                            <input type="text" id="bstInputScore" value="10" style="width: 50px; text-align: center; background: #000; border: 1px solid #543e0d; color: #fff; font-weight: bold;">
+                            <button type="button" onclick="const inp = document.getElementById('bstInputScore'); inp.value = Math.min(100, (parseInt(inp.value, 10) || 10) + 1)">+</button>
                         </div>
                         <select id="bstInputFaction" style="width: 175px; background: #090f0b; border: 1px solid #543e0d; color: #ebd291; padding: 6px;">
                             <option value="friend">🟢 Текущий отряд</option>
@@ -166,6 +170,8 @@ const BestiaryManager = {
                         </select>
                         <button type="button" class="btn ok" id="bstBtnAdd" style="padding: 6px 20px; font-size: 14px; height: 38px;">⚜ В заготовки</button>
                     </div>
+
+                    
 
                     <div id="bstZoneParty" class="init-out-combatants-zone bestiary-zone-party"></div>
                     <div id="bstZoneMonsters" class="init-out-combatants-zone bestiary-zone-monsters" style="margin-top: 20px;"></div>
