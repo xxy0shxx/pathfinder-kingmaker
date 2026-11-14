@@ -263,6 +263,35 @@ const AvatarRegistry = {
         return null;
     },
 
+    getAllCatalogItems() {
+        const groups = [
+            { list: AVATAR_CATALOG.monsters, defaultFaction: 'enemy', category: 'monsters' },
+            { list: AVATAR_CATALOG.heroes, defaultFaction: 'friend', category: 'heroes' },
+            { list: AVATAR_CATALOG.npc, defaultFaction: 'neutral', category: 'npc' },
+        ];
+
+        const all = [];
+        for (const group of groups) {
+            for (const item of group.list) {
+                const displayName = item.label
+                    .replace(/^[^\p{L}]+/u, '')
+                    .replace(/\(.*?\)/g, '')
+                    .trim();
+
+                all.push({
+                    id: item.id,
+                    label: item.label,
+                    displayName,
+                    defaultFaction: group.defaultFaction,
+                    category: group.category,
+                    avatarUrl: this.getAvatarDataUrl(item.id)
+                });
+            }
+        }
+        return all;
+    },
+
+
     // Внутри объекта AvatarRegistry (перед закрывающей скобкой)
     searchCatalog(query) {
         const clean = String(query || '').toLowerCase().replace(/ё/g, 'е').trim();

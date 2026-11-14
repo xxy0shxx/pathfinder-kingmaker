@@ -597,47 +597,19 @@ const BestiaryManager = {
         const countEl = document.getElementById('bstCatalogTotalCount');
         if (!listEl) return;
 
-        // 1. Собираем полный список существ из AvatarRegistry любым доступным способом
-        let allItems = [];
-        if (typeof AvatarRegistry.getAllCatalogItems === 'function') {
-            allItems = AvatarRegistry.getAllCatalogItems();
-        } else if (Array.isArray(AvatarRegistry.catalog)) {
-            allItems = AvatarRegistry.catalog;
-        } else if (Array.isArray(AvatarRegistry.items)) {
-            allItems = AvatarRegistry.items;
-        } else if (AvatarRegistry.AVATARS && typeof AvatarRegistry.AVATARS === 'object') {
-            allItems = Object.entries(AvatarRegistry.AVATARS).map(([id, data]) => ({
-                id,
-                displayName: data.name || data.label || id,
-                defaultFaction: data.faction || data.defaultFaction || 'enemy'
-            }));
-        } else if (typeof AvatarRegistry.searchCatalog === 'function') {
-            // Если список закрыт внутри функции searchCatalog, собираем уникальные совпадения по буквам
-            const seen = new Set();
-            const probes = ['а', 'е', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я', 'к', 'с', 'в', 'м', 'л', 'р', 'д', 'г', 'п', 'т', 'б', 'н', 'a', 'e', 'i', 'o', 'u'];
-            probes.forEach(ch => {
-                const found = AvatarRegistry.searchCatalog(ch) || [];
-                found.forEach(item => {
-                    const key = item.id || item.displayName || item.label;
-                    if (key && !seen.has(key)) {
-                        seen.add(key);
-                        allItems.push(item);
-                    }
-                });
-            });
-            allItems.sort((a, b) =>
-                String(a.displayName || a.label || '').localeCompare(String(b.displayName || b.label || ''), 'ru')
-            );
-        }
+        const allItems = typeof AvatarRegistry.getAllCatalogItems === 'function'
+            ? AvatarRegistry.getAllCatalogItems()
+            : [];
 
-        const q = String(filterQuery || '').trim().toLowerCase();
+        const q = String(filterQuery || '').trim().toLowerCase().replace(/ё/g, 'е');
         const filtered = q
             ? allItems.filter(item =>
-                String(item.displayName || item.label || '').toLowerCase().includes(q)
+                String(item.label || item.displayName || '')
+                    .toLowerCase()
+                    .replace(/ё/g, 'е')
+                    .includes(q)
             )
             : allItems;
-
-
 
         if (countEl) countEl.textContent = filtered.length;
 
@@ -645,8 +617,6 @@ const BestiaryManager = {
             listEl.innerHTML = `<div class="bst-catalog-empty">Ничего не найдено</div>`;
             return;
         }
-
-
 
         listEl.innerHTML = filtered.map(item => {
             const name = item.displayName || item.label || item.id;
@@ -675,7 +645,7 @@ const BestiaryManager = {
             const catId = row.dataset.catId || null;
             const catName = row.dataset.catName;
             const catFaction = row.dataset.catFaction;
-// Клик по самой строке подставляет персонажа в верхнюю форму для тонкой настройки
+
             row.querySelector('.bst-catalog-row-main').addEventListener('click', () => {
                 const nameInp = document.getElementById('bstInputName');
                 const factionSel = document.getElementById('bstInputFaction');
@@ -688,13 +658,13 @@ const BestiaryManager = {
                     factionSel.value = catFaction;
                 }
             });
-// Быстрое добавление в Отряд (Герои)
+
             row.querySelector('.bst-cat-btn-party').addEventListener('click', (e) => {
                 e.stopPropagation();
                 this._pendingAvatarType = catId;
                 this.addPreset(catName, 'friend', 10);
             });
-// Быстрое добавление в Монстры / NPC
+
             row.querySelector('.bst-cat-btn-monster').addEventListener('click', (e) => {
                 e.stopPropagation();
                 this._pendingAvatarType = catId;
@@ -702,8 +672,6 @@ const BestiaryManager = {
             });
         });
     },
-
-
 
 };
 
