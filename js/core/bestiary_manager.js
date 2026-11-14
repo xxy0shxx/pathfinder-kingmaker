@@ -2,6 +2,59 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 
+// Добавьте в начало bestiary_manager.js (после импортов)
+export const STAT_CATEGORIES = [
+    {
+        title: '💪 Характеристики',
+        items: [
+            { key: 'str', label: 'Сил', def: 0 },
+            { key: 'dex', label: 'Лов', def: 0 },
+            { key: 'con', label: 'Тел', def: 0 },
+            { key: 'int', label: 'Инт', def: 0 },
+            { key: 'wis', label: 'Мдр', def: 0 },
+            { key: 'cha', label: 'Хар', def: 0 }
+        ]
+    },
+    {
+        title: '🛡️ Защита и Внимание',
+        items: [
+            { key: 'ac', label: 'КБ', def: 15 },
+            { key: 'perc', label: 'Вним', def: 5 },
+            { key: 'fort', label: 'Стойк', def: 5 },
+            { key: 'ref', label: 'Реакц', def: 5 },
+            { key: 'will', label: 'Воля', def: 5 }
+        ]
+    },
+    {
+        title: '🎯 Навыки',
+        items: [
+            { key: 'acro', label: 'Акробатика', def: 0 },
+            { key: 'athl', label: 'Атлетика', def: 0 },
+            { key: 'stea', label: 'Скрытность', def: 0 },
+            { key: 'surv', label: 'Выживание', def: 0 },
+            { key: 'medi', label: 'Медицина', def: 0 },
+            { key: 'inti', label: 'Запугивание', def: 0 },
+            { key: 'dece', label: 'Обман', def: 0 },
+            { key: 'dipl', label: 'Дипломатия', def: 0 },
+            { key: 'arca', label: 'Аркана', def: 0 },
+            { key: 'natu', label: 'Природа', def: 0 },
+            { key: 'occu', label: 'Оккультизм', def: 0 },
+            { key: 'reli', label: 'Религия', def: 0 }
+        ]
+    }
+];
+
+export function createDefaultStats() {
+    const stats = {};
+    STAT_CATEGORIES.forEach(cat => {
+        cat.items.forEach(item => {
+            stats[item.key] = item.def;
+        });
+    });
+    return stats;
+}
+
+
 const PF2E_SHEET_CONFIG = {
     attributes: [
         { key: 'str', label: 'Сила' },
@@ -109,14 +162,17 @@ const BestiaryManager = {
         const avatar = avatarType ? AvatarRegistry.getAvatarDataUrl(avatarType) : null;
         this._pendingAvatarType = null;
 
+
         const entry = {
             id: 'bst_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
             name: cleanName,
             faction: faction || 'enemy',
             defaultScore: Math.max(1, Math.min(100, parseInt(defaultScore, 10) || 10)),
             avatarType,
-            avatar
+            avatar,
+            stats: createDefaultStats() // <-- Новое поле со всеми параметрами
         };
+
 
         if (faction === 'friend') {
             this._ensureCharacterStats(entry);
@@ -258,14 +314,14 @@ const BestiaryManager = {
         if (!window.InitiativeManager) return;
         const score = customScore !== null ? customScore : (item.defaultScore || 10);
         window.InitiativeManager._pendingAvatarType = item.avatarType || null;
+        window.InitiativeManager._pendingStats = item.stats ? { ...item.stats } : createDefaultStats();
         window.InitiativeManager.addCombatant(item.name, score, item.faction, false, false);
     },
 
     deployWholeParty() {
         if (!window.InitiativeManager || this.state.party.length === 0) return;
         this.state.party.forEach(hero => {
-            window.InitiativeManager._pendingAvatarType = hero.avatarType || null;
-            window.InitiativeManager.addCombatant(hero.name, hero.defaultScore || 10, 'friend', false, false);
+            this.deployToInitiative(hero);
         });
     },
 

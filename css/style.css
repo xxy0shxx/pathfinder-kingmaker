@@ -6548,3 +6548,254 @@ canvas[style*="position: fixed"] {
         grid-template-columns: 1fr;
     }
 }
+/* ============================================================================
+   ВСПЛЫВАЮЩИЙ ТУЛТИП ХАРАКТЕРИСТИК БОЙЦА ПРИ НАВЕДЕНИИ В ИНИЦИАТИВЕ
+   ============================================================================ */
+.init-unit-hover-tooltip {
+    position: fixed;
+    z-index: 299999999;
+    pointer-events: none;
+    display: none;
+    min-width: 240px;
+    max-width: 360px;
+    background: linear-gradient(135deg, rgba(15, 32, 21, 0.97) 0%, rgba(5, 10, 7, 0.98) 100%);
+    border: 2px solid #dfbc6f;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #ebd291;
+    font-family: "Tinos", serif;
+    font-size: 18px;
+    line-height: 1.45;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.92), 0 0 18px rgba(255, 216, 117, 0.35);
+}
+
+.init-tip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid rgba(223, 188, 111, 0.4);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+}
+
+.init-tip-name {
+    font-size: 21px;
+    font-weight: 900;
+    color: #ffd875;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    text-shadow: 0 1px 4px #000;
+}
+
+.init-tip-turn-tag {
+    background: rgba(46, 204, 113, 0.2);
+    border: 1px solid #2ecc71;
+    color: #2ecc71;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.init-tip-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.init-tip-grid b {
+    color: #ffffff;
+}
+
+.init-tip-badge {
+    margin-top: 8px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.init-tip-badge.nat20 {
+    background: rgba(46, 204, 113, 0.18);
+    border: 1px solid #2ecc71;
+    color: #2ecc71;
+}
+
+.init-tip-badge.nat1 {
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid #e74c3c;
+    color: #ff7675;
+}
+/* ============================================================================
+   ПАНЕЛЬ ХАРАКТЕРИСТИК, ЗАЩИТЫ И НАВЫКОВ ПО КАТЕГОРИЯМ НА КАРТОЧКЕ БОЙЦА
+   ============================================================================ */
+
+/* В вертикальном списке карточка становится двухэтажной: шапка + сетка статов */
+.init-cards-scroll-list:not(.mode-bg3) .init-combatant-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+}
+
+.init-card-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Контейнер категорий */
+.init-unit-stats-panel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: rgba(2, 5, 3, 0.72);
+    border: 1px solid rgba(223, 188, 111, 0.35);
+    border-radius: 5px;
+    padding: 8px 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.init-stat-cat-block {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(84, 62, 13, 0.45);
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+
+.init-stat-cat-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    color: #ffd875;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px dashed rgba(223, 188, 111, 0.3);
+    padding-bottom: 3px;
+}
+
+.init-stat-cat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.init-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #040905;
+    border: 1px solid #543e0d;
+    border-radius: 4px;
+    padding: 2px 5px;
+    cursor: ns-resize;
+}
+
+.init-stat-pill:hover,
+.init-stat-pill:focus-within {
+    border-color: #ffd875;
+}
+
+.init-stat-lbl {
+    font-size: 12px;
+    font-weight: bold;
+    color: #ebd291;
+    white-space: nowrap;
+}
+
+.init-stat-val-inp {
+    width: 34px;
+    background: transparent;
+    border: none;
+    border-left: 1px solid rgba(84, 62, 13, 0.6);
+    color: #2ecc71;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: 900;
+    text-align: center;
+    padding: 0 2px;
+    outline: none;
+    -moz-appearance: textfield;
+}
+
+.init-stat-val-inp::-webkit-outer-spin-button,
+.init-stat-val-inp::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* В компактном режиме «Горизонт» скрываем сетку статов внутри узких карточек */
+#questLogContainer .mode-bg3 .init-unit-stats-panel {
+    display: none !important;
+}
+
+#questLogContainer .mode-bg3 .init-card-main-row {
+    display: contents;
+}
+/* ============================================================================
+   РАСШИРЕННЫЙ ТУЛТИП СО ВСЕМИ ХАРАКТЕРИСТИКАМИ И НАВЫКАМИ ПЕРСОНАЖА
+   ============================================================================ */
+.init-unit-hover-tooltip {
+    min-width: 440px !important;
+    max-width: 580px !important;
+    padding: 12px 16px !important;
+}
+
+.init-tip-top-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed rgba(223, 188, 111, 0.35);
+}
+
+.init-tip-top-row b {
+    color: #ffd875;
+}
+
+.init-tip-section {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(84, 62, 13, 0.55);
+}
+
+.init-tip-sec-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    color: #ffd875;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 4px;
+}
+
+.init-tip-2col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px 14px;
+    font-size: 15px;
+}
+
+.init-tip-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px 12px;
+    font-size: 14px;
+}
+
+.init-tip-2col b,
+.init-tip-3col b {
+    color: #2ecc71;
+    font-family: monospace;
+    font-size: 15px;
+}

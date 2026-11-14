@@ -2,6 +2,8 @@ import InitiativeAudio from '../services/initiative_audio.js';
 import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import { InitiativePhrases } from '../config/initiative_phrases.js';
 import EventBus from '../services/event_bus.js';
+import { STAT_CATEGORIES, createDefaultStats } from './bestiary_manager.js';
+
 
 /**
  * МОДУЛЬ: ТРЕКЕР ИНИЦИАТИВЫ С ТВ-СТРЕЛКОЙ ХОДА И ВСПЫШКОЙ НОВОГО РАУНДА
@@ -108,6 +110,9 @@ const InitiativeManager = {
         const autoAvatarUrl = autoAvatarType ? AvatarRegistry.getAvatarDataUrl(autoAvatarType) : null;
         this._pendingAvatarType = null;
 
+        const pendingStats = this._pendingStats || createDefaultStats();
+        this._pendingStats = null;
+
         const newUnit = {
             id: 'unit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
             name: cleanName,
@@ -115,9 +120,10 @@ const InitiativeManager = {
             faction: faction || 'neutral',
             isNat20: !!isNat20,
             isNat1: !!isNat1,
-            status: 'active', // 'active' | 'dying' | 'prone' | 'out'
+            status: 'active',
             avatarType: autoAvatarType,
-            avatar: autoAvatarUrl
+            avatar: autoAvatarUrl,
+            stats: pendingStats // <-- Все характеристики и навыки
         };
 
         this.state.combatants.push(newUnit);
@@ -126,6 +132,48 @@ const InitiativeManager = {
         }
         this._sortAndSave();
     },
+
+    updateUnitStat(id, statKey, rawVal) {
+        const unit = this.state.combatants.find(c => c.id === id);
+        if (!unit) return;
+        if (!unit.stats) unit.stats = createDefaultStats();
+
+        const parsed = parseInt(rawVal, 10);
+        unit.stats[statKey] = isNaN(parsed) ? 0 : parsed;
+        this._saveWithoutSort();
+    },
+
+    _buildStatsCategoriesHtml(unit) {
+        if (!unit.stats) unit.stats = createDefaultStats();
+
+        return `
+        <div class="init-unit-stats-panel">
+            ${STAT_CATEGORIES.map(cat => `
+                <div class="init-stat-cat-block">
+                    <div class="init-stat-cat-title">${cat.title}</div>
+                    <div class="init-stat-cat-grid">
+                        ${cat.items.map(item => {
+            const val = unit.stats[item.key] ?? item.def;
+            const isBonus = item.key !== 'ac';
+            const displayPrefix = (isBonus && val > 0) ? '+' : '';
+            return `
+                                <label class="init-stat-pill" title="${item.label} (колесо мыши или ввод)">
+                                    <span class="init-stat-lbl">${item.label}</span>
+                                    <input type="number" 
+                                           class="init-stat-val-inp" 
+                                           data-unit-id="${unit.id}" 
+                                           data-stat-key="${item.key}" 
+                                           value="${val}">
+                                </label>
+                            `;
+        }).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    },
+
 
     updateStatus(id, newStatus) {
         const unit = this.state.combatants.find(c => c.id === id);
@@ -391,6 +439,7 @@ const InitiativeManager = {
     },
 
     renderUi() {
+        this._hideUnitTooltip();
         const container = document.getElementById('initiativeTabletContainer');
         if (!container) return;
 
@@ -710,6 +759,7 @@ const InitiativeManager = {
         const phrases = activeUnit ? InitiativePhrases.getPhrasesForUnit(activeUnit) : ['Все бойцы выбыли из схватки!'];
         const currentQuoteHTML = phrases[this.state.phraseSeed % phrases.length];
 
+
         const createCardElement = (unit, index) => {
             const card = document.createElement('div');
             const isOut = unit.status === 'out';
@@ -777,9 +827,42 @@ const InitiativeManager = {
                 </div>
             `;
 
+            card.innerHTML = `
+    <div class="init-card-main-row">
+        <div class="init-card-left">
+            <div class="init-turn-pointer-arrow ${isActive ? 'visible' : ''}">▶</div>
+            ${avatarHtml}
+            <div class="init-card-name-text" title="Клик для переименования">${unit.name}</div>
+        </div>
+        <div class="init-card-right">
+            ${statusSelectHtml}
+            <div class="init-select-wrapper avatar-picker-wrapper" style="margin-right: 4px;">
+                <select class="init-inline-avatar-select" data-id="${unit.id}" style="background: #040905; border: 1px solid #543e0d; color: #dfbc6f; padding: 4px 6px; font-size: 14px; border-radius: 4px; cursor: pointer;">
+                    ${AvatarRegistry.buildSelectOptionsHtml(unit.avatarType)}
+                </select>
+            </div>
+            <button type="button" class="init-btn-toggle-d20-inline ${unit.isNat20 || unit.isNat1 ? 'active' : ''}">🎲</button>
+            <div class="init-select-wrapper">
+                <select class="init-inline-faction-select" data-id="${unit.id}">
+                    <option value="friend" ${unit.faction === 'friend' ? 'selected' : ''}>🟢 Свой</option>
+                    <option value="neutral" ${unit.faction === 'neutral' ? 'selected' : ''}>🟡 Нейтрал</option>
+                    <option value="enemy" ${unit.faction === 'enemy' ? 'selected' : ''}>🔴 Чужой</option>
+                </select>
+            </div>
+            <div class="init-score-massive-block">
+                <input type="number" class="${scoreClass}" data-id="${unit.id}" value="${unit.score}">
+            </div>
+            <button type="button" class="init-btn-delete-card">×</button>
+        </div>
+    </div>
+    ${this._buildStatsCategoriesHtml(unit)}
+`;
+
+
             this._bindCardEvents(card, unit);
             return card;
         };
+
 
         // В режиме списка выбывшие идут в конце общего списка, в горизонте — уходят под цитату
         const mainListUnits = isBg3 ? activeUnits : this.state.combatants;
@@ -838,6 +921,21 @@ const InitiativeManager = {
             }
         });
 
+        card.querySelectorAll('.init-stat-val-inp').forEach(inp => {
+            const statKey = inp.dataset.statKey;
+
+            inp.addEventListener('click', (e) => e.stopPropagation());
+            inp.addEventListener('change', (e) => {
+                this.updateUnitStat(unit.id, statKey, e.target.value);
+            });
+            inp.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const step = e.deltaY < 0 ? 1 : -1;
+                const cur = parseInt(inp.value, 10) || 0;
+                this.updateUnitStat(unit.id, statKey, cur + step);
+            }, { passive: false });
+        });
 
         const nameEl = card.querySelector('.init-card-name-text');
         if (nameEl) {
@@ -948,8 +1046,160 @@ const InitiativeManager = {
                 this._saveWithoutSort();
             }
         });
+
+        this._attachUnitTooltip(card, unit);
     },
 
+    _hideUnitTooltip() {
+        const tip = document.getElementById('initUnitHoverTooltip');
+        if (tip) tip.style.display = 'none';
+    },
+
+
+    _attachUnitTooltip(card, unit) {
+        card.addEventListener('mouseenter', (e) => {
+            let tip = document.getElementById('initUnitHoverTooltip');
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.id = 'initUnitHoverTooltip';
+                tip.className = 'init-unit-hover-tooltip';
+                document.body.appendChild(tip);
+            }
+
+            const factionMap = {
+                friend: '🟢 Союзник',
+                enemy: '🔴 Враг',
+                neutral: '🟡 Нейтрал'
+            };
+            const statusMap = {
+                active: '⚔️ В строю',
+                dying: '🩸 При смерти',
+                prone: '💫 Распластан',
+                out: '💀 Выбыл из боя'
+            };
+
+            const isCurrentTurn = this.state.selectedUnitId === unit.id && unit.status !== 'out';
+
+            // Ищем героя в Бестиарии по имени и фракции, чтобы взять свежие статы
+            const bstPool = [
+                ...(window.BestiaryManager?.state?.party || []),
+                ...(window.BestiaryManager?.state?.monsters || [])
+            ];
+            const preset = bstPool.find(p => p.name.trim() === unit.name.trim() && p.faction === unit.faction) || {};
+            const stats = preset.stats || unit.stats || null;
+
+            const fmtMod = (val) => {
+                const n = Number(val) || 0;
+                return n > 0 ? `+${n}` : `${n}`;
+            };
+
+            let statsSectionsHtml = '';
+            if (stats && typeof stats === 'object') {
+                const attrs = [
+                    ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
+                    ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
+                ];
+                const defenses = [
+                    ['👁️ Внимание', stats.perception ?? stats.perc],
+                    ['🛡️ Стойкость', stats.fortitude ?? stats.fort],
+                    ['⚡ Реакция', stats.reflex ?? stats.ref],
+                    ['🧠 Воля', stats.will]
+                ];
+                const skills = [
+                    ['Акробатика', stats.acrobatics ?? stats.acro],
+                    ['Аркана', stats.arcana ?? stats.arca],
+                    ['Атлетика', stats.athletics ?? stats.athl],
+                    ['Ремесло', stats.crafting],
+                    ['Обман', stats.deception ?? stats.dece],
+                    ['Дипломатия', stats.diplomacy ?? stats.dipl],
+                    ['Запугивание', stats.intimidation ?? stats.inti],
+                    ['Знания (Lore)', stats.lore],
+                    ['Медицина', stats.medicine ?? stats.medi],
+                    ['Природа', stats.nature ?? stats.natu],
+                    ['Оккультизм', stats.occultism ?? stats.occu],
+                    ['Выступление', stats.performance],
+                    ['Религия', stats.religion ?? stats.reli],
+                    ['Общество', stats.society],
+                    ['Скрытность', stats.stealth ?? stats.stea],
+                    ['Выживание', stats.survival ?? stats.surv],
+                    ['Воровство', stats.thievery]
+                ].filter(([, v]) => v !== undefined);
+
+                statsSectionsHtml = `
+                    <div class="init-tip-section">
+                        <div class="init-tip-sec-title">⚔️ Характеристики</div>
+                        <div class="init-tip-2col">
+                            ${attrs.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="init-tip-section">
+                        <div class="init-tip-sec-title">🛡️ Внимание и Спасброски</div>
+                        <div class="init-tip-2col">
+                            ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="init-tip-section">
+                        <div class="init-tip-sec-title">📜 Навыки Pathfinder</div>
+                        <div class="init-tip-3col">
+                            ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let rollNote = '';
+            if (unit.isNat20) rollNote = `<div class="init-tip-badge nat20">👑 Натуральная 20</div>`;
+            else if (unit.isNat1) rollNote = `<div class="init-tip-badge nat1">💀 Натуральная 1</div>`;
+
+            tip.innerHTML = `
+                <div class="init-tip-header">
+                    <span class="init-tip-name">${unit.name}</span>
+                    ${isCurrentTurn ? '<span class="init-tip-turn-tag">▶ СЕЙЧАС ХОДИТ</span>' : ''}
+                </div>
+                <div class="init-tip-top-row">
+                    <span>🎲 Иниц.: <b>${unit.score}</b></span>
+                    <span>${factionMap[unit.faction] || unit.faction}</span>
+                    <span>${statusMap[unit.status || 'active']}</span>
+                </div>
+                ${statsSectionsHtml}
+                ${rollNote}
+            `;
+
+            tip.style.display = 'block';
+            this._positionUnitTooltip(e, tip);
+        });
+
+        card.addEventListener('mousemove', (e) => {
+            const tip = document.getElementById('initUnitHoverTooltip');
+            if (tip && tip.style.display === 'block') {
+                this._positionUnitTooltip(e, tip);
+            }
+        });
+
+        card.addEventListener('mouseleave', () => this._hideUnitTooltip());
+        card.addEventListener('dragstart', () => this._hideUnitTooltip());
+    },
+
+
+
+    _positionUnitTooltip(e, tip) {
+        const pad = 16;
+        const rect = tip.getBoundingClientRect();
+        let left = e.clientX + pad;
+        let top = e.clientY + pad;
+
+        if (left + rect.width > window.innerWidth - 12) {
+            left = e.clientX - rect.width - pad;
+        }
+        if (top + rect.height > window.innerHeight - 12) {
+            top = e.clientY - rect.height - pad;
+        }
+
+        tip.style.left = `${Math.max(8, left)}px`;
+        tip.style.top = `${Math.max(8, top)}px`;
+    },
 
 
 
