@@ -1168,8 +1168,8 @@ const BestiaryManager = {
             });
 
             // Подробный тултип при наведении на строку фокуса или заклинания 1 круга
-            overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {
-                tr.addEventListener('mouseenter', (e) => {
+                overlay.querySelectorAll('.bst-cantrips-table:not(.bst-items-table) tbody tr').forEach(tr => {
+                    tr.addEventListener('mouseenter', (e) => {
                     const nameInp = tr.querySelector('input[data-sheet-txt$="Name"]');
                     const name = nameInp?.value.trim();
                     if (!name) return;
