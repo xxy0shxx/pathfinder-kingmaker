@@ -1235,6 +1235,35 @@ const BestiaryManager = {
         if (isPage1) {
             initRangerFeatPickers();
 
+            // =========================================================================
+            // 🌟 ТУЛТИП ДЛЯ СПОСОБНОСТИ ПРОИСХОЖДЕНИЯ
+            // =========================================================================
+            const bgFeatBlock = overlay.querySelector('[data-sheet-txt="backgroundFeat"]')?.closest('div');
+            if (bgFeatBlock) {
+                bgFeatBlock.addEventListener('mouseenter', (e) => {
+                    const featName = overlay.querySelector('[data-sheet-txt="backgroundFeat"]')?.value.trim();
+                    if (!featName) return;
+
+                    // Ищем описание этого бэкграунда в глобальном каталоге, если он доступен
+                    const currentCatalog = (typeof PF2E_BACKGROUNDS !== 'undefined') ? PF2E_BACKGROUNDS : [];
+                    const cleanName = featName.replace(/📜\s*/, '').toLowerCase().trim();
+                    const foundBg = currentCatalog.find(b => b.feat?.toLowerCase().trim() === cleanName || b.name?.toLowerCase().trim() === hero.stats.background?.toLowerCase().trim());
+
+                    const desc = foundBg ? foundBg.desc : 'Описание подтягивается автоматически из выбранного происхождения.';
+
+                    const html = `
+                        <div class="init-tip-header">
+                            <span class="init-tip-name">${featName}</span>
+                            <span class="init-tip-turn-tag" style="border-color:#74b9ff; color:#74b9ff;">ЧЕРТА ПРОИСХОЖДЕНИЯ</span>
+                        </div>
+                        <div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${desc}</div>
+                    `;
+                    this._showSheetItemTooltip(e, html);
+                });
+                bgFeatBlock.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                bgFeatBlock.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            }
+
             // Тултипы строк таблицы
             overlay.querySelectorAll('.bst-spell-tier table tbody tr').forEach((tr) => {
                 const nameInp = tr.querySelector('.bst-ranger-feat-picker-inp');
