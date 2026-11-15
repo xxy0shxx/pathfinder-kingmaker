@@ -7333,7 +7333,8 @@ canvas[style*="position: fixed"] {
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid #543e0d;
     border-radius: 4px;
-    overflow: hidden;
+    overflow: visible !important;
+    position: relative;
 }
 
 .bst-cantrips-table th {
@@ -7371,4 +7372,53 @@ canvas[style*="position: fixed"] {
 
 .bst-cantrips-table input.bst-txt-inp:focus {
     border-color: #ffd875 !important;
+}
+.bst-cantrip-dropdown {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    width: 310px;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #060b07;
+    border: 1.5px solid #dfbc6f;
+    border-radius: 5px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.92);
+    z-index: 10000050;
+}
+
+.bst-cantrip-opt {
+    padding: 6px 9px;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.4);
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+
+.bst-cantrip-opt:last-child {
+    border-bottom: none;
+}
+
+.bst-cantrip-opt:hover {
+    background: #1e3c27;
+}
+
+.bst-cantrip-opt-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    color: #ffd875;
+    font-size: 13px;
+}
+
+.bst-cantrip-opt-top span {
+    font-size: 11px;
+    color: #2ecc71;
+    white-space: nowrap;
+}
+
+.bst-cantrip-opt-trad {
+    font-size: 11px;
+    color: #a4b0be;
+    margin-top: 2px;
 }

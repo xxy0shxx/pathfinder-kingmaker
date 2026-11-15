@@ -1,6 +1,8 @@
 import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
+import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
+
 
 // Добавьте в начало bestiary_manager.js (после импортов)
 export const STAT_CATEGORIES = [
@@ -529,6 +531,7 @@ const BestiaryManager = {
             </div>
         `;
 
+
         if (stats.cantripsPrepared && !stats.cantrip1Name && !stats.cantrip1Notes) {
             stats.cantrip1Name = stats.cantripsPrepared;
             stats.cantripsPrepared = '';
@@ -537,11 +540,22 @@ const BestiaryManager = {
         const cantripsRowsHtml = [1, 2, 3, 4, 5].map(idx => `
             <tr>
                 <td class="bst-cantrip-num">${idx}</td>
-                <td>${txtInp(`cantrip${idx}Name`, 'Название фокуса...')}</td>
+                <td style="position: relative;">
+                    <input type="text"
+                           data-sheet-txt="cantrip${idx}Name"
+                           data-cantrip-row="${idx}"
+                           class="k-inp bst-txt-inp bst-cantrip-picker-inp"
+                           autocomplete="off"
+                           placeholder="Выберите или введите фокус..."
+                           value="${esc(stats[`cantrip${idx}Name`])}">
+                    <div class="bst-cantrip-dropdown" data-cantrip-drop="${idx}" style="display: none;"></div>
+                </td>
                 <td>${txtInp(`cantrip${idx}Actions`, '◆ / 30 фт.')}</td>
                 <td>${txtInp(`cantrip${idx}Notes`, 'Урон, спасбросок, эффект...')}</td>
             </tr>
         `).join('');
+
+
 
         const page2Html = `
             <div class="bst-sheet-page2-grid">
@@ -657,6 +671,53 @@ const BestiaryManager = {
                 }
             ]
         });
+
+        if (!isPage1) {
+            overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.cantripRow;
+                const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`);
+
+                const renderOptions = (query) => {
+                    const list = searchCantrips(query);
+                    if (!list.length) {
+                        dropEl.style.display = 'none';
+                        return;
+                    }
+                    dropEl.innerHTML = list.map(c => `
+                        <div class="bst-cantrip-opt" data-cid="${c.id}">
+                            <div class="bst-cantrip-opt-top">
+                                <b>${c.name}</b>
+                                <span>${c.actions}</span>
+                            </div>
+                            <div class="bst-cantrip-opt-trad">${c.traditions.join(', ')}</div>
+                        </div>
+                    `).join('');
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
+                            if (found) {
+                                inp.value = found.name;
+                                if (actInp) actInp.value = found.actions;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderOptions(inp.value));
+                inp.addEventListener('input', () => renderOptions(inp.value));
+                inp.addEventListener('blur', () => {
+                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
+                });
+            });
+        }
+
     },
 
     deployToInitiative(item, customScore = null) {
