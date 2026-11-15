@@ -175,6 +175,7 @@ const BestiaryManager = {
         }
     },
 
+
     _ensureCharacterStats(item) {
         if (!item.stats || typeof item.stats !== 'object') {
             item.stats = {};
@@ -190,6 +191,8 @@ const BestiaryManager = {
             focusMax: 1, focusCurrent: 1,
             item1Qty: 1, item2Qty: 1, item3Qty: 1, item4Qty: 1,
             item5Qty: 1, item6Qty: 1, item7Qty: 1, item8Qty: 1,
+            item9Qty: 1, item10Qty: 1, item11Qty: 1, item12Qty: 1,
+            item13Qty: 1, item14Qty: 1, item15Qty: 1,
         };
 
         Object.entries(numDefaults).forEach(([k, def]) => {
@@ -230,6 +233,13 @@ const BestiaryManager = {
             item6Name: '', item6Notes: '',
             item7Name: '', item7Notes: '',
             item8Name: '', item8Notes: '',
+            item9Name: '', item9Notes: '',
+            item10Name: '', item10Notes: '',
+            item11Name: '', item11Notes: '',
+            item12Name: '', item12Notes: '',
+            item13Name: '', item13Notes: '',
+            item14Name: '', item14Notes: '',
+            item15Name: '', item15Notes: '',
 
             cantripsPrepared: '',
             cantrip1Name: '', cantrip1Actions: '', cantrip1Notes: '', cantrip1Ready: false,
@@ -268,6 +278,18 @@ const BestiaryManager = {
                 item.stats[k] = def;
             }
         });
+
+        for (let i = 1; i <= 15; i++) {
+            if (item.stats[`item${i}Qty`] === undefined || item.stats[`item${i}Qty`] === null) {
+                item.stats[`item${i}Qty`] = 1;
+            }
+            if (item.stats[`item${i}Name`] === undefined || item.stats[`item${i}Name`] === null) {
+                item.stats[`item${i}Name`] = '';
+            }
+            if (item.stats[`item${i}Notes`] === undefined || item.stats[`item${i}Notes`] === null) {
+                item.stats[`item${i}Notes`] = '';
+            }
+        }
 
         return item.stats;
     },
@@ -713,7 +735,7 @@ const BestiaryManager = {
             stats.equipmentText = '';
         }
 
-        const itemsRowsHtml = Array.from({ length: 8 }, (_, i) => i + 1).map(idx => `
+        const itemsRowsHtml = Array.from({ length: 15 }, (_, i) => i + 1).map(idx => `
             <tr>
                 <td class="bst-cantrip-num">${idx}</td>
                 <td style="position: relative;">
@@ -733,33 +755,12 @@ const BestiaryManager = {
             </tr>
         `).join('');
 
+
+
+
         const page2Html = `
             <div class="bst-sheet-page2-grid">
-            
                 <div class="bst-sheet-col">
-                
-                    <div class="k-panel" style="margin-bottom: 10px;">
-                        <div class="k-sec-title">🎒 Снаряжение, Зелья и Провизия</div>
-                        <div class="bst-coins-row">
-                            <label>🥉 ММ: ${numInp('coinsCopper', 'bst-mini-num')}</label>
-                            <label>🥈 СМ: ${numInp('coinsSilver', 'bst-mini-num')}</label>
-                            <label>🥇 ЗМ: ${numInp('coinsGold', 'bst-mini-num')}</label>
-                        </div>
-                        <table class="k-table bst-cantrips-table bst-items-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 28px; text-align: center;">#</th>
-                                    <th style="width: 36%;">Предмет / Расходник</th>
-                                    <th style="width: 56px; text-align: center;">Кол-во</th>
-                                    <th>Эффект / Описание</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${itemsRowsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-
                     <div class="k-panel">
                         <div class="k-sec-title">✨ Сотворение заклинаний</div>
                         <div class="bst-spell-stats-row">
@@ -846,37 +847,60 @@ const BestiaryManager = {
                                 </tbody>
                             </table>
                         </div>
-                        
                     </div>
-                    
                 </div>
 
                 <div class="bst-sheet-col">
                     <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">🎒 Снаряжение, Зелья и Провизия</div>
+                        <div class="bst-coins-row">
+                            <label>🥉 ММ: ${numInp('coinsCopper', 'bst-mini-num')}</label>
+                            <label>🥈 СМ: ${numInp('coinsSilver', 'bst-mini-num')}</label>
+                            <label>🥇 ЗМ: ${numInp('coinsGold', 'bst-mini-num')}</label>
+                        </div>
+                        <table class="k-table bst-cantrips-table bst-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 28px; text-align: center;">#</th>
+                                    <th style="width: 36%;">Предмет / Расходник</th>
+                                    <th style="width: 56px; text-align: center;">Кол-во</th>
+                                    <th>Эффект / Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">📖 Журнал приключений</div>
-                        ${txtArea('adventureLogText', 5, '📅 Дата — Описание события — Опыт...')}
+                        ${txtArea('adventureLogText', 4, '📅 Дата — Описание события — Опыт...')}
                     </div>
 
                     <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">📝 Заметки персонажа</div>
-                        ${txtArea('notesText', 5, '🗒️ Личные заметки, клятвы, связи, особенности...')}
+                        ${txtArea('notesText', 4, '🗒️ Личные заметки, клятвы, связи, особенности...')}
                     </div>
 
                     <div class="k-panel">
                         <div class="k-sec-title">📚 Книга заклинаний / Репертуар</div>
-                        ${txtArea('spellbookText', 5, '📖 Все изученные заклинания...')}
+                        ${txtArea('spellbookText', 4, '📖 Все изученные заклинания...')}
                     </div>
                 </div>
             </div>
         `;
 
+
+
         const isPage1 = pageNum === 1;
+
         const { overlay, close } = ModalManager.open({
             id: 'bstHeroSheetModal',
             title: isPage1
                 ? `🛡️ Бланк персонажа: ${hero.name} — Стр. 1 (Бой и Навыки)`
                 : `📜 Бланк персонажа: ${hero.name} — Стр. 2 (Снаряжение и Магия)`,
-            width: '1120px',
+            width: '1420px',
             borderColor: '#dfbc6f',
             bodyHtml: isPage1 ? page1Html : page2Html,
             footerButtons: [
