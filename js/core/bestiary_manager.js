@@ -5,7 +5,8 @@ import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
 import { PF2E_ITEMS_CATALOG, searchItemsCatalog, isCombatConsumable } from '../config/items_catalog.js';
 import { PF2E_ARMOR_CATALOG, searchArmorCatalog, getArmorGroupEffect } from '../config/armor_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES, searchMetaCatalog } from '../config/meta_catalog.js';
-import { ALL_PF2E_BACKGROUNDS, searchBackgroundsCatalog } from '../config/backgrounds_catalog.js';
+import { PF2E_BACKGROUNDS, searchBackgroundsCatalog } from '../config/backgrounds_catalog.js';
+
 
 import {
     PF2E_SPELLS_LVL1,
@@ -1882,19 +1883,21 @@ const BestiaryManager = {
                 dropEl.style.display = 'block';
 
                 dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+
+
                     optEl.addEventListener('mousedown', (e) => {
                         e.preventDefault();
-                        const found = ALL_PF2E_BACKGROUNDS.find(x => x.id === optEl.dataset.bgId);
+                        // Ищем совпадение напрямую в обновленном каталоге происхождений
+                        const found = PF2E_BACKGROUNDS.find(x => x.id === optEl.dataset.bgId);
                         if (found) {
                             inp.value = found.name;
                             hero.stats.background = found.name;
 
-                            // Автоматически находим поле целевого навыка на странице и добавляем +2 за тренированность
+                            // Автоматически находим поле целевого навыка на странице и добавляем +3 за тренированность
                             const targetSkillInp = overlay.querySelector(`[data-sheet-num="${found.skill}"]`);
                             if (targetSkillInp) {
                                 const currentSkillVal = parseInt(targetSkillInp.value, 10) || 0;
                                 if (currentSkillVal === 0) {
-                                    // Если навык равен нулю (не изучен), автоматически ставим +3 (Уровень 1 + 2 за Изученный)
                                     targetSkillInp.value = 3;
                                     if (targetSkillInp.dataset.baseValue !== undefined) {
                                         targetSkillInp.dataset.baseValue = 3;
@@ -1913,6 +1916,8 @@ const BestiaryManager = {
                         }
                         dropEl.style.display = 'none';
                     });
+
+
                 });
             };
 

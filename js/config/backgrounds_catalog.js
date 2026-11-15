@@ -1,7 +1,17 @@
 /**
- * Справочник Общих происхождений (Backgrounds) Pathfinder 2e (перевод pf2.ru)
+ * Справочник происхождений (Backgrounds) Pathfinder 2e (включая Kingmaker AP)
  */
 export const PF2E_BACKGROUNDS = [
+    // --- Сюжетные происхождения Kingmaker AP ---
+    { id: 'sword_scion', name: '⚔️ Наследник клинка (Restov)', skill: 'athletics', feat: 'Доступ: Дуэльный меч Алдори', desc: 'Вы выросли в Рестове на историях о владыках мечей. Повышения: Ловкость/Харизма.' },
+    { id: 'brevic_noble', name: '👑 Благородный из Бревоя', skill: 'society', feat: 'Придворный этикет', desc: 'Вы связаны со знатным бревойским домом. Повышения: Выносливость/Мудрость.' },
+    { id: 'brevic_outcast', name: '🥷 Бревойский изгой', skill: 'stealth', feat: 'Опытный взломщик', desc: 'Ваша семья попала в немилость в Бревое, и вы ищете новый дом. Повышения: Ловкость/Интеллект.' },
+    { id: 'issian_patriot', name: '🛡️ Иссийский патриот', skill: 'society', feat: 'Академические знания', desc: 'Вы преданы северному Бревою и лояльны Дому Суртова. Повышения: Интеллект/Харизма.' },
+    { id: 'local_brigand', name: '👹 Местный разбойник', skill: 'intimidation', feat: 'Впечатляющий удар', desc: 'Вы промышляли грабежом в Украденных землях, но решили сменить сторону. Повышения: Сила/Харизма.' },
+    { id: 'frontier_pioneer', name: '🏕️ Первопроходец пограничья', skill: 'survival', feat: 'Ориентирование', desc: 'Вы привыкли выживать в диких условиях и строить лагерь. Повышения: Выносливость/Мудрость.' },
+    { id: 'rostland_partisan', name: '🌾 Ростландец', skill: 'athletics', feat: 'Тяжелый подъем', desc: 'Вы гордый житель южного Бревоя, недолюбливающий Иссию. Повышения: Сила/Ловкость.' },
+
+    // --- Общие происхождения (Базовые) ---
     { id: 'acolyte', name: '⛪ Послушник', skill: 'religion', feat: 'Священное писание', desc: 'Вы выросли в храме. Повышения: Мудрость/Харизма.' },
     { id: 'acrobat', name: '🤸 Акробат', skill: 'acrobatics', feat: 'Быстрое падение', desc: 'Вы выступали в цирке или театре. Повышения: Сила/Ловкость.' },
     { id: 'animal_whisperer', name: '🐾 Толмач зверей', skill: 'nature', feat: 'Связь с природой', desc: 'Вы отлично ладите с дикими животными. Повышения: Выносливость/Мудрость.' },
@@ -11,9 +21,7 @@ export const PF2E_BACKGROUNDS = [
     { id: 'criminal', name: '🥷 Преступник', skill: 'stealth', feat: 'Опытный взломщик', desc: 'Вы промышляли воровством или контрабандой. Повышения: Ловкость/Интеллект.' },
     { id: 'detective', name: '👁️ Сыщик', skill: 'society', feat: 'Внимательный взгляд', desc: 'Вы расследовали городские преступления. Повышения: Интеллект/Мудрость.' },
     { id: 'entertainer', name: '🎵 Артист', skill: 'performance', feat: 'Увлекательное шоу', desc: 'Вы привыкли быть в центре внимания публики. Повышения: Ловкость/Харизма.' },
-    { id: 'gladiator', name: '⚔️ Гладиатор', skill: 'athletics', feat: 'Впечатляющий удар', desc: 'Вы сражались на потеху толпе на аренах. Повышения: Сила/Харизма.' }
-];
-export const PF2E_BACKGROUNDS_PART2 = [
+    { id: 'gladiator', name: '⚔️ Гладиатор', skill: 'athletics', feat: 'Впечатляющий удар', desc: 'Вы сражались на потеху толпе на аренах. Повышения: Сила/Харизма.' },
     { id: 'hermit', name: '🏕️ Отшельник', skill: 'nature', feat: 'Одинокий исследователь', desc: 'Вы долгие годы жили вдали от цивилизации. Повышения: Выносливость/Мудрость.' },
     { id: 'hunter', name: '🏹 Охотник', skill: 'survival', feat: 'Разделка добычи', desc: 'Вы добывали пропитание промыслом в лесах. Повышения: Ловкость/Мудрость.' },
     { id: 'laborer', name: '🏋️ Чернорабочий', skill: 'athletics', feat: 'Тяжелый подъем', desc: 'Вы привыкли к суровому физическому труду. Повышения: Сила/Выносливость.' },
@@ -26,11 +34,8 @@ export const PF2E_BACKGROUNDS_PART2 = [
     { id: 'tinker', name: '🔨 Лудильщик', skill: 'crafting', feat: 'Изобретатель механизмов', desc: 'Вы чинили и перебирали мелкие приборы. Повышения: Интеллект/Ловкость.' }
 ];
 
-// Объединяем массивы для полноценного поиска
-export const ALL_PF2E_BACKGROUNDS = [...PF2E_BACKGROUNDS, ...PF2E_BACKGROUNDS_PART2];
-
 export function searchBackgroundsCatalog(query = '') {
     const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
-    if (!q) return ALL_PF2E_BACKGROUNDS;
-    return ALL_PF2E_BACKGROUNDS.filter(b => b.name.toLowerCase().replace(/ё/g, 'е').includes(q));
+    if (!q) return PF2E_BACKGROUNDS;
+    return PF2E_BACKGROUNDS.filter(b => b.name.toLowerCase().replace(/ё/g, 'е').includes(q));
 }
