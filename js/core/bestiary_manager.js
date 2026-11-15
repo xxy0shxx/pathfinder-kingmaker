@@ -2315,15 +2315,20 @@ const BestiaryManager = {
             const dropEl = overlay.querySelector('[data-bg-drop="1"]');
 
             const renderBgMatches = (query) => {
-                const list = searchBackgroundsCatalog(query);
+                const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+                const currentCatalog = (typeof PF2E_BACKGROUNDS !== 'undefined') ? PF2E_BACKGROUNDS : [];
+
+                // ИСПРАВЛЕНО: Если строка пустая, показываем весь каталог для скролла, иначе фильтруем
+                const list = !q
+                    ? currentCatalog
+                    : currentCatalog.filter(b => b.name.toLowerCase().replace(/ё/g, 'е').includes(q));
+
                 if (!list.length) { dropEl.style.display = 'none'; return; }
 
                 dropEl.innerHTML = list.map(b => `
                         <div class="bst-cantrip-opt" data-bg-id="${b.id}" style="padding: 6px; cursor: pointer;">
                             <div class="bst-cantrip-opt-top"><b>${b.name}</b></div>
-                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; margin-top: 2px; color: #ebd291;">
-                                ${b.desc} <br><span style="color:#74b9ff;">✨ Черта: ${b.feat}</span>
-                            </div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px;">${b.desc ?? ''} <br><span style="color:#74b9ff;">✨ Черта: ${b.feat}</span></div>
                         </div>
                     `).join('');
 
@@ -2332,45 +2337,43 @@ const BestiaryManager = {
                 dropEl.style.left = `${rect.left}px`;
                 dropEl.style.top = `${rect.bottom + 2}px`;
                 dropEl.style.width = `${Math.max(260, rect.width)}px`;
+                dropEl.style.maxHeight = '280px'; // Добавляем ограничение высоты
+                dropEl.style.overflowY = 'auto';  // Включаем вертикальный скролл для длинного списка
+                dropEl.style.zIndex = '10000150';
                 dropEl.style.display = 'block';
 
                 dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-
-
                     optEl.addEventListener('mousedown', (e) => {
                         e.preventDefault();
-                        // Ищем совпадение напрямую в обновленном каталоге происхождений
-                        const found = PF2E_BACKGROUNDS.find(x => x.id === optEl.dataset.bgId);
+                        e.stopPropagation();
+
+                        const found = currentCatalog.find(x => x.id === optEl.dataset.bgId);
+
                         if (found) {
                             inp.value = found.name;
                             hero.stats.background = found.name;
 
-                            // Автоматически находим поле целевого навыка на странице и добавляем +3 за тренированность
-                            const targetSkillInp = overlay.querySelector(`[data-sheet-num="${found.skill}"]`);
+                            const targetSkillInp = overlay.querySelector(`[data-sheet-num="prof_${found.skill}"]`);
                             if (targetSkillInp) {
-                                const currentSkillVal = parseInt(targetSkillInp.value, 10) || 0;
-                                if (currentSkillVal === 0) {
-                                    targetSkillInp.value = 3;
-                                    if (targetSkillInp.dataset.baseValue !== undefined) {
-                                        targetSkillInp.dataset.baseValue = 3;
-                                    }
-                                    targetSkillInp.style.color = "#2ecc71";
-                                    targetSkillInp.title = `Изучен автоматически благодаря происхождению "${found.name}"`;
-                                }
+                                targetSkillInp.value = 2; // Автоподстановка Изучен (+2) за Происхождение
                             }
 
-                            // Автоподстановка названия в поле способностей происхождения, если оно пустое
                             const featInp = overlay.querySelector('[data-sheet-txt="backgroundFeat"]');
                             if (featInp && !featInp.value) {
                                 featInp.value = `📜 ${found.feat}`;
                                 hero.stats.backgroundFeat = `📜 ${found.feat}`;
                             }
+
+                            if (typeof calculateArmorClass === 'function') {
+                                calculateArmorClass();
+                            }
                         }
                         dropEl.style.display = 'none';
                     });
-
                 });
             };
+
+
 
             inp.addEventListener('focus', () => renderBgMatches(inp.value));
             inp.addEventListener('input', () => renderBgMatches(inp.value));
