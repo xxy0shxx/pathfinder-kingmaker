@@ -184,7 +184,8 @@ const BestiaryManager = {
             ac: 10, acDex: 0, acProf: 0, acItem: 0, acOther: 0,
             spellAttack: 0, spellDc: 10,
             cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
-            coinsCopper: 0, coinsSilver: 0, coinsGold: 0
+            coinsCopper: 0, coinsSilver: 0, coinsGold: 0,
+            focusMax: 1, focusCurrent: 1,
         };
 
         Object.entries(numDefaults).forEach(([k, def]) => {
@@ -223,6 +224,10 @@ const BestiaryManager = {
             cantrip3Name: '', cantrip3Actions: '', cantrip3Notes: '', cantrip3Ready: false,
             cantrip4Name: '', cantrip4Actions: '', cantrip4Notes: '', cantrip4Ready: false,
             cantrip5Name: '', cantrip5Actions: '', cantrip5Notes: '', cantrip5Ready: false,
+
+            focusSpell1Name: '', focusSpell1Actions: '', focusSpell1Notes: '', focusSpell1Ready: false,
+            focusSpell2Name: '', focusSpell2Actions: '', focusSpell2Notes: '', focusSpell2Ready: false,
+            focusSpell3Name: '', focusSpell3Actions: '', focusSpell3Notes: '', focusSpell3Ready: false,
 
             lvl1Prepared: '',
             lvl1Spell1Name: '', lvl1Spell1Actions: '', lvl1Spell1Notes: '', lvl1Spell1Ready: false,
@@ -1706,14 +1711,11 @@ const BestiaryManager = {
     },
 
 
+
     _attachPresetTooltip(card, item, isInactive = false) {
         card.addEventListener('mouseenter', (e) => {
             if (card.querySelector('input.init-inline-name-input')) return;
             if (item.faction !== 'friend' && !window.SHOW_ENEMY_TOOLTIPS) return;
-
-            // Удаляем старый дублирующий тултип, если он был создан ранее
-            const oldHeroTip = document.getElementById('bstHeroHoverTooltip');
-            if (oldHeroTip) oldHeroTip.remove();
 
             let tip = document.getElementById('initUnitHoverTooltip');
             if (!tip) {
@@ -1723,118 +1725,11 @@ const BestiaryManager = {
                 document.body.appendChild(tip);
             }
 
-            const stats = this._ensureCharacterStats(item);
-            const fmtMod = (val) => {
-                const n = Number(val) || 0;
-                return n > 0 ? `+${n}` : `${n}`;
-            };
-
-            const statusBadge = item.faction === 'friend'
-                ? (isInactive
-                    ? '<span class="init-tip-turn-tag" style="border-color:#95a5a6; color:#b2bec3; background:rgba(149,165,166,0.18);">💤 В РЕЗЕРВЕ</span>'
-                    : '<span class="init-tip-turn-tag">🛡️ В ОТРЯДЕ</span>')
-                : `<span class="init-tip-turn-tag" style="border-color:#e74c3c; color:#ff7675; background:rgba(231,76,60,0.18);">Ур. ${stats.level ?? 1}</span>`;
-
-            const metaParts = [
-                stats.charClass,
-                stats.ancestry,
-                item.faction === 'friend' && stats.level ? `Ур. ${stats.level}` : ''
-            ].filter(Boolean);
-
-            const attrs = [
-                ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
-                ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
-            ];
-            const defenses = [
-                ['👁️ Внимание', fmtMod(stats.perception ?? stats.perc)],
-                ['🛡️ Стойкость', fmtMod(stats.fortitude ?? stats.fort)],
-                ['⚡ Реакция', fmtMod(stats.reflex ?? stats.ref)],
-                ['🧠 Воля', fmtMod(stats.will)]
-            ];
-            const skills = [
-                ['Акробатика', stats.acrobatics ?? stats.acro],
-                ['Аркана', stats.arcana ?? stats.arca],
-                ['Атлетика', stats.athletics ?? stats.athl],
-                ['Ремесло', stats.crafting],
-                ['Обман', stats.deception ?? stats.dece],
-                ['Дипломатия', stats.diplomacy ?? stats.dipl],
-                ['Запугивание', stats.intimidation ?? stats.inti],
-                ['Знания (Lore)', stats.lore],
-                ['Медицина', stats.medicine ?? stats.medi],
-                ['Природа', stats.nature ?? stats.natu],
-                ['Оккультизм', stats.occultism ?? stats.occu],
-                ['Выступление', stats.performance],
-                ['Религия', stats.religion ?? stats.reli],
-                ['Общество', stats.society],
-                ['Скрытность', stats.stealth ?? stats.stea],
-                ['Выживание', stats.survival ?? stats.surv],
-                ['Воровство', stats.thievery]
-            ].filter(([, v]) => v !== undefined);
-
-            const attacks = [
-                stats.melee1Name ? `⚔️ ${stats.melee1Name} ${stats.melee1Atk} (${stats.melee1Dmg})` : '',
-                stats.melee2Name ? `🗡️ ${stats.melee2Name} ${stats.melee2Atk} (${stats.melee2Dmg})` : '',
-                stats.rangedName ? `🏹 ${stats.rangedName} ${stats.rangedAtk} (${stats.rangedDmg})` : ''
-            ].filter(Boolean);
-
-            const focusSpells = [1, 2, 3]
-                .map(i => stats[`focusSpell${i}Name`]
-                    ? `💠 ${stats[`focusSpell${i}Name`]}${stats[`focusSpell${i}Actions`] ? ` (${stats[`focusSpell${i}Actions`]})` : ''}`
-                    : '')
-                .filter(Boolean);
-
-            const hasFocusPool = focusSpells.length > 0 || Number(stats.focusMax) > 0;
-
-
-            tip.innerHTML = `
-                <div class="init-tip-header">
-                    <span class="init-tip-name">${item.name}</span>
-                    ${statusBadge}
-                </div>
-                <div class="init-tip-top-row">
-                    <span>🎲 Иниц.: <b>${item.defaultScore ?? 10}</b></span>
-                    <span>❤️ ПЗ: <b>${stats.hpCurrent ?? stats.hpMax ?? 10}/${stats.hpMax ?? 10}</b></span>
-                    <span>🛡️ КБ: <b>${stats.ac ?? 10}</b></span>
-                </div>
-                ${metaParts.length ? `<div style="font-size:14px; color:#dfbc6f; margin-top:4px;">${metaParts.join(' • ')}</div>` : ''}
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title">⚔️ Характеристики</div>
-                    <div class="init-tip-2col">
-                        ${attrs.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                    </div>
-                </div>
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title">🛡️ Внимание и Спасброски</div>
-                    <div class="init-tip-2col">
-                        ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${v}</b></div>`).join('')}
-                    </div>
-                </div>
-                ${attacks.length ? `
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title">🗡️ Атаки</div>
-                    <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
-                        ${attacks.map(a => `<div>${a}</div>`).join('')}
-                    </div>
-                </div>
-                ` : ''}
-                ${focusSpells.length ? `
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
-                        <span>💠 Фокальные заклинания</span>
-                        ${hasFocusPool ? `<span style="color:#3498db;">🔋 Очки: ${stats.focusCurrent ?? 1}/${stats.focusMax ?? 1}</span>` : ''}
-                    </div>
-                    <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
-                        ${focusSpells.map(f => `<div>${f}</div>`).join('')}
-                    </div>
-                ` : ''}
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title">📜 Навыки</div>
-                    <div class="init-tip-3col">
-                        ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                    </div>
-                </div>
-            `;
-
+            tip.innerHTML = this.buildUnitTooltipHtml(item, {
+                isCombat: false,
+                isInactive,
+                score: item.defaultScore ?? 10
+            });
             tip.style.display = 'block';
             this._positionPresetTooltip(e, tip);
         });
@@ -1848,6 +1743,8 @@ const BestiaryManager = {
 
         card.addEventListener('mouseleave', () => this._hidePresetTooltip());
     },
+
+
 
 
     _hideSheetItemTooltip() {
@@ -2101,6 +1998,154 @@ const BestiaryManager = {
             });
         });
     },
+
+    buildUnitTooltipHtml(item, options = {}) {
+        const stats = this._ensureCharacterStats(item);
+        const fmtMod = (val) => {
+            const n = Number(val) || 0;
+            return n > 0 ? `+${n}` : `${n}`;
+        };
+
+        const isCombat = !!options.isCombat;
+        const isCurrentTurn = !!options.isCurrentTurn;
+        const isInactive = !!options.isInactive;
+        const scoreVal = options.score ?? item.defaultScore ?? 10;
+
+        let badgeHtml = '';
+        if (isCombat) {
+            badgeHtml = isCurrentTurn
+                ? '<span class="init-tip-turn-tag">▶ СЕЙЧАС ХОДИТ</span>'
+                : `<span class="init-tip-turn-tag" style="border-color:#543e0d; color:#ebd291; background:rgba(0,0,0,0.35);">Ур. ${stats.level ?? 1}</span>`;
+        } else if (item.faction === 'friend') {
+            badgeHtml = isInactive
+                ? '<span class="init-tip-turn-tag" style="border-color:#95a5a6; color:#b2bec3; background:rgba(149,165,166,0.18);">💤 В РЕЗЕРВЕ</span>'
+                : '<span class="init-tip-turn-tag">🛡️ В ОТРЯДЕ</span>';
+        } else {
+            badgeHtml = `<span class="init-tip-turn-tag" style="border-color:#e74c3c; color:#ff7675; background:rgba(231,76,60,0.18);">Ур. ${stats.level ?? 1}</span>`;
+        }
+
+        const metaParts = [
+            stats.charClass,
+            stats.ancestry,
+            stats.level ? `Ур. ${stats.level}` : ''
+        ].filter(Boolean);
+
+        const attrs = [
+            ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
+            ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
+        ];
+        const defenses = [
+            ['👁️ Внимание', fmtMod(stats.perception ?? stats.perc)],
+            ['🛡️ Стойкость', fmtMod(stats.fortitude ?? stats.fort)],
+            ['⚡ Реакция', fmtMod(stats.reflex ?? stats.ref)],
+            ['🧠 Воля', fmtMod(stats.will)]
+        ];
+        const skills = [
+            ['Акробатика', stats.acrobatics ?? stats.acro],
+            ['Аркана', stats.arcana ?? stats.arca],
+            ['Атлетика', stats.athletics ?? stats.athl],
+            ['Ремесло', stats.crafting],
+            ['Обман', stats.deception ?? stats.dece],
+            ['Дипломатия', stats.diplomacy ?? stats.dipl],
+            ['Запугивание', stats.intimidation ?? stats.inti],
+            ['Знания (Lore)', stats.lore],
+            ['Медицина', stats.medicine ?? stats.medi],
+            ['Природа', stats.nature ?? stats.natu],
+            ['Оккультизм', stats.occultism ?? stats.occu],
+            ['Выступление', stats.performance],
+            ['Религия', stats.religion ?? stats.reli],
+            ['Общество', stats.society],
+            ['Скрытность', stats.stealth ?? stats.stea],
+            ['Выживание', stats.survival ?? stats.surv],
+            ['Воровство', stats.thievery]
+        ].filter(([, v]) => v !== undefined);
+
+        const attacks = [
+            stats.melee1Name ? `⚔️ ${stats.melee1Name} <b>${stats.melee1Atk || ''}</b> ${stats.melee1Dmg ? `(${stats.melee1Dmg})` : ''}` : '',
+            stats.melee2Name ? `🗡️ ${stats.melee2Name} <b>${stats.melee2Atk || ''}</b> ${stats.melee2Dmg ? `(${stats.melee2Dmg})` : ''}` : '',
+            stats.rangedName ? `🏹 ${stats.rangedName} <b>${stats.rangedAtk || ''}</b> ${stats.rangedDmg ? `(${stats.rangedDmg})` : ''}` : ''
+        ].filter(Boolean);
+
+        const cantrips = [1, 2, 3, 4, 5]
+            .map(i => stats[`cantrip${i}Name`]
+                ? `✨ ${stats[`cantrip${i}Name`]}${stats[`cantrip${i}Actions`] ? ` (${stats[`cantrip${i}Actions`]})` : ''}`
+                : '')
+            .filter(Boolean);
+
+        const focusSpells = [1, 2, 3]
+            .map(i => stats[`focusSpell${i}Name`]
+                ? `💠 ${stats[`focusSpell${i}Name`]}${stats[`focusSpell${i}Actions`] ? ` (${stats[`focusSpell${i}Actions`]})` : ''}`
+                : '')
+            .filter(Boolean);
+
+        const lvl1Spells = [1, 2, 3, 4, 5, 6, 7]
+            .map(i => stats[`lvl1Spell${i}Name`]
+                ? `1️⃣ ${stats[`lvl1Spell${i}Name`]}${stats[`lvl1Spell${i}Actions`] ? ` (${stats[`lvl1Spell${i}Actions`]})` : ''}`
+                : '')
+            .filter(Boolean);
+
+        const lvl2Spells = [1, 2, 3, 4, 5]
+            .map(i => stats[`lvl2Spell${i}Name`]
+                ? `2️⃣ ${stats[`lvl2Spell${i}Name`]}${stats[`lvl2Spell${i}Actions`] ? ` (${stats[`lvl2Spell${i}Actions`]})` : ''}`
+                : '')
+            .filter(Boolean);
+
+        const hasFocusPool = focusSpells.length > 0 || Number(stats.focusMax) > 0;
+        const hasAnyMagic = cantrips.length > 0 || focusSpells.length > 0 || lvl1Spells.length > 0 || lvl2Spells.length > 0;
+
+        return `
+            <div class="init-tip-header">
+                <span class="init-tip-name">${item.name}</span>
+                ${badgeHtml}
+            </div>
+            <div class="init-tip-top-row">
+                <span>🎲 Иниц.: <b>${scoreVal}</b></span>
+                <span>❤️ ПЗ: <b>${stats.hpCurrent ?? stats.hpMax ?? 10}/${stats.hpMax ?? 10}</b></span>
+                <span>🛡️ КБ: <b>${stats.ac ?? 10}</b></span>
+            </div>
+            ${metaParts.length ? `<div style="font-size:14px; color:#dfbc6f; margin-top:4px;">${metaParts.join(' • ')}</div>` : ''}
+            <div class="init-tip-section">
+                <div class="init-tip-sec-title">⚔️ Характеристики</div>
+                <div class="init-tip-2col">
+                    ${attrs.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                </div>
+            </div>
+            <div class="init-tip-section">
+                <div class="init-tip-sec-title">🛡️ Внимание и Спасброски</div>
+                <div class="init-tip-2col">
+                    ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${v}</b></div>`).join('')}
+                </div>
+            </div>
+            ${attacks.length ? `
+            <div class="init-tip-section">
+                <div class="init-tip-sec-title">🗡️ Оружие и Атаки</div>
+                <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
+                    ${attacks.map(a => `<div>${a}</div>`).join('')}
+                </div>
+            </div>` : ''}
+            ${hasAnyMagic ? `
+            <div class="init-tip-section">
+                <div class="init-tip-sec-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <span>✨ Магия и Фокусы (СЛ ${stats.spellDc ?? 10} / Атк ${fmtMod(stats.spellAttack)})</span>
+                    ${hasFocusPool ? `<span style="color:#3498db;">🔋 Фокус: ${stats.focusCurrent ?? 1}/${stats.focusMax ?? 1}</span>` : ''}
+                </div>
+                <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
+                    ${focusSpells.map(s => `<div>${s}</div>`).join('')}
+                    ${cantrips.map(s => `<div>${s}</div>`).join('')}
+                    ${lvl1Spells.map(s => `<div>${s}</div>`).join('')}
+                    ${lvl2Spells.map(s => `<div>${s}</div>`).join('')}
+                </div>
+            </div>` : ''}
+            <div class="init-tip-section">
+                <div class="init-tip-sec-title">📜 Навыки</div>
+                <div class="init-tip-3col">
+                    ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
+                </div>
+            </div>
+            ${options.extraFooterHtml || ''}
+        `;
+    },
+
 
 };
 

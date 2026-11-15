@@ -1071,10 +1071,13 @@ const InitiativeManager = {
     },
 
 
+
     _attachUnitTooltip(card, unit) {
         if (unit.faction !== 'friend' && !window.SHOW_ENEMY_TOOLTIPS) return;
 
         card.addEventListener('mouseenter', (e) => {
+            if (card.querySelector('input.init-inline-name-input')) return;
+
             let tip = document.getElementById('initUnitHoverTooltip');
             if (!tip) {
                 tip = document.createElement('div');
@@ -1083,11 +1086,6 @@ const InitiativeManager = {
                 document.body.appendChild(tip);
             }
 
-            const factionMap = {
-                friend: '🟢 Союзник',
-                enemy: '🔴 Враг',
-                neutral: '🟡 Нейтрал'
-            };
             const statusMap = {
                 active: '⚔️ В строю',
                 dying: '🩸 При смерти',
@@ -1097,92 +1095,30 @@ const InitiativeManager = {
 
             const isCurrentTurn = this.state.selectedUnitId === unit.id && unit.status !== 'out';
 
-            // Ищем героя в Бестиарии по имени и фракции, чтобы взять свежие статы
+            // Ищем свежие данные персонажа в Бестиарии (отряд, резерв, монстры)
             const bstPool = [
                 ...(window.BestiaryManager?.state?.party || []),
+                ...(window.BestiaryManager?.state?.inactive || []),
                 ...(window.BestiaryManager?.state?.monsters || [])
             ];
-            const preset = bstPool.find(p => p.name.trim() === unit.name.trim() && p.faction === unit.faction) || {};
-            const stats = preset.stats || unit.stats || null;
-
-            const fmtMod = (val) => {
-                const n = Number(val) || 0;
-                return n > 0 ? `+${n}` : `${n}`;
+            const preset = bstPool.find(p => p.name.trim() === unit.name.trim() && p.faction === unit.faction);
+            const mergedItem = {
+                ...unit,
+                stats: preset?.stats || unit.stats || {}
             };
 
-            let statsSectionsHtml = '';
-            if (stats && typeof stats === 'object') {
-                const attrs = [
-                    ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
-                    ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
-                ];
-                const defenses = [
-                    ['👁️ Внимание', stats.perception ?? stats.perc],
-                    ['🛡️ Стойкость', stats.fortitude ?? stats.fort],
-                    ['⚡ Реакция', stats.reflex ?? stats.ref],
-                    ['🧠 Воля', stats.will]
-                ];
-                const skills = [
-                    ['Акробатика', stats.acrobatics ?? stats.acro],
-                    ['Аркана', stats.arcana ?? stats.arca],
-                    ['Атлетика', stats.athletics ?? stats.athl],
-                    ['Ремесло', stats.crafting],
-                    ['Обман', stats.deception ?? stats.dece],
-                    ['Дипломатия', stats.diplomacy ?? stats.dipl],
-                    ['Запугивание', stats.intimidation ?? stats.inti],
-                    ['Знания (Lore)', stats.lore],
-                    ['Медицина', stats.medicine ?? stats.medi],
-                    ['Природа', stats.nature ?? stats.natu],
-                    ['Оккультизм', stats.occultism ?? stats.occu],
-                    ['Выступление', stats.performance],
-                    ['Религия', stats.religion ?? stats.reli],
-                    ['Общество', stats.society],
-                    ['Скрытность', stats.stealth ?? stats.stea],
-                    ['Выживание', stats.survival ?? stats.surv],
-                    ['Воровство', stats.thievery]
-                ].filter(([, v]) => v !== undefined);
+            let badgesHtml = `<div style="margin-top:6px; font-size:13px; color:#a4b0be;">Состояние: <b>${statusMap[unit.status || 'active']}</b></div>`;
+            if (unit.isNat20) badgesHtml += `<div class="init-tip-badge nat20">👑 Натуральная 20</div>`;
+            else if (unit.isNat1) badgesHtml += `<div class="init-tip-badge nat1">💀 Натуральная 1</div>`;
 
-                statsSectionsHtml = `
-                    <div class="init-tip-section">
-                        <div class="init-tip-sec-title">⚔️ Характеристики</div>
-                        <div class="init-tip-2col">
-                            ${attrs.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                        </div>
-                    </div>
-
-                    <div class="init-tip-section">
-                        <div class="init-tip-sec-title">🛡️ Внимание и Спасброски</div>
-                        <div class="init-tip-2col">
-                            ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                        </div>
-                    </div>
-
-                    <div class="init-tip-section">
-                        <div class="init-tip-sec-title">📜 Навыки</div>
-                        <div class="init-tip-3col">
-                            ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                        </div>
-                    </div>
-                `;
+            if (window.BestiaryManager && typeof window.BestiaryManager.buildUnitTooltipHtml === 'function') {
+                tip.innerHTML = window.BestiaryManager.buildUnitTooltipHtml(mergedItem, {
+                    isCombat: true,
+                    isCurrentTurn,
+                    score: unit.score,
+                    extraFooterHtml: badgesHtml
+                });
             }
-
-            let rollNote = '';
-            if (unit.isNat20) rollNote = `<div class="init-tip-badge nat20">👑 Натуральная 20</div>`;
-            else if (unit.isNat1) rollNote = `<div class="init-tip-badge nat1">💀 Натуральная 1</div>`;
-
-            tip.innerHTML = `
-                <div class="init-tip-header">
-                    <span class="init-tip-name">${unit.name}</span>
-                    ${isCurrentTurn ? '<span class="init-tip-turn-tag">▶ СЕЙЧАС ХОДИТ</span>' : ''}
-                </div>
-                <div class="init-tip-top-row">
-                    <span>🎲 Иниц.: <b>${unit.score}</b></span>
-                    <span>${factionMap[unit.faction] || unit.faction}</span>
-                    <span>${statusMap[unit.status || 'active']}</span>
-                </div>
-                ${statsSectionsHtml}
-                ${rollNote}
-            `;
 
             tip.style.display = 'block';
             this._positionUnitTooltip(e, tip);
@@ -1198,6 +1134,7 @@ const InitiativeManager = {
         card.addEventListener('mouseleave', () => this._hideUnitTooltip());
         card.addEventListener('dragstart', () => this._hideUnitTooltip());
     },
+
 
 
 
