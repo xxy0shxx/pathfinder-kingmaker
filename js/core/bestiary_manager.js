@@ -14,6 +14,8 @@ import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_cat
 
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES } from '../config/companions_catalog.js';
 
+import { PF2E_HERITAGES, searchHeritagesCatalog } from '../config/heritages_catalog.js';
+
 import {
     PF2E_RANGER_FEATS,
     PF2E_CHAMPION_FEATS,
@@ -1497,6 +1499,67 @@ const BestiaryManager = {
 
                 inp.addEventListener('focus', () => renderFeatMatches(inp.value));
                 inp.addEventListener('input', () => renderFeatMatches(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // Инициализация автокомплита для Родословных Народов (Наследий)
+            overlay.querySelectorAll('[data-sheet-txt="heritage"]').forEach(inp => {
+                // Создаем или находим контейнер дропдауна прямо под инпутом
+                let dropEl = inp.nextElementSibling;
+                if (!dropEl || !dropEl.classList.contains('bst-cantrip-dropdown')) {
+                    dropEl = document.createElement('div');
+                    dropEl.className = 'bst-cantrip-dropdown';
+                    dropEl.style.display = 'none';
+                    inp.parentNode.insertBefore(dropEl, inp.nextSibling);
+                }
+
+                const renderHeritageMatches = (query) => {
+                    const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+                    const currentCatalog = (typeof PF2E_HERITAGES !== 'undefined') ? PF2E_HERITAGES : [];
+
+                    // Если поле пустое, выводим весь доступный список родословных
+                    const list = !q
+                        ? currentCatalog
+                        : currentCatalog.filter(h => h.name.toLowerCase().replace(/ё/g, 'е').includes(q));
+
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+
+                    dropEl.innerHTML = list.map(h => `
+                        <div class="bst-cantrip-opt" data-hid="${h.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${h.name}</b></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; color: #ebd291; margin-top: 2px;">
+                                Источник: ${h.source} <br> ${h.desc}
+                            </div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = `${Math.max(320, rect.width)}px`;
+                    dropEl.style.maxHeight = '240px';
+                    dropEl.style.overflowY = 'auto'; // Добавляем аккуратный скроллбар
+                    dropEl.style.zIndex = '10000150';
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            const found = currentCatalog.find(x => x.id === optEl.dataset.hid);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats.heritage = found.name;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderHeritageMatches(inp.value));
+                inp.addEventListener('input', () => renderHeritageMatches(inp.value));
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
 
