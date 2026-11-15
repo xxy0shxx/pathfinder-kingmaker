@@ -1615,7 +1615,9 @@ const BestiaryManager = {
 
 
 
+
         // Умный калькулятор брони и автоматическое распределение штрафов
+        // Умный калькулятор брони, лимитов КБ и динамического пересчета инпутов навыков
         const calculateArmorClass = () => {
             const armorType = overlay.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
             const dexInp = overlay.querySelector('[data-sheet-num="acDex"]');
@@ -1643,23 +1645,59 @@ const BestiaryManager = {
 
             if (rawDex > dexCap) rawDex = dexCap;
 
-            // Сохраняем и фиксируем штраф брони
-            let currentPenalty = parseInt(penaltyInp?.value, 10) || 0;
+            let basePenalty = parseInt(penaltyInp?.value, 10) || 0;
 
-            // Если у доспеха есть дескриптор "Гибкая" (Flexible), штраф не применяется к Акробатике и Атлетике
-            // Но мы сохраняем его в стейт для правильного вычитания в навыках
-            hero.stats.acArmorPenalty = currentPenalty;
-
-            if (charStr < armorStrReq && penaltyInp) {
-                penaltyInp.title = `Сила меньше требуемой (${armorStrReq})! Штраф активен.`;
-            } else if (charStr >= armorStrReq && penaltyInp && armorType !== 'unarmored') {
-                // По правилам PF2e, соответствие силе полностью убирает штраф к навыкам (кроме брони с дескриптором Шумная для Скрытности)
-                penaltyInp.title = `Сила соответствует требованиям! Штраф от этой брони снижен.`;
+            // Вычисляем итоговый штраф: если Сила больше или равна требуемой, то штраф равен 0
+            let activePenalty = 0;
+            if (armorType !== 'unarmored' && charStr < armorStrReq) {
+                activePenalty = Math.abs(basePenalty); // переводим в положительное для вычитания
             }
 
+            hero.stats.acArmorPenalty = basePenalty;
+
+            if (penaltyInp) {
+                if (armorType === 'unarmored') {
+                    penaltyInp.title = "Нет брони — штрафы отсутствуют.";
+                } else if (charStr < armorStrReq) {
+                    penaltyInp.title = `Штраф активен! Сила (${charStr}) меньше требуемой (${armorStrReq}).`;
+                    penaltyInp.style.borderColor = "#e74c3c";
+                } else {
+                    penaltyInp.title = `Штраф аннулирован! Сила (${charStr}) соответствует требованиям (${armorStrReq}).`;
+                    penaltyInp.style.borderColor = "#2ecc71";
+                }
+            }
+
+            // Пересчитываем КБ
             const totalAc = 10 + rawDex + prof + item + other;
             totalAcInp.value = totalAc;
             hero.stats.ac = totalAc;
+
+            // ДИНАМИЧЕСКИЙ ОБХОД ИНПУТОВ НАВЫКОВ НА СТРАНИЦЕ
+            const penaltySkills = ['acrobatics', 'athletics', 'stealth', 'thievery'];
+            penaltySkills.forEach(skillKey => {
+                const skillInp = overlay.querySelector(`[data-sheet-num="${skillKey}"]`);
+                if (skillInp) {
+                    // Сохраняем исходное «чистое» значение навыка без штрафа во временный атрибут
+                    if (skillInp.dataset.baseValue === undefined) {
+                        skillInp.dataset.baseValue = skillInp.value;
+                    }
+
+                    const baseSkillValue = parseInt(skillInp.dataset.baseValue, 10) || 0;
+
+                    // Вычитаем активный штраф из базового значения навыка
+                    const finalValue = baseSkillValue - activePenalty;
+                    skillInp.value = finalValue;
+
+                    // Меняем цвет текста для наглядности
+                    if (activePenalty > 0) {
+                        skillInp.style.color = "#ff7675";
+                        skillInp.title = `Применён штраф от брони: -${activePenalty} (Базовое: ${baseSkillValue})`;
+                    } else {
+                        skillInp.style.color = "";
+                        skillInp.title = `Базовое значение: ${baseSkillValue}`;
+                    }
+                }
+            });
         };
 
         // Инициализация автокомплита для выбора брони
@@ -1732,6 +1770,8 @@ const BestiaryManager = {
 
 
     },
+
+
 
     deployToInitiative(item, customScore = null) {
         if (!window.InitiativeManager) return;
