@@ -1,0 +1,109 @@
+/**
+ * Справочник оружия ближнего боя Pathfinder 2e (перевод pf2.ru)
+ */
+export const PF2E_MELEE_WEAPONS = [
+    // --- Простое оружие ближнего боя ---
+    { id: 'gauntlet', name: 'Латная рукавица', category: 'Простое', dmgDice: '1d4', dmgType: 'Д', hands: 1, group: 'Кулачное', traits: 'Безоружное, Быстрое, Наручное', finesse: false },
+    { id: 'dagger', name: 'Кинжал', category: 'Простое', dmgDice: '1d4', dmgType: 'Ко', hands: 1, group: 'Ножи', traits: 'Быстрое, Метательное 10 фт., Универсальное Р, Фехтовальное', finesse: true },
+    { id: 'staff', name: 'Посох', category: 'Простое', dmgDice: '1d4', dmgType: 'Д', hands: 1, group: 'Дубины', traits: 'Полуторное 1d8', finesse: false },
+    { id: 'club', name: 'Дубинка', category: 'Простое', dmgDice: '1d6', dmgType: 'Д', hands: 1, group: 'Дубины', traits: 'Метательное 10 фт.', finesse: false },
+    { id: 'light_mace', name: 'Лёгкая булава', category: 'Простое', dmgDice: '1d4', dmgType: 'Д', hands: 1, group: 'Дубины', traits: 'Быстрое, Толкающее, Фехтовальное', finesse: true },
+    { id: 'morningstar', name: 'Моргенштерн', category: 'Простое', dmgDice: '1d6', dmgType: 'Д', hands: 1, group: 'Дубины', traits: 'Универсальное Ко', finesse: false },
+    { id: 'mace', name: 'Булава', category: 'Простое', dmgDice: '1d6', dmgType: 'Д', hands: 1, group: 'Дубины', traits: 'Толкающее', finesse: false },
+    { id: 'sickle', name: 'Серп', category: 'Простое', dmgDice: '1d4', dmgType: 'Р', hands: 1, group: 'Ножи', traits: 'Быстрое, Сбивающее, Фехтовальное', finesse: true },
+    { id: 'spear', name: 'Копьё', category: 'Простое', dmgDice: '1d6', dmgType: 'Ко', hands: 1, group: 'Копья', traits: 'Метательное 20 фт.', finesse: false },
+    { id: 'spiked_gauntlet', name: 'Шипастая рукавица', category: 'Простое', dmgDice: '1d4', dmgType: 'Ко', hands: 1, group: 'Кулачное', traits: 'Безоружное, Быстрое, Наручное', finesse: false },
+    { id: 'longspear', name: 'Длинное копьё', category: 'Простое', dmgDice: '1d8', dmgType: 'Ко', hands: 2, group: 'Копья', traits: 'Длинное', finesse: false },
+
+    // --- Воинское оружие ближнего боя ---
+    { id: 'bastard_sword', name: 'Бастард', category: 'Воинское', dmgDice: '1d8', dmgType: 'Р', hands: 1, group: 'Мечи', traits: 'Полуторное 1d12', finesse: false },
+    { id: 'battle_axe', name: 'Боевой топор', category: 'Воинское', dmgDice: '1d8', dmgType: 'Р', hands: 1, group: 'Топоры', traits: 'Размашистое', finesse: false },
+    { id: 'bo_staff', name: 'Боевой посох (Бо)', category: 'Воинское', dmgDice: '1d8', dmgType: 'Д', hands: 2, group: 'Дубины', traits: 'Длинное, Парирующее, Сбивающее', finesse: false },
+    { id: 'falchion', name: 'Фальшион', category: 'Воинское', dmgDice: '1d10', dmgType: 'Р', hands: 2, group: 'Мечи', traits: 'Напористое, Размашистое', finesse: false },
+    { id: 'flail', name: 'Цеп', category: 'Воинское', dmgDice: '1d6', dmgType: 'Д', hands: 1, group: 'Цепы', traits: 'Размашистое, Разоружающее, Сбивающее', finesse: false },
+    { id: 'glaive', name: 'Глефа', category: 'Воинское', dmgDice: '1d8', dmgType: 'Р', hands: 2, group: 'Древковое', traits: 'Длинное, Напористое, Смертоносное d8', finesse: false },
+    { id: 'greataxe', name: 'Секира', category: 'Воинское', dmgDice: '1d12', dmgType: 'Р', hands: 2, group: 'Топоры', traits: 'Размашистое', finesse: false },
+    { id: 'greatclub', name: 'Палица', category: 'Воинское', dmgDice: '1d10', dmgType: 'Д', hands: 2, group: 'Дубины', traits: 'Инерционное, Толкающее', finesse: false },
+    { id: 'greatpick', name: 'Двуручный клевец', category: 'Воинское', dmgDice: '1d10', dmgType: 'Ко', hands: 2, group: 'Клевцы', traits: 'Добивающее d12', finesse: false },
+    { id: 'greatsword', name: 'Двуручный меч', category: 'Воинское', dmgDice: '1d12', dmgType: 'Р', hands: 2, group: 'Мечи', traits: 'Универсальное Ко', finesse: false },
+    { id: 'guisarme', name: 'Гвизарма', category: 'Воинское', dmgDice: '1d10', dmgType: 'Р', hands: 2, group: 'Древковое', traits: 'Длинное, Сбивающее', finesse: false },
+    { id: 'halberd', name: 'Алебарда', category: 'Воинское', dmgDice: '1d10', dmgType: 'Ко', hands: 2, group: 'Древковое', traits: 'Длинное, Универсальное Р', finesse: false },
+    { id: 'hatchet', name: 'Топорик', category: 'Воинское', dmgDice: '1d6', dmgType: 'Р', hands: 1, group: 'Топоры', traits: 'Быстрое, Метательное 10 фт., Размашистое', finesse: false },
+    { id: 'lance', name: 'Рыцарское копьё', category: 'Воинское', dmgDice: '1d8', dmgType: 'Ко', hands: 2, group: 'Копья', traits: 'Длинное, Кавалерийское, Смертоносное d8', finesse: false },
+    { id: 'light_hammer', name: 'Лёгкий молот', category: 'Воинское', dmgDice: '1d6', dmgType: 'Д', hands: 1, group: 'Молоты', traits: 'Быстрое, Метательное 20 фт.', finesse: false },
+    { id: 'light_pick', name: 'Лёгкий клевец', category: 'Воинское', dmgDice: '1d4', dmgType: 'Ко', hands: 1, group: 'Клевцы', traits: 'Быстрое, Добивающее d8', finesse: false },
+    { id: 'longsword', name: 'Длинный меч', category: 'Воинское', dmgDice: '1d8', dmgType: 'Р', hands: 1, group: 'Мечи', traits: 'Универсальное Ко', finesse: false },
+    { id: 'main_gauche', name: 'Дага', category: 'Воинское', dmgDice: '1d4', dmgType: 'Ко', hands: 1, group: 'Ножи', traits: 'Быстрое, Парирующее, Разоружающее, Универсальное Р, Фехтовальное', finesse: true },
+    { id: 'maul', name: 'Кувалда', category: 'Воинское', dmgDice: '1d12', dmgType: 'Д', hands: 2, group: 'Молоты', traits: 'Толкающее', finesse: false },
+    { id: 'pick', name: 'Клевец', category: 'Воинское', dmgDice: '1d6', dmgType: 'Ко', hands: 1, group: 'Клевцы', traits: 'Добивающее d10', finesse: false },
+    { id: 'ranseur', name: 'Рунка', category: 'Воинское', dmgDice: '1d10', dmgType: 'Ко', hands: 2, group: 'Древковое', traits: 'Длинное, Разоружающее', finesse: false },
+    { id: 'rapier', name: 'Рапира', category: 'Воинское', dmgDice: '1d6', dmgType: 'Ко', hands: 1, group: 'Мечи', traits: 'Разоружающее, Смертоносное d8, Фехтовальное', finesse: true },
+    { id: 'scimitar', name: 'Скимитар', category: 'Воинское', dmgDice: '1d6', dmgType: 'Р', hands: 1, group: 'Мечи', traits: 'Напористое, Размашистое', finesse: false },
+    { id: 'scythe', name: 'Боевая коса', category: 'Воинское', dmgDice: '1d10', dmgType: 'Р', hands: 2, group: 'Древковое', traits: 'Сбивающее, Смертоносное d10', finesse: false },
+    { id: 'shield_boss', name: 'Умбон щита', category: 'Воинское', dmgDice: '1d6', dmgType: 'Д', hands: 1, group: 'Щиты', traits: 'Прикрепляемое к щиту', finesse: false },
+    { id: 'shield_spikes', name: 'Шипы для щита', category: 'Воинское', dmgDice: '1d6', dmgType: 'Ко', hands: 1, group: 'Щиты', traits: 'Прикрепляемое к щиту', finesse: false },
+    { id: 'shortsword', name: 'Короткий меч', category: 'Воинское', dmgDice: '1d6', dmgType: 'Ко', hands: 1, group: 'Мечи', traits: 'Быстрое, Универсальное Р, Фехтовальное', finesse: true },
+    { id: 'starknife', name: 'Звёздный нож', category: 'Воинское', dmgDice: '1d4', dmgType: 'Ко', hands: 1, group: 'Ножи', traits: 'Быстрое, Метательное 20 фт., Смертоносное d6, Универсальное Р, Фехтовальное', finesse: true },
+    { id: 'trident', name: 'Трезубец', category: 'Воинское', dmgDice: '1d8', dmgType: 'Ко', hands: 1, group: 'Копья', traits: 'Метательное 20 фт.', finesse: false },
+    { id: 'war_flail', name: 'Боевой цеп', category: 'Воинское', dmgDice: '1d10', dmgType: 'Д', hands: 2, group: 'Цепы', traits: 'Размашистое, Разоружающее, Сбивающее', finesse: false },
+    { id: 'warhammer', name: 'Боевой молот', category: 'Воинское', dmgDice: '1d8', dmgType: 'Д', hands: 1, group: 'Молоты', traits: 'Толкающее', finesse: false },
+    { id: 'whip', name: 'Кнут', category: 'Воинское', dmgDice: '1d4', dmgType: 'Р', hands: 1, group: 'Цепы', traits: 'Длинное, Несмертельное, Разоружающее, Сбивающее, Фехтовальное', finesse: true },
+
+    // --- Экзотическое оружие ближнего боя ---
+    { id: 'aldori_dueling_sword', name: 'Дуэльный меч Алдори', category: 'Экзотическое', dmgDice: '1d8', dmgType: 'Р', hands: 1, group: 'Мечи', traits: 'Универсальное Ко, Фехтовальное', finesse: true },
+    { id: 'dwarven_waraxe', name: 'Дварфийский боевой топор', category: 'Экзотическое', dmgDice: '1d8', dmgType: 'Р', hands: 1, group: 'Топоры', traits: 'Полуторное 1d12, Размашистое', finesse: false },
+    { id: 'gnome_hooked_hammer', name: 'Гномий чекан', category: 'Экзотическое', dmgDice: '1d6', dmgType: 'Д', hands: 1, group: 'Молоты', traits: 'Полуторное 1d10, Сбивающее, Универсальное Ко', finesse: false },
+    { id: 'katana', name: 'Катана', category: 'Экзотическое', dmgDice: '1d6', dmgType: 'Р', hands: 1, group: 'Мечи', traits: 'Полуторное 1d10, Смертоносное d8, Универсальное Ко', finesse: false },
+    { id: 'kukri', name: 'Кукри', category: 'Экзотическое', dmgDice: '1d6', dmgType: 'Р', hands: 1, group: 'Ножи', traits: 'Быстрое, Сбивающее, Фехтовальное', finesse: true },
+    { id: 'spiked_chain', name: 'Шипастая цепь', category: 'Экзотическое', dmgDice: '1d8', dmgType: 'Р', hands: 2, group: 'Цепы', traits: 'Разоружающее, Сбивающее, Фехтовальное', finesse: true }
+];
+
+/**
+ * Критические эффекты специализации групп оружия Pathfinder 2e (перевод pf2.ru)
+ */
+export const WEAPON_CRIT_SPECIALIZATIONS = {
+    'Древковое': 'Цель перемещается на 5 футов в выбранном направлении (принудительное перемещение).',
+    'Дубины': 'Отталкиваете цель от себя на расстояние до 10 футов (принудительное перемещение).',
+    'Клевцы': 'Клевец вонзается в цель: +2 дополнительного урона за каждую кость урона оружия.',
+    'Копья': 'Копьё пронзает цель: она получает неуклюжесть 1 до начала вашего следующего хода.',
+    'Кулачное': 'Спасбросок Стойкости против классовой СЛ или замедление 1 до конца следующего хода.',
+    'Мечи': 'Цель теряет равновесие и становится застигнутой врасплох до начала вашего следующего хода.',
+    'Молоты': 'Спасбросок Стойкости против классовой СЛ или цель распластывается.',
+    'Ножи': 'Цель получает 1d6 продолжительного урона кровотечением (+ бонус предмета оружия).',
+    'Топоры': 'Урон костей оружия (без бонусов) соседнему существу в досягаемости, если его КБ ниже броска атаки.',
+    'Цепы': 'Спасбросок Реакции против классовой СЛ или цель распластывается.',
+    'Щиты': 'Отталкиваете цель от себя на 5 футов (принудительное перемещение).'
+};
+
+export function getWeaponCritEffect(group) {
+    return WEAPON_CRIT_SPECIALIZATIONS[group] || '';
+}
+
+
+export function searchMeleeWeapons(query = '') {
+    const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+    if (!q) return PF2E_MELEE_WEAPONS;
+    return PF2E_MELEE_WEAPONS.filter(w =>
+        w.name.toLowerCase().replace(/ё/g, 'е').includes(q) ||
+        w.category.toLowerCase().includes(q) ||
+        w.group.toLowerCase().includes(q) ||
+        w.traits.toLowerCase().replace(/ё/g, 'е').includes(q)
+    );
+}
+
+/**
+ * Авторасчёт строки атаки и урона на основе уровня и характеристик героя (Изучен = Уровень + 2)
+ */
+export function calcMeleeWeaponRoll(weapon, stats = {}) {
+    const lvl = Number(stats.level) || 1;
+    const str = Number(stats.str) || 0;
+    const dex = Number(stats.dex) || 0;
+    const atkStat = weapon.finesse ? Math.max(str, dex) : str;
+    const atkBonus = lvl + 2 + atkStat;
+
+    const atkStr = atkBonus >= 0 ? `+${atkBonus}` : `${atkBonus}`;
+    const dmgModStr = str > 0 ? `+${str}` : (str < 0 ? `${str}` : '');
+    const dmgStr = `${weapon.dmgDice}${dmgModStr} (${weapon.dmgType})`;
+
+    return { atkStr, dmgStr };
+}

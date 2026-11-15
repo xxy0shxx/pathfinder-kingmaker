@@ -2,6 +2,7 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
+import { PF2E_MELEE_WEAPONS, searchMeleeWeapons, calcMeleeWeaponRoll, getWeaponCritEffect } from '../config/weapons_catalog.js';
 
 
 // Добавьте в начало bestiary_manager.js (после импортов)
@@ -493,20 +494,26 @@ const BestiaryManager = {
                         </div>
                     </div>
 
+
                     <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">🗡️ Оружие и Атаки</div>
-                        <div class="bst-weapon-row">
-                            ${txtInp('melee1Name', '⚔️ Ближний бой 1')}
-                            ${txtInp('melee1Atk', '🎯 Атака (+)')}
-                            ${txtInp('melee1Dmg', '💥 Урон (1d8+3)')}
-                            ${txtInp('melee1Traits', '🏷️ Дескрипторы')}
-                        </div>
-                        <div class="bst-weapon-row">
-                            ${txtInp('melee2Name', '🗡️ Ближний бой 2')}
-                            ${txtInp('melee2Atk', '🎯 Атака (+)')}
-                            ${txtInp('melee2Dmg', '💥 Урон')}
-                            ${txtInp('melee2Traits', '🏷️ Дескрипторы')}
-                        </div>
+                        ${['melee1', 'melee2'].map((prefix, idx) => `
+                            <div class="bst-weapon-row">
+                                <div style="position: relative;">
+                                    <input type="text"
+                                           data-sheet-txt="${prefix}Name"
+                                           data-weapon-slot="${prefix}"
+                                           class="k-inp bst-txt-inp bst-weapon-picker-inp"
+                                           autocomplete="off"
+                                           placeholder="⚔️ Ближний бой ${idx + 1} (выбор...)"
+                                           value="${esc(stats[`${prefix}Name`])}">
+                                    <div class="bst-cantrip-dropdown" data-weapon-drop="${prefix}" style="display: none;"></div>
+                                </div>
+                                ${txtInp(`${prefix}Atk`, '🎯 Атака (+)')}
+                                ${txtInp(`${prefix}Dmg`, '💥 Урон (1d8+3)')}
+                                ${txtInp(`${prefix}Traits`, '🏷️ Дескрипторы')}
+                            </div>
+                        `).join('')}
                         <div class="bst-weapon-row">
                             ${txtInp('rangedName', '🏹 Дистанционное')}
                             ${txtInp('rangedAtk', '🎯 Атака (+)')}
@@ -517,6 +524,8 @@ const BestiaryManager = {
                             ${txtInp('weaponProfNotes', '🥋 Умения в оружии (Простое, Особое, Кулак)...')}
                         </div>
                     </div>
+
+                    
 
                     <div class="k-panel">
                         <div class="k-sec-title">🌟 Способности народа, происхождения и класса</div>
@@ -672,51 +681,80 @@ const BestiaryManager = {
             ]
         });
 
-        if (!isPage1) {
-            overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
-                const rowIdx = inp.dataset.cantripRow;
-                const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
-                const actInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`);
+        if (isPage1) {
+            overlay.querySelectorAll('.bst-weapon-picker-inp').forEach(inp => {
+                const slot = inp.dataset.weaponSlot;
+                const dropEl = overlay.querySelector(`[data-weapon-drop="${slot}"]`);
+                const atkInp = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`);
+                const dmgInp = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`);
+                const traitsInp = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`);
 
-                const renderOptions = (query) => {
-                    const list = searchCantrips(query);
+
+                const renderWeapons = (query) => {
+                    const list = searchMeleeWeapons(query);
                     if (!list.length) {
                         dropEl.style.display = 'none';
                         return;
                     }
-                    dropEl.innerHTML = list.map(c => `
-                        <div class="bst-cantrip-opt" data-cid="${c.id}">
-                            <div class="bst-cantrip-opt-top">
-                                <b>${c.name}</b>
-                                <span>${c.actions}</span>
+                    dropEl.innerHTML = list.map(w => {
+                        const critText = getWeaponCritEffect(w.group);
+                        return `
+                            <div class="bst-cantrip-opt" data-wid="${w.id}">
+                                <div class="bst-cantrip-opt-top">
+                                    <b>${w.name}</b>
+                                    <span>${w.dmgDice} ${w.dmgType} (${w.hands}р.)</span>
+                                </div>
+                                <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}${w.traits ? ' • ' + w.traits : ''}</div>
+                                ${critText ? `<div style="font-size: 11px; color: #ebd291; margin-top: 2px;">💥 <b>Крит (${w.group}):</b> ${critText}</div>` : ''}
                             </div>
-                            <div class="bst-cantrip-opt-trad">${c.traditions.join(', ')}</div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = '360px';
                     dropEl.style.display = 'block';
 
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
-                            const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
+                            const found = PF2E_MELEE_WEAPONS.find(x => x.id === optEl.dataset.wid);
                             if (found) {
+                                const liveStats = {
+                                    level: parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || stats.level || 1,
+                                    str: parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0,
+                                    dex: parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0
+                                };
+                                const { atkStr, dmgStr } = calcMeleeWeaponRoll(found, liveStats);
+
+                                const critText = getWeaponCritEffect(found.group);
+                                const fullTraits = [
+                                    found.traits,
+                                    critText ? `Крит: ${critText}` : ''
+                                ].filter(Boolean).join(' | ');
+
                                 inp.value = found.name;
-                                if (actInp) actInp.value = found.actions;
-                                if (noteInp) noteInp.value = found.notes;
+                                if (atkInp) atkInp.value = atkStr;
+                                if (dmgInp) dmgInp.value = dmgStr;
+                                if (traitsInp) traitsInp.value = fullTraits;
                             }
                             dropEl.style.display = 'none';
                         });
                     });
                 };
 
-                inp.addEventListener('focus', () => renderOptions(inp.value));
-                inp.addEventListener('input', () => renderOptions(inp.value));
+
+
+                inp.addEventListener('focus', () => renderWeapons(inp.value));
+                inp.addEventListener('input', () => renderWeapons(inp.value));
                 inp.addEventListener('blur', () => {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             });
         }
+
 
     },
 
