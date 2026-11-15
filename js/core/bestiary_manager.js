@@ -8,6 +8,8 @@ import {
     PF2E_SPELLS_LVL2,
     searchSpellsLvl2
 } from '../config/spells_catalog.js';
+import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_catalog.js';
+
 import {
     PF2E_MELEE_WEAPONS,
     searchMeleeWeapons,
@@ -664,6 +666,29 @@ const BestiaryManager = {
             </tr>
         `).join('');
 
+        const focusSpellsRowsHtml = Array.from({ length: 3 }, (_, i) => i + 1).map(idx => `
+            <tr>
+                <td class="bst-cantrip-num">
+                    <label title="Изучено / Активно" style="cursor:pointer; display:flex; align-items:center; justify-content:center; gap:3px;">
+                        <input type="checkbox" data-sheet-chk="focusSpell${idx}Ready" ${stats[`focusSpell${idx}Ready`] ? 'checked' : ''}>
+                        <span>${idx}</span>
+                    </label>
+                </td>
+                <td style="position: relative;">
+                    <input type="text"
+                           data-sheet-txt="focusSpell${idx}Name"
+                           data-focus-row="${idx}"
+                           class="k-inp bst-txt-inp bst-focus-picker-inp"
+                           autocomplete="off"
+                           placeholder="Выберите фокальное заклинание..."
+                           value="${esc(stats[`focusSpell${idx}Name`])}">
+                    <div class="bst-cantrip-dropdown" data-focus-drop="${idx}" style="display: none;"></div>
+                </td>
+                <td>${txtInp(`focusSpell${idx}Actions`, '◆ / касание')}</td>
+                <td>${txtInp(`focusSpell${idx}Notes`, 'Эффект фокального заклинания...')}</td>
+            </tr>
+        `).join('');
+
         const page2Html = `
             <div class="bst-sheet-page2-grid">
             
@@ -701,6 +726,26 @@ const BestiaryManager = {
                                 </thead>
                                 <tbody>
                                     ${cantripsRowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="bst-spell-tier">
+                            <div class="bst-spell-tier-head">
+                                <span>💠 Фокальные заклинания</span>
+                                <label>🔋 Очки фокусировки: ${numInp('focusCurrent', 'bst-tiny-num')} / ${numInp('focusMax', 'bst-tiny-num')}</label>
+                            </div>
+                            <table class="k-table bst-cantrips-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 38px; text-align: center;" title="Активно">#</th>
+                                        <th style="width: 34%;">Фокальное заклинание</th>
+                                        <th style="width: 22%;">Действ. / Дист.</th>
+                                        <th>Эффект / Описание</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${focusSpellsRowsHtml}
                                 </tbody>
                             </table>
                         </div>
@@ -1034,18 +1079,21 @@ const BestiaryManager = {
                     // Ищем в справочниках для отображения традиций и круга
                     const fieldName = nameInp.dataset.sheetTxt;
                     const isCantrip = fieldName.startsWith('cantrip');
-                    const rankLabel = isCantrip ? 'Фокус' : (fieldName.startsWith('lvl2') ? '2 круг' : '1 круг');
+                    const isFocus = fieldName.startsWith('focusSpell');
+                    const rankLabel = isFocus ? 'Фокальное' : (isCantrip ? 'Фокус' : (fieldName.startsWith('lvl2') ? '2 круг' : '1 круг'));
 
-                    const catalogSpell = [...PF2E_CANTRIPS, ...PF2E_SPELLS_LVL1, ...PF2E_SPELLS_LVL2]
+                    const catalogSpell = [...PF2E_CANTRIPS, ...PF2E_FOCUS_SPELLS, ...PF2E_SPELLS_LVL1, ...PF2E_SPELLS_LVL2]
                         .find(s => s.name.toLowerCase() === name.toLowerCase());
+
 
                     const spellAtk = overlay.querySelector('[data-sheet-num="spellAttack"]')?.value ?? stats.spellAttack ?? 0;
                     const spellDc = overlay.querySelector('[data-sheet-num="spellDc"]')?.value ?? stats.spellDc ?? 10;
                     const fmtMod = (v) => (Number(v) >= 0 ? `+${Number(v)}` : `${Number(v)}`);
 
+
                     const html = `
                         <div class="init-tip-header">
-                            <span class="init-tip-name">${isCantrip ? '✨' : '🔮'} ${name}</span>
+                            <span class="init-tip-name">${isFocus ? '💠' : (isCantrip ? '✨' : '🔮')} ${name}</span>
                             <span class="init-tip-turn-tag">${rankLabel}</span>
                         </div>
                         <div class="init-tip-top-row">
@@ -1058,11 +1106,18 @@ const BestiaryManager = {
                                 📚 Традиции: <b>${catalogSpell.traditions.join(', ')}</b>
                             </div>
                         ` : ''}
+                        ${catalogSpell?.source ? `
+                            <div style="font-size: 13px; color: #3498db; margin-top: 6px;">
+                                💠 Источник: <b>${catalogSpell.source}</b>
+                            </div>
+                        ` : ''}
                         <div class="init-tip-section">
                             <div class="init-tip-sec-title">📜 Эффект и описание</div>
                             <div style="font-size: 13.5px; line-height: 1.45; color: #ebd291;">${notes}</div>
                         </div>
                     `;
+
+
                     this._showSheetItemTooltip(e, html);
                 });
 
@@ -1121,6 +1176,63 @@ const BestiaryManager = {
 
                 inp.addEventListener('focus', () => renderOptions(inp.value));
                 inp.addEventListener('input', () => renderOptions(inp.value));
+                inp.addEventListener('blur', () => {
+                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
+                });
+            });
+
+            // 4. Выбор фокальных заклинаний
+            overlay.querySelectorAll('.bst-focus-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.focusRow;
+                const dropEl = overlay.querySelector(`[data-focus-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Notes"]`);
+
+                const renderFocusOptions = (query) => {
+                    const list = searchFocusSpells(query);
+                    if (!list.length) {
+                        dropEl.style.display = 'none';
+                        return;
+                    }
+                    dropEl.innerHTML = list.map(f => `
+                        <div class="bst-cantrip-opt" data-fid="${f.id}">
+                            <div class="bst-cantrip-opt-top">
+                                <b>${f.name}</b>
+                                <span>${f.actions}</span>
+                            </div>
+                            <div class="bst-cantrip-opt-trad">${f.source}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.width = '340px';
+                    dropEl.style.display = 'block';
+
+                    const dropHeight = dropEl.offsetHeight || 220;
+                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                    } else {
+                        dropEl.style.top = `${rect.bottom + 2}px`;
+                    }
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_FOCUS_SPELLS.find(x => x.id === optEl.dataset.fid);
+                            if (found) {
+                                inp.value = found.name;
+                                if (actInp) actInp.value = found.actions;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderFocusOptions(inp.value));
+                inp.addEventListener('input', () => renderFocusOptions(inp.value));
                 inp.addEventListener('blur', () => {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
