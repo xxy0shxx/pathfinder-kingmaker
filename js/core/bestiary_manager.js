@@ -14,7 +14,16 @@ import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_cat
 
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES } from '../config/companions_catalog.js';
 
-import { PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS, PF2E_MONK_FEATS, PF2E_BARD_FEATS } from '../config/feats_catalog.js';
+import {
+    PF2E_RANGER_FEATS,
+    PF2E_CHAMPION_FEATS,
+    PF2E_MONK_FEATS,
+    PF2E_BARD_FEATS,
+    PF2E_BARBARIAN_FEATS,
+    PF2E_CLERIC_FEATS,
+    PF2E_SORCERER_FEATS,
+    PF2E_WIZARD_FEATS
+} from '../config/feats_catalog.js';
 
 import {
     PF2E_MELEE_WEAPONS,
@@ -1132,8 +1141,14 @@ const BestiaryManager = {
                         ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
                         ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
                         ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
-                        ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []) // <-- Обязательно добавить сюда!
+                        ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []),
+                        ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
+                        ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
+                        ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
+                        ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
                     ];
+
+
                     const matches = combinedFeats.filter(f =>
                         f.level <= parseInt(lvl, 10) &&
                         f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
@@ -1174,8 +1189,14 @@ const BestiaryManager = {
                                 ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
                                 ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
                                 ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
-                                ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []) // <-- Обязательно добавить сюда!
+                                ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []),
+                                ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
+                                ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
+                                ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
+                                ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
                             ];
+
+
                             const found = combinedFeats.find(x => x.id === optEl.dataset.fid);
                             if (found) {
                                 inp.value = found.name;
@@ -1412,8 +1433,20 @@ const BestiaryManager = {
                     const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
                     if (!q) { dropEl.style.display = 'none'; return; }
 
-                    // Фильтруем массив черт следопыта
-                    const matches = PF2E_RANGER_FEATS.filter(f =>
+                    // ОБЪЕДИНЯЕМ ВСЕ ИМПОРТИРОВАННЫЕ КЛАССЫ В ЕДИНЫЙ МАССИВ ПЕРЕД ФИЛЬТРАЦИЕЙ
+                    const combinedFeats = [
+                        ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
+                        ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
+                        ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
+                        ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []),
+                        ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
+                        ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
+                        ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
+                        ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
+                    ];
+
+
+                    const matches = combinedFeats.filter(f =>
                         f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
                     );
 
@@ -1437,7 +1470,21 @@ const BestiaryManager = {
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
-                            const found = PF2E_RANGER_FEATS.find(x => x.id === optEl.dataset.featId);
+                            // ОБЪЕДИНЯЕМ ВСЕ МАССИВЫ ДЛЯ ГАРАНТИРОВАННОГО НАХОЖДЕНИЯ КЛИКНУТОЙ ЧЕРТЫ
+                            const combinedFeats = [
+                                ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
+                                ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
+                                ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
+                                ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []),
+                                ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
+                                ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
+                                ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
+                                ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
+                            ];
+
+
+                            const found = combinedFeats.find(x => x.id === optEl.dataset.featId);
+
                             if (found) {
                                 inp.value = `${found.name}`;
                                 const targetKey = inp.dataset.sheetTxt;
