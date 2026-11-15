@@ -5,7 +5,7 @@ import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
 import { PF2E_ITEMS_CATALOG, searchItemsCatalog, isCombatConsumable } from '../config/items_catalog.js';
 import { PF2E_ARMOR_CATALOG, searchArmorCatalog, getArmorGroupEffect } from '../config/armor_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES, searchMetaCatalog } from '../config/meta_catalog.js';
-
+import { ALL_PF2E_BACKGROUNDS, searchBackgroundsCatalog } from '../config/backgrounds_catalog.js';
 
 import {
     PF2E_SPELLS_LVL1,
@@ -506,7 +506,9 @@ const BestiaryManager = {
                     <div class="bst-cantrip-dropdown" data-meta-drop="ancestry" style="display: none; z-index: 10000120;"></div>
                 </div>
                 <div class="bst-top-field" style="position: relative;">
-                    <span>📜 Происхождение</span>${txtInp('background', 'Воин, Учёный...')}
+                    <span>📜 Происхождение</span>
+                    <input type="text" data-sheet-txt="background" class="k-inp bst-txt-inp bst-background-picker-inp" autocomplete="off" placeholder="Выберите происхождение..." value="${esc(stats.background)}">
+                    <div class="bst-cantrip-dropdown" data-bg-drop="1" style="display: none; z-index: 10000120;"></div>
                 </div>
                 <div class="bst-top-field" style="position: relative;">
                     <span>⚔️ Класс</span>
@@ -1854,6 +1856,71 @@ const BestiaryManager = {
             inp.addEventListener('input', () => renderMetaMatches(inp.value));
             inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
         });
+
+        // Инициализация выпадающего списка для Происхождений персонажа
+        overlay.querySelectorAll('.bst-background-picker-inp').forEach(inp => {
+            const dropEl = overlay.querySelector('[data-bg-drop="1"]');
+
+            const renderBgMatches = (query) => {
+                const list = searchBackgroundsCatalog(query);
+                if (!list.length) { dropEl.style.display = 'none'; return; }
+
+                dropEl.innerHTML = list.map(b => `
+                        <div class="bst-cantrip-opt" data-bg-id="${b.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${b.name}</b></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; margin-top: 2px; color: #ebd291;">
+                                ${b.desc} <br><span style="color:#74b9ff;">✨ Черта: ${b.feat}</span>
+                            </div>
+                        </div>
+                    `).join('');
+
+                const rect = inp.getBoundingClientRect();
+                dropEl.style.position = 'fixed';
+                dropEl.style.left = `${rect.left}px`;
+                dropEl.style.top = `${rect.bottom + 2}px`;
+                dropEl.style.width = `${Math.max(260, rect.width)}px`;
+                dropEl.style.display = 'block';
+
+                dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                    optEl.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        const found = ALL_PF2E_BACKGROUNDS.find(x => x.id === optEl.dataset.bgId);
+                        if (found) {
+                            inp.value = found.name;
+                            hero.stats.background = found.name;
+
+                            // Автоматически находим поле целевого навыка на странице и добавляем +2 за тренированность
+                            const targetSkillInp = overlay.querySelector(`[data-sheet-num="${found.skill}"]`);
+                            if (targetSkillInp) {
+                                const currentSkillVal = parseInt(targetSkillInp.value, 10) || 0;
+                                if (currentSkillVal === 0) {
+                                    // Если навык равен нулю (не изучен), автоматически ставим +3 (Уровень 1 + 2 за Изученный)
+                                    targetSkillInp.value = 3;
+                                    if (targetSkillInp.dataset.baseValue !== undefined) {
+                                        targetSkillInp.dataset.baseValue = 3;
+                                    }
+                                    targetSkillInp.style.color = "#2ecc71";
+                                    targetSkillInp.title = `Изучен автоматически благодаря происхождению "${found.name}"`;
+                                }
+                            }
+
+                            // Автоподстановка названия в поле способностей происхождения, если оно пустое
+                            const featInp = overlay.querySelector('[data-sheet-txt="backgroundFeat"]');
+                            if (featInp && !featInp.value) {
+                                featInp.value = `📜 ${found.feat}`;
+                                hero.stats.backgroundFeat = `📜 ${found.feat}`;
+                            }
+                        }
+                        dropEl.style.display = 'none';
+                    });
+                });
+            };
+
+            inp.addEventListener('focus', () => renderBgMatches(inp.value));
+            inp.addEventListener('input', () => renderBgMatches(inp.value));
+            inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+        });
+
 
 
     },
