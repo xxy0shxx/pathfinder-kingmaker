@@ -191,6 +191,12 @@ const BestiaryManager = {
             ac: 10, acDex: 0, acProf: 0, acItem: 0, acOther: 0,
             acShieldBonus: 0, acShieldHardness: 0, acShieldHp: 0, acArmorPenalty: 0,
             saveProf_perc: 2, saveProf_fort: 2, saveProf_ref: 2, saveProf_will: 2,
+
+            prof_acrobatics: 0, prof_athletics: 0, prof_thievery: 0, prof_survival: 0,
+            prof_diplomacy: 0, prof_intimidation: 0, prof_lore: 0, prof_performance: 0,
+            prof_medicine: 0, prof_arcana: 0, prof_deception: 0, prof_society: 0,
+            prof_occultism: 0, prof_nature: 0, prof_religion: 0, prof_crafting: 0, prof_stealth: 0,
+
             spellAttack: 0, spellDc: 10,
             cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
             coinsCopper: 0, coinsSilver: 0, coinsGold: 0,
@@ -551,20 +557,42 @@ const BestiaryManager = {
                         </div>
                     </div>
 
+
                     <div class="k-panel">
-                        <div class="k-sec-title">📜 Навыки Pathfinder</div>
+                        <div class="k-sec-title">📜 Навыки Pathfinder (Авторасчет)</div>
                         <div class="bst-skills-2col">
-                            ${PF2E_SHEET_CONFIG.skills.map(s => `
-                                <div class="bst-stat-row">
-                                    <label class="bst-stat-label">${s.label}</label>
-                                    ${numInp(s.key)}
-                                </div>
-                            `).join('')}
+                            ${PF2E_SHEET_CONFIG.skills.map(s => {
+                                // Связываем навык с его системным коротким ключом
+                                const shortKey = s.key === 'acrobatics' ? 'acro' :
+                                s.key === 'athletics' ? 'athl' :
+                                s.key === 'stealth' ? 'stea' :
+                                s.key === 'survival' ? 'surv' :
+                                s.key === 'medicine' ? 'medi' :
+                                s.key === 'intimidation' ? 'inti' :
+                                s.key === 'deception' ? 'dece' :
+                                s.key === 'diplomacy' ? 'dipl' :
+                                s.key === 'arcana' ? 'arca' :
+                                s.key === 'nature' ? 'natu' :
+                                s.key === 'occultism' ? 'occu' :
+                                s.key === 'religion' ? 'reli' : s.key.substring(0,4);
+                                return `
+                                    <div class="bst-stat-row" style="margin-bottom: 3px;">
+                                        <label class="bst-stat-label" style="font-size: 13px;">${s.label}</label>
+                                        <input type="number" data-sheet-num="${s.key}" class="k-inp bst-stat-inp bst-skill-total-output" style="font-weight: bold;" readonly value="${stats[s.key] ?? 0}">
+                                        <label style="font-size: 11px; margin-left: 4px; color: #a4b0be;">🏆 Ум: 
+                                            <input type="number" data-sheet-num="prof_${s.key}" class="k-inp bst-tiny-num bst-skill-calc-trigger" value="${stats['prof_' + s.key] ?? 0}">
+                                        </label>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                         <div style="margin-top: 8px;">
                             ${txtInp('skillOtherNotes', '📝 Прочие навыки / заметки...')}
                         </div>
                     </div>
+
+                    
+                    
                 </div>
 
                 <div class="bst-sheet-col">
@@ -986,6 +1014,10 @@ const BestiaryManager = {
 
 
 
+
+
+
+
         const isPage1 = pageNum === 1;
 
         const { overlay, close } = ModalManager.open({
@@ -1022,6 +1054,7 @@ const BestiaryManager = {
                 }
             ]
         });
+
 
 
         if (isPage1) {
@@ -1651,6 +1684,7 @@ const BestiaryManager = {
 
         }
 
+
         // калькулятор брони, лимитов КБ и динамического пересчета инпутов навыков
         // Умный калькулятор брони, лимитов КБ и динамического пересчета спасбросков и внимания
         const calculateArmorClass = () => {
@@ -1737,6 +1771,8 @@ const BestiaryManager = {
                 }
             });
         };
+
+
 
         // Привязываем слушатели изменений характеристик и умений для пересчета
         overlay.querySelectorAll('.bst-save-calc-trigger, [data-sheet-num="wis"], [data-sheet-num="con"], [data-sheet-num="dex"]').forEach(el => {
@@ -1947,6 +1983,8 @@ const BestiaryManager = {
 
 
     },
+
+
 
     deployToInitiative(item, customScore = null) {
         if (!window.InitiativeManager) return;
