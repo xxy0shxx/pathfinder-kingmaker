@@ -11,6 +11,7 @@ import {
     calcRangedWeaponRoll,
     getWeaponCritEffect
 } from '../config/weapons_catalog.js';
+import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../config/spells_catalog.js';
 
 
 // Добавьте в начало bestiary_manager.js (после импортов)
@@ -215,6 +216,11 @@ const BestiaryManager = {
             cantrip4Name: '', cantrip4Actions: '', cantrip4Notes: '',
             cantrip5Name: '', cantrip5Actions: '', cantrip5Notes: '',
             lvl1Prepared: '',
+            lvl1Spell1Name: '', lvl1Spell1Actions: '', lvl1Spell1Notes: '',
+            lvl1Spell2Name: '', lvl1Spell2Actions: '', lvl1Spell2Notes: '',
+            lvl1Spell3Name: '', lvl1Spell3Actions: '', lvl1Spell3Notes: '',
+            lvl1Spell4Name: '', lvl1Spell4Actions: '', lvl1Spell4Notes: '',
+            lvl1Spell5Name: '', lvl1Spell5Actions: '', lvl1Spell5Notes: '',
             lvl2Prepared: '',
             spellbookText: '',
             adventureLogText: '',
@@ -584,6 +590,29 @@ const BestiaryManager = {
         `).join('');
 
 
+        if (stats.lvl1Prepared && !stats.lvl1Spell1Name && !stats.lvl1Spell1Notes) {
+            stats.lvl1Spell1Name = stats.lvl1Prepared;
+            stats.lvl1Prepared = '';
+        }
+
+        const lvl1SpellsRowsHtml = [1, 2, 3, 4, 5].map(idx => `
+            <tr>
+                <td class="bst-cantrip-num">${idx}</td>
+                <td style="position: relative;">
+                    <input type="text"
+                           data-sheet-txt="lvl1Spell${idx}Name"
+                           data-lvl1-row="${idx}"
+                           class="k-inp bst-txt-inp bst-lvl1-picker-inp"
+                           autocomplete="off"
+                           placeholder="Выберите или введите заклинание..."
+                           value="${esc(stats[`lvl1Spell${idx}Name`])}">
+                    <div class="bst-cantrip-dropdown" data-lvl1-drop="${idx}" style="display: none;"></div>
+                </td>
+                <td>${txtInp(`lvl1Spell${idx}Actions`, '◆◆ / 30 фт.')}</td>
+                <td>${txtInp(`lvl1Spell${idx}Notes`, 'Урон, спасбросок, эффект...')}</td>
+            </tr>
+        `).join('');
+
 
         const page2Html = `
             <div class="bst-sheet-page2-grid">
@@ -606,25 +635,28 @@ const BestiaryManager = {
                         </div>
 
 
+
                         <div class="bst-spell-tier">
                             <div class="bst-spell-tier-head">
-                                <span>✨ Фокусы (макс. 5 в день)</span>
-                                <label>📅 Подготовлено: ${numInp('cantripsPerDay', 'bst-tiny-num')}</label>
+                                <span>1️⃣ Заклинания 1 круга</span>
+                                <label>📅 В день / Ячеек: ${numInp('lvl1PerDay', 'bst-tiny-num')}</label>
                             </div>
                             <table class="k-table bst-cantrips-table">
                                 <thead>
                                     <tr>
                                         <th style="width: 26px; text-align: center;">#</th>
-                                        <th style="width: 34%;">Фокус</th>
+                                        <th style="width: 34%;">Заклинание</th>
                                         <th style="width: 22%;">Действ. / Дист.</th>
                                         <th>Эффект / Описание</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${cantripsRowsHtml}
+                                    ${lvl1SpellsRowsHtml}
                                 </tbody>
                             </table>
                         </div>
+
+
 
 
                         <div class="bst-spell-tier">
@@ -841,38 +873,47 @@ const BestiaryManager = {
             }
         } else {
             // 3. Поиск и выбор фокусов на 2-й странице
-            overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
-                const rowIdx = inp.dataset.cantripRow;
-                const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
-                const actInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`);
 
-                const renderOptions = (query) => {
-                    const list = searchCantrips(query);
+            overlay.querySelectorAll('.bst-lvl1-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.lvl1Row;
+                const dropEl = overlay.querySelector(`[data-lvl1-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Notes"]`);
+
+                const renderLvl1Options = (query) => {
+                    const list = searchSpellsLvl1(query);
                     if (!list.length) {
                         dropEl.style.display = 'none';
                         return;
                     }
-                    dropEl.innerHTML = list.map(c => `
-                        <div class="bst-cantrip-opt" data-cid="${c.id}">
+                    dropEl.innerHTML = list.map(s => `
+                        <div class="bst-cantrip-opt" data-sid="${s.id}">
                             <div class="bst-cantrip-opt-top">
-                                <b>${c.name}</b>
-                                <span>${c.actions}</span>
+                                <b>${s.name}</b>
+                                <span>${s.actions}</span>
                             </div>
-                            <div class="bst-cantrip-opt-trad">${c.traditions.join(', ')}</div>
+                            <div class="bst-cantrip-opt-trad">${s.traditions.join(', ')}</div>
                         </div>
                     `).join('');
 
                     const rect = inp.getBoundingClientRect();
                     dropEl.style.position = 'fixed';
                     dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = '340px';
                     dropEl.style.display = 'block';
+
+                    // Если до нижнего края окна мало места — открываем список вверх над полем
+                    const dropHeight = dropEl.offsetHeight || 220;
+                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                    } else {
+                        dropEl.style.top = `${rect.bottom + 2}px`;
+                    }
 
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
-                            const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
+                            const found = PF2E_SPELLS_LVL1.find(x => x.id === optEl.dataset.sid);
                             if (found) {
                                 inp.value = found.name;
                                 if (actInp) actInp.value = found.actions;
@@ -882,12 +923,15 @@ const BestiaryManager = {
                         });
                     });
                 };
-                inp.addEventListener('focus', () => renderOptions(inp.value));
-                inp.addEventListener('input', () => renderOptions(inp.value));
+
+                inp.addEventListener('focus', () => renderLvl1Options(inp.value));
+                inp.addEventListener('input', () => renderLvl1Options(inp.value));
                 inp.addEventListener('blur', () => {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             });
+
+
         }
 
 
