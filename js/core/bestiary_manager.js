@@ -16,6 +16,10 @@ import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES } from '../config/co
 
 import { PF2E_HERITAGES, searchHeritagesCatalog } from '../config/heritages_catalog.js';
 
+import { PF2E_GENERAL_FEATS } from '../config/general_feats_catalog.js';
+import { PF2E_SKILL_FEATS } from '../config/skill_feats_catalog.js';
+
+
 import {
     PF2E_RANGER_FEATS,
     PF2E_CHAMPION_FEATS,
@@ -1147,8 +1151,11 @@ const BestiaryManager = {
                         ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
                         ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
                         ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
-                        ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
+                        ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []),
+                        ...(typeof PF2E_GENERAL_FEATS !== 'undefined' ? PF2E_GENERAL_FEATS : []),
+                        ...(typeof PF2E_SKILL_FEATS !== 'undefined' ? PF2E_SKILL_FEATS : []) // 🌟 ТУДА ЖЕ ДОБАВИЛИ ЧЕРТЫ НАВЫКОВ
                     ];
+
 
 
                     const matches = combinedFeats.filter(f =>
@@ -1195,7 +1202,9 @@ const BestiaryManager = {
                                 ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
                                 ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
                                 ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
-                                ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
+                                ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []),
+                                ...(typeof PF2E_GENERAL_FEATS !== 'undefined' ? PF2E_GENERAL_FEATS : []),
+                                ...(typeof PF2E_SKILL_FEATS !== 'undefined' ? PF2E_SKILL_FEATS : []) // 🌟 ТУДА ЖЕ ДОБАВИЛИ ЧЕРТЫ НАВЫКОВ
                             ];
 
 
@@ -1444,8 +1453,11 @@ const BestiaryManager = {
                         ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
                         ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
                         ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
-                        ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
+                        ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []),
+                        ...(typeof PF2E_GENERAL_FEATS !== 'undefined' ? PF2E_GENERAL_FEATS : []),
+                        ...(typeof PF2E_SKILL_FEATS !== 'undefined' ? PF2E_SKILL_FEATS : []) // 🌟 ТУДА ЖЕ ДОБАВИЛИ ЧЕРТЫ НАВЫКОВ
                     ];
+
 
 
                     const matches = combinedFeats.filter(f =>
@@ -1481,8 +1493,11 @@ const BestiaryManager = {
                                 ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
                                 ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
                                 ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
-                                ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []) // <-- Зафиксировать здесь!
+                                ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []),
+                                ...(typeof PF2E_GENERAL_FEATS !== 'undefined' ? PF2E_GENERAL_FEATS : []),
+                                ...(typeof PF2E_SKILL_FEATS !== 'undefined' ? PF2E_SKILL_FEATS : []) // 🌟 ТУДА ЖЕ ДОБАВИЛИ ЧЕРТЫ НАВЫКОВ
                             ];
+
 
 
                             const found = combinedFeats.find(x => x.id === optEl.dataset.featId);
