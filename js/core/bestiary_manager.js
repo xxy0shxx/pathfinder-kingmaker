@@ -91,9 +91,9 @@ const PF2E_SHEET_CONFIG = {
         { key: 'will', label: '🧠 Воля' }
     ],
     skills: [
-        { key: 'acrobatics', label: '🤸 Акробатика (Лвк)' },
-        { key: 'athletics', label: '🏋️ Атлетика (Сил)' },
-        { key: 'thievery', label: '🗝️ Воровство (Лвк)' },
+        { key: 'acrobatics', label: '🤸 Акробатика (Лвк) (Штр)' },
+        { key: 'athletics', label: '🏋️ Атлетика (Сил) (Штр)' },
+        { key: 'thievery', label: '🗝️ Воровство (Лвк) (Штр)' },
         { key: 'survival', label: '🏕️ Выживание (Мдр)' },
         { key: 'diplomacy', label: '🤝 Дипломатия (Хар)' },
         { key: 'intimidation', label: '😠 Запугивание (Хар)' },
@@ -107,7 +107,7 @@ const PF2E_SHEET_CONFIG = {
         { key: 'nature', label: '🌿 Природа (Мдр)' },
         { key: 'religion', label: '☀️ Религия (Мдр)' },
         { key: 'crafting', label: '🔨 Ремесло (Инт)' },
-        { key: 'stealth', label: '🥷 Скрытность (Лвк)' }
+        { key: 'stealth', label: '🥷 Скрытность (Лвк) (Штр)' }
     ]
 };
 
@@ -185,6 +185,7 @@ const BestiaryManager = {
             level: 1, xp: 0, speed: 25,
             hpMax: 10, hpCurrent: 10, hpTemp: 0,
             ac: 10, acDex: 0, acProf: 0, acItem: 0, acOther: 0,
+            acShieldBonus: 0, acShieldHardness: 0, acShieldHp: 0, acArmorPenalty: 0,
             spellAttack: 0, spellDc: 10,
             cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
             coinsCopper: 0, coinsSilver: 0, coinsGold: 0,
@@ -535,8 +536,10 @@ const BestiaryManager = {
                 </div>
 
                 <div class="bst-sheet-col">
+                
+                
                     <div class="k-panel" style="margin-bottom: 10px;">
-                        <div class="k-sec-title">❤️ Пункты здоровья, Скорость и Защита</div>
+                        <div class="k-sec-title">🛡️ Защита, Доспехи и Щит</div>
                         <div class="bst-vitals-row">
                             <div class="bst-vital-box"><span>❤️ Макс. ПЗ</span>${numInp('hpMax', 'bst-vital-num')}</div>
                             <div class="bst-vital-box"><span>🩸 Текущие ПЗ</span>${numInp('hpCurrent', 'bst-vital-num')}</div>
@@ -544,19 +547,36 @@ const BestiaryManager = {
                             <div class="bst-vital-box"><span>👟 Скорость</span>${numInp('speed', 'bst-vital-num')}</div>
                             <div class="bst-vital-box bst-ac-highlight"><span>🛡️ КБ (AC)</span>${numInp('ac', 'bst-vital-num')}</div>
                         </div>
-                        <div class="bst-ac-breakdown">
-                            <select data-sheet-txt="armorType" class="k-inp" style="width: auto; font-size: 13px;">
-                                <option value="unarmored" ${stats.armorType === 'unarmored' ? 'selected' : ''}>👕 Без брони</option>
-                                <option value="light" ${stats.armorType === 'light' ? 'selected' : ''}>🧥 Лёгкая броня</option>
-                                <option value="medium" ${stats.armorType === 'medium' ? 'selected' : ''}>🦺 Средняя броня</option>
-                                <option value="heavy" ${stats.armorType === 'heavy' ? 'selected' : ''}>🛡️ Тяжёлая броня</option>
-                            </select>
-                            <label>🤸 Лвк: ${numInp('acDex', 'bst-tiny-num')}</label>
-                            <label>🎓 Умение: ${numInp('acProf', 'bst-tiny-num')}</label>
-                            <label>💍 Предмет: ${numInp('acItem', 'bst-tiny-num')}</label>
-                            <label>➕ Прочее: ${numInp('acOther', 'bst-tiny-num')}</label>
+                        
+                        <!-- Блок детальных параметров доспеха -->
+                        <div class="bst-ac-breakdown" style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid rgba(84,62,13,0.4); margin-bottom: 8px;">
+                            <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:6px; align-items:center;">
+                                <select data-sheet-txt="armorType" class="k-inp" style="width: auto; font-size: 13px;">
+                                    <option value="unarmored" ${stats.armorType === 'unarmored' ? 'selected' : ''}>👕 Без брони</option>
+                                    <option value="light" ${stats.armorType === 'light' ? 'selected' : ''}>🧥 Лёгкая броня</option>
+                                    <option value="medium" ${stats.armorType === 'medium' ? 'selected' : ''}>🦺 Средняя броня</option>
+                                    <option value="heavy" ${stats.armorType === 'heavy' ? 'selected' : ''}>🛡️ Тяжёлая броня</option>
+                                </select>
+                                <label style="color:#ff7675; font-weight:bold;">⚠️ Штраф брони: <input type="number" data-sheet-num="acArmorPenalty" class="k-inp bst-tiny-num" style="color:#ff7675 !important; border-color:#e74c3c !important;" value="${stats.acArmorPenalty ?? 0}"></label>
+                            </div>
+                            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width:100%;">
+                                <label>🤸 Лвк: ${numInp('acDex', 'bst-tiny-num')}</label>
+                                <label>🎓 Умение: ${numInp('acProf', 'bst-tiny-num')}</label>
+                                <label>💍 Предмет: ${numInp('acItem', 'bst-tiny-num')}</label>
+                                <label>➕ Прочее: ${numInp('acOther', 'bst-tiny-num')}</label>
+                            </div>
+                        </div>
+
+                        <!-- Блок прочности и параметров Прочности Щита -->
+                        <div style="background: rgba(41, 128, 185, 0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(52, 152, 219, 0.4); display: grid; grid-template-columns: 1.2fr repeat(3, 1fr); gap: 6px; align-items: center;">
+                            <span style="font-size:12px; font-weight:bold; color:#74b9ff; text-transform:uppercase;">🛡️ Прочность щита:</span>
+                            <label title="Бонус к КБ при подъеме щита">➕ КБ: <input type="number" data-sheet-num="acShieldBonus" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldBonus ?? 0}"></label>
+                            <label title="Твердость (Hardness)">💎 Тверд: <input type="number" data-sheet-num="acShieldHardness" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldHardness ?? 0}"></label>
+                            <label title="Текущие ПЗ щита (Порог поломки BT = 1/2 от Макс)">❤️ ПЗ: <input type="number" data-sheet-num="acShieldHp" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldHp ?? 0}"></label>
                         </div>
                     </div>
+
+                    
 
                     <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">👁️ Внимание и Испытания</div>
@@ -2255,10 +2275,13 @@ const BestiaryManager = {
             ['⚡ Реакция', fmtMod(stats.reflex ?? stats.ref)],
             ['🧠 Воля', fmtMod(stats.will)]
         ];
+
+        const armorPenalty = Math.abs(Number(stats.acArmorPenalty) || 0);
+
         const skills = [
-            ['Акробатика', stats.acrobatics ?? stats.acro],
+            ['Акробатика', (stats.acrobatics ?? stats.acro) - armorPenalty], // Авто-вычитание штрафа
             ['Аркана', stats.arcana ?? stats.arca],
-            ['Атлетика', stats.athletics ?? stats.athl],
+            ['Атлетика', (stats.athletics ?? stats.athl) - armorPenalty],    // Авто-вычитание штрафа
             ['Ремесло', stats.crafting],
             ['Обман', stats.deception ?? stats.dece],
             ['Дипломатия', stats.diplomacy ?? stats.dipl],
@@ -2270,10 +2293,12 @@ const BestiaryManager = {
             ['Выступление', stats.performance],
             ['Религия', stats.religion ?? stats.reli],
             ['Общество', stats.society],
-            ['Скрытность', stats.stealth ?? stats.stea],
+            ['Скрытность', (stats.stealth ?? stats.stea) - armorPenalty],    // Авто-вычитание штрафа
             ['Выживание', stats.survival ?? stats.surv],
-            ['Воровство', stats.thievery]
+            ['Воровство', (stats.thievery ?? stats.thievery) - armorPenalty] // Авто-вычитание штрафа
         ].filter(([, v]) => v !== undefined);
+
+
 
         const attacks = [
             stats.melee1Name ? `⚔️ ${stats.melee1Name} <b>${stats.melee1Atk || ''}</b> ${stats.melee1Dmg ? `(${stats.melee1Dmg})` : ''}` : '',
