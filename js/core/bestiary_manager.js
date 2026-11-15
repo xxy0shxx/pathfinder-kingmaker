@@ -1502,9 +1502,9 @@ const BestiaryManager = {
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
 
-            // Инициализация автокомплита для Родословных Народов (Наследий)
+
+            // Инициализация автокомплита для Родословных Народов (Наследий) с защитой от эмодзи
             overlay.querySelectorAll('[data-sheet-txt="heritage"]').forEach(inp => {
-                // Создаем или находим контейнер дропдауна прямо под инпутом
                 let dropEl = inp.nextElementSibling;
                 if (!dropEl || !dropEl.classList.contains('bst-cantrip-dropdown')) {
                     dropEl = document.createElement('div');
@@ -1514,13 +1514,36 @@ const BestiaryManager = {
                 }
 
                 const renderHeritageMatches = (query) => {
-                    const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
                     const currentCatalog = (typeof PF2E_HERITAGES !== 'undefined') ? PF2E_HERITAGES : [];
 
-                    // Если поле пустое, выводим весь доступный список родословных
+                    // Функция глубокой очистки строки от эмодзи, спецсимволов и лишних пробелов
+                    const cleanStr = (str) => {
+                        return String(str || '')
+                            .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F191}-\u{1F251}\u{1F004}\u{1F0CF}\u{1F170}-\u{1F171}\u{1F17E}-\u{1F17F}\u{1F18E}\u{3030}\u{2B50}\u{2B55}\u{2934}-\u{2935}\u{2B05}-\u{2B07}\u{23E9}-\u{23EC}\u{23F0}\u{23F3}\u{2194}-\u{21A0}\u{25AA}-\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}]/gu, '')
+                            .trim()
+                            .toLowerCase()
+                            .replace(/ё/g, 'е');
+                    };
+
+                    const q = cleanStr(query);
+
+                    // Динамически считываем расу из инпута и очищаем её
+                    const ancestryInp = overlay.querySelector('[data-sheet-txt="ancestry"]');
+                    const currentAncestry = ancestryInp ? cleanStr(ancestryInp.value) : '';
+
+                    // Фильтруем каталог по очищенному имени народа
+                    let scopedCatalog = currentCatalog;
+                    if (currentAncestry) {
+                        scopedCatalog = currentCatalog.filter(h =>
+                            cleanStr(h.ancestryName) === currentAncestry ||
+                            cleanStr(h.ancestry) === currentAncestry
+                        );
+                    }
+
+                    // Дополнительный текстовый фильтр, если пользователь пишет название внутри heritage
                     const list = !q
-                        ? currentCatalog
-                        : currentCatalog.filter(h => h.name.toLowerCase().replace(/ё/g, 'е').includes(q));
+                        ? scopedCatalog
+                        : scopedCatalog.filter(h => cleanStr(h.name).includes(q));
 
                     if (!list.length) { dropEl.style.display = 'none'; return; }
 
@@ -1528,7 +1551,7 @@ const BestiaryManager = {
                         <div class="bst-cantrip-opt" data-hid="${h.id}" style="padding: 6px; cursor: pointer;">
                             <div class="bst-cantrip-opt-top"><b>${h.name}</b></div>
                             <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; color: #ebd291; margin-top: 2px;">
-                                Источник: ${h.source} <br> ${h.desc}
+                                Нация: ${h.ancestryName || 'Общая'} • Источник: ${h.source} <br> ${h.desc}
                             </div>
                         </div>
                     `).join('');
@@ -1539,11 +1562,12 @@ const BestiaryManager = {
                     dropEl.style.top = `${rect.bottom + 2}px`;
                     dropEl.style.width = `${Math.max(320, rect.width)}px`;
                     dropEl.style.maxHeight = '240px';
-                    dropEl.style.overflowY = 'auto'; // Добавляем аккуратный скроллбар
+                    dropEl.style.overflowY = 'auto';
                     dropEl.style.zIndex = '10000150';
                     dropEl.style.display = 'block';
 
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.removeEventListener('mousedown', null);
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -1562,6 +1586,8 @@ const BestiaryManager = {
                 inp.addEventListener('input', () => renderHeritageMatches(inp.value));
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
+
+
 
 
             // 1. Поиск и выбор оружия ближнего боя (melee1, melee2)
