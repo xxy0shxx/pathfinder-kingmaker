@@ -523,6 +523,7 @@ const BestiaryManager = {
             });
         };
 
+
         const page1Html = `
             <div class="bst-sheet-top-bar">
                 <div class="bst-top-field" style="position: relative;">
@@ -535,6 +536,7 @@ const BestiaryManager = {
                     <input type="text" data-sheet-txt="background" class="k-inp bst-txt-inp bst-background-picker-inp" autocomplete="off" placeholder="Выберите происхождение..." value="${esc(stats.background)}">
                     <div class="bst-cantrip-dropdown" data-bg-drop="1" style="display: none; z-index: 10000120;"></div>
                 </div>
+
                 <div class="bst-top-field" style="position: relative;">
                     <span>⚔️ Класс</span>
                     <input type="text" data-sheet-txt="charClass" class="k-inp bst-txt-inp bst-meta-picker-inp" data-meta-type="class" autocomplete="off" placeholder="Воин, Жрец..." value="${esc(stats.charClass)}">
@@ -558,6 +560,14 @@ const BestiaryManager = {
                 <div class="bst-top-field bst-narrow"><span>⭐ Уровень</span>${numInp('level', 'bst-mini-num')}</div>
                 <div class="bst-top-field bst-narrow"><span>✨ Опыт</span>${numInp('xp', 'bst-mini-num')}</div>
                 <div class="bst-top-field"><span>👤 Игрок</span>${txtInp('playerName', 'Имя игрока')}</div>
+                                  <div style="position: relative;">
+                                <label style="font-size: 11px; color: #dfbc6f; display: block; margin-bottom: 2px;">🧬 Способность народа / Наследие</label>
+                                ${txtInp('heritage', '🧬 Родословная и способность народа...')}
+                            </div>
+                <div class="bst-top-field" style="position: relative;">
+                    <span>✨ Способность происхождения</span>
+                    <input type="text" data-sheet-txt="backgroundFeat" class="k-inp bst-txt-inp" placeholder="Автовыбор из происхождения..." value="${esc(stats.backgroundFeat)}">
+                </div>
             </div>
 
             <div class="bst-sheet-page1-grid">
@@ -729,19 +739,8 @@ const BestiaryManager = {
                         </div>
                     </div>
                     <div class="k-panel">
-                        <div class="k-sec-title">🌟 Черты Народа, Происхождения и Класса (Remaster)</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
-                            <div style="position: relative;">
-                                <label style="font-size: 11px; color: #dfbc6f; display: block; margin-bottom: 2px;">🧬 Способность народа / Наследие</label>
-                                ${txtInp('heritage', '🧬 Родословная и способность народа...')}
-                            </div>
-                            <div style="position: relative;">
-                                <label style="font-size: 11px; color: #dfbc6f; display: block; margin-bottom: 2px;">📜 Способность происхождения</label>
-                                ${txtInp('backgroundFeat', '📜 Автовыбор из происхождения...')}
-                            </div>
-                        </div>
                         <div class="bst-spell-tier" style="margin-top: 5px;">
-                            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">⚔️ Боевые Черты Класса и Архетипов (Следопыт / Поборник)</div>
+                            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">⚔️ Боевые Черты Класса и Архетипов</div>
                             <table class="k-table bst-cantrips-table" style="width: 100%;">
                                 <thead>
                                     <tr>
