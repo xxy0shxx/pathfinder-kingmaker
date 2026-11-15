@@ -1023,7 +1023,7 @@ const BestiaryManager = {
 
 
     renderUi() {
-        this._hideHeroTooltip();
+        this._hidePresetTooltip();
         const container = document.getElementById('bestiaryTabletContainer');
         if (!container) return;
 
@@ -1322,13 +1322,9 @@ const BestiaryManager = {
                     }
 
                     if (canShowTooltip) {
-                        this._attachPresetTooltip(card, item);
+                        this._attachPresetTooltip(card, item, isInactive);
                     }
                 }
-            }
-
-            if (isHeroGroup) {
-                this._attachHeroTooltip(card, item, isInactive);
             }
 
             grid.appendChild(card);
@@ -1356,9 +1352,15 @@ const BestiaryManager = {
         tip.style.top = `${Math.max(8, top)}px`;
     },
 
-    _attachPresetTooltip(card, item) {
+
+    _attachPresetTooltip(card, item, isInactive = false) {
         card.addEventListener('mouseenter', (e) => {
+            if (card.querySelector('input.init-inline-name-input')) return;
             if (item.faction !== 'friend' && !window.SHOW_ENEMY_TOOLTIPS) return;
+
+            // Удаляем старый дублирующий тултип, если он был создан ранее
+            const oldHeroTip = document.getElementById('bstHeroHoverTooltip');
+            if (oldHeroTip) oldHeroTip.remove();
 
             let tip = document.getElementById('initUnitHoverTooltip');
             if (!tip) {
@@ -1368,25 +1370,29 @@ const BestiaryManager = {
                 document.body.appendChild(tip);
             }
 
-            const factionMap = {
-                friend: '🟢 Отряд / Союзник',
-                enemy: '🔴 Монстр / Враг',
-                neutral: '🟡 Нейтрал / NPC'
-            };
-
             const stats = this._ensureCharacterStats(item);
             const fmtMod = (val) => {
                 const n = Number(val) || 0;
                 return n > 0 ? `+${n}` : `${n}`;
             };
 
+            const statusBadge = item.faction === 'friend'
+                ? (isInactive
+                    ? '<span class="init-tip-turn-tag" style="border-color:#95a5a6; color:#b2bec3; background:rgba(149,165,166,0.18);">💤 В РЕЗЕРВЕ</span>'
+                    : '<span class="init-tip-turn-tag">🛡️ В ОТРЯДЕ</span>')
+                : `<span class="init-tip-turn-tag" style="border-color:#e74c3c; color:#ff7675; background:rgba(231,76,60,0.18);">Ур. ${stats.level ?? 1}</span>`;
+
+            const metaParts = [
+                stats.charClass,
+                stats.ancestry,
+                item.faction === 'friend' && stats.level ? `Ур. ${stats.level}` : ''
+            ].filter(Boolean);
+
             const attrs = [
                 ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
                 ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
             ];
             const defenses = [
-                ['🛡️ КБ (AC)', stats.ac],
-                ['❤️ ПЗ (HP)', `${stats.hpCurrent ?? stats.hpMax ?? 10}/${stats.hpMax ?? 10}`],
                 ['👁️ Внимание', fmtMod(stats.perception ?? stats.perc)],
                 ['🛡️ Стойкость', fmtMod(stats.fortitude ?? stats.fort)],
                 ['⚡ Реакция', fmtMod(stats.reflex ?? stats.ref)],
@@ -1421,12 +1427,14 @@ const BestiaryManager = {
             tip.innerHTML = `
                 <div class="init-tip-header">
                     <span class="init-tip-name">${item.name}</span>
-                    <span class="init-tip-turn-tag">Ур. ${stats.level ?? 1}</span>
+                    ${statusBadge}
                 </div>
                 <div class="init-tip-top-row">
-                    <span>🎲 Баз. иниц.: <b>${item.defaultScore ?? 10}</b></span>
-                    <span>${factionMap[item.faction] || item.faction}</span>
+                    <span>🎲 Иниц.: <b>${item.defaultScore ?? 10}</b></span>
+                    <span>❤️ ПЗ: <b>${stats.hpCurrent ?? stats.hpMax ?? 10}/${stats.hpMax ?? 10}</b></span>
+                    <span>🛡️ КБ: <b>${stats.ac ?? 10}</b></span>
                 </div>
+                ${metaParts.length ? `<div style="font-size:14px; color:#dfbc6f; margin-top:4px;">${metaParts.join(' • ')}</div>` : ''}
                 <div class="init-tip-section">
                     <div class="init-tip-sec-title">⚔️ Характеристики</div>
                     <div class="init-tip-2col">
@@ -1434,7 +1442,7 @@ const BestiaryManager = {
                     </div>
                 </div>
                 <div class="init-tip-section">
-                    <div class="init-tip-sec-title">🛡️ Защита, ПЗ и Спасброски</div>
+                    <div class="init-tip-sec-title">🛡️ Внимание и Спасброски</div>
                     <div class="init-tip-2col">
                         ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${v}</b></div>`).join('')}
                     </div>
@@ -1467,6 +1475,8 @@ const BestiaryManager = {
 
         card.addEventListener('mouseleave', () => this._hidePresetTooltip());
     },
+
+
 
 
     _hideHeroTooltip() {
