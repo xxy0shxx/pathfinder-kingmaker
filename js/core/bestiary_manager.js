@@ -14,6 +14,8 @@ import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_cat
 
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES } from '../config/companions_catalog.js';
 
+import { PF2E_RANGER_FEATS } from '../config/feats_catalog.js';
+
 import {
     PF2E_MELEE_WEAPONS,
     searchMeleeWeapons,
@@ -233,6 +235,18 @@ const BestiaryManager = {
             melee2Name: '', melee2Atk: '', melee2Dmg: '', melee2Traits: '',
             rangedName: '', rangedAtk: '', rangedDmg: '', rangedTraits: '',
             skillOtherNotes: '',
+
+            classFeatLvl1Name: '', classFeatLvl1Desc: '',
+            classFeatLvl2Name: '', classFeatLvl2Desc: '',
+            classFeatLvl4Name: '', classFeatLvl4Desc: '',
+            classFeatLvl6Name: '', classFeatLvl6Desc: '',
+            classFeatLvl8Name: '', classFeatLvl8Desc: '',
+            classFeatLvl10Name: '', classFeatLvl10Desc: '',
+            classFeatLvl12Name: '', classFeatLvl12Desc: '',
+            classFeatLvl14Name: '', classFeatLvl14Desc: '',
+            classFeatLvl16Name: '', classFeatLvl16Desc: '',
+            classFeatLvl18Name: '', classFeatLvl18Desc: '',
+            classFeatLvl20Name: '', classFeatLvl20Desc: '',
 
             equipmentText: '',
             item1Name: '', item1Notes: '',
@@ -722,14 +736,53 @@ const BestiaryManager = {
                     
 
                     <div class="k-panel">
-                        <div class="k-sec-title">🌟 Способности народа, происхождения и класса</div>
-                        <div class="bst-feats-grid">
-                            ${txtInp('heritage', '🧬 Родословная и способность народа')}
-                            ${txtInp('backgroundFeat', '📜 Способность происхождения')}
-                            ${txtInp('classFeatsLvl1', '⚔️ Классовые способности (1 ур.)')}
-                            ${txtInp('classFeatsLvl2', '🔥 Классовые способности (2-3 ур.)')}
+                        <div class="k-sec-title">🌟 Черты Народа, Происхождения и Класса (Remaster)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                            <div style="position: relative;">
+                                <label style="font-size: 11px; color: #dfbc6f; display: block; margin-bottom: 2px;">🧬 Способность народа / Наследие</label>
+                                ${txtInp('heritage', '🧬 Родословная и способность народа...')}
+                            </div>
+                            <div style="position: relative;">
+                                <label style="font-size: 11px; color: #dfbc6f; display: block; margin-bottom: 2px;">📜 Способность происхождения</label>
+                                ${txtInp('backgroundFeat', '📜 Автовыбор из происхождения...')}
+                            </div>
+                        </div>
+                        
+                        <div class="bst-spell-tier" style="margin-top: 5px;">
+                            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">⚔️ Боевые Черты Класса и Архетипов Следопыта</div>
+                            <table class="k-table bst-cantrips-table" style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45px; text-align: center;">Ур.</th>
+                                        <th style="width: 35%;">Название черты / фита</th>
+                                        <th>Действие и Краткий Эффект (Remaster-описание)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${[1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20].map(lvl => `
+                                        <tr>
+                                            <td class="bst-cantrip-num" style="color: #2ecc71; font-weight: bold; text-align: center;">${lvl}</td>
+                                            <td style="position: relative;">
+                                                <input type="text"
+                                                       data-sheet-txt="classFeatLvl${lvl}Name"
+                                                       data-feat-level="${lvl}"
+                                                       class="k-inp bst-txt-inp bst-ranger-feat-picker-inp"
+                                                       autocomplete="off"
+                                                       placeholder="Поиск черты ${lvl} уровня..."
+                                                       value="${esc(stats[`classFeatLvl${lvl}Name`] ?? '')}">
+                                                <div class="bst-cantrip-dropdown" data-feat-drop="${lvl}" style="display: none; z-index: 10000150; width: 350px;"></div>
+                                            </td>
+                                            <td>
+                                                <input type="text" data-sheet-txt="classFeatLvl${lvl}Desc" class="k-inp bst-txt-inp" placeholder="Действие, требования, пассивный бонус..." value="${esc(stats[`classFeatLvl${lvl}Desc`] ?? '')}">
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+
+                    
                 </div>
             </div>
         `;
@@ -1218,6 +1271,99 @@ const BestiaryManager = {
 
         // НАВЕШИВАНИЕ СЛУШАТЕЛЕЙ ДЛЯ СТРАНИЦЫ 1 И 2
         if (isPage1) {
+            // 6. ИНИЦИАЛИЗАЦИЯ ИНТЕРАКТИВНОГО ПОИСКА И АВТОПОДСТАНОВКИ ЧЕРТ СЛЕДОПЫТА
+            if (isPage1) {
+                overlay.querySelectorAll('.bst-ranger-feat-picker-inp').forEach(inp => {
+                    const lvl = inp.dataset.featLevel;
+                    const dropEl = overlay.querySelector(`[data-feat-drop="${lvl}"]`);
+                    const descInp = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`);
+
+                    const renderFeatOptions = (query) => {
+                        const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+
+                        // Фильтруем черты по введенному тексту и текущему уровню (или ниже)
+                        const matches = PF2E_RANGER_FEATS.filter(f =>
+                            f.level <= parseInt(lvl, 10) &&
+                            f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
+                        );
+
+                        if (!matches.length) { dropEl.style.display = 'none'; return; }
+
+                        dropEl.innerHTML = matches.map(f => `
+                        <div class="bst-cantrip-opt" data-fid="${f.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span style="color: #2ecc71;">[Ур. ${f.level}] ${f.actions ? `(${f.actions})` : ''}</span></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; color: #ebd291; margin-top: 2px;">
+                                Источник: ${f.source} <br> ${f.desc}
+                            </div>
+                        </div>
+                    `).join('');
+
+                        const rect = inp.getBoundingClientRect();
+                        dropEl.style.position = 'fixed';
+                        dropEl.style.left = `${rect.left}px`;
+                        dropEl.style.width = '420px';
+                        dropEl.style.display = 'block';
+
+                        // Защита от вылета выпадающего списка за нижний край экрана
+                        const dropHeight = dropEl.offsetHeight || 200;
+                        if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                            dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                        } else {
+                            dropEl.style.top = `${rect.bottom + 2}px`;
+                        }
+
+                        dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                            optEl.addEventListener('mousedown', (e) => {
+                                e.preventDefault();
+                                const found = PF2E_RANGER_FEATS.find(x => x.id === optEl.dataset.fid);
+                                if (found) {
+                                    inp.value = found.name;
+                                    hero.stats[`classFeatLvl${lvl}Name`] = found.name;
+
+                                    const shortDesc = `${found.actions ? `[${found.actions}] ` : ''}${found.desc}`;
+                                    if (descInp) {
+                                        descInp.value = shortDesc;
+                                        hero.stats[`classFeatLvl${lvl}Desc`] = shortDesc;
+                                    }
+                                }
+                                dropEl.style.display = 'none';
+                            });
+                        });
+                    };
+
+                    inp.addEventListener('focus', () => renderFeatOptions(inp.value));
+                    inp.addEventListener('input', () => renderFeatOptions(inp.value));
+                    inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+                });
+
+                // Навешиваем интерактивные тултипы всплывающих подсказок для строк таблицы черт
+                overlay.querySelectorAll('.bst-spell-tier table tbody tr').forEach((tr) => {
+                    const nameInp = tr.querySelector('.bst-ranger-feat-picker-inp');
+                    if (!nameInp) return;
+
+                    tr.addEventListener('mouseenter', (e) => {
+                        const name = nameInp.value.trim();
+                        if (!name) return;
+                        const lvl = nameInp.dataset.featLevel;
+                        const desc = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`)?.value || '';
+
+                        const html = `
+                        <div class="init-tip-header">
+                            <span class="init-tip-name">⚔️ ${name}</span>
+                            <span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">ЧЕРТА КЛАССА</span>
+                        </div>
+                        <div class="init-tip-top-row">
+                            <span>⭐ Доступно с: <b>${lvl} уровня</b></span>
+                        </div>
+                        <div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${desc}</div>
+                    `;
+                        this._showSheetItemTooltip(e, html);
+                    });
+                    tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                    tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+                });
+            }
+
             // Умные слушатели: перехватывают ручной ввод любых характеристик, умений или спасбросков и запускают калькулятор
             overlay.querySelectorAll('.bst-armor-calc-trigger, .bst-save-calc-trigger, .bst-skill-calc-trigger, [data-sheet-num="str"], [data-sheet-num="dex"], [data-sheet-num="con"], [data-sheet-num="int"], [data-sheet-num="wis"], [data-sheet-num="cha"]').forEach(el => {
                 el.addEventListener('input', (e) => {
@@ -1232,6 +1378,65 @@ const BestiaryManager = {
 
             // Запускаем первичный расчет при открытии модального окна бланка
             calculateArmorClass();
+
+            // Найти место в районе Инициализации выпадающих списков для полей Народ и Класс (Page 1)
+// Добавить обработчик для автозаполнения Черта Следопыта:
+
+            overlay.querySelectorAll('[data-sheet-txt="classFeatsLvl1"], [data-sheet-txt="classFeatsLvl2"]').forEach(inp => {
+                // Создаем или привязываем элемент выпадающего списка под инпутом
+                let dropEl = inp.nextElementSibling;
+                if (!dropEl || !dropEl.classList.contains('bst-cantrip-dropdown')) {
+                    dropEl = document.createElement('div');
+                    dropEl.className = 'bst-cantrip-dropdown';
+                    dropEl.style.display = 'none';
+                    inp.parentNode.insertBefore(dropEl, inp.nextSibling);
+                }
+
+                const renderFeatMatches = (query) => {
+                    const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+                    if (!q) { dropEl.style.display = 'none'; return; }
+
+                    // Фильтруем массив черт следопыта
+                    const matches = PF2E_RANGER_FEATS.filter(f =>
+                        f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
+                    );
+
+                    if (!matches.length) { dropEl.style.display = 'none'; return; }
+
+                    dropEl.innerHTML = matches.map(f => `
+            <div class="bst-cantrip-opt" data-feat-id="${f.id}" style="padding: 6px; cursor: pointer;">
+                <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span>[Ур. ${f.level}]</span></div>
+                <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291;">${f.desc}</div>
+            </div>
+        `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = `${Math.max(300, rect.width)}px`;
+                    dropEl.style.zIndex = '10000140';
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_RANGER_FEATS.find(x => x.id === optEl.dataset.featId);
+                            if (found) {
+                                inp.value = `${found.name}`;
+                                const targetKey = inp.dataset.sheetTxt;
+                                hero.stats[targetKey] = found.name;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderFeatMatches(inp.value));
+                inp.addEventListener('input', () => renderFeatMatches(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
 
             // 1. Поиск и выбор оружия ближнего боя (melee1, melee2)
             overlay.querySelectorAll('.bst-weapon-picker-inp').forEach(inp => {
