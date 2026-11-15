@@ -3,6 +3,7 @@ import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
 import { PF2E_ITEMS_CATALOG, searchItemsCatalog, isCombatConsumable } from '../config/items_catalog.js';
+import { PF2E_ARMOR_CATALOG, searchArmorCatalog, getArmorGroupEffect } from '../config/armor_catalog.js';
 
 import {
     PF2E_SPELLS_LVL1,
@@ -539,42 +540,59 @@ const BestiaryManager = {
                 
                 
                     <div class="k-panel" style="margin-bottom: 10px;">
-                        <div class="k-sec-title">🛡️ Защита, Доспехи и Щит</div>
-                        <div class="bst-vitals-row">
+                        <div class="k-sec-title">🛡️ Защита, Доспехи и Щит (Калькулятор КБ)</div>
+                        <div class="bst-vitals-row" style="margin-bottom: 12px;">
                             <div class="bst-vital-box"><span>❤️ Макс. ПЗ</span>${numInp('hpMax', 'bst-vital-num')}</div>
                             <div class="bst-vital-box"><span>🩸 Текущие ПЗ</span>${numInp('hpCurrent', 'bst-vital-num')}</div>
                             <div class="bst-vital-box"><span>💠 Врем. ПЗ</span>${numInp('hpTemp', 'bst-vital-num')}</div>
                             <div class="bst-vital-box"><span>👟 Скорость</span>${numInp('speed', 'bst-vital-num')}</div>
-                            <div class="bst-vital-box bst-ac-highlight"><span>🛡️ КБ (AC)</span>${numInp('ac', 'bst-vital-num')}</div>
+                            <div class="bst-vital-box bst-ac-highlight" style="background: rgba(138, 100, 33, 0.25) !important; border-color: #ffd875 !important;">
+                                <span style="color:#ffd875; font-weight:900;">🛡️ ИТОГ КБ</span>
+                                <input type="number" data-sheet-num="ac" class="k-inp bst-vital-num" style="color:#ffd875 !important; font-weight:900 !important;" value="${stats.ac ?? 10}" readonly title="Рассчитывается автоматически: 10 + Мод + Умение + Предмет + Прочее">
+                            </div>
                         </div>
                         
-                        <!-- Блок детальных параметров доспеха -->
-                        <div class="bst-ac-breakdown" style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid rgba(84,62,13,0.4); margin-bottom: 8px;">
-                            <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:6px; align-items:center;">
-                                <select data-sheet-txt="armorType" class="k-inp" style="width: auto; font-size: 13px;">
-                                    <option value="unarmored" ${stats.armorType === 'unarmored' ? 'selected' : ''}>👕 Без брони</option>
-                                    <option value="light" ${stats.armorType === 'light' ? 'selected' : ''}>🧥 Лёгкая броня</option>
-                                    <option value="medium" ${stats.armorType === 'medium' ? 'selected' : ''}>🦺 Средняя броня</option>
-                                    <option value="heavy" ${stats.armorType === 'heavy' ? 'selected' : ''}>🛡️ Тяжёлая броня</option>
+                        <!-- Полный калькулятор доспеха как на фото -->
+                        <div class="bst-ac-breakdown" style="background: rgba(4, 9, 5, 0.85); padding: 12px; border-radius: 6px; border: 2px solid #543e0d; margin-bottom: 12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom: 1px dashed rgba(138,100,33,0.3); padding-bottom:6px;">
+                                <select data-sheet-txt="armorType" class="k-inp bst-armor-calc-trigger" style="width: auto; font-size: 14px; font-weight: bold;">
+                                    <option value="unarmored" ${stats.armorType === 'unarmored' ? 'selected' : ''}>👕 Ткань / Без брони (Макс Лвк: +5)</option>
+                                    <option value="light" ${stats.armorType === 'light' ? 'selected' : ''}>🧥 Лёгкая броня (Макс Лвк: +3)</option>
+                                    <option value="medium" ${stats.armorType === 'medium' ? 'selected' : ''}>🦺 Средняя броня (Макс Лвк: +2)</option>
+                                    <option value="heavy" ${stats.armorType === 'heavy' ? 'selected' : ''}>🛡️ Тяжёлая броня (Макс Лвк: +1)</option>
                                 </select>
-                                <label style="color:#ff7675; font-weight:bold;">⚠️ Штраф брони: <input type="number" data-sheet-num="acArmorPenalty" class="k-inp bst-tiny-num" style="color:#ff7675 !important; border-color:#e74c3c !important;" value="${stats.acArmorPenalty ?? 0}"></label>
+                                
+                                <div style="position: relative; display: inline-block; margin-left: 8px;">
+                                    <input type="text" data-sheet-txt="armorName" class="k-inp bst-armor-picker-inp" autocomplete="off" placeholder="📦 Выберите доспех..." style="width: 220px;" value="${esc(stats.armorName ?? '')}">
+                                    <div class="bst-cantrip-dropdown" data-armor-drop="1" style="display: none; z-index: 10000100;"></div>
+                                </div>
+                                
+                                <label style="color:#ff7675; font-weight:bold; font-size:13px;">
+                                    ⚠️ Штраф брони (Check Penalty): 
+                                    <input type="number" data-sheet-num="acArmorPenalty" class="k-inp bst-tiny-num bst-armor-calc-trigger" style="color:#ff7675 !important; border-color:#e74c3c !important; width:55px !important;" value="${stats.acArmorPenalty ?? 0}">
+                                </label>
                             </div>
-                            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width:100%;">
-                                <label>🤸 Лвк: ${numInp('acDex', 'bst-tiny-num')}</label>
-                                <label>🎓 Умение: ${numInp('acProf', 'bst-tiny-num')}</label>
-                                <label>💍 Предмет: ${numInp('acItem', 'bst-tiny-num')}</label>
-                                <label>➕ Прочее: ${numInp('acOther', 'bst-tiny-num')}</label>
+                            <div style="display:grid; grid-template-columns: auto repeat(4, 1fr); gap: 6px; width:100%; align-items: center; font-size:13px; color:#ebd291;">
+                                <span style="font-weight:bold; color:#dfbc6f; font-size:15px; margin-right:4px;">10 ➕</span>
+                                <label title="Модификатор Ловкости (с учетом ограничений доспеха)">🤸 Лвк:<input type="number" data-sheet-num="acDex" class="k-inp bst-tiny-num bst-armor-calc-trigger" value="${stats.acDex ?? 0}"></label>
+                                <label title="Бонус умения (Уровень + Проф)">🎓 Умение:<input type="number" data-sheet-num="acProf" class="k-inp bst-tiny-num bst-armor-calc-trigger" value="${stats.acProf ?? 0}"></label>
+                                <label title="Бонус предмета от самой брони">🧥 Предмет:<input type="number" data-sheet-num="acItem" class="k-inp bst-tiny-num bst-armor-calc-trigger" value="${stats.acItem ?? 0}"></label>
+                                <label title="Прочие бонусы/штрафы состояния или обстоятельств">➕ Прочее:<input type="number" data-sheet-num="acOther" class="k-inp bst-tiny-num bst-armor-calc-trigger" value="${stats.acOther ?? 0}"></label>
                             </div>
                         </div>
 
-                        <!-- Блок прочности и параметров Прочности Щита -->
-                        <div style="background: rgba(41, 128, 185, 0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(52, 152, 219, 0.4); display: grid; grid-template-columns: 1.2fr repeat(3, 1fr); gap: 6px; align-items: center;">
-                            <span style="font-size:12px; font-weight:bold; color:#74b9ff; text-transform:uppercase;">🛡️ Прочность щита:</span>
-                            <label title="Бонус к КБ при подъеме щита">➕ КБ: <input type="number" data-sheet-num="acShieldBonus" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldBonus ?? 0}"></label>
-                            <label title="Твердость (Hardness)">💎 Тверд: <input type="number" data-sheet-num="acShieldHardness" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldHardness ?? 0}"></label>
-                            <label title="Текущие ПЗ щита (Порог поломки BT = 1/2 от Макс)">❤️ ПЗ: <input type="number" data-sheet-num="acShieldHp" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldHp ?? 0}"></label>
+                        <!-- Профессиональный блок управления Щитом (Shield Block) -->
+                        <div style="background: rgba(20, 31, 41, 0.9); padding: 12px; border-radius: 6px; border: 2px solid #3498db; display: grid; grid-template-columns: 1.1fr repeat(3, 1fr); gap: 10px; align-items: center;">
+                            <div style="display:flex; flex-direction:column; gap:2px;">
+                                <span style="font-size:13px; font-weight:900; color:#74b9ff; text-transform:uppercase; letter-spacing:0.5px;">🛡️ Настройки щита</span>
+                                <span style="font-size:11px; color:#a4b0be; font-style:italic;">(Shield Raise)</span>
+                            </div>
+                            <label title="Бонус КБ при поднятии щита (Raise Shield)">➕ Бонус КБ:<input type="number" data-sheet-num="acShieldBonus" class="k-inp bst-tiny-num" style="color:#74b9ff !important; font-weight:bold;" value="${stats.acShieldBonus ?? 0}"></label>
+                            <label title="Твердость щита (Hardness) — поглощает урон">💎 Твердость:<input type="number" data-sheet-num="acShieldHardness" class="k-inp bst-tiny-num" style="color:#74b9ff !important; font-weight:bold;" value="${stats.acShieldHardness ?? 0}"></label>
+                            <label title="Текущая прочность щита. Порог поломки (BT) равен половине макс ПЗ">❤️ Тек. ПЗ:<input type="number" data-sheet-num="acShieldHp" class="k-inp bst-tiny-num" style="color:#74b9ff !important; font-weight:bold;" value="${stats.acShieldHp ?? 0}"></label>
                         </div>
                     </div>
+
 
                     
 
@@ -1594,6 +1612,103 @@ const BestiaryManager = {
 
 
         }
+
+
+        // Умный калькулятор брони и ограничений по правилам Pathfinder 2e
+        const calculateArmorClass = () => {
+            const armorType = overlay.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
+            const dexInp = overlay.querySelector('[data-sheet-num="acDex"]');
+            const profInp = overlay.querySelector('[data-sheet-num="acProf"]');
+            const itemInp = overlay.querySelector('[data-sheet-num="acItem"]');
+            const otherInp = overlay.querySelector('[data-sheet-num="acOther"]');
+            const penaltyInp = overlay.querySelector('[data-sheet-num="acArmorPenalty"]');
+            const speedInp = overlay.querySelector('[data-sheet-num="speed"]');
+            const totalAcInp = overlay.querySelector('[data-sheet-num="ac"]');
+
+            if (!totalAcInp) return;
+
+            let rawDex = parseInt(dexInp?.value, 10) || 0;
+            const prof = parseInt(profInp?.value, 10) || 0;
+            const item = parseInt(itemInp?.value, 10) || 0;
+            const other = parseInt(otherInp?.value, 10) || 0;
+
+            // Проверяем Силу для штрафов (берём значение из вкладки характеристик)
+            const charStr = parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0;
+            const armorStrReq = parseInt(totalAcInp.dataset.currentStrReq, 10) || 0;
+
+            let dexCap = 5;
+            if (armorType === 'light') dexCap = 3;
+            else if (armorType === 'medium') dexCap = 2;
+            else if (armorType === 'heavy') dexCap = 1;
+
+            if (rawDex > dexCap) rawDex = dexCap;
+
+            // Если силы недостаточно — штраф доспеха применяется в полную силу
+            if (charStr < armorStrReq && penaltyInp) {
+                penaltyInp.title = `Сила меньше требуемой (${armorStrReq})! Применяется штраф к навыкам и скорости.`;
+            }
+
+            const totalAc = 10 + rawDex + prof + item + other;
+            totalAcInp.value = totalAc;
+            hero.stats.ac = totalAc;
+        };
+
+        // Инициализация автокомплита для выбора брони
+        overlay.querySelectorAll('.bst-armor-picker-inp').forEach(inp => {
+            const dropEl = overlay.querySelector('[data-armor-drop="1"]');
+            const typeSel = overlay.querySelector('[data-sheet-txt="armorType"]');
+            const itemInp = overlay.querySelector('[data-sheet-num="acItem"]');
+            const penaltyInp = overlay.querySelector('[data-sheet-num="acArmorPenalty"]');
+            const totalAcInp = overlay.querySelector('[data-sheet-num="ac"]');
+
+            const renderArmorMatches = (query) => {
+                const list = searchArmorCatalog(query);
+                if (!list.length) { dropEl.style.display = 'none'; return; }
+
+                dropEl.innerHTML = list.map(a => `
+                        <div class="bst-cantrip-opt" data-aid="${a.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${a.name}</b> <span>КБ: +${a.acBonus}</span></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size:11px;">Группа: ${a.group} • Тр. Сила: ${a.strReq} • Макс.Лвк: +${a.dexCap}</div>
+                        </div>
+                    `).join('');
+
+                const rect = inp.getBoundingClientRect();
+                dropEl.style.position = 'fixed';
+                dropEl.style.left = `${rect.left}px`;
+                dropEl.style.top = `${rect.bottom + 2}px`;
+                dropEl.style.width = '260px';
+                dropEl.style.display = 'block';
+
+                dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                    optEl.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        const found = PF2E_ARMOR_CATALOG.find(x => x.id === optEl.dataset.aid);
+                        if (found) {
+                            inp.value = found.name;
+                            if (typeSel) typeSel.value = found.category;
+                            if (itemInp) itemInp.value = found.acBonus;
+                            if (penaltyInp) penaltyInp.value = found.penalty;
+                            if (totalAcInp) totalAcInp.dataset.currentStrReq = found.strReq;
+                            calculateArmorClass();
+                        }
+                        dropEl.style.display = 'none';
+                    });
+                });
+            };
+
+            inp.addEventListener('focus', () => renderArmorMatches(inp.value));
+            inp.addEventListener('input', () => renderArmorMatches(inp.value));
+            inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+        });
+
+        overlay.querySelectorAll('.bst-armor-calc-trigger').forEach(el => {
+            el.addEventListener('input', calculateArmorClass);
+            el.addEventListener('change', calculateArmorClass);
+        });
+
+        calculateArmorClass();
+
+
 
     },
 
