@@ -1621,7 +1621,1008 @@ export const PF2E_BACKGROUNDS = [
         boosts: ['dex', 'cha'],
         feat: 'Завораживающее выступление',
         source: 'Путеводитель'
+    },
+    {
+        id: 'bg_belkzen_anthropologist',
+        name: '🧌 Белкзенский этнограф (Belkzen Anthropologist)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (пантеон орков)',
+        boosts: ['dex', 'int'],
+        feat: 'Дополнительные знания',
+        source: 'Триумф бивня. Руководство игрока'
+    },
+    {
+        id: 'bg_foreign_diplomat',
+        name: '🤝 Дипломат-чужеземец (Foreign Diplomat)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (геральдика)',
+        boosts: ['con', 'cha'],
+        feat: 'Групповое впечатление',
+        source: 'Триумф бивня. Руководство игрока'
+    },
+    {
+        id: 'bg_badlands_scout',
+        name: '⛰️ Знаток пустоши (Badlands Scout)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (пустоши)',
+        boosts: ['con', 'wis'],
+        feat: 'Собиратель',
+        source: 'Триумф бивня. Руководство игрока'
+    },
+    {
+        id: 'bg_self_made',
+        name: '✊ Сам себе голова (Self-Made)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (профессия)',
+        boosts: ['str', 'wis'],
+        feat: 'Дюжий носильщик',
+        source: 'Триумф бивня. Руководство игрока'
+    },
+    {
+        id: 'bg_empty_hand_loyalist',
+        name: '🫱 Сторонник пустой руки (Empty Hand Loyalist)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (Белкзен)',
+        boosts: ['str', 'cha'],
+        feat: 'Быстрая угроза',
+        source: 'Триумф бивня. Руководство игрока'
+    },
+    {
+        id: 'bg_trade_representative',
+        name: '💼 Торговый представитель (Trade Representative)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (торговля)',
+        boosts: ['dex', 'int'],
+        feat: 'Быстрая починка',
+        source: 'Триумф бивня. Руководство игрока'
+    },
+    {
+        id: 'bg_refugee_fop',
+        name: '🏃 Беглец (Refugee - FoP)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (охота)',
+        boosts: ['con', 'wis'],
+        feat: 'Собиратель',
+        source: 'Падение чумного камня'
+    },
+    {
+        id: 'bg_bibliophile',
+        name: '📚 Библиофил (Bibliophile)',
+        skill: 'arcana',
+        skillName: 'Мистицизм',
+        lore: 'Знание (библиотеки)',
+        boosts: ['int', 'cha'],
+        feat: 'Мистическое Чутьё',
+        source: 'Зловещие катакомбы'
+    },
+    {
+        id: 'bg_brevic_noble',
+        name: '🏰 Благородный из бревоя (Brevic Noble)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (архитектура)',
+        boosts: ['con', 'wis'],
+        feat: 'Ремесленник-специалист',
+        source: 'Серия приключений Kingmaker'
+    },
+    {
+        id: 'bg_brevic_outcast',
+        name: '🏹 Бревойский изгой (Brevic Outcast)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (политика)',
+        boosts: ['con', 'cha'],
+        feat: 'Горделивое Упрямство',
+        source: 'Серия приключений Kingmaker'
+    },
+    {
+        id: 'bg_teamster',
+        name: '🐎 Возница (Teamster)',
+        skill: 'nature',
+        skillName: 'Природа',
+        lore: 'Знание (торговля)',
+        boosts: ['str', 'wis'],
+        feat: 'Дрессировка Животного',
+        source: 'Падение чумного камня'
+    },
+    {
+        id: 'bg_fogfen_tale_teller',
+        name: '🐊 Выдумщик с болота (Fogfen Tale-Teller)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (болота)',
+        boosts: ['str', 'cha'],
+        feat: 'Борец С Титанами',
+        source: 'Зловещие катакомбы'
+    },
+    {
+        id: 'bg_friendly_darkmoon_kobold',
+        name: '🦎 Дружелюбный кобольд (Friendly Darkmoon Kobold)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (кобольды)',
+        boosts: ['wis', 'cha'],
+        feat: 'Групповое Впечатление',
+        source: 'Корона короля кобольдов'
+    },
+    {
+        id: 'bg_starwatcher',
+        name: '🌌 Звездочёт (Starwatcher)',
+        skill: 'occultism',
+        skillName: 'Оккультизм',
+        lore: 'Знание (астрология)',
+        boosts: ['con', 'int'],
+        feat: 'Сомнительные Знания',
+        source: 'Зловещие катакомбы'
+    },
+    {
+        id: 'bg_eldritch_anatomist',
+        name: '🧬 Зловещий препаратор (Eldritch Anatomist)',
+        skill: 'medicine',
+        skillName: 'Медицина',
+        lore: 'Знание (искажённые)',
+        boosts: ['int', 'wis'],
+        feat: 'Уверенность',
+        source: 'Зловещие катакомбы'
+    },
+    {
+        id: 'bg_witchlight_follower',
+        name: '🕯️ Искатель ведьмовских огней (Witchlight Follower)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (огоньки)',
+        boosts: ['dex', 'wis'],
+        feat: 'Знаток Местности',
+        source: 'Зловещие катакомбы'
+    },
+    {
+        id: 'bg_issian_patriot',
+        name: '🛡️ Иссийский патриот (Issian Patriot)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (закон)',
+        boosts: ['dex', 'int'],
+        feat: 'Бывалый',
+        source: 'Серия приключений Kingmaker'
+    },
+    {
+        id: 'bg_ruin_delver',
+        name: '🧗 Исследователь руин (Ruin Delver)',
+        skill: 'acrobatics',
+        skillName: 'Акробатика',
+        lore: 'Знание (Стражи Розы)',
+        boosts: ['dex', 'int'],
+        feat: 'Кошачье Приземление',
+        source: 'Зловещие катакомбы'
+    },
+    {
+        id: 'bg_hookclaw_digger',
+        name: '⛏️ Копатель Кривых Когтей (Hookclaw Digger)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (горное дело / инженерное дело)',
+        boosts: ['str', 'cha'],
+        feat: 'Импровизированный Инструмент',
+        source: 'Маленький переполох в большом Авессаломе'
+    },
+    {
+        id: 'bg_local_brigand',
+        name: '🥷 Местный разбойник (Local Brigand)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (разбой)',
+        boosts: ['str', 'con'],
+        feat: 'Групповая Угроза',
+        source: 'Серия приключений Kingmaker'
+    },
+    {
+        id: 'bg_missionary',
+        name: '⛪ Миссионер (Missionary)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (каллиграфия)',
+        boosts: ['con', 'wis'],
+        feat: 'Групповое Впечатление',
+        source: 'Падение чумного камня'
+    },
+    {
+        id: 'bg_lesser_scion',
+        name: '📜 Младший наследник (Lesser Scion)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (геральдика)',
+        boosts: ['dex', 'int'],
+        feat: 'Неформальное Общение',
+        source: 'Падение чумного камня'
+    },
+    {
+        id: 'bg_sword_scion',
+        name: '⚔️ Наследник клинка (Sword Scion)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (военное дело)',
+        boosts: ['dex', 'cha'],
+        feat: 'Ремесленник-специалист',
+        source: 'Серия приключений Kingmaker'
+    },
+    {
+        id: 'bg_borderlands_pioneer',
+        name: '🌲 Первопроходец пограничья (Borderlands Pioneer)',
+        skill: 'nature',
+        skillName: 'Природа',
+        lore: 'Знание дикой местности',
+        boosts: ['str', 'wis'],
+        feat: 'Дрессировка Животного',
+        source: 'Серия приключений Kingmaker'
+    },
+    {
+        id: 'bg_lost_and_alone',
+        name: '🏚️ Потерянный и одинокий (Lost and Alone)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (военное дело)',
+        boosts: ['str', 'cha'],
+        feat: 'Устрашающий Взгляд',
+        source: 'Падение чумного камня'
+    },
+    {
+        id: 'bg_rostlander',
+        name: '🚜 Ростландец (Rostlander)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (фермерство)',
+        boosts: ['str', 'con'],
+        feat: 'Дюжий Носильщик',
+        source: 'Серия приключений Kingmaker'
+    },
+    {
+        id: 'bg_market_runner',
+        name: '✉️ Рыночный посыльный (Market Runner)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (Отари)',
+        boosts: ['con', 'cha'],
+        feat: 'Неформальное Общение',
+        source: 'Зловещие катакомбы'
+    },
+    {
+        id: 'bg_bellflower_agent',
+        name: '🌹 Агент Колокольчика (Bellflower Agent)',
+        skill: 'stealth',
+        skillName: 'Скрытность',
+        lore: 'Знание (преступный мир)',
+        boosts: ['dex', 'cha'],
+        feat: 'Опытный Контрабандист',
+        source: 'Путеводитель по миру • Старая Челия'
+    },
+    {
+        id: 'bg_magaambya_academic',
+        name: '📜 Академик Магаамбии (Magaambya Academic)',
+        skill: 'nature', // Или Мистицизм (по умолчанию вешаем Природу)
+        skillName: 'Природа / Мистицизм',
+        lore: 'Знание (академические науки)',
+        boosts: ['int', 'cha'],
+        feat: 'Опознание Заклинания',
+        source: 'Путеводитель по миру • Просторы Мванги'
+    },
+    {
+        id: 'bg_alkenstar_tinker',
+        name: '⚙️ Алькенстарский механик (Alkenstar Tinker)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (инженерия)',
+        boosts: ['dex', 'int'],
+        feat: 'Алхимическое Ремесло',
+        source: 'Путеводитель по миру • Невозможные земли'
+    },
+    {
+        id: 'bg_atteran_rancher',
+        name: '🐎 Аттеранский коневод (Atteran Rancher)',
+        skill: 'nature',
+        skillName: 'Природа',
+        lore: 'Знание (животные)',
+        boosts: ['str', 'dex'],
+        feat: 'Дрессировка Животного',
+        source: 'Путеводитель по миру • Старая Челия'
+    },
+    {
+        id: 'bg_mana_wastes_refugee',
+        name: '🌪️ Беженец из Пустошей Маны (Mana Wastes Refugee)',
+        skill: 'arcana',
+        skillName: 'Мистицизм',
+        lore: 'Знание (дикая природа)',
+        boosts: ['con', 'int'],
+        feat: 'Обман Магического Предмета',
+        source: 'Путеводитель по миру • Невозможные земли'
+    },
+    {
+        id: 'bg_bekyar_restorer',
+        name: '👺 Бекьярский восстановитель (Bekyar Restorer)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (Бездна)',
+        boosts: ['wis', 'cha'],
+        feat: 'Групповое Впечатление',
+        source: 'Путеводитель по миру • Просторы Мванги'
+    },
+    {
+        id: 'bg_geb_crusader',
+        name: '🛡️ Борец с Гебом (Geb Crusader)',
+        skill: 'religion',
+        skillName: 'Религия',
+        lore: 'Знание (нежить)',
+        boosts: ['con', 'wis'],
+        feat: 'Знаток Канонов',
+        source: 'Путеводитель по миру • Невозможные земли'
+    },
+    {
+        id: 'bg_grand_council_bureaucrat',
+        name: '🏛️ Бюрократ Большого совета (Grand Council Bureaucrat)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (правительство)',
+        boosts: ['int', 'cha'],
+        feat: 'Групповое Впечатление',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_varisian_wanderer',
+        name: '⛺ Варисийский Скиталец (Varisian Wanderer)',
+        skill: 'performance',
+        skillName: 'Исполнение',
+        lore: 'Знание (цирк)',
+        boosts: ['dex', 'cha'],
+        feat: 'Завораживающее Выступление',
+        source: 'Путеводитель по миру • Земли Сказаний'
+    },
+    {
+        id: 'bg_razmiran_faithful',
+        name: '🎭 Верующий Размирана (Razmiran Faithful)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (Размир)',
+        boosts: ['str', 'cha'],
+        feat: 'Групповая Угроза',
+        source: 'Путеводитель по миру • Расколотые земли'
+    },
+    {
+        id: 'bg_vidrian_reformer',
+        name: '🤝 Видрианский реформатор (Vidrian Reformer)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (политика)',
+        boosts: ['dex', 'cha'],
+        feat: 'Неформальное Общение',
+        source: 'Путеводитель по миру • Просторы Мванги'
+    },
+    {
+        id: 'bg_sarkorian_reclaimer',
+        name: '⚔️ Восстановитель Саркориса (Sarkorian Reclaimer)',
+        skill: 'medicine',
+        skillName: 'Медицина',
+        lore: 'Знание (Бездна)',
+        boosts: ['con', 'wis'],
+        feat: 'Медицина В Бою',
+        source: 'Путеводитель по миру • Расколотые земли'
+    },
+    {
+        id: 'bg_lastwall_survivor',
+        name: '🛡️ Выживший Последнего Оплота (Lastwall Survivor)',
+        skill: 'medicine',
+        skillName: 'Медицина',
+        lore: 'Знание (нежить)',
+        boosts: ['con', 'wis'],
+        feat: 'Медицина В Бою',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_sarkorian_survivor',
+        name: '⛺ Выживший Саркориса (Sarkorian Survivor)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (история Саркориса)',
+        boosts: ['str', 'con'],
+        feat: 'Собиратель',
+        source: 'Путеводитель по миру • Расколотые земли'
+    },
+    {
+        id: 'bg_mammoth_speaker',
+        name: '🦣 Говорящий с мамонтами (Mammoth Speaker)',
+        skill: 'nature',
+        skillName: 'Природа',
+        lore: 'Знание (животные)',
+        boosts: ['con', 'wis'],
+        feat: 'Дрессировка Животного',
+        source: 'Путеводитель по миру • Земли Сказаний'
+    },
+    {
+        id: 'bg_wonder_taster',
+        name: '🧪 Дегустатор Чудес (Wonder Taster)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (алхимия)',
+        boosts: ['con', 'int'],
+        feat: 'Алхимическое Ремесло',
+        source: 'Путеводитель по миру • Расколотые земли'
+    },
+    {
+        id: 'bg_diobel_pearl_diver',
+        name: '⚓ Диобельский ловец жемчуга (Diobel Pearl Diver)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (океан)',
+        boosts: ['dex', 'con'],
+        feat: 'Подводный Мародёр',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_child_of_westcrown',
+        name: '🏰 Дитя Весткрауна (Child of Westcrown)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (Весткраун)',
+        boosts: ['str', 'cha'],
+        feat: 'Групповое Впечатление',
+        source: 'Путеводитель по миру • Старая Челия'
+    },
+    {
+        id: 'bg_winters_child',
+        name: '❄️ Дитя зимы (Winter\'s Child)',
+        skill: 'arcana',
+        skillName: 'Мистицизм',
+        lore: 'Знание (погода)',
+        boosts: ['con', 'cha'],
+        feat: 'Мистическое Чутьё',
+        source: 'Путеводитель по миру • Земли Сказаний'
+    },
+    {
+        id: 'bg_child_of_the_puddles',
+        name: '🏚️ Дитя Луж (Child of the Puddles)',
+        skill: 'acrobatics',
+        skillName: 'Акробатика',
+        lore: 'Знание (Авессалом)',
+        boosts: ['ash', 'dex'],
+        feat: 'Устойчивое Равновесие',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_quick',
+        name: '🏃 Живчик (Quick)',
+        skill: 'deception',
+        skillName: 'Обман',
+        lore: 'Знание (нежить)',
+        boosts: ['con', 'cha'],
+        feat: 'Обаятельный Лжец',
+        source: 'Путеводитель по миру • Невозможные земли'
+    },
+    {
+        id: 'bg_hermean_expatriate',
+        name: '🐉 Изгнанный из Эрмеи (Hermean Expatriate)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (драконы)',
+        boosts: ['int', 'cha'],
+        feat: 'Обучение Навыку',
+        source: 'Путеводитель по миру • Морские Просторы'
+    },
+    {
+        id: 'bg_issian_partisan_lowg',
+        name: '🕵️ Иссийский партизан (Issian Partisan)',
+        skill: 'deception',
+        skillName: 'Обман',
+        lore: 'Знание (преступный мир)',
+        boosts: ['int', 'cha'],
+        feat: 'Обаятельный Лжец',
+        source: 'Путеводитель по миру • Расколотые земли'
+    },
+    {
+        id: 'bg_scholar_of_the_ancients',
+        name: '📚 Исследователь древних (Scholar of the Ancients)',
+        skill: 'arcana',
+        skillName: 'Мистицизм',
+        lore: 'Знание (Ацлант)',
+        boosts: ['int', 'cha'],
+        feat: 'Быстрое Опознание Магии',
+        source: 'Путеводитель по миру • Морские Просторы'
+    },
+    {
+        id: 'bg_shory_seeker',
+        name: '⚡ Исследователь Шори (Shory Seeker)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (Шори)',
+        boosts: ['dex', 'int'],
+        feat: 'Ремесленник-Специалист',
+        source: 'Путеводитель по миру • Просторы Мванги'
+    },
+    {
+        id: 'bg_perfection_seeker',
+        name: '🥋 Ищущий Совершенства (Perfection Seeker)',
+        skill: 'acrobatics',
+        skillName: 'Акробатика',
+        lore: 'Знание (военное дело)',
+        boosts: ['dex', 'wis'],
+        feat: 'Кошачье Приземление',
+        source: 'Путеводитель по миру • Невозможные земли'
+    },
+    {
+        id: 'bg_black_market_smuggler',
+        name: '⚖️ Контрабандист чёрного рынка (Black Market Smuggler)',
+        skill: 'stealth',
+        skillName: 'Скрытность',
+        lore: 'Знание (преступный мир)',
+        boosts: ['dex', 'cha'],
+        feat: 'Опытный Контрабандист',
+        source: 'Путеводитель по миру • Золотой путь'
+    },
+    {
+        id: 'bg_thrune_loyalist',
+        name: '😈 Лоялист Трун (Thrune Loyalist)',
+        skill: 'religion',
+        skillName: 'Религия',
+        lore: 'Знание (Преисподняя)',
+        boosts: ['int', 'cha'],
+        feat: 'Знаток Канонов',
+        source: 'Путеводитель по миру • Старая Челия'
+    },
+    {
+        id: 'bg_undersea_enthusiast',
+        name: '🌊 Любитель подводного мира (Undersea Enthusiast)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (океан)',
+        boosts: ['str', 'con'],
+        feat: 'Подводный Мародёр',
+        source: 'Путеводитель по миру • Морские Просторы'
+    },
+    {
+        id: 'bg_merabite_prodigy',
+        name: '⚗️ Мерабский талант (Merabite Prodigy)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (алхимия)',
+        boosts: ['dex', 'int'],
+        feat: 'Ремесленник-Специалист',
+        source: 'Путеводитель по миру • Золотой путь'
+    },
+    {
+        id: 'bg_wildwood_local',
+        name: '🌲 Местный из Диколесья (Wildwood Local)',
+        skill: 'nature',
+        skillName: 'Природа',
+        lore: 'Знание (лес)',
+        boosts: ['dex', 'wis'],
+        feat: 'Природная Медицина',
+        source: 'Путеводитель по миру • Сияющие Королевства'
+    },
+    {
+        id: 'bg_aspiring_free_captain',
+        name: '🏴‍☠️ Метящий в Вольные капитаны (Aspiring Free Captain)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (мореплавание)',
+        boosts: ['wis', 'cha'],
+        feat: 'Групповая Угроза',
+        source: 'Путеводитель по миру • Морские Просторы'
+    },
+    {
+        id: 'bg_secular_medic',
+        name: '🩹 Мирской медик (Secular Medic)',
+        skill: 'medicine',
+        skillName: 'Медицина',
+        lore: 'Знание (анатомия)',
+        boosts: ['dex', 'wis'],
+        feat: 'Медицина В Бою',
+        source: 'Путеводитель по миру • Золотой путь'
+    },
+    {
+        id: 'bg_nexian_mystic',
+        name: '🔮 Мистик Некса (Nexian Mystic)',
+        skill: 'arcana',
+        skillName: 'Мистицизм',
+        lore: 'Знание планов',
+        boosts: ['int', 'wis'],
+        feat: 'Мистическое Чутьё',
+        source: 'Путеводитель по миру • Невозможные земли'
+    },
+    {
+        id: 'bg_pathfinder_hopeful',
+        name: '🧭 Многообразующий искатель (Pathfinder Hopeful)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (Общество Искателей)',
+        boosts: ['con', 'int'],
+        feat: 'Дополнительные Знания',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_molthuni_mercenary',
+        name: '⚔️ Молтунский наемник (Molthuni Mercenary)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (наёмничество)',
+        boosts: ['str', 'con'],
+        feat: 'Опытный Профессионал',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_press_ganged_lowg',
+        name: '⚓ Насильно завербованный (Press-Ganged)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (мореплавание)',
+        boosts: ['str', 'wis'],
+        feat: 'Опытный Профессионал',
+        source: 'Путеводитель по миру • Морские Просторы'
+    },
+    {
+        id: 'bg_nirmathi_guerrilla',
+        name: '🥷 Нирмафийский партизан (Nirmathi Guerrilla)',
+        skill: 'stealth',
+        skillName: 'Скрытность',
+        lore: 'Знание (лес)',
+        boosts: ['dex', 'wis'],
+        feat: 'Скрытность На Местности',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_shoanti_name_bearer',
+        name: '🪓 Носитель имени Шоанти (Shoanti Name-Bearer)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (куахи)',
+        boosts: ['str', 'wis'],
+        feat: 'Лазание В Бою',
+        source: 'Путеводитель по миру • Земли Сказаний'
+    },
+    {
+        id: 'bg_witch_wary',
+        name: '🧙 Опасающийся ведьм (Witch Wary)',
+        skill: 'occultism',
+        skillName: 'Оккультизм',
+        lore: 'Знание (проклятия)',
+        boosts: ['dex', 'int'],
+        feat: 'Опознание Странностей',
+        source: 'Путеводитель по миру • Земли Сказаний'
+    },
+    {
+        id: 'bg_freed_slave_of_absalom',
+        name: '⛓️ Освобожденный раб из Авессалома (Freed Slave of Absalom)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (Авессалом)',
+        boosts: ['con', 'int'],
+        feat: 'Бывалый',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_osirionologist',
+        name: '🏛️ Осирионолог (Osirionologist)',
+        skill: 'occultism',
+        skillName: 'Оккультизм',
+        lore: 'Знание (Древний Осирион)',
+        boosts: ['con', 'int'],
+        feat: 'Опознание Странностей',
+        source: 'Путеводитель по миру • Золотой путь'
+    },
+    {
+        id: 'bg_bonuwat_wavetouched',
+        name: '🌊 Отмеченный волной бонуват (Bonuwat Wavetouched)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (океан)',
+        boosts: ['str', 'wis'],
+        feat: 'Подводный Мародёр',
+        source: 'Путеводитель по миру • Просторы Мванги'
+    },
+    {
+        id: 'bg_final_blade_survivor',
+        name: '🪓 Переживший Универсальную бритву (Final Blade Survivor)',
+        skill: 'deception',
+        skillName: 'Обман',
+        lore: 'Знание (революции)',
+        boosts: ['wis', 'cha'],
+        feat: 'Обаятельный Лжец',
+        source: 'Путеводитель по миру • Сияющие Королевства'
+    },
+    {
+        id: 'bg_storm_survivor',
+        name: '⚡ Переживший Шторм (Storm Survivor)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (погода)',
+        boosts: ['str', 'wis'],
+        feat: 'Собиратель',
+        source: 'Путеводитель по миру • Морские Просторы'
+    },
+    {
+        id: 'bg_trade_consortium_underling',
+        name: '💼 Подчинённый консорциума (Trade Consortium Underling)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (сделки)',
+        boosts: ['int', 'wis'],
+        feat: 'Опытный Профессионал',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_kyonin_emissary',
+        name: '🤝 Посланник Кионина (Kyonin Emissary)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (политика)',
+        boosts: ['int', 'cha'],
+        feat: 'Обучение Языкам',
+        source: 'Путеводитель по миру • Сияющие Королевства'
+    },
+    {
+        id: 'bg_kalistrade_follower',
+        name: '🪙 Последователь Калистрада (Kalistrade Follower)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (Калистрад)',
+        boosts: ['int', 'id'],
+        feat: 'Перекупщик',
+        source: 'Путеводитель по миру • Сияющие Королевства'
+    },
+    {
+        id: 'bg_rivethun_adherent',
+        name: '🧠 Последователь Риветуна (Rivethun Adherent)',
+        skill: 'occultism',
+        skillName: 'Оккультизм',
+        lore: 'Знание (Духи)',
+        boosts: ['con', 'wis'],
+        feat: 'Опознание Заклинания',
+        source: 'Путеводитель по миру • Сияющие Королевства'
+    },
+    {
+        id: 'bg_mantis_scion',
+        name: '🩸 Потомок Богомола (Mantis Scion)',
+        skill: 'stealth',
+        skillName: 'Скрытность',
+        lore: 'Знание (ассасины)',
+        boosts: ['dex', 'wis'],
+        feat: 'Уверенность',
+        source: 'Путеводитель по миру • Морские Просторы'
+    },
+    {
+        id: 'bg_whispering_way_scion',
+        name: '🪦 Потомок Пути Шёпота (Whispering Way Scion)',
+        skill: 'religion',
+        skillName: 'Религия',
+        lore: 'Знание (нежить)',
+        boosts: ['int', 'wis'],
+        feat: 'Знаток Канонов',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_shadow_haunted',
+        name: '👥 Преследуемый тенью (Shadow Haunted)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (Теневой план)',
+        boosts: ['int', 'wis'],
+        feat: 'Быстрая Угроза',
+        source: 'Путеводитель по миру • Старая Челия'
+    },
+    {
+        id: 'bg_aspiring_river_monarch',
+        name: '👑 Претендент на речной престол (Aspiring River Monarch)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (политика)',
+        boosts: ['wis', 'cha'],
+        feat: 'Изящные Манеры',
+        source: 'Путеводитель по миру • Расколотые земли'
+    },
+    {
+        id: 'bg_desert_tracker',
+        name: '🌵 Проводник в пустыне (Desert Tracker)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (пустыня)',
+        boosts: ['con', 'wis'],
+        feat: 'Опытный Ловчий',
+        source: 'Путеводитель по миру • Золотой путь'
+    },
+    {
+        id: 'bg_cursed_family',
+        name: '💀 Проклятая семья (Cursed Family)',
+        skill: 'occultism',
+        skillName: 'Оккультизм',
+        lore: 'Знание (проклятия)',
+        boosts: ['int', 'cha'],
+        feat: 'Опознание Странностей',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_lumber_consortium_laborer',
+        name: '🪓 Рабочий Консорциума Лесорубов (Lumber Consortium Laborer)',
+        skill: 'athletics',
+        skillName: 'Атлетика',
+        lore: 'Знание (лес)',
+        boosts: ['str', 'dex'],
+        feat: 'Уверенность',
+        source: 'Путеводитель по миру • Сияющие Королевства'
+    },
+    {
+        id: 'bg_rostland_partisan',
+        name: '🚩 Ростландский партизан (Rostland Partisan)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (политика)',
+        boosts: ['con', 'cha'],
+        feat: 'Групповое Впечатление',
+        source: 'Путеводитель по миру • Расколотые земли'
+    },
+    {
+        id: 'bg_senghor_sailor',
+        name: '⛵ Сенгорский моряк (Senghor Sailor)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (мореплавание)',
+        boosts: ['int', 'wis'],
+        feat: 'Быстрая Починка',
+        source: 'Путеводитель по миру • Просторы Мванги'
+    },
+    {
+        id: 'bg_goblinblood_orphan',
+        name: '🏚️ Сирота Гоблинских войн (Goblinblood Orphan)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (гоблины)',
+        boosts: ['dex', 'con'],
+        feat: 'Уверенность',
+        source: 'Путеводитель по миру • Старая Челия'
+    },
+    {
+        id: 'bg_sodden_scavenger',
+        name: '🐊 Собиратель из Сырых земель (Sodden Scavenger)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание (болота)',
+        boosts: ['con', 'wis'],
+        feat: 'Собиратель',
+        source: 'Путеводитель по миру • Просторы Мванги'
+    },
+    {
+        id: 'bg_taldan_schemer',
+        name: '🎭 Талдорский интриган (Taldan Schemer)',
+        skill: 'diplomacy',
+        skillName: 'Дипломатия',
+        lore: 'Знание (политика)',
+        boosts: ['con', 'cha'],
+        feat: 'Неформальное Общение',
+        source: 'Путеводитель по миру • Сияющие Королевства'
+    },
+    {
+        id: 'bg_thassilonian_traveler',
+        name: '⏳ Тассилонский путешественник (Thassilonian Traveler)',
+        skill: 'arcana',
+        skillName: 'Мистицизм',
+        lore: 'Знание (Тассилон)',
+        boosts: ['con', 'int'],
+        feat: 'Сомнительные Знания',
+        source: 'Путеводитель по миру • Земли Сказаний'
+    },
+    {
+        id: 'bg_purveyor_of_the_bizarre',
+        name: '🔮 Торговец диковинками (Purveyor of the Bizarre)',
+        skill: 'arcana',
+        skillName: 'Мистицизм',
+        lore: 'Знание (торговля)',
+        boosts: ['int', 'wis'],
+        feat: 'Быстрое Опознание Магии',
+        source: 'Путеводитель по миру • Золотой путь'
+    },
+    {
+        id: 'bg_onyx_trader',
+        name: '🪙 Торговец Оникса (Onyx Trader)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (торговля)',
+        boosts: ['dex', 'cha'],
+        feat: 'Обучение Языкам',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_thuvian_unifier',
+        name: '🤝 Тувийский объединитель (Thuvian Unifier)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (политика)',
+        boosts: ['str', 'cha'],
+        feat: 'Быстрая Угроза',
+        source: 'Путеводитель по миру • Золотой путь'
+    },
+    {
+        id: 'bg_belkzen_slayer',
+        name: '🪓 Убийца из Белкзена (Belkzen Slayer)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (орки)',
+        boosts: ['str', 'cha'],
+        feat: 'Устрашающий Взгляд',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_menagerie_dung_sweeper',
+        name: '🧹 Уборщик зверинца (Menagerie Dung Sweeper)',
+        skill: 'nature',
+        skillName: 'Природа',
+        lore: 'Знание (животные)',
+        boosts: ['con', 'wis'],
+        feat: 'Дрессировка Животного',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_ulfen_raider',
+        name: '🪓 Ульфенский налётчик (Ulfen Raider)',
+        skill: 'intimidation',
+        skillName: 'Запугивание',
+        lore: 'Знание (мореплавание)',
+        boosts: ['str', 'cha'],
+        feat: 'Устрашающий Взгляд',
+        source: 'Путеводитель по миру • Земли Сказаний'
+    },
+    {
+        id: 'bg_inlander',
+        name: '⛰️ Уроженец (Inlander)',
+        skill: 'survival',
+        skillName: 'Выживание',
+        lore: 'Знание местности',
+        boosts: ['con', 'wis'],
+        feat: 'Наблюдение За Дикой Природой',
+        source: 'Путеводитель по миру • Авессалом'
+    },
+    {
+        id: 'bg_ustalavic_academic',
+        name: '🎓 Усталавский академик (Ustalavic Academic)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (академические науки)',
+        boosts: ['int', 'wis'],
+        feat: 'Обучение Навыку',
+        source: 'Путеводитель по миру • Око Ужаса'
+    },
+    {
+        id: 'bg_chelish_rebel',
+        name: '🚩 Челийский мятежник (Chelish Rebel)',
+        skill: 'society',
+        skillName: 'Общество',
+        lore: 'Знание (Кинтарго)',
+        boosts: ['dex', 'cha'],
+        feat: 'Бывалый',
+        source: 'Путеводитель по миру • Старая Челия'
+    },
+    {
+        id: 'bg_oenopion_ooze_tender',
+        name: '🧪 Энопионский надсмотрщик за жижами (Oenopion Ooze-Tender)',
+        skill: 'crafting',
+        skillName: 'Ремесло',
+        lore: 'Знание (жижи)',
+        boosts: ['con', 'int'],
+        feat: 'Сомнительные Знания',
+        source: 'Путеводитель по миру • Невозможные земли'
+    },
+    {
+        id: 'bg_bright_lion',
+        name: '🦁 Яркий Лев (Bright Lion)',
+        skill: 'deception',
+        skillName: 'Обман',
+        lore: 'Знание (Мзали)',
+        boosts: ['str', 'cha'],
+        feat: 'Обманщик',
+        source: 'Путеводитель по миру • Просторы Мванги'
     }
+
 ];
 
 // Экспортируемая вспомогательная функция поиска по каталогу происхождений
