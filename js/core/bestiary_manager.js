@@ -1791,12 +1791,17 @@ const BestiaryManager = {
                 const renderBgMatches = (query) => {
                     const list = searchBackgroundsCatalog(query);
                     if (!list.length) { dropEl.style.display = 'none'; return; }
+
                     dropEl.innerHTML = list.map(b => `
-                        <div class="bst-cantrip-opt" data-bg-id="${b.id}" style="padding: 6px; cursor: pointer;">
-                            <div class="bst-cantrip-opt-top"><b>${b.name}</b></div>
-                            <div class="bst-cantrip-opt-trad" style="font-size: 11px;">${b.desc ?? ''} <br><span style="color:#74b9ff;">✨ Черта: ${b.feat}</span></div>
-                        </div>
-                    `).join('');
+    <div class="bst-cantrip-opt" data-bg-id="${b.id}" style="padding: 6px; cursor: pointer;">
+        <div class="bst-cantrip-opt-top"><b>${b.name}</b></div>
+        <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; color: #ebd291; margin-top: 2px;">
+            ${b.desc || ''}<br>
+            <span style="color:#74b9ff; font-weight: bold;">✨ Бонусная черта навыка: ${b.feat}</span>
+        </div>
+    </div>
+`).join('');
+
 
                     const rect = inp.getBoundingClientRect();
                     dropEl.style.position = 'fixed';
