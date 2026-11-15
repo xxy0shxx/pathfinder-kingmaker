@@ -198,6 +198,11 @@ const BestiaryManager = {
             skillOtherNotes: '',
             equipmentText: '',
             cantripsPrepared: '',
+            cantrip1Name: '', cantrip1Actions: '', cantrip1Notes: '',
+            cantrip2Name: '', cantrip2Actions: '', cantrip2Notes: '',
+            cantrip3Name: '', cantrip3Actions: '', cantrip3Notes: '',
+            cantrip4Name: '', cantrip4Actions: '', cantrip4Notes: '',
+            cantrip5Name: '', cantrip5Actions: '', cantrip5Notes: '',
             lvl1Prepared: '',
             lvl2Prepared: '',
             spellbookText: '',
@@ -367,6 +372,7 @@ const BestiaryManager = {
         const txtArea = (key, rows = 4, placeholder = '') =>
             `<textarea data-sheet-txt="${key}" class="k-inp bst-area-inp" rows="${rows}" placeholder="${placeholder}">${String(stats[key] ?? '')}</textarea>`;
 
+
         const collectFormData = (overlayEl) => {
             overlayEl.querySelectorAll('[data-sheet-num]').forEach(inp => {
                 const k = inp.dataset.sheetNum;
@@ -377,7 +383,33 @@ const BestiaryManager = {
                 const k = inp.dataset.sheetTxt;
                 hero.stats[k] = inp.value;
             });
+
+            // Синхронизируем полные ключи бланка с короткими ключами трекера инициативы
+            const syncMap = {
+                perc: 'perception',
+                fort: 'fortitude',
+                ref: 'reflex',
+                acro: 'acrobatics',
+                athl: 'athletics',
+                stea: 'stealth',
+                surv: 'survival',
+                medi: 'medicine',
+                inti: 'intimidation',
+                dece: 'deception',
+                dipl: 'diplomacy',
+                arca: 'arcana',
+                natu: 'nature',
+                occu: 'occultism',
+                reli: 'religion'
+            };
+
+            Object.entries(syncMap).forEach(([shortKey, fullKey]) => {
+                if (hero.stats[fullKey] !== undefined) {
+                    hero.stats[shortKey] = hero.stats[fullKey];
+                }
+            });
         };
+
 
         const page1Html = `
             <div class="bst-sheet-top-bar">
@@ -496,6 +528,21 @@ const BestiaryManager = {
                 </div>
             </div>
         `;
+
+        if (stats.cantripsPrepared && !stats.cantrip1Name && !stats.cantrip1Notes) {
+            stats.cantrip1Name = stats.cantripsPrepared;
+            stats.cantripsPrepared = '';
+        }
+
+        const cantripsRowsHtml = [1, 2, 3, 4, 5].map(idx => `
+            <tr>
+                <td class="bst-cantrip-num">${idx}</td>
+                <td>${txtInp(`cantrip${idx}Name`, 'Название фокуса...')}</td>
+                <td>${txtInp(`cantrip${idx}Actions`, '◆ / 30 фт.')}</td>
+                <td>${txtInp(`cantrip${idx}Notes`, 'Урон, спасбросок, эффект...')}</td>
+            </tr>
+        `).join('');
+
         const page2Html = `
             <div class="bst-sheet-page2-grid">
                 <div class="bst-sheet-col">
@@ -516,13 +563,27 @@ const BestiaryManager = {
                             <label>🔮 СЛ заклинаний: ${numInp('spellDc', 'bst-mini-num')}</label>
                         </div>
 
+
                         <div class="bst-spell-tier">
                             <div class="bst-spell-tier-head">
-                                <span>✨ Фокусы (подготовлено)</span>
-                                <label>📅 В день: ${numInp('cantripsPerDay', 'bst-tiny-num')}</label>
+                                <span>✨ Фокусы (макс. 5 в день)</span>
+                                <label>📅 Подготовлено: ${numInp('cantripsPerDay', 'bst-tiny-num')}</label>
                             </div>
-                            ${txtArea('cantripsPrepared', 2, 'Список подготовленных фокусов...')}
+                            <table class="k-table bst-cantrips-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 26px; text-align: center;">#</th>
+                                        <th style="width: 34%;">Фокус</th>
+                                        <th style="width: 22%;">Действ. / Дист.</th>
+                                        <th>Эффект / Описание</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${cantripsRowsHtml}
+                                </tbody>
+                            </table>
                         </div>
+
 
                         <div class="bst-spell-tier">
                             <div class="bst-spell-tier-head">

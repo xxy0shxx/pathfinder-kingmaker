@@ -7323,3 +7323,52 @@ canvas[style*="position: fixed"] {
     padding-left: 24px !important;
     padding-right: 24px !important;
 }
+/* ============================================================================
+   ТАБЛИЦА ФОКУСОВ (5 СТРОК) НА 2-Й СТРАНИЦЕ БЛАНКА ПЕРСОНАЖА
+   ============================================================================ */
+.bst-cantrips-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid #543e0d;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bst-cantrips-table th {
+    background: rgba(20, 38, 25, 0.85);
+    color: #ffd875;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 5px 6px;
+    border-bottom: 1px solid #543e0d;
+}
+
+.bst-cantrips-table td {
+    padding: 3px 4px;
+    border-bottom: 1px solid rgba(84, 62, 13, 0.35);
+}
+
+.bst-cantrips-table tr:last-child td {
+    border-bottom: none;
+}
+
+.bst-cantrip-num {
+    text-align: center;
+    font-family: monospace;
+    font-weight: bold;
+    color: #b89445;
+    font-size: 13px;
+}
+
+.bst-cantrips-table input.bst-txt-inp {
+    padding: 3px 6px !important;
+    font-size: 13px !important;
+    border-color: rgba(84, 62, 13, 0.6) !important;
+}
+
+.bst-cantrips-table input.bst-txt-inp:focus {
+    border-color: #ffd875 !important;
+}
