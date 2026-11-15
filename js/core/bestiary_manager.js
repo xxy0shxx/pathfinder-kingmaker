@@ -431,6 +431,7 @@ const BestiaryManager = {
         this._save();
     },
 
+
     openCharacterSheetModal(heroId, pageNum = 1) {
         const hero = this.state.party.find(x => x.id === heroId)
             || (this.state.inactive || []).find(x => x.id === heroId)
@@ -735,6 +736,8 @@ const BestiaryManager = {
             stats.equipmentText = '';
         }
 
+
+
         const itemsRowsHtml = Array.from({ length: 15 }, (_, i) => i + 1).map(idx => `
             <tr>
                 <td class="bst-cantrip-num">${idx}</td>
@@ -749,11 +752,23 @@ const BestiaryManager = {
                     <div class="bst-cantrip-dropdown" data-item-drop="${idx}" style="display: none;"></div>
                 </td>
                 <td style="text-align: center;">
-                    ${numInp(`item${idx}Qty`, 'bst-tiny-num')}
+                    <div class="bst-qty-stepper" style="display: inline-flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: center !important; gap: 4px !important; width: 110px !important; min-width: 110px !important;">
+                        <button type="button" class="bst-qty-btn" data-qty-delta="-1" title="Уменьшить на 1" style="width: 26px !important; height: 26px !important; flex-shrink: 0 !important; cursor: pointer !important; padding: 0 !important; line-height: 24px !important; display: inline-block !important; vertical-align: middle !important; background: linear-gradient(to bottom, #42351f 0%, #292011 100%) !important; border: 1px solid #543e0d !important; color: #ebd291 !important; border-radius: 4px !important; font-weight: bold !important; box-shadow: inset 1px 1px 0px rgba(138, 100, 33, 0.4) !important;">−</button>
+                        <input type="number"
+                               data-sheet-num="item${idx}Qty"
+                               class="k-inp bst-tiny-num bst-qty-inp"
+                               min="0"
+                               value="${stats[`item${idx}Qty`] ?? 1}"
+                               style="width: 40px !important; min-width: 40px !important; text-align: center !important; margin: 0 2px !important; padding: 2px !important; flex-shrink: 0 !important; display: inline-block !important; vertical-align: middle !important; -moz-appearance: textfield !important; background: #040905 !important; border: 1px solid #543e0d !important; color: #2ecc71 !important; font-weight: 900 !important;">
+                        <button type="button" class="bst-qty-btn" data-qty-delta="1" title="Увеличить на 1" style="width: 26px !important; height: 26px !important; flex-shrink: 0 !important; cursor: pointer !important; padding: 0 !important; line-height: 24px !important; display: inline-block !important; vertical-align: middle !important; background: linear-gradient(to bottom, #42351f 0%, #292011 100%) !important; border: 1px solid #543e0d !important; color: #ebd291 !important; border-radius: 4px !important; font-weight: bold !important; box-shadow: inset 1px 1px 0px rgba(138, 100, 33, 0.4) !important;">+</button>
+                    </div>
                 </td>
                 <td>${txtInp(`item${idx}Notes`, 'Эффект, вес, заметка...')}</td>
             </tr>
         `).join('');
+
+
+
 
 
 
@@ -863,7 +878,7 @@ const BestiaryManager = {
                                 <tr>
                                     <th style="width: 28px; text-align: center;">#</th>
                                     <th style="width: 36%;">Предмет / Расходник</th>
-                                    <th style="width: 56px; text-align: center;">Кол-во</th>
+                                    <th style="width: 96px; text-align: center;">Кол-во</th>
                                     <th>Эффект / Описание</th>
                                 </tr>
                             </thead>
@@ -1529,6 +1544,31 @@ const BestiaryManager = {
                 inp.addEventListener('blur', () => {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
+            });
+
+            // Кнопки - / + и колесо мыши для количества предметов/расходников
+            overlay.querySelectorAll('.bst-qty-stepper').forEach(stepper => {
+                const qtyInp = stepper.querySelector('.bst-qty-inp');
+                if (!qtyInp) return;
+
+                const changeQty = (delta) => {
+                    const cur = parseInt(qtyInp.value, 10) || 0;
+                    qtyInp.value = Math.max(0, cur + delta);
+                };
+
+                stepper.querySelectorAll('.bst-qty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        changeQty(parseInt(btn.dataset.qtyDelta, 10) || 0);
+                    });
+                });
+
+                qtyInp.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    changeQty(e.deltaY < 0 ? 1 : -1);
+                }, { passive: false });
             });
 
 

@@ -7438,3 +7438,68 @@ canvas[style*="position: fixed"] {
         grid-template-columns: 1fr;
     }
 }
+/* Компактное окошко с кнопками - и + */
+#campingTabletContainer .camp-count-controls {
+    display: inline-flex !important;  /* Принудительно выстраиваем в строку flex */
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;     /* Запрещаем перенос кнопок на новую строку */
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 2px 10px !important;
+    gap: 10px !important;
+    border-width: 1.5px !important;
+    white-space: nowrap !important;   /* Защита от переноса внутри элементов */
+}
+
+#campingTabletContainer .camp-count-controls button {
+    font-size: 22px !important;
+    line-height: 1 !important;
+    padding: 0 4px !important;
+    flex-shrink: 0 !important;        /* Запрещаем кнопкам сжиматься */
+    cursor: pointer;
+}
+
+/* Компактные цифры 2 и 12 (включая плашку СЛ случайной сцены) */
+#campingTabletContainer #campBaseChecksVal,
+#campingTabletContainer #campCheckModVal {
+    font-size: 20px !important;
+    line-height: 1.1 !important;
+    min-width: 28px !important;
+    padding: 2px 8px !important;
+    display: inline-block !important;
+    flex-shrink: 0 !important;
+}
+/* Фикс кнопок - + и инпута в панели Бестиария и Привала */
+.camp-count-controls {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    gap: 6px !important;
+    width: auto !important;
+}
+
+/* Запрещаем перенос и сжатие для внутренних элементов управления */
+.camp-count-controls button,
+.camp-count-controls input,
+.camp-count-controls span {
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin: 0 !important;
+}
+
+/* Специфичный фикс для инпута базовой инициативы */
+.camp-count-controls input[id="bstInputScore"] {
+    width: 50px !important;
+    height: 38px !important; /* Выравниваем по высоте с кнопкой добавления и селектором */
+    box-sizing: border-box !important;
+}
+
+.camp-count-controls button {
+    height: 38px !important;
+    width: 30px !important;
+    cursor: pointer !important;
+}
