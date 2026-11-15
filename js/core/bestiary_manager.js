@@ -11,6 +11,9 @@ import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../config/spells_lvl1_catalo
 import { PF2E_SPELLS_LVL2, searchSpellsLvl2 } from '../config/spells_lvl2_catalog.js';
 
 import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_catalog.js';
+
+import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES } from '../config/companions_catalog.js';
+
 import {
     PF2E_MELEE_WEAPONS,
     searchMeleeWeapons,
@@ -874,6 +877,7 @@ const BestiaryManager = {
 
 
 
+
         const page2Html = `
             <div class="bst-sheet-page2-grid">
                 <div class="bst-sheet-col">
@@ -1003,6 +1007,37 @@ const BestiaryManager = {
                         <div class="k-sec-title">📚 Книга заклинаний / Репертуар</div>
                         ${txtArea('spellbookText', 4, '📖 Все изученные заклинания...')}
                     </div>
+                    
+                    <div class="k-panel" style="margin-top: 10px; background: rgba(16, 28, 20, 0.9); border-color: #2ecc71;">
+                        <div class="k-sec-title" style="color: #2ecc71;">🐾 Спутники (Верный зверь / Фамильяр)</div>
+                        
+                        <div style="display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 6px; margin-bottom: 8px; align-items: center;">
+                            ${txtInp('compName', '📛 Имя спутника / Вид...')}
+                            <label>❤️ Макс. ПЗ: <input type="number" data-sheet-num="compHpMax" class="k-inp bst-mini-num" value="${stats.compHpMax ?? 4}"></label>
+                            <label>🩸 Тек. ПЗ: <input type="number" data-sheet-num="compHpCur" class="k-inp bst-mini-num" value="${stats.compHpCur ?? 4}"></label>
+                            <label>🛡️ КБ (AC): <input type="number" data-sheet-num="compAc" class="k-inp bst-mini-num" value="${stats.compAc ?? 10}"></label>
+                            <label>👟 Скор: <input type="number" data-sheet-num="compSpeed" class="k-inp bst-mini-num" value="${stats.compSpeed ?? 25}"></label>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                            <select data-sheet-txt="compType" class="k-inp bst-comp-type-selector" style="width: auto; font-weight: bold; color: #2ecc71;">
+                                <option value="none" ${stats.compType === 'none' ? 'selected' : ''}>❌ Нет спутника</option>
+                                <option value="companion" ${stats.compType === 'companion' ? 'selected' : ''}>🐅 Верный зверь (Animal Companion)</option>
+                                <option value="familiar" ${stats.compType === 'familiar' ? 'selected' : ''}>🦉 Фамильяр (Familiar)</option>
+                            </select>
+                            
+                            <div style="position: relative; flex-grow: 1;">
+                                <input type="text" data-sheet-txt="compAbilitySearch" class="k-inp bst-comp-ability-picker" autocomplete="off" placeholder="🔍 Быстрый поиск и добавление способностей или специализаций...">
+                                <div class="bst-cantrip-dropdown" data-comp-drop="1" style="display: none; z-index: 10000130; width: 400px;"></div>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.4); padding: 8px; border-radius: 4px; border: 1px solid rgba(46, 204, 113, 0.3);">
+                            <span style="font-size: 11px; color: #a4b0be; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 4px;">📝 Выбранные способности, маневры и специализации:</span>
+                            ${txtArea('compAbilitiesText', 4, 'Здесь отобразятся выбранные из поиска способности (например, "🙌 Возложение рук", "Ловкий", "Смельчак") или особенности питомца...')}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         `;
@@ -1694,6 +1729,67 @@ const BestiaryManager = {
                     btn.addEventListener('click', (e) => { e.preventDefault(); changeQty(parseInt(btn.dataset.qtyDelta, 10) || 0); });
                 });
             });
+
+            // Инициализация поиска и автоподстановки способностей спутников (Страница 2)
+            overlay.querySelectorAll('.bst-comp-ability-picker').forEach(inp => {
+                const dropEl = overlay.querySelector('[data-comp-drop="1"]');
+                const textOutput = overlay.querySelector('[data-sheet-txt="compAbilitiesText"]');
+                const typeSelector = overlay.querySelector('.bst-comp-type-selector');
+
+                const renderCompMatches = (query) => {
+                    const currentType = typeSelector ? typeSelector.value : 'all';
+                    // Фильтруем каталог по типу спутника (верный зверь или фамильяр)
+                    const list = searchCompanionAbilities(query, currentType);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+
+                    dropEl.innerHTML = list.map(a => `
+                        <div class="bst-cantrip-opt" data-ability-id="${a.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${a.name}</b></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; margin-top: 2px; color: #ebd291;">
+                                ${a.desc}
+                            </div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_COMPANION_ABILITIES.find(x => x.id === optEl.dataset.abilityId);
+                            if (found && textOutput) {
+                                // Добавляем способность в текстовое поле, если её там ещё нет
+                                const currentText = textOutput.value.trim();
+                                if (!currentText.includes(found.name)) {
+                                    const separator = currentText ? '\n' : '';
+                                    textOutput.value = currentText + separator + `• ${found.name}: ${found.desc}`;
+                                    hero.stats.compAbilitiesText = textOutput.value;
+                                }
+                                inp.value = ''; // Сбрасываем строку поиска
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderCompMatches(inp.value));
+                inp.addEventListener('input', () => renderCompMatches(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // Слушатель для смены типа спутника: очищает поиск при переключении
+            const typeSel = overlay.querySelector('.bst-comp-type-selector');
+            if (typeSel) {
+                typeSel.addEventListener('change', () => {
+                    const searchInp = overlay.querySelector('.bst-comp-ability-picker');
+                    if (searchInp) searchInp.value = '';
+                });
+            }
+
 
             // Тултипы для Фокусов (Cantrips) на Странице 2
             overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach((tr) => {
