@@ -246,6 +246,44 @@ const BestiaryManager = {
         this._save();
     },
 
+    confirmRemoveHero(groupKey, id) {
+        const list = this._getGroupList(groupKey);
+        const hero = list.find(x => x.id === id);
+        if (!hero) return;
+
+        const locationLabel = groupKey === 'inactive' ? 'резерва' : 'текущего отряда';
+
+        ModalManager.open({
+            id: 'bstConfirmDeleteHeroModal',
+            title: '⚠️ Удаление персонажа',
+            width: '460px',
+            borderColor: '#e74c3c',
+            bodyHtml: `
+                <div style="font-size: 16px; line-height: 1.5; color: #ebd291;">
+                    Вы действительно хотите навсегда удалить героя <b style="color: #ffd875;">${hero.name}</b> из ${locationLabel}?
+                    <div style="margin-top: 8px; font-size: 14px; color: #ff7675;">
+                        Все заполненные характеристики, навыки, снаряжение и заметки в бланке будут потеряны.
+                    </div>
+                </div>
+            `,
+            footerButtons: [
+                {
+                    label: '✖ Отмена',
+                    variant: 'cc'
+                },
+                {
+                    label: '🗑️ Удалить навсегда',
+                    variant: 'del',
+                    onClick: ({ close }) => {
+                        this.removePreset(groupKey, id);
+                        close();
+                    }
+                }
+            ]
+        });
+    },
+
+
     removePreset(groupKey, id) {
         if (groupKey === 'party') {
             this.state.party = this.state.party.filter(x => x.id !== id);
@@ -805,7 +843,11 @@ const BestiaryManager = {
 
             card.querySelector('.init-btn-delete-card').addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.removePreset(groupKey, item.id);
+                if (isHeroGroup) {
+                    this.confirmRemoveHero(groupKey, item.id);
+                } else {
+                    this.removePreset(groupKey, item.id);
+                }
             });
 
             const nameEl = card.querySelector('.init-card-name-text');
