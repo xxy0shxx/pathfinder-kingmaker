@@ -2,7 +2,15 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
-import { PF2E_MELEE_WEAPONS, searchMeleeWeapons, calcMeleeWeaponRoll, getWeaponCritEffect } from '../config/weapons_catalog.js';
+import {
+    PF2E_MELEE_WEAPONS,
+    searchMeleeWeapons,
+    calcMeleeWeaponRoll,
+    PF2E_RANGED_WEAPONS,
+    searchRangedWeapons,
+    calcRangedWeaponRoll,
+    getWeaponCritEffect
+} from '../config/weapons_catalog.js';
 
 
 // Добавьте в начало bestiary_manager.js (после импортов)
@@ -495,6 +503,7 @@ const BestiaryManager = {
                     </div>
 
 
+
                     <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">🗡️ Оружие и Атаки</div>
                         ${['melee1', 'melee2'].map((prefix, idx) => `
@@ -515,7 +524,16 @@ const BestiaryManager = {
                             </div>
                         `).join('')}
                         <div class="bst-weapon-row">
-                            ${txtInp('rangedName', '🏹 Дистанционное')}
+                            <div style="position: relative;">
+                                <input type="text"
+                                       data-sheet-txt="rangedName"
+                                       data-ranged-picker="1"
+                                       class="k-inp bst-txt-inp bst-ranged-picker-inp"
+                                       autocomplete="off"
+                                       placeholder="🏹 Дистанционное (выбор...)"
+                                       value="${esc(stats.rangedName)}">
+                                <div class="bst-cantrip-dropdown" data-ranged-drop="1" style="display: none;"></div>
+                            </div>
                             ${txtInp('rangedAtk', '🎯 Атака (+)')}
                             ${txtInp('rangedDmg', '💥 Урон / Дист.')}
                             ${txtInp('rangedTraits', '🏷️ Дескрипторы')}
@@ -524,6 +542,7 @@ const BestiaryManager = {
                             ${txtInp('weaponProfNotes', '🥋 Умения в оружии (Простое, Особое, Кулак)...')}
                         </div>
                     </div>
+
 
                     
 
@@ -681,14 +700,15 @@ const BestiaryManager = {
             ]
         });
 
+
         if (isPage1) {
+            // 1. Поиск и выбор оружия ближнего боя (melee1, melee2)
             overlay.querySelectorAll('.bst-weapon-picker-inp').forEach(inp => {
                 const slot = inp.dataset.weaponSlot;
                 const dropEl = overlay.querySelector(`[data-weapon-drop="${slot}"]`);
                 const atkInp = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`);
                 const dmgInp = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`);
                 const traitsInp = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`);
-
 
                 const renderWeapons = (query) => {
                     const list = searchMeleeWeapons(query);
@@ -728,7 +748,6 @@ const BestiaryManager = {
                                     dex: parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0
                                 };
                                 const { atkStr, dmgStr } = calcMeleeWeaponRoll(found, liveStats);
-
                                 const critText = getWeaponCritEffect(found.group);
                                 const fullTraits = [
                                     found.traits,
@@ -745,15 +764,132 @@ const BestiaryManager = {
                     });
                 };
 
-
-
                 inp.addEventListener('focus', () => renderWeapons(inp.value));
                 inp.addEventListener('input', () => renderWeapons(inp.value));
                 inp.addEventListener('blur', () => {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             });
+
+            // 2. Поиск и выбор дистанционного оружия (ranged)
+            const rangedInp = overlay.querySelector('.bst-ranged-picker-inp');
+            if (rangedInp) {
+                const dropEl = overlay.querySelector('[data-ranged-drop="1"]');
+                const atkInp = overlay.querySelector('[data-sheet-txt="rangedAtk"]');
+                const dmgInp = overlay.querySelector('[data-sheet-txt="rangedDmg"]');
+                const traitsInp = overlay.querySelector('[data-sheet-txt="rangedTraits"]');
+
+                const renderRanged = (query) => {
+                    const list = searchRangedWeapons(query);
+                    if (!list.length) {
+                        dropEl.style.display = 'none';
+                        return;
+                    }
+                    dropEl.innerHTML = list.map(w => {
+                        const critText = getWeaponCritEffect(w.group);
+                        return `
+                            <div class="bst-cantrip-opt" data-rid="${w.id}">
+                                <div class="bst-cantrip-opt-top">
+                                    <b>${w.name}</b>
+                                    <span>${w.dmgDice} ${w.dmgType} • ${w.range}</span>
+                                </div>
+                                <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}${w.traits ? ' • ' + w.traits : ''}</div>
+                                ${critText ? `<div style="font-size: 11px; color: #ebd291; margin-top: 2px;">💥 <b>Крит (${w.group}):</b> ${critText}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+
+                    const rect = rangedInp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = '360px';
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_RANGED_WEAPONS.find(x => x.id === optEl.dataset.rid);
+                            if (found) {
+                                const liveStats = {
+                                    level: parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || stats.level || 1,
+                                    str: parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0,
+                                    dex: parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0
+                                };
+                                const { atkStr, dmgStr } = calcRangedWeaponRoll(found, liveStats);
+                                const critText = getWeaponCritEffect(found.group);
+                                const fullTraits = [
+                                    found.traits,
+                                    critText ? `Крит: ${critText}` : ''
+                                ].filter(Boolean).join(' | ');
+
+                                rangedInp.value = found.name;
+                                if (atkInp) atkInp.value = atkStr;
+                                if (dmgInp) dmgInp.value = dmgStr;
+                                if (traitsInp) traitsInp.value = fullTraits;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                rangedInp.addEventListener('focus', () => renderRanged(rangedInp.value));
+                rangedInp.addEventListener('input', () => renderRanged(rangedInp.value));
+                rangedInp.addEventListener('blur', () => {
+                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
+                });
+            }
+        } else {
+            // 3. Поиск и выбор фокусов на 2-й странице
+            overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.cantripRow;
+                const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`);
+
+                const renderOptions = (query) => {
+                    const list = searchCantrips(query);
+                    if (!list.length) {
+                        dropEl.style.display = 'none';
+                        return;
+                    }
+                    dropEl.innerHTML = list.map(c => `
+                        <div class="bst-cantrip-opt" data-cid="${c.id}">
+                            <div class="bst-cantrip-opt-top">
+                                <b>${c.name}</b>
+                                <span>${c.actions}</span>
+                            </div>
+                            <div class="bst-cantrip-opt-trad">${c.traditions.join(', ')}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
+                            if (found) {
+                                inp.value = found.name;
+                                if (actInp) actInp.value = found.actions;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderOptions(inp.value));
+                inp.addEventListener('input', () => renderOptions(inp.value));
+                inp.addEventListener('blur', () => {
+                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
+                });
+            });
         }
+
 
 
     },

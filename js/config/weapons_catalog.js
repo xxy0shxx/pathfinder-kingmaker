@@ -58,18 +58,50 @@ export const PF2E_MELEE_WEAPONS = [
     { id: 'spiked_chain', name: 'Шипастая цепь', category: 'Экзотическое', dmgDice: '1d8', dmgType: 'Р', hands: 2, group: 'Цепы', traits: 'Разоружающее, Сбивающее, Фехтовальное', finesse: true }
 ];
 
+export const PF2E_RANGED_WEAPONS = [
+    // --- Простое дистанционное оружие ---
+    { id: 'blowgun', name: 'Духовая трубка', category: 'Простое', dmgDice: '1', dmgType: 'Ко', range: '20 фт.', reload: '1', hands: 1, group: 'Дротики', traits: 'Быстрое, Несмертельное', dmgMode: 'none' },
+    { id: 'crossbow', name: 'Арбалет', category: 'Простое', dmgDice: '1d8', dmgType: 'Ко', range: '120 фт.', reload: '1', hands: 2, group: 'Арбалеты', traits: '', dmgMode: 'none' },
+    { id: 'dart', name: 'Дротик', category: 'Простое', dmgDice: '1d4', dmgType: 'Ко', range: '20 фт.', reload: '—', hands: 1, group: 'Дротики', traits: 'Быстрое, Метательное', dmgMode: 'thrown' },
+    { id: 'hand_crossbow', name: 'Ручной арбалет', category: 'Простое', dmgDice: '1d6', dmgType: 'Ко', range: '60 фт.', reload: '1', hands: 1, group: 'Арбалеты', traits: '', dmgMode: 'none' },
+    { id: 'heavy_crossbow', name: 'Тяжёлый арбалет', category: 'Простое', dmgDice: '1d10', dmgType: 'Ко', range: '120 фт.', reload: '2', hands: 2, group: 'Арбалеты', traits: '', dmgMode: 'none' },
+    { id: 'javelin', name: 'Метательное копьё (Дротик)', category: 'Простое', dmgDice: '1d6', dmgType: 'Ко', range: '30 фт.', reload: '—', hands: 1, group: 'Дротики', traits: 'Метательное', dmgMode: 'thrown' },
+    { id: 'sling', name: 'Праща', category: 'Простое', dmgDice: '1d6', dmgType: 'Д', range: '50 фт.', reload: '1', hands: 1, group: 'Пращи', traits: 'Убойное', dmgMode: 'propulsive' },
+
+    // --- Воинское дистанционное оружие ---
+    { id: 'composite_longbow', name: 'Составной длинный лук', category: 'Воинское', dmgDice: '1d8', dmgType: 'Ко', range: '100 фт.', reload: '0', hands: 1, group: 'Луки', traits: 'Залповое 30 фт., Смертоносное d10, Убойное', dmgMode: 'propulsive' },
+    { id: 'composite_shortbow', name: 'Составной короткий лук', category: 'Воинское', dmgDice: '1d6', dmgType: 'Ко', range: '60 фт.', reload: '0', hands: 1, group: 'Луки', traits: 'Смертоносное d10, Убойное', dmgMode: 'propulsive' },
+    { id: 'halfling_sling_staff', name: 'Праща-посох полуросликов', category: 'Воинское', dmgDice: '1d10', dmgType: 'Д', range: '80 фт.', reload: '1', hands: 2, group: 'Пращи', traits: 'Убойное', dmgMode: 'propulsive' },
+    { id: 'longbow', name: 'Длинный лук', category: 'Воинское', dmgDice: '1d8', dmgType: 'Ко', range: '100 фт.', reload: '0', hands: 1, group: 'Луки', traits: 'Залповое 30 фт., Смертоносное d10', dmgMode: 'none' },
+    { id: 'shortbow', name: 'Короткий лук', category: 'Воинское', dmgDice: '1d6', dmgType: 'Ко', range: '60 фт.', reload: '0', hands: 1, group: 'Луки', traits: 'Смертоносное d10', dmgMode: 'none' },
+    { id: 'shuriken', name: 'Сюрикен', category: 'Воинское', dmgDice: '1d4', dmgType: 'Ко', range: '20 фт.', reload: '0', hands: 1, group: 'Дротики', traits: 'Быстрое, Метательное', dmgMode: 'thrown' },
+
+    // --- Экзотическое дистанционное оружие ---
+    { id: 'bola', name: 'Болас', category: 'Экзотическое', dmgDice: '1d6', dmgType: 'Д', range: '20 фт.', reload: '—', hands: 1, group: 'Пращи', traits: 'Дистанционное сбивающее, Метательное, Несмертельное', dmgMode: 'thrown' },
+    { id: 'chakram', name: 'Чакрам', category: 'Экзотическое', dmgDice: '1d8', dmgType: 'Р', range: '20 фт.', reload: '—', hands: 1, group: 'Ножи', traits: 'Метательное', dmgMode: 'thrown' },
+    { id: 'repeating_crossbow', name: 'Многозарядный арбалет', category: 'Экзотическое', dmgDice: '1d8', dmgType: 'Ко', range: '120 фт.', reload: '0', hands: 2, group: 'Арбалеты', traits: 'Многозарядное', dmgMode: 'none' },
+    { id: 'repeating_hand_crossbow', name: 'Многозарядный ручной арбалет', category: 'Экзотическое', dmgDice: '1d6', dmgType: 'Ко', range: '60 фт.', reload: '0', hands: 1, group: 'Арбалеты', traits: 'Многозарядное', dmgMode: 'none' },
+    { id: 'taw_launcher', name: 'Стреломёт Тау', category: 'Экзотическое', dmgDice: '1d10', dmgType: 'Ко', range: '100 фт.', reload: '1', hands: 2, group: 'Арбалеты', traits: 'Модульное (Д, Ко или Р), Смертоносное d10', dmgMode: 'none' }
+];
+
 /**
  * Критические эффекты специализации групп оружия Pathfinder 2e (перевод pf2.ru)
  */
 export const WEAPON_CRIT_SPECIALIZATIONS = {
+    'Арбалеты': 'Цель получает 1d8 продолжительного урона от кровотечения (+ бонус предмета оружия).',
+    'Бомбы': 'Радиус урона брызгами (если есть) увеличивается до 10 футов.',
     'Древковое': 'Цель перемещается на 5 футов в выбранном направлении (принудительное перемещение).',
+    'Дротики': 'Цель получает 1d6 продолжительного урона от кровотечения (+ бонус предмета оружия).',
     'Дубины': 'Отталкиваете цель от себя на расстояние до 10 футов (принудительное перемещение).',
     'Клевцы': 'Клевец вонзается в цель: +2 дополнительного урона за каждую кость урона оружия.',
     'Копья': 'Копьё пронзает цель: она получает неуклюжесть 1 до начала вашего следующего хода.',
     'Кулачное': 'Спасбросок Стойкости против классовой СЛ или замедление 1 до конца следующего хода.',
+    'Луки': 'Стрела пригвождает цель к поверхности (неподвижность; вытащить: Взаимодействие + Атлетика СЛ 10).',
     'Мечи': 'Цель теряет равновесие и становится застигнутой врасплох до начала вашего следующего хода.',
     'Молоты': 'Спасбросок Стойкости против классовой СЛ или цель распластывается.',
     'Ножи': 'Цель получает 1d6 продолжительного урона кровотечением (+ бонус предмета оружия).',
+    'Огнестрельное': 'Спасбросок Стойкости против классовой СЛ или шок 1.',
+    'Пращи': 'Спасбросок Стойкости против классовой СЛ или шок 1.',
     'Топоры': 'Урон костей оружия (без бонусов) соседнему существу в досягаемости, если его КБ ниже броска атаки.',
     'Цепы': 'Спасбросок Реакции против классовой СЛ или цель распластывается.',
     'Щиты': 'Отталкиваете цель от себя на 5 футов (принудительное перемещение).'
@@ -91,9 +123,17 @@ export function searchMeleeWeapons(query = '') {
     );
 }
 
-/**
- * Авторасчёт строки атаки и урона на основе уровня и характеристик героя (Изучен = Уровень + 2)
- */
+export function searchRangedWeapons(query = '') {
+    const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+    if (!q) return PF2E_RANGED_WEAPONS;
+    return PF2E_RANGED_WEAPONS.filter(w =>
+        w.name.toLowerCase().replace(/ё/g, 'е').includes(q) ||
+        w.category.toLowerCase().includes(q) ||
+        w.group.toLowerCase().includes(q) ||
+        w.traits.toLowerCase().replace(/ё/g, 'е').includes(q)
+    );
+}
+
 export function calcMeleeWeaponRoll(weapon, stats = {}) {
     const lvl = Number(stats.level) || 1;
     const str = Number(stats.str) || 0;
@@ -104,6 +144,30 @@ export function calcMeleeWeaponRoll(weapon, stats = {}) {
     const atkStr = atkBonus >= 0 ? `+${atkBonus}` : `${atkBonus}`;
     const dmgModStr = str > 0 ? `+${str}` : (str < 0 ? `${str}` : '');
     const dmgStr = `${weapon.dmgDice}${dmgModStr} (${weapon.dmgType})`;
+
+    return { atkStr, dmgStr };
+}
+
+/**
+ * Авторасчёт строки атаки и урона на основе уровня и характеристик героя (Изучен = Уровень + 2)
+ */
+export function calcRangedWeaponRoll(weapon, stats = {}) {
+    const lvl = Number(stats.level) || 1;
+    const str = Number(stats.str) || 0;
+    const dex = Number(stats.dex) || 0;
+    const atkBonus = lvl + 2 + dex;
+    const atkStr = atkBonus >= 0 ? `+${atkBonus}` : `${atkBonus}`;
+
+    let dmgBonus = 0;
+    if (weapon.dmgMode === 'thrown') {
+        dmgBonus = str;
+    } else if (weapon.dmgMode === 'propulsive') {
+        dmgBonus = str >= 0 ? Math.floor(str / 2) : str;
+    }
+
+    const dmgModStr = dmgBonus > 0 ? `+${dmgBonus}` : (dmgBonus < 0 ? `${dmgBonus}` : '');
+    const reloadSuffix = (weapon.reload && weapon.reload !== '0' && weapon.reload !== '—') ? `, пер. ${weapon.reload}` : '';
+    const dmgStr = `${weapon.dmgDice}${dmgModStr} (${weapon.dmgType}) • ${weapon.range}${reloadSuffix}`;
 
     return { atkStr, dmgStr };
 }
