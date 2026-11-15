@@ -1695,6 +1695,83 @@ const BestiaryManager = {
                 });
             });
 
+            // Тултипы для Фокусов (Cantrips) на Странице 2
+            overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach((tr) => {
+                const nameInp = tr.querySelector('input[data-sheet-txt^="cantrip"]');
+                if (!nameInp) return;
+
+                tr.addEventListener('mouseenter', (e) => {
+                    const name = nameInp.value.trim();
+                    if (!name) return;
+                    const rowIdx = nameInp.dataset.cantripRow;
+                    const act = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`)?.value || '—';
+                    const notes = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`)?.value || 'Описание отсутствует.';
+
+                    const html = `<div class="init-tip-header"><span class="init-tip-name">✨ ${name}</span></div><div class="init-tip-top-row"><span>⏳ Действие: <b>${act}</b></span></div><div style="font-size:13px; margin-top:6px; color:#ebd291;">${notes}</div>`;
+                    this._showSheetItemTooltip(e, html);
+                });
+                tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+
+            // Тултипы для Фокальных заклинаний (Focus Spells) на Странице 2
+            overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach((tr) => {
+                const nameInp = tr.querySelector('input[data-sheet-txt^="focusSpell"]');
+                if (!nameInp) return;
+
+                tr.addEventListener('mouseenter', (e) => {
+                    const name = nameInp.value.trim();
+                    if (!name) return;
+                    const rowIdx = nameInp.dataset.focusRow;
+                    const act = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Actions"]`)?.value || '—';
+                    const notes = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Notes"]`)?.value || 'Описание отсутствует.';
+
+                    const html = `<div class="init-tip-header"><span class="init-tip-name">💠 ${name}</span></div><div class="init-tip-top-row"><span>⏳ Действие: <b>${act}</b></span></div><div style="font-size:13px; margin-top:6px; color:#ebd291;">${notes}</div>`;
+                    this._showSheetItemTooltip(e, html);
+                });
+                tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+
+            // Тултипы для заклинаний 1 круга на Странице 2
+            overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach((tr) => {
+                const nameInp = tr.querySelector('input[data-sheet-txt^="lvl1Spell"]');
+                if (!nameInp) return;
+
+                tr.addEventListener('mouseenter', (e) => {
+                    const name = nameInp.value.trim();
+                    if (!name) return;
+                    const rowIdx = nameInp.dataset.lvl1Row;
+                    const act = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Actions"]`)?.value || '—';
+                    const notes = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Notes"]`)?.value || 'Описание отсутствует.';
+
+                    const html = `<div class="init-tip-header"><span class="init-tip-name">1️⃣ ${name}</span></div><div class="init-tip-top-row"><span>⏳ Действие: <b>${act}</b></span></div><div style="font-size:13px; margin-top:6px; color:#ebd291;">${notes}</div>`;
+                    this._showSheetItemTooltip(e, html);
+                });
+                tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+
+            // Тултипы для заклинаний 2 круга на Странице 2
+            overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach((tr) => {
+                const nameInp = tr.querySelector('input[data-sheet-txt^="lvl2Spell"]');
+                if (!nameInp) return;
+
+                tr.addEventListener('mouseenter', (e) => {
+                    const name = nameInp.value.trim();
+                    if (!name) return;
+                    const rowIdx = nameInp.dataset.lvl2Row;
+                    const act = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Actions"]`)?.value || '—';
+                    const notes = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Notes"]`)?.value || 'Описание отсутствует.';
+
+                    const html = `<div class="init-tip-header"><span class="init-tip-name">2️⃣ ${name}</span></div><div class="init-tip-top-row"><span>⏳ Действие: <b>${act}</b></span></div><div style="font-size:13px; margin-top:6px; color:#ebd291;">${notes}</div>`;
+                    this._showSheetItemTooltip(e, html);
+                });
+                tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+
+
             // Тултипы для предметов в рюкзаке на Странице 2
             overlay.querySelectorAll('.bst-items-table tbody tr').forEach(tr => {
                 tr.addEventListener('mouseenter', (e) => {
@@ -1707,6 +1784,7 @@ const BestiaryManager = {
                 tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
                 tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
             });
+
         }
 
 
