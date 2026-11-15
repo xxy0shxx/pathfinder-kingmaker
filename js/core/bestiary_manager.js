@@ -993,20 +993,7 @@ const BestiaryManager = {
                         </table>
                     </div>
 
-                    <div class="k-panel" style="margin-bottom: 10px;">
-                        <div class="k-sec-title">📖 Журнал приключений</div>
-                        ${txtArea('adventureLogText', 4, '📅 Дата — Описание события — Опыт...')}
-                    </div>
 
-                    <div class="k-panel" style="margin-bottom: 10px;">
-                        <div class="k-sec-title">📝 Заметки персонажа</div>
-                        ${txtArea('notesText', 4, '🗒️ Личные заметки, клятвы, связи, особенности...')}
-                    </div>
-
-                    <div class="k-panel">
-                        <div class="k-sec-title">📚 Книга заклинаний / Репертуар</div>
-                        ${txtArea('spellbookText', 4, '📖 Все изученные заклинания...')}
-                    </div>
                     
                     <div class="k-panel" style="margin-top: 10px; background: rgba(16, 28, 20, 0.9); border-color: #2ecc71;">
                         <div class="k-sec-title" style="color: #2ecc71;">🐾 Спутники (Верный зверь / Фамильяр)</div>
@@ -1037,6 +1024,22 @@ const BestiaryManager = {
                             ${txtArea('compAbilitiesText', 4, 'Здесь отобразятся выбранные из поиска способности (например, "🙌 Возложение рук", "Ловкий", "Смельчак") или особенности питомца...')}
                         </div>
                     </div>
+                    
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">📖 Журнал приключений</div>
+                        ${txtArea('adventureLogText', 4, '📅 Дата — Описание события — Опыт...')}
+                    </div>
+
+                    <div class="k-panel" style="margin-bottom: 10px;">
+                        <div class="k-sec-title">📝 Заметки персонажа</div>
+                        ${txtArea('notesText', 4, '🗒️ Личные заметки, клятвы, связи, особенности...')}
+                    </div>
+
+                    <div class="k-panel">
+                        <div class="k-sec-title">📚 Книга заклинаний / Репертуар</div>
+                        ${txtArea('spellbookText', 4, '📖 Все изученные заклинания...')}
+                    </div>
+                    
 
                 </div>
             </div>
