@@ -1694,6 +1694,7 @@ const BestiaryManager = {
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
 
+
             // 5. Выпадающий список для Происхождений персонажа
             overlay.querySelectorAll('.bst-background-picker-inp').forEach(inp => {
                 const dropEl = overlay.querySelector('[data-bg-drop="1"]');
@@ -1704,32 +1705,48 @@ const BestiaryManager = {
                     dropEl.innerHTML = list.map(b => `
                         <div class="bst-cantrip-opt" data-bg-id="${b.id}" style="padding: 6px; cursor: pointer;">
                             <div class="bst-cantrip-opt-top"><b>${b.name}</b></div>
-                            <div class="bst-cantrip-opt-trad" style="font-size: 11px;">${b.desc} <br><span style="color:#74b9ff;">✨ Черта: ${b.feat}</span></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px;">${b.desc ?? ''} <br><span style="color:#74b9ff;">✨ Черта: ${b.feat}</span></div>
                         </div>
                     `).join('');
 
                     const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed'; dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`; dropEl.style.width = `${Math.max(260, rect.width)}px`; dropEl.style.display = 'block';
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = `${Math.max(260, rect.width)}px`;
+                    dropEl.style.zIndex = '10000150'; // Гарантируем видимость поверх модалки
+                    dropEl.style.display = 'block';
 
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
-                            const found = PF2E_BACKGROUNDS.find(x => x.id === optEl.dataset.bgId);
+                            e.stopPropagation();
+
+                            // ИСПРАВЛЕНО: Явное и безопасное обращение к импортированному каталогу
+                            const currentCatalog = (typeof PF2E_BACKGROUNDS !== 'undefined') ? PF2E_BACKGROUNDS : [];
+                            const found = currentCatalog.find(x => x.id === optEl.dataset.bgId);
+
                             if (found) {
                                 inp.value = found.name;
                                 hero.stats.background = found.name;
 
+                                // Находим поле тренированности навыка
                                 const targetSkillInp = overlay.querySelector(`[data-sheet-num="prof_${found.skill}"]`);
                                 if (targetSkillInp) {
                                     targetSkillInp.value = 2; // Автоподстановка Изучен (+2) за Происхождение
                                 }
 
+                                // Автоподстановка названия в поле способностей происхождения, если оно пустое
                                 const featInp = overlay.querySelector('[data-sheet-txt="backgroundFeat"]');
                                 if (featInp && !featInp.value) {
                                     featInp.value = `📜 ${found.feat}`;
                                     hero.stats.backgroundFeat = `📜 ${found.feat}`;
                                 }
-                                calculateArmorClass();
+
+                                // Пересчитываем КБ и 17 навыков на лету
+                                if (typeof calculateArmorClass === 'function') {
+                                    calculateArmorClass();
+                                }
                             }
                             dropEl.style.display = 'none';
                         });
@@ -1739,6 +1756,8 @@ const BestiaryManager = {
                 inp.addEventListener('input', () => renderBgMatches(inp.value));
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
+
+
 
             // Тултипы для оружия на Странице 1
             const weaponRows = overlay.querySelectorAll('.bst-weapon-row');
