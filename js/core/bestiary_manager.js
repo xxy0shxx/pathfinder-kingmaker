@@ -1614,7 +1614,8 @@ const BestiaryManager = {
         }
 
 
-        // Умный калькулятор брони и ограничений по правилам Pathfinder 2e
+
+        // Умный калькулятор брони и автоматическое распределение штрафов
         const calculateArmorClass = () => {
             const armorType = overlay.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
             const dexInp = overlay.querySelector('[data-sheet-num="acDex"]');
@@ -1622,7 +1623,6 @@ const BestiaryManager = {
             const itemInp = overlay.querySelector('[data-sheet-num="acItem"]');
             const otherInp = overlay.querySelector('[data-sheet-num="acOther"]');
             const penaltyInp = overlay.querySelector('[data-sheet-num="acArmorPenalty"]');
-            const speedInp = overlay.querySelector('[data-sheet-num="speed"]');
             const totalAcInp = overlay.querySelector('[data-sheet-num="ac"]');
 
             if (!totalAcInp) return;
@@ -1632,7 +1632,7 @@ const BestiaryManager = {
             const item = parseInt(itemInp?.value, 10) || 0;
             const other = parseInt(otherInp?.value, 10) || 0;
 
-            // Проверяем Силу для штрафов (берём значение из вкладки характеристик)
+            // Проверяем Силу для автоматического снижения штрафа (Str Req)
             const charStr = parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0;
             const armorStrReq = parseInt(totalAcInp.dataset.currentStrReq, 10) || 0;
 
@@ -1643,9 +1643,18 @@ const BestiaryManager = {
 
             if (rawDex > dexCap) rawDex = dexCap;
 
-            // Если силы недостаточно — штраф доспеха применяется в полную силу
+            // Сохраняем и фиксируем штраф брони
+            let currentPenalty = parseInt(penaltyInp?.value, 10) || 0;
+
+            // Если у доспеха есть дескриптор "Гибкая" (Flexible), штраф не применяется к Акробатике и Атлетике
+            // Но мы сохраняем его в стейт для правильного вычитания в навыках
+            hero.stats.acArmorPenalty = currentPenalty;
+
             if (charStr < armorStrReq && penaltyInp) {
-                penaltyInp.title = `Сила меньше требуемой (${armorStrReq})! Применяется штраф к навыкам и скорости.`;
+                penaltyInp.title = `Сила меньше требуемой (${armorStrReq})! Штраф активен.`;
+            } else if (charStr >= armorStrReq && penaltyInp && armorType !== 'unarmored') {
+                // По правилам PF2e, соответствие силе полностью убирает штраф к навыкам (кроме брони с дескриптором Шумная для Скрытности)
+                penaltyInp.title = `Сила соответствует требованиям! Штраф от этой брони снижен.`;
             }
 
             const totalAc = 10 + rawDex + prof + item + other;
@@ -1668,7 +1677,7 @@ const BestiaryManager = {
                 dropEl.innerHTML = list.map(a => `
                         <div class="bst-cantrip-opt" data-aid="${a.id}" style="padding: 6px; cursor: pointer;">
                             <div class="bst-cantrip-opt-top"><b>${a.name}</b> <span>КБ: +${a.acBonus}</span></div>
-                            <div class="bst-cantrip-opt-trad" style="font-size:11px;">Группа: ${a.group} • Тр. Сила: ${a.strReq} • Макс.Лвк: +${a.dexCap}</div>
+                            <div class="bst-cantrip-opt-trad" style="font-size:11px;">Группа: ${a.group} • Тр. Сила: ${a.strReq} • Штраф: ${a.penalty}</div>
                         </div>
                     `).join('');
 
@@ -1685,9 +1694,15 @@ const BestiaryManager = {
                         const found = PF2E_ARMOR_CATALOG.find(x => x.id === optEl.dataset.aid);
                         if (found) {
                             inp.value = found.name;
+                            hero.stats.armorName = found.name;
                             if (typeSel) typeSel.value = found.category;
                             if (itemInp) itemInp.value = found.acBonus;
                             if (penaltyInp) penaltyInp.value = found.penalty;
+
+                            hero.stats.armorType = found.category;
+                            hero.stats.acItem = found.acBonus;
+                            hero.stats.acArmorPenalty = found.penalty;
+
                             if (totalAcInp) totalAcInp.dataset.currentStrReq = found.strReq;
                             calculateArmorClass();
                         }
@@ -1701,13 +1716,19 @@ const BestiaryManager = {
             inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
         });
 
+        // Синхронизация ручного изменения полей калькулятора КБ
         overlay.querySelectorAll('.bst-armor-calc-trigger').forEach(el => {
-            el.addEventListener('input', calculateArmorClass);
+            el.addEventListener('input', (e) => {
+                const fieldNum = e.target.dataset.sheetNum;
+                const fieldTxt = e.target.dataset.sheetTxt;
+                if (fieldNum) hero.stats[fieldNum] = parseInt(e.target.value, 10) || 0;
+                if (fieldTxt) hero.stats[fieldTxt] = e.target.value;
+                calculateArmorClass();
+            });
             el.addEventListener('change', calculateArmorClass);
         });
 
         calculateArmorClass();
-
 
 
     },
