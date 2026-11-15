@@ -14,7 +14,7 @@ import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_cat
 
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES } from '../config/companions_catalog.js';
 
-import { PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS } from '../config/feats_catalog.js';
+import { PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS, PF2E_MONK_FEATS, PF2E_BARD_FEATS } from '../config/feats_catalog.js';
 
 import {
     PF2E_MELEE_WEAPONS,
@@ -25,7 +25,6 @@ import {
     calcRangedWeaponRoll,
     getWeaponCritEffect
 } from '../config/weapons_catalog.js';
-
 
 // Добавьте в начало bestiary_manager.js (после импортов)
 export const STAT_CATEGORIES = [
@@ -1129,7 +1128,12 @@ const BestiaryManager = {
                 const renderFeatOptions = (query) => {
                     const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
 
-                    const combinedFeats = [...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []), ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : [])];
+                    const combinedFeats = [
+                        ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
+                        ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
+                        ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
+                        ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []) // <-- Обязательно добавить сюда!
+                    ];
                     const matches = combinedFeats.filter(f =>
                         f.level <= parseInt(lvl, 10) &&
                         f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
@@ -1166,7 +1170,12 @@ const BestiaryManager = {
                             e.preventDefault();
                             e.stopPropagation();
 
-                            const combinedFeats = [...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []), ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : [])];
+                            const combinedFeats = [
+                                ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
+                                ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
+                                ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
+                                ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []) // <-- Обязательно добавить сюда!
+                            ];
                             const found = combinedFeats.find(x => x.id === optEl.dataset.fid);
                             if (found) {
                                 inp.value = found.name;
