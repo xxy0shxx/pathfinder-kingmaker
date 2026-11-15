@@ -1177,6 +1177,7 @@ const BestiaryManager = {
             });
         };
 
+
         // НАВЕШИВАНИЕ СЛУШАТЕЛЕЙ ДЛЯ СТРАНИЦЫ 1 И 2
         if (isPage1) {
             // Умные слушатели: перехватывают ручной ввод любых характеристик, умений или спасбросков и запускают калькулятор
@@ -1231,9 +1232,10 @@ const BestiaryManager = {
                                 };
                                 const { atkStr, dmgStr } = calcMeleeWeaponRoll(found, liveStats);
                                 inp.value = found.name;
-                                if (atkInp) atkInp.value = atkStr;
-                                if (dmgInp) dmgInp.value = dmgStr;
-                                if (traitsInp) traitsInp.value = found.traits;
+                                hero.stats[`${slot}Name`] = found.name;
+                                if (atkInp) { atkInp.value = atkStr; hero.stats[`${slot}Atk`] = atkStr; }
+                                if (dmgInp) { dmgInp.value = dmgStr; hero.stats[`${slot}Dmg`] = dmgStr; }
+                                if (traitsInp) { traitsInp.value = found.traits; hero.stats[`${slot}Traits`] = found.traits; }
                             }
                             dropEl.style.display = 'none';
                         });
@@ -1266,6 +1268,7 @@ const BestiaryManager = {
                     dropEl.style.top = `${rect.bottom + 2}px`;
                     dropEl.style.width = '360px';
                     dropEl.style.display = 'block';
+
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
@@ -1278,9 +1281,10 @@ const BestiaryManager = {
                                 };
                                 const { atkStr, dmgStr } = calcRangedWeaponRoll(found, liveStats);
                                 rangedInp.value = found.name;
-                                if (atkInp) atkInp.value = atkStr;
-                                if (dmgInp) dmgInp.value = dmgStr;
-                                if (traitsInp) traitsInp.value = found.traits;
+                                hero.stats.rangedName = found.name;
+                                if (atkInp) { atkInp.value = atkStr; hero.stats.rangedAtk = atkStr; }
+                                if (dmgInp) { dmgInp.value = dmgStr; hero.stats.rangedDmg = dmgStr; }
+                                if (traitsInp) { traitsInp.value = found.traits; hero.stats.rangedTraits = found.traits; }
                             }
                             dropEl.style.display = 'none';
                         });
@@ -1326,7 +1330,6 @@ const BestiaryManager = {
                                 hero.stats.armorType = found.category;
                                 hero.stats.acItem = found.acBonus;
                                 hero.stats.acArmorPenalty = found.penalty;
-
                                 if (totalAcInp) totalAcInp.dataset.currentStrReq = found.strReq;
                                 calculateArmorClass();
                             }
@@ -1430,6 +1433,7 @@ const BestiaryManager = {
                 inp.addEventListener('input', () => renderBgMatches(inp.value));
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
+
             // Тултипы для оружия на Странице 1
             const weaponRows = overlay.querySelectorAll('.bst-weapon-row');
             weaponRows.forEach((row, rIdx) => {
@@ -1449,6 +1453,55 @@ const BestiaryManager = {
             });
 
         } else {
+            // 0. Поиск и выбор Фокальных заклинаний (Страница 2)
+            overlay.querySelectorAll('.bst-focus-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.focusRow;
+                const dropEl = overlay.querySelector(`[data-focus-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Notes"]`);
+
+                const renderFocusOptions = (query) => {
+                    const list = searchFocusSpells(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(f => `
+                        <div class="bst-cantrip-opt" data-fid="${f.id}">
+                            <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span>${f.actions}</span></div>
+                            <div class="bst-cantrip-opt-trad">${f.source}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.width = '340px';
+                    dropEl.style.display = 'block';
+
+                    const dropHeight = dropEl.offsetHeight || 220;
+                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                    } else {
+                        dropEl.style.top = `${rect.bottom + 2}px`;
+                    }
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_FOCUS_SPELLS.find(x => x.id === optEl.dataset.fid);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats[`focusSpell${rowIdx}Name`] = found.name; // Намертво фиксируем в стейт персонажа
+                                if (actInp) { actInp.value = found.actions; hero.stats[`focusSpell${rowIdx}Actions`] = found.actions; }
+                                if (noteInp) { noteInp.value = found.notes; hero.stats[`focusSpell${rowIdx}Notes`] = found.notes; }
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderFocusOptions(inp.value));
+                inp.addEventListener('input', () => renderFocusOptions(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
 
 
             // КОД ДЛЯ СТРАНИЦЫ 2 (ФОКУСЫ, ПРЕДМЕТЫ, ЗАКЛИНАНИЯ)
