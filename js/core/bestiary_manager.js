@@ -2,7 +2,12 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
-import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../config/spells_catalog.js';
+import {
+    PF2E_SPELLS_LVL1,
+    searchSpellsLvl1,
+    PF2E_SPELLS_LVL2,
+    searchSpellsLvl2
+} from '../config/spells_catalog.js';
 import {
     PF2E_MELEE_WEAPONS,
     searchMeleeWeapons,
@@ -208,14 +213,15 @@ const BestiaryManager = {
             melee2Name: '', melee2Atk: '', melee2Dmg: '', melee2Traits: '',
             rangedName: '', rangedAtk: '', rangedDmg: '', rangedTraits: '',
             skillOtherNotes: '',
-
             equipmentText: '',
+
             cantripsPrepared: '',
             cantrip1Name: '', cantrip1Actions: '', cantrip1Notes: '', cantrip1Ready: false,
             cantrip2Name: '', cantrip2Actions: '', cantrip2Notes: '', cantrip2Ready: false,
             cantrip3Name: '', cantrip3Actions: '', cantrip3Notes: '', cantrip3Ready: false,
             cantrip4Name: '', cantrip4Actions: '', cantrip4Notes: '', cantrip4Ready: false,
             cantrip5Name: '', cantrip5Actions: '', cantrip5Notes: '', cantrip5Ready: false,
+
             lvl1Prepared: '',
             lvl1Spell1Name: '', lvl1Spell1Actions: '', lvl1Spell1Notes: '', lvl1Spell1Ready: false,
             lvl1Spell2Name: '', lvl1Spell2Actions: '', lvl1Spell2Notes: '', lvl1Spell2Ready: false,
@@ -224,8 +230,13 @@ const BestiaryManager = {
             lvl1Spell5Name: '', lvl1Spell5Actions: '', lvl1Spell5Notes: '', lvl1Spell5Ready: false,
             lvl1Spell6Name: '', lvl1Spell6Actions: '', lvl1Spell6Notes: '', lvl1Spell6Ready: false,
             lvl1Spell7Name: '', lvl1Spell7Actions: '', lvl1Spell7Notes: '', lvl1Spell7Ready: false,
-            lvl2Prepared: '',
 
+            lvl2Prepared: '',
+            lvl2Spell1Name: '', lvl2Spell1Actions: '', lvl2Spell1Notes: '', lvl2Spell1Ready: false,
+            lvl2Spell2Name: '', lvl2Spell2Actions: '', lvl2Spell2Notes: '', lvl2Spell2Ready: false,
+            lvl2Spell3Name: '', lvl2Spell3Actions: '', lvl2Spell3Notes: '', lvl2Spell3Ready: false,
+            lvl2Spell4Name: '', lvl2Spell4Actions: '', lvl2Spell4Notes: '', lvl2Spell4Ready: false,
+            lvl2Spell5Name: '', lvl2Spell5Actions: '', lvl2Spell5Notes: '', lvl2Spell5Ready: false,
 
             spellbookText: '',
             adventureLogText: '',
@@ -625,6 +636,33 @@ const BestiaryManager = {
             </tr>
         `).join('');
 
+        if (stats.lvl2Prepared && !stats.lvl2Spell1Name && !stats.lvl2Spell1Notes) {
+            stats.lvl2Spell1Name = stats.lvl2Prepared;
+            stats.lvl2Prepared = '';
+        }
+
+        const lvl2SpellsRowsHtml = Array.from({ length: 5 }, (_, i) => i + 1).map(idx => `
+            <tr>
+                <td class="bst-cantrip-num">
+                    <label title="Подготовлено / Использовано" style="cursor:pointer; display:flex; align-items:center; justify-content:center; gap:3px;">
+                        <input type="checkbox" data-sheet-chk="lvl2Spell${idx}Ready" ${stats[`lvl2Spell${idx}Ready`] ? 'checked' : ''}>
+                        <span>${idx}</span>
+                    </label>
+                </td>
+                <td style="position: relative;">
+                    <input type="text"
+                           data-sheet-txt="lvl2Spell${idx}Name"
+                           data-lvl2-row="${idx}"
+                           class="k-inp bst-txt-inp bst-lvl2-picker-inp"
+                           autocomplete="off"
+                           placeholder="Выберите заклинание 2 круга..."
+                           value="${esc(stats[`lvl2Spell${idx}Name`])}">
+                    <div class="bst-cantrip-dropdown" data-lvl2-drop="${idx}" style="display: none;"></div>
+                </td>
+                <td>${txtInp(`lvl2Spell${idx}Actions`, '◆◆ / 30 фт.')}</td>
+                <td>${txtInp(`lvl2Spell${idx}Notes`, 'Эффект заклинания...')}</td>
+            </tr>
+        `).join('');
 
         const page2Html = `
             <div class="bst-sheet-page2-grid">
@@ -692,8 +730,21 @@ const BestiaryManager = {
                                 <span>2️⃣ Заклинания 2 круга</span>
                                 <label>📅 Подготовленных в день: ${numInp('lvl2PerDay', 'bst-tiny-num')}</label>
                             </div>
-                            ${txtArea('lvl2Prepared', 2, 'Заклинания 2 круга...')}
+                            <table class="k-table bst-cantrips-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 38px; text-align: center;" title="Подготовлено">Подг.</th>
+                                        <th style="width: 34%;">Заклинание</th>
+                                        <th style="width: 22%;">Действ. / Дист.</th>
+                                        <th>Эффект / Описание</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${lvl2SpellsRowsHtml}
+                                </tbody>
+                            </table>
                         </div>
+                        
                     </div>
                     
                 </div>
@@ -977,13 +1028,15 @@ const BestiaryManager = {
 
                     const actInp = tr.querySelector('input[data-sheet-txt$="Actions"]');
                     const noteInp = tr.querySelector('input[data-sheet-txt$="Notes"]');
-                    const isCantrip = nameInp.dataset.sheetTxt.startsWith('cantrip');
-
                     const actions = actInp?.value.trim() || '—';
                     const notes = noteInp?.value.trim() || 'Описание не заполнено.';
 
                     // Ищем в справочниках для отображения традиций и круга
-                    const catalogSpell = [...PF2E_CANTRIPS, ...PF2E_SPELLS_LVL1]
+                    const fieldName = nameInp.dataset.sheetTxt;
+                    const isCantrip = fieldName.startsWith('cantrip');
+                    const rankLabel = isCantrip ? 'Фокус' : (fieldName.startsWith('lvl2') ? '2 круг' : '1 круг');
+
+                    const catalogSpell = [...PF2E_CANTRIPS, ...PF2E_SPELLS_LVL1, ...PF2E_SPELLS_LVL2]
                         .find(s => s.name.toLowerCase() === name.toLowerCase());
 
                     const spellAtk = overlay.querySelector('[data-sheet-num="spellAttack"]')?.value ?? stats.spellAttack ?? 0;
@@ -993,7 +1046,7 @@ const BestiaryManager = {
                     const html = `
                         <div class="init-tip-header">
                             <span class="init-tip-name">${isCantrip ? '✨' : '🔮'} ${name}</span>
-                            <span class="init-tip-turn-tag">${isCantrip ? 'Фокус' : '1 круг'}</span>
+                            <span class="init-tip-turn-tag">${rankLabel}</span>
                         </div>
                         <div class="init-tip-top-row">
                             <span>⚡ <b>${actions}</b></span>
@@ -1073,6 +1126,7 @@ const BestiaryManager = {
                 });
             });
 
+
             // 2. Выбор заклинаний 1 круга
             overlay.querySelectorAll('.bst-lvl1-picker-inp').forEach(inp => {
                 const rowIdx = inp.dataset.lvl1Row;
@@ -1129,6 +1183,64 @@ const BestiaryManager = {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             });
+
+            // 3. Выбор заклинаний 2 круга
+            overlay.querySelectorAll('.bst-lvl2-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.lvl2Row;
+                const dropEl = overlay.querySelector(`[data-lvl2-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Notes"]`);
+
+                const renderLvl2Options = (query) => {
+                    const list = searchSpellsLvl2(query);
+                    if (!list.length) {
+                        dropEl.style.display = 'none';
+                        return;
+                    }
+                    dropEl.innerHTML = list.map(s => `
+                        <div class="bst-cantrip-opt" data-s2id="${s.id}">
+                            <div class="bst-cantrip-opt-top">
+                                <b>${s.name}</b>
+                                <span>${s.actions}</span>
+                            </div>
+                            <div class="bst-cantrip-opt-trad">${s.traditions.join(', ')}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.width = '340px';
+                    dropEl.style.display = 'block';
+
+                    const dropHeight = dropEl.offsetHeight || 220;
+                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                    } else {
+                        dropEl.style.top = `${rect.bottom + 2}px`;
+                    }
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_SPELLS_LVL2.find(x => x.id === optEl.dataset.s2id);
+                            if (found) {
+                                inp.value = found.name;
+                                if (actInp) actInp.value = found.actions;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderLvl2Options(inp.value));
+                inp.addEventListener('input', () => renderLvl2Options(inp.value));
+                inp.addEventListener('blur', () => {
+                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
+                });
+            });
+
 
         }
 
