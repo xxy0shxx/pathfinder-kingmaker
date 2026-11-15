@@ -2,6 +2,7 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
+import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../config/spells_catalog.js';
 import {
     PF2E_MELEE_WEAPONS,
     searchMeleeWeapons,
@@ -11,7 +12,7 @@ import {
     calcRangedWeaponRoll,
     getWeaponCritEffect
 } from '../config/weapons_catalog.js';
-import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../config/spells_catalog.js';
+
 
 
 // Добавьте в начало bestiary_manager.js (после импортов)
@@ -208,20 +209,25 @@ const BestiaryManager = {
             melee2Name: '', melee2Atk: '', melee2Dmg: '', melee2Traits: '',
             rangedName: '', rangedAtk: '', rangedDmg: '', rangedTraits: '',
             skillOtherNotes: '',
+
             equipmentText: '',
             cantripsPrepared: '',
-            cantrip1Name: '', cantrip1Actions: '', cantrip1Notes: '',
-            cantrip2Name: '', cantrip2Actions: '', cantrip2Notes: '',
-            cantrip3Name: '', cantrip3Actions: '', cantrip3Notes: '',
-            cantrip4Name: '', cantrip4Actions: '', cantrip4Notes: '',
-            cantrip5Name: '', cantrip5Actions: '', cantrip5Notes: '',
+            cantrip1Name: '', cantrip1Actions: '', cantrip1Notes: '', cantrip1Ready: false,
+            cantrip2Name: '', cantrip2Actions: '', cantrip2Notes: '', cantrip2Ready: false,
+            cantrip3Name: '', cantrip3Actions: '', cantrip3Notes: '', cantrip3Ready: false,
+            cantrip4Name: '', cantrip4Actions: '', cantrip4Notes: '', cantrip4Ready: false,
+            cantrip5Name: '', cantrip5Actions: '', cantrip5Notes: '', cantrip5Ready: false,
             lvl1Prepared: '',
-            lvl1Spell1Name: '', lvl1Spell1Actions: '', lvl1Spell1Notes: '',
-            lvl1Spell2Name: '', lvl1Spell2Actions: '', lvl1Spell2Notes: '',
-            lvl1Spell3Name: '', lvl1Spell3Actions: '', lvl1Spell3Notes: '',
-            lvl1Spell4Name: '', lvl1Spell4Actions: '', lvl1Spell4Notes: '',
-            lvl1Spell5Name: '', lvl1Spell5Actions: '', lvl1Spell5Notes: '',
+            lvl1Spell1Name: '', lvl1Spell1Actions: '', lvl1Spell1Notes: '', lvl1Spell1Ready: false,
+            lvl1Spell2Name: '', lvl1Spell2Actions: '', lvl1Spell2Notes: '', lvl1Spell2Ready: false,
+            lvl1Spell3Name: '', lvl1Spell3Actions: '', lvl1Spell3Notes: '', lvl1Spell3Ready: false,
+            lvl1Spell4Name: '', lvl1Spell4Actions: '', lvl1Spell4Notes: '', lvl1Spell4Ready: false,
+            lvl1Spell5Name: '', lvl1Spell5Actions: '', lvl1Spell5Notes: '', lvl1Spell5Ready: false,
+            lvl1Spell6Name: '', lvl1Spell6Actions: '', lvl1Spell6Notes: '', lvl1Spell6Ready: false,
+            lvl1Spell7Name: '', lvl1Spell7Actions: '', lvl1Spell7Notes: '', lvl1Spell7Ready: false,
             lvl2Prepared: '',
+
+
             spellbookText: '',
             adventureLogText: '',
             notesText: ''
@@ -390,6 +396,7 @@ const BestiaryManager = {
             `<textarea data-sheet-txt="${key}" class="k-inp bst-area-inp" rows="${rows}" placeholder="${placeholder}">${String(stats[key] ?? '')}</textarea>`;
 
 
+
         const collectFormData = (overlayEl) => {
             overlayEl.querySelectorAll('[data-sheet-num]').forEach(inp => {
                 const k = inp.dataset.sheetNum;
@@ -400,6 +407,11 @@ const BestiaryManager = {
                 const k = inp.dataset.sheetTxt;
                 hero.stats[k] = inp.value;
             });
+            overlayEl.querySelectorAll('[data-sheet-chk]').forEach(chk => {
+                const k = chk.dataset.sheetChk;
+                hero.stats[k] = chk.checked;
+            });
+
 
             // Синхронизируем полные ключи бланка с короткими ключами трекера инициативы
             const syncMap = {
@@ -571,7 +583,8 @@ const BestiaryManager = {
             stats.cantripsPrepared = '';
         }
 
-        const cantripsRowsHtml = [1, 2, 3, 4, 5].map(idx => `
+//        const cantripIndices =;
+        const cantripsRowsHtml = Array.from({ length: 5 }, (_, i) => i + 1).map(idx => `
             <tr>
                 <td class="bst-cantrip-num">${idx}</td>
                 <td style="position: relative;">
@@ -595,7 +608,7 @@ const BestiaryManager = {
             stats.lvl1Prepared = '';
         }
 
-        const lvl1SpellsRowsHtml = [1, 2, 3, 4, 5].map(idx => `
+        const lvl1SpellsRowsHtml = Array.from({ length: 5 }, (_, i) => i + 1).map(idx => `
             <tr>
                 <td class="bst-cantrip-num">${idx}</td>
                 <td style="position: relative;">
@@ -616,6 +629,7 @@ const BestiaryManager = {
 
         const page2Html = `
             <div class="bst-sheet-page2-grid">
+            
                 <div class="bst-sheet-col">
                     <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">🎒 Снаряжение и Деньги</div>
@@ -626,7 +640,7 @@ const BestiaryManager = {
                         </div>
                         ${txtArea('equipmentText', 6, '🎒 Список снаряжения, зелий, свитков и предметов...')}
                     </div>
-
+                    
                     <div class="k-panel">
                         <div class="k-sec-title">✨ Сотворение заклинаний</div>
                         <div class="bst-spell-stats-row">
@@ -634,17 +648,35 @@ const BestiaryManager = {
                             <label>🔮 СЛ заклинаний: ${numInp('spellDc', 'bst-mini-num')}</label>
                         </div>
 
-
-
                         <div class="bst-spell-tier">
                             <div class="bst-spell-tier-head">
-                                <span>1️⃣ Заклинания 1 круга</span>
-                                <label>📅 В день / Ячеек: ${numInp('lvl1PerDay', 'bst-tiny-num')}</label>
+                                <span>✨ Фокусы</span>
+                                <label>📅 Подготовленных в день: ${numInp('cantripsPerDay', 'bst-tiny-num')}</label>
                             </div>
                             <table class="k-table bst-cantrips-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 26px; text-align: center;">#</th>
+                                        <th style="width: 38px; text-align: center;" title="Подготовлено">Подг.</th>
+                                        <th style="width: 34%;">Фокус</th>
+                                        <th style="width: 22%;">Действ. / Дист.</th>
+                                        <th>Эффект / Описание</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${cantripsRowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="bst-spell-tier">
+                            <div class="bst-spell-tier-head">
+                                <span>1️⃣ Заклинания 1 круга</span>
+                                <label>📅 Подготовленных в день: ${numInp('lvl1PerDay', 'bst-tiny-num')}</label>
+                            </div>
+                            <table class="k-table bst-cantrips-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 38px; text-align: center;" title="Подготовлено">Подг.</th>
                                         <th style="width: 34%;">Заклинание</th>
                                         <th style="width: 22%;">Действ. / Дист.</th>
                                         <th>Эффект / Описание</th>
@@ -656,25 +688,15 @@ const BestiaryManager = {
                             </table>
                         </div>
 
-
-
-
-                        <div class="bst-spell-tier">
-                            <div class="bst-spell-tier-head">
-                                <span>1️⃣ Заклинания 1 круга</span>
-                                <label>📅 В день: ${numInp('lvl1PerDay', 'bst-tiny-num')}</label>
-                            </div>
-                            ${txtArea('lvl1Prepared', 3, 'Заклинания 1 круга...')}
-                        </div>
-
                         <div class="bst-spell-tier">
                             <div class="bst-spell-tier-head">
                                 <span>2️⃣ Заклинания 2 круга</span>
-                                <label>📅 В день: ${numInp('lvl2PerDay', 'bst-tiny-num')}</label>
+                                <label>📅 Подготовленных в день: ${numInp('lvl2PerDay', 'bst-tiny-num')}</label>
                             </div>
-                            ${txtArea('lvl2Prepared', 3, 'Заклинания 2 круга...')}
+                            ${txtArea('lvl2Prepared', 2, 'Заклинания 2 круга...')}
                         </div>
                     </div>
+                    
                 </div>
 
                 <div class="bst-sheet-col">
@@ -872,8 +894,58 @@ const BestiaryManager = {
                 });
             }
         } else {
-            // 3. Поиск и выбор фокусов на 2-й странице
 
+            // 1. Выбор фокусов
+            overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.cantripRow;
+                const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`);
+
+                const renderOptions = (query) => {
+                    const list = searchCantrips(query);
+                    if (!list.length) {
+                        dropEl.style.display = 'none';
+                        return;
+                    }
+                    dropEl.innerHTML = list.map(c => `
+                        <div class="bst-cantrip-opt" data-cid="${c.id}">
+                            <div class="bst-cantrip-opt-top">
+                                <b>${c.name}</b>
+                                <span>${c.actions}</span>
+                            </div>
+                            <div class="bst-cantrip-opt-trad">${c.traditions.join(', ')}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
+                            if (found) {
+                                inp.value = found.name;
+                                if (actInp) actInp.value = found.actions;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderOptions(inp.value));
+                inp.addEventListener('input', () => renderOptions(inp.value));
+                inp.addEventListener('blur', () => {
+                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
+                });
+            });
+
+            // 2. Выбор заклинаний 1 круга
             overlay.querySelectorAll('.bst-lvl1-picker-inp').forEach(inp => {
                 const rowIdx = inp.dataset.lvl1Row;
                 const dropEl = overlay.querySelector(`[data-lvl1-drop="${rowIdx}"]`);
@@ -902,7 +974,6 @@ const BestiaryManager = {
                     dropEl.style.width = '340px';
                     dropEl.style.display = 'block';
 
-                    // Если до нижнего края окна мало места — открываем список вверх над полем
                     const dropHeight = dropEl.offsetHeight || 220;
                     if (rect.bottom + dropHeight + 10 > window.innerHeight) {
                         dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
@@ -930,11 +1001,7 @@ const BestiaryManager = {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             });
-
-
         }
-
-
 
     },
 
