@@ -1018,6 +1018,9 @@ const BestiaryManager = {
 
 
 
+
+
+
         const isPage1 = pageNum === 1;
 
         const { overlay, close } = ModalManager.open({
@@ -1055,639 +1058,10 @@ const BestiaryManager = {
             ]
         });
 
-
-
-        if (isPage1) {
-            // 1. Поиск и выбор оружия ближнего боя (melee1, melee2)
-            overlay.querySelectorAll('.bst-weapon-picker-inp').forEach(inp => {
-                const slot = inp.dataset.weaponSlot;
-                const dropEl = overlay.querySelector(`[data-weapon-drop="${slot}"]`);
-                const atkInp = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`);
-                const dmgInp = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`);
-                const traitsInp = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`);
-
-                const renderWeapons = (query) => {
-                    const list = searchMeleeWeapons(query);
-                    if (!list.length) {
-                        dropEl.style.display = 'none';
-                        return;
-                    }
-                    dropEl.innerHTML = list.map(w => {
-                        const critText = getWeaponCritEffect(w.group);
-                        return `
-                            <div class="bst-cantrip-opt" data-wid="${w.id}">
-                                <div class="bst-cantrip-opt-top">
-                                    <b>${w.name}</b>
-                                    <span>${w.dmgDice} ${w.dmgType} (${w.hands}р.)</span>
-                                </div>
-                                <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}${w.traits ? ' • ' + w.traits : ''}</div>
-                                ${critText ? `<div style="font-size: 11px; color: #ebd291; margin-top: 2px;">💥 <b>Крит (${w.group}):</b> ${critText}</div>` : ''}
-                            </div>
-                        `;
-                    }).join('');
-
-                    const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed';
-                    dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.top = `${rect.bottom + 2}px`;
-                    dropEl.style.width = '360px';
-                    dropEl.style.display = 'block';
-
-                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const found = PF2E_MELEE_WEAPONS.find(x => x.id === optEl.dataset.wid);
-                            if (found) {
-                                const liveStats = {
-                                    level: parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || stats.level || 1,
-                                    str: parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0,
-                                    dex: parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0
-                                };
-                                const { atkStr, dmgStr } = calcMeleeWeaponRoll(found, liveStats);
-                                const critText = getWeaponCritEffect(found.group);
-                                const fullTraits = [
-                                    found.traits,
-                                    critText ? `Крит: ${critText}` : ''
-                                ].filter(Boolean).join(' | ');
-
-                                inp.value = found.name;
-                                if (atkInp) atkInp.value = atkStr;
-                                if (dmgInp) dmgInp.value = dmgStr;
-                                if (traitsInp) traitsInp.value = fullTraits;
-                            }
-                            dropEl.style.display = 'none';
-                        });
-                    });
-                };
-
-                inp.addEventListener('focus', () => renderWeapons(inp.value));
-                inp.addEventListener('input', () => renderWeapons(inp.value));
-                inp.addEventListener('blur', () => {
-                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
-                });
-            });
-
-            // 2. Поиск и выбор дистанционного оружия (ranged)
-            const rangedInp = overlay.querySelector('.bst-ranged-picker-inp');
-            if (rangedInp) {
-                const dropEl = overlay.querySelector('[data-ranged-drop="1"]');
-                const atkInp = overlay.querySelector('[data-sheet-txt="rangedAtk"]');
-                const dmgInp = overlay.querySelector('[data-sheet-txt="rangedDmg"]');
-                const traitsInp = overlay.querySelector('[data-sheet-txt="rangedTraits"]');
-
-                const renderRanged = (query) => {
-                    const list = searchRangedWeapons(query);
-                    if (!list.length) {
-                        dropEl.style.display = 'none';
-                        return;
-                    }
-                    dropEl.innerHTML = list.map(w => {
-                        const critText = getWeaponCritEffect(w.group);
-                        return `
-                            <div class="bst-cantrip-opt" data-rid="${w.id}">
-                                <div class="bst-cantrip-opt-top">
-                                    <b>${w.name}</b>
-                                    <span>${w.dmgDice} ${w.dmgType} • ${w.range}</span>
-                                </div>
-                                <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}${w.traits ? ' • ' + w.traits : ''}</div>
-                                ${critText ? `<div style="font-size: 11px; color: #ebd291; margin-top: 2px;">💥 <b>Крит (${w.group}):</b> ${critText}</div>` : ''}
-                            </div>
-                        `;
-                    }).join('');
-
-                    const rect = rangedInp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed';
-                    dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.top = `${rect.bottom + 2}px`;
-                    dropEl.style.width = '360px';
-                    dropEl.style.display = 'block';
-
-                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const found = PF2E_RANGED_WEAPONS.find(x => x.id === optEl.dataset.rid);
-                            if (found) {
-                                const liveStats = {
-                                    level: parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || stats.level || 1,
-                                    str: parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0,
-                                    dex: parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0
-                                };
-                                const { atkStr, dmgStr } = calcRangedWeaponRoll(found, liveStats);
-                                const critText = getWeaponCritEffect(found.group);
-                                const fullTraits = [
-                                    found.traits,
-                                    critText ? `Крит: ${critText}` : ''
-                                ].filter(Boolean).join(' | ');
-
-                                rangedInp.value = found.name;
-                                if (atkInp) atkInp.value = atkStr;
-                                if (dmgInp) dmgInp.value = dmgStr;
-                                if (traitsInp) traitsInp.value = fullTraits;
-                            }
-                            dropEl.style.display = 'none';
-                        });
-                    });
-                };
-
-                rangedInp.addEventListener('focus', () => renderRanged(rangedInp.value));
-                rangedInp.addEventListener('input', () => renderRanged(rangedInp.value));
-                rangedInp.addEventListener('blur', () => {
-                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
-                });
-            }
-
-            // 3. Подробный тултип при наведении на строку оружия (ближний и дальний бой)
-            const weaponRows = overlay.querySelectorAll('.bst-weapon-row');
-            weaponRows.forEach((row, rIdx) => {
-                const slot = rIdx === 0 ? 'melee1' : (rIdx === 1 ? 'melee2' : 'ranged');
-
-                const showWeaponTip = (e) => {
-                    // Не показываем тултип, если сейчас открыт выпадающий список выбора оружия
-                    const anyDropOpen = Array.from(overlay.querySelectorAll('.bst-cantrip-dropdown'))
-                        .some(d => d.style.display === 'block');
-                    if (anyDropOpen) {
-                        this._hideSheetItemTooltip();
-                        return;
-                    }
-
-                    const name = overlay.querySelector(`[data-sheet-txt="${slot}Name"]`)?.value.trim();
-                    if (!name) return;
-
-                    const atk = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`)?.value.trim() || '—';
-                    const dmg = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`)?.value.trim() || '—';
-                    const traits = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`)?.value.trim() || '';
-
-                    const allWeapons = [
-                        ...(Array.isArray(PF2E_MELEE_WEAPONS) ? PF2E_MELEE_WEAPONS : []),
-                        ...(Array.isArray(PF2E_RANGED_WEAPONS) ? PF2E_RANGED_WEAPONS : [])
-                    ];
-                    const catalogItem = allWeapons.find(w => w.name.toLowerCase() === name.toLowerCase());
-                    const critText = catalogItem ? getWeaponCritEffect(catalogItem.group) : '';
-
-                    const html = `
-                        <div class="init-tip-header">
-                            <span class="init-tip-name">${slot === 'ranged' ? '🏹' : '⚔️'} ${name}</span>
-                            ${catalogItem ? `<span class="init-tip-turn-tag">${catalogItem.category}</span>` : ''}
-                        </div>
-                        <div class="init-tip-top-row">
-                            <span>🎯 Атака: <b>${atk}</b></span>
-                            <span>💥 Урон: <b>${dmg}</b></span>
-                        </div>
-                        ${catalogItem ? `
-                            <div style="font-size: 13px; color: #dfbc6f; margin-top: 6px;">
-                                Группа: <b>${catalogItem.group}</b> • Рук: <b>${catalogItem.hands}</b>
-                                ${catalogItem.range ? ` • Дистанция: <b>${catalogItem.range}</b>` : ''}
-                                ${catalogItem.reload ? ` • Перезарядка: <b>${catalogItem.reload}</b>` : ''}
-                            </div>
-                        ` : ''}
-                        ${traits ? `
-                            <div class="init-tip-section">
-                                <div class="init-tip-sec-title">🏷️ Дескрипторы и свойства</div>
-                                <div style="font-size: 13px; line-height: 1.4; color: #ebd291;">${traits}</div>
-                            </div>
-                        ` : ''}
-                        ${critText && !traits.includes('Крит:') ? `
-                            <div class="init-tip-section">
-                                <div class="init-tip-sec-title">💥 Критическая специализация (${catalogItem.group})</div>
-                                <div style="font-size: 13px; line-height: 1.4; color: #ff7675;">${critText}</div>
-                            </div>
-                        ` : ''}
-                    `;
-                    this._showSheetItemTooltip(e, html);
-                };
-
-                row.addEventListener('mouseenter', showWeaponTip);
-                row.addEventListener('mousemove', (e) => {
-                    const tip = document.getElementById('bstSheetItemTooltip');
-                    if (tip && tip.style.display === 'block') {
-                        this._positionSheetItemTooltip(e, tip);
-                    } else {
-                        showWeaponTip(e);
-                    }
-                });
-                row.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
-            });
-
-
-
-        } else {
-            // Тултип при наведении на строку предмета в рюкзаке
-            overlay.querySelectorAll('.bst-items-table tbody tr').forEach(tr => {
-                tr.addEventListener('mouseenter', (e) => {
-                    const anyDropOpen = Array.from(overlay.querySelectorAll('.bst-cantrip-dropdown'))
-                        .some(d => d.style.display === 'block');
-                    if (anyDropOpen) return;
-
-                    const nameInp = tr.querySelector('input[data-sheet-txt$="Name"]');
-                    const name = nameInp?.value.trim();
-                    if (!name) return;
-
-                    const qtyInp = tr.querySelector('input[data-sheet-num$="Qty"]');
-                    const noteInp = tr.querySelector('input[data-sheet-txt$="Notes"]');
-                    const qty = qtyInp?.value ?? 1;
-                    const notes = noteInp?.value.trim() || 'Описание не указано.';
-
-                    const catalogItem = PF2E_ITEMS_CATALOG.find(it => it.name.toLowerCase() === name.toLowerCase());
-
-                    const html = `
-                        <div class="init-tip-header">
-                            <span class="init-tip-name">🎒 ${name}</span>
-                            <span class="init-tip-turn-tag">× ${qty} шт.</span>
-                        </div>
-                        ${catalogItem?.category ? `
-                            <div style="font-size: 13px; color: #2ecc71; margin-top: 4px;">
-                                🏷️ Категория: <b>${catalogItem.category}</b>
-                            </div>
-                        ` : ''}
-                        <div class="init-tip-section">
-                            <div class="init-tip-sec-title">📜 Описание и применение</div>
-                            <div style="font-size: 13.5px; line-height: 1.45; color: #ebd291;">${notes}</div>
-                        </div>
-                    `;
-                    this._showSheetItemTooltip(e, html);
-                });
-
-                tr.addEventListener('mousemove', (e) => {
-                    const tip = document.getElementById('bstSheetItemTooltip');
-                    if (tip && tip.style.display === 'block') {
-                        this._positionSheetItemTooltip(e, tip);
-                    }
-                });
-
-                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
-            });
-
-            // Подробный тултип при наведении на строку фокуса или заклинания 1 круга
-                overlay.querySelectorAll('.bst-cantrips-table:not(.bst-items-table) tbody tr').forEach(tr => {
-                    tr.addEventListener('mouseenter', (e) => {
-                    const nameInp = tr.querySelector('input[data-sheet-txt$="Name"]');
-                    const name = nameInp?.value.trim();
-                    if (!name) return;
-
-                    const actInp = tr.querySelector('input[data-sheet-txt$="Actions"]');
-                    const noteInp = tr.querySelector('input[data-sheet-txt$="Notes"]');
-                    const actions = actInp?.value.trim() || '—';
-                    const notes = noteInp?.value.trim() || 'Описание не заполнено.';
-
-                    // Ищем в справочниках для отображения традиций и круга
-                    const fieldName = nameInp.dataset.sheetTxt;
-                    const isCantrip = fieldName.startsWith('cantrip');
-                    const isFocus = fieldName.startsWith('focusSpell');
-                    const rankLabel = isFocus ? 'Фокальное' : (isCantrip ? 'Фокус' : (fieldName.startsWith('lvl2') ? '2 круг' : '1 круг'));
-
-                    const catalogSpell = [...PF2E_CANTRIPS, ...PF2E_FOCUS_SPELLS, ...PF2E_SPELLS_LVL1, ...PF2E_SPELLS_LVL2]
-                        .find(s => s.name.toLowerCase() === name.toLowerCase());
-
-
-                    const spellAtk = overlay.querySelector('[data-sheet-num="spellAttack"]')?.value ?? stats.spellAttack ?? 0;
-                    const spellDc = overlay.querySelector('[data-sheet-num="spellDc"]')?.value ?? stats.spellDc ?? 10;
-                    const fmtMod = (v) => (Number(v) >= 0 ? `+${Number(v)}` : `${Number(v)}`);
-
-
-                    const html = `
-                        <div class="init-tip-header">
-                            <span class="init-tip-name">${isFocus ? '💠' : (isCantrip ? '✨' : '🔮')} ${name}</span>
-                            <span class="init-tip-turn-tag">${rankLabel}</span>
-                        </div>
-                        <div class="init-tip-top-row">
-                            <span>⚡ <b>${actions}</b></span>
-                            <span>🎯 Атака: <b>${fmtMod(spellAtk)}</b></span>
-                            <span>🛡️ СЛ: <b>${spellDc}</b></span>
-                        </div>
-                        ${catalogSpell?.traditions?.length ? `
-                            <div style="font-size: 13px; color: #2ecc71; margin-top: 6px;">
-                                📚 Традиции: <b>${catalogSpell.traditions.join(', ')}</b>
-                            </div>
-                        ` : ''}
-                        ${catalogSpell?.source ? `
-                            <div style="font-size: 13px; color: #3498db; margin-top: 6px;">
-                                💠 Источник: <b>${catalogSpell.source}</b>
-                            </div>
-                        ` : ''}
-                        <div class="init-tip-section">
-                            <div class="init-tip-sec-title">📜 Эффект и описание</div>
-                            <div style="font-size: 13.5px; line-height: 1.45; color: #ebd291;">${notes}</div>
-                        </div>
-                    `;
-
-
-                    this._showSheetItemTooltip(e, html);
-                });
-
-                tr.addEventListener('mousemove', (e) => {
-                    const tip = document.getElementById('bstSheetItemTooltip');
-                    if (tip && tip.style.display === 'block') {
-                        this._positionSheetItemTooltip(e, tip);
-                    }
-                });
-
-                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
-            });
-
-            // 1. Выбор фокусов
-            overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
-                const rowIdx = inp.dataset.cantripRow;
-                const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
-                const actInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`);
-
-                const renderOptions = (query) => {
-                    const list = searchCantrips(query);
-                    if (!list.length) {
-                        dropEl.style.display = 'none';
-                        return;
-                    }
-                    dropEl.innerHTML = list.map(c => `
-                        <div class="bst-cantrip-opt" data-cid="${c.id}">
-                            <div class="bst-cantrip-opt-top">
-                                <b>${c.name}</b>
-                                <span>${c.actions}</span>
-                            </div>
-                            <div class="bst-cantrip-opt-trad">${c.traditions.join(', ')}</div>
-                        </div>
-                    `).join('');
-
-                    const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed';
-                    dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.top = `${rect.bottom + 2}px`;
-                    dropEl.style.display = 'block';
-
-                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
-                            if (found) {
-                                inp.value = found.name;
-                                if (actInp) actInp.value = found.actions;
-                                if (noteInp) noteInp.value = found.notes;
-                            }
-                            dropEl.style.display = 'none';
-                        });
-                    });
-                };
-
-                inp.addEventListener('focus', () => renderOptions(inp.value));
-                inp.addEventListener('input', () => renderOptions(inp.value));
-                inp.addEventListener('blur', () => {
-                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
-                });
-            });
-
-            // 4. Выбор фокальных заклинаний
-            overlay.querySelectorAll('.bst-focus-picker-inp').forEach(inp => {
-                const rowIdx = inp.dataset.focusRow;
-                const dropEl = overlay.querySelector(`[data-focus-drop="${rowIdx}"]`);
-                const actInp = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Actions"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Notes"]`);
-
-                const renderFocusOptions = (query) => {
-                    const list = searchFocusSpells(query);
-                    if (!list.length) {
-                        dropEl.style.display = 'none';
-                        return;
-                    }
-                    dropEl.innerHTML = list.map(f => `
-                        <div class="bst-cantrip-opt" data-fid="${f.id}">
-                            <div class="bst-cantrip-opt-top">
-                                <b>${f.name}</b>
-                                <span>${f.actions}</span>
-                            </div>
-                            <div class="bst-cantrip-opt-trad">${f.source}</div>
-                        </div>
-                    `).join('');
-
-                    const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed';
-                    dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.width = '340px';
-                    dropEl.style.display = 'block';
-
-                    const dropHeight = dropEl.offsetHeight || 220;
-                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
-                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
-                    } else {
-                        dropEl.style.top = `${rect.bottom + 2}px`;
-                    }
-
-                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const found = PF2E_FOCUS_SPELLS.find(x => x.id === optEl.dataset.fid);
-                            if (found) {
-                                inp.value = found.name;
-                                if (actInp) actInp.value = found.actions;
-                                if (noteInp) noteInp.value = found.notes;
-                            }
-                            dropEl.style.display = 'none';
-                        });
-                    });
-                };
-
-                inp.addEventListener('focus', () => renderFocusOptions(inp.value));
-                inp.addEventListener('input', () => renderFocusOptions(inp.value));
-                inp.addEventListener('blur', () => {
-                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
-                });
-            });
-
-
-            // 2. Выбор заклинаний 1 круга
-            overlay.querySelectorAll('.bst-lvl1-picker-inp').forEach(inp => {
-                const rowIdx = inp.dataset.lvl1Row;
-                const dropEl = overlay.querySelector(`[data-lvl1-drop="${rowIdx}"]`);
-                const actInp = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Actions"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Notes"]`);
-
-                const renderLvl1Options = (query) => {
-                    const list = searchSpellsLvl1(query);
-                    if (!list.length) {
-                        dropEl.style.display = 'none';
-                        return;
-                    }
-                    dropEl.innerHTML = list.map(s => `
-                        <div class="bst-cantrip-opt" data-sid="${s.id}">
-                            <div class="bst-cantrip-opt-top">
-                                <b>${s.name}</b>
-                                <span>${s.actions}</span>
-                            </div>
-                            <div class="bst-cantrip-opt-trad">${s.traditions.join(', ')}</div>
-                        </div>
-                    `).join('');
-
-                    const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed';
-                    dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.width = '340px';
-                    dropEl.style.display = 'block';
-
-                    const dropHeight = dropEl.offsetHeight || 220;
-                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
-                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
-                    } else {
-                        dropEl.style.top = `${rect.bottom + 2}px`;
-                    }
-
-                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const found = PF2E_SPELLS_LVL1.find(x => x.id === optEl.dataset.sid);
-                            if (found) {
-                                inp.value = found.name;
-                                if (actInp) actInp.value = found.actions;
-                                if (noteInp) noteInp.value = found.notes;
-                            }
-                            dropEl.style.display = 'none';
-                        });
-                    });
-                };
-
-                inp.addEventListener('focus', () => renderLvl1Options(inp.value));
-                inp.addEventListener('input', () => renderLvl1Options(inp.value));
-                inp.addEventListener('blur', () => {
-                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
-                });
-            });
-
-            // 3. Выбор заклинаний 2 круга
-            overlay.querySelectorAll('.bst-lvl2-picker-inp').forEach(inp => {
-                const rowIdx = inp.dataset.lvl2Row;
-                const dropEl = overlay.querySelector(`[data-lvl2-drop="${rowIdx}"]`);
-                const actInp = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Actions"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Notes"]`);
-
-                const renderLvl2Options = (query) => {
-                    const list = searchSpellsLvl2(query);
-                    if (!list.length) {
-                        dropEl.style.display = 'none';
-                        return;
-                    }
-                    dropEl.innerHTML = list.map(s => `
-                        <div class="bst-cantrip-opt" data-s2id="${s.id}">
-                            <div class="bst-cantrip-opt-top">
-                                <b>${s.name}</b>
-                                <span>${s.actions}</span>
-                            </div>
-                            <div class="bst-cantrip-opt-trad">${s.traditions.join(', ')}</div>
-                        </div>
-                    `).join('');
-
-                    const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed';
-                    dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.width = '340px';
-                    dropEl.style.display = 'block';
-
-                    const dropHeight = dropEl.offsetHeight || 220;
-                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
-                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
-                    } else {
-                        dropEl.style.top = `${rect.bottom + 2}px`;
-                    }
-
-                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const found = PF2E_SPELLS_LVL2.find(x => x.id === optEl.dataset.s2id);
-                            if (found) {
-                                inp.value = found.name;
-                                if (actInp) actInp.value = found.actions;
-                                if (noteInp) noteInp.value = found.notes;
-                            }
-                            dropEl.style.display = 'none';
-                        });
-                    });
-                };
-
-                inp.addEventListener('focus', () => renderLvl2Options(inp.value));
-                inp.addEventListener('input', () => renderLvl2Options(inp.value));
-                inp.addEventListener('blur', () => {
-                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
-                });
-            });
-
-            // Выбор предметов, зелий и провизии
-            overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
-                const rowIdx = inp.dataset.itemRow;
-                const dropEl = overlay.querySelector(`[data-item-drop="${rowIdx}"]`);
-                const qtyInp = overlay.querySelector(`[data-sheet-num="item${rowIdx}Qty"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="item${rowIdx}Notes"]`);
-
-                const renderItemOptions = (query) => {
-                    const list = searchItemsCatalog(query);
-                    if (!list.length) {
-                        dropEl.style.display = 'none';
-                        return;
-                    }
-                    dropEl.innerHTML = list.map(it => `
-                        <div class="bst-cantrip-opt" data-itemid="${it.id}">
-                            <div class="bst-cantrip-opt-top">
-                                <b>${it.name}</b>
-                                <span>${it.category}</span>
-                            </div>
-                            <div class="bst-cantrip-opt-trad">${it.notes}</div>
-                        </div>
-                    `).join('');
-
-                    const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed';
-                    dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.top = `${rect.bottom + 2}px`;
-                    dropEl.style.width = '360px';
-                    dropEl.style.display = 'block';
-
-                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const found = PF2E_ITEMS_CATALOG.find(x => x.id === optEl.dataset.itemid);
-                            if (found) {
-                                inp.value = found.name;
-                                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) qtyInp.value = 1;
-                                if (noteInp) noteInp.value = found.notes;
-                            }
-                            dropEl.style.display = 'none';
-                        });
-                    });
-                };
-
-                inp.addEventListener('focus', () => renderItemOptions(inp.value));
-                inp.addEventListener('input', () => renderItemOptions(inp.value));
-                inp.addEventListener('blur', () => {
-                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
-                });
-            });
-
-            // Кнопки - / + и колесо мыши для количества предметов/расходников
-            overlay.querySelectorAll('.bst-qty-stepper').forEach(stepper => {
-                const qtyInp = stepper.querySelector('.bst-qty-inp');
-                if (!qtyInp) return;
-
-                const changeQty = (delta) => {
-                    const cur = parseInt(qtyInp.value, 10) || 0;
-                    qtyInp.value = Math.max(0, cur + delta);
-                };
-
-                stepper.querySelectorAll('.bst-qty-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        changeQty(parseInt(btn.dataset.qtyDelta, 10) || 0);
-                    });
-                });
-
-                qtyInp.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    changeQty(e.deltaY < 0 ? 1 : -1);
-                }, { passive: false });
-            });
-
-        }
-
-
-        // калькулятор брони, лимитов КБ и динамического пересчета инпутов навыков
-        // Умный калькулятор брони, лимитов КБ и динамического пересчета спасбросков и внимания
+        // ЕДИНЫЙ СИСТЕМНЫЙ КАЛЬКУЛЯТОР СТРАНИЦЫ 1 (КБ, Спасброски, 17 Навыков)
         const calculateArmorClass = () => {
+            if (!isPage1) return; // Считаем только на первой странице
+
             const armorType = overlay.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
             const dexInp = overlay.querySelector('[data-sheet-num="acDex"]');
             const profInp = overlay.querySelector('[data-sheet-num="acProf"]');
@@ -1721,7 +1095,19 @@ const BestiaryManager = {
 
             hero.stats.acArmorPenalty = basePenalty;
 
-            // Вычисляем КБ
+            if (penaltyInp) {
+                if (armorType === 'unarmored') {
+                    penaltyInp.title = "Нет брони — штрафы отсутствуют.";
+                } else if (charStr < armorStrReq) {
+                    penaltyInp.title = `Штраф активен! Сила (${charStr}) меньше требуемой (${armorStrReq}).`;
+                    penaltyInp.style.borderColor = "#e74c3c";
+                } else {
+                    penaltyInp.title = `Штраф аннулирован! Сила (${charStr}) соответствует требованиям (${armorStrReq}).`;
+                    penaltyInp.style.borderColor = "#2ecc71";
+                }
+            }
+
+            // Вычисляем итоговый КБ
             const totalAc = 10 + rawDex + prof + item + other;
             totalAcInp.value = totalAc;
             hero.stats.ac = totalAc;
@@ -1730,47 +1116,447 @@ const BestiaryManager = {
             const charWis = parseInt(overlay.querySelector('[data-sheet-num="wis"]')?.value, 10) || 0;
             const charCon = parseInt(overlay.querySelector('[data-sheet-num="con"]')?.value, 10) || 0;
             const charDex = parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0;
+            const charInt = parseInt(overlay.querySelector('[data-sheet-num="int"]')?.value, 10) || 0;
+            const charCha = parseInt(overlay.querySelector('[data-sheet-num="cha"]')?.value, 10) || 0;
 
-            // Считываем значения умений с полей
             const profPerc = parseInt(overlay.querySelector('[data-sheet-num="saveProf_perc"]')?.value, 10) || 0;
             const profFort = parseInt(overlay.querySelector('[data-sheet-num="saveProf_fort"]')?.value, 10) || 0;
             const profRef = parseInt(overlay.querySelector('[data-sheet-num="saveProf_ref"]')?.value, 10) || 0;
             const profWill = parseInt(overlay.querySelector('[data-sheet-num="saveProf_will"]')?.value, 10) || 0;
 
-            // Итоговые формулы
             const finalPerc = charWis + profPerc;
             const finalFort = charCon + profFort;
             const finalRef = charDex + profRef;
             const finalWill = charWis + profWill;
 
-            // Выводим в интерфейс и сохраняем в стейт
             const pEl = overlay.querySelector('[data-sheet-num="perception"]'); if (pEl) { pEl.value = finalPerc; hero.stats.perception = finalPerc; hero.stats.perc = finalPerc; }
             const fEl = overlay.querySelector('[data-sheet-num="fortitude"]'); if (fEl) { fEl.value = finalFort; hero.stats.fortitude = finalFort; hero.stats.fort = finalFort; }
             const rEl = overlay.querySelector('[data-sheet-num="reflex"]');    if (rEl) { rEl.value = finalRef;  hero.stats.reflex = finalRef;    hero.stats.ref = finalRef; }
             const wEl = overlay.querySelector('[data-sheet-num="will"]');      if (wEl) { wEl.value = finalWill; hero.stats.will = finalWill; }
 
-            // Пересчет штрафов навыков
-            const penaltySkills = ['acrobatics', 'athletics', 'stealth', 'thievery'];
-            penaltySkills.forEach(skillKey => {
-                const skillInp = overlay.querySelector(`[data-sheet-num="${skillKey}"]`);
-                if (skillInp) {
-                    if (skillInp.dataset.baseValue === undefined) {
-                        skillInp.dataset.baseValue = skillInp.value;
-                    }
-                    const baseSkillValue = parseInt(skillInp.dataset.baseValue, 10) || 0;
-                    const finalValue = baseSkillValue - activePenalty;
-                    skillInp.value = finalValue;
+            // --- ГЛОБАЛЬНЫЙ АВТОРАСЧЕТ ВСЕХ 17 НАВЫКОВ ---
+            const skillToAttrMap = {
+                acrobatics: charDex, athletics: charStr, thievery: charDex, stealth: charDex,
+                survival: charWis, medicine: charWis, nature: charWis, religion: charWis,
+                diplomacy: charCha, intimidation: charCha, deception: charCha,
+                arcana: charInt, occultism: charInt, society: charInt, crafting: charInt,
+                lore: charInt, performance: charCha
+            };
 
-                    if (activePenalty > 0) {
-                        skillInp.style.color = "#ff7675";
-                        skillInp.title = `Применён штраф от брони: -${activePenalty} (Базовое: ${baseSkillValue})`;
+            const penaltySkills = ['acrobatics', 'athletics', 'stealth', 'thievery'];
+
+            Object.entries(skillToAttrMap).forEach(([skillKey, attrModifier]) => {
+                const totalInp = overlay.querySelector(`[data-sheet-num="${skillKey}"]`);
+                const profInp = overlay.querySelector(`[data-sheet-num="prof_${skillKey}"]`);
+
+                if (totalInp && profInp) {
+                    const profValue = parseInt(profInp.value, 10) || 0;
+                    let finalSkillVal = attrModifier + profValue;
+
+                    let hasActivePenalty = false;
+                    if (penaltySkills.includes(skillKey) && activePenalty > 0) {
+                        finalSkillVal -= activePenalty;
+                        hasActivePenalty = true;
+                    }
+
+                    totalInp.value = finalSkillVal;
+                    hero.stats[skillKey] = finalSkillVal;
+
+                    const shortKeyMap = { acrobatics: 'acro', athletics: 'athl', stealth: 'stea', survival: 'surv', medicine: 'medi', intimidation: 'inti', deception: 'dece', diplomacy: 'dipl', arcana: 'arca', nature: 'natu', occultism: 'occu', religion: 'reli' };
+                    if (shortKeyMap[skillKey]) {
+                        hero.stats[shortKeyMap[skillKey]] = finalSkillVal;
+                    }
+
+                    if (hasActivePenalty) {
+                        totalInp.style.color = "#ff7675";
+                        totalInp.title = `Штраф брони active! (База: ${attrModifier + profValue}, Штраф: -${activePenalty})`;
+                    } else if (profValue > 0) {
+                        totalInp.style.color = "#2ecc71";
+                        totalInp.title = `Изучен! (Характеристика: ${attrModifier}, Умение: +${profValue})`;
                     } else {
-                        skillInp.style.color = "";
-                        skillInp.title = `Базовое значение: ${baseSkillValue}`;
+                        totalInp.style.color = "";
+                        totalInp.title = `Не изучен (Только модификатор характеристики: ${attrModifier})`;
                     }
                 }
             });
         };
+        // НАВЕШИВАНИЕ СЛУШАТЕЛЕЙ ДЛЯ СТРАНИЦЫ 1 И 2
+        if (isPage1) {
+            // Развешиваем слушатели изменений на все триггеры калькуляторов и характеристики бланка
+            overlay.querySelectorAll('.bst-armor-calc-trigger, .bst-save-calc-trigger, .bst-skill-calc-trigger, [data-sheet-num="str"], [data-sheet-num="dex"], [data-sheet-num="con"], [data-sheet-num="int"], [data-sheet-num="wis"], [data-sheet-num="cha"]').forEach(el => {
+                el.addEventListener('input', (e) => {
+                    const fieldNum = e.target.dataset.sheetNum;
+                    const fieldTxt = e.target.dataset.sheetTxt;
+                    if (fieldNum) hero.stats[fieldNum] = parseInt(e.target.value, 10) || 0;
+                    if (fieldTxt) hero.stats[fieldTxt] = e.target.value;
+                    calculateArmorClass();
+                });
+                el.addEventListener('change', calculateArmorClass);
+            });
+
+            // Инициализация калькулятора брони при старте
+            calculateArmorClass();
+
+            // 1. Поиск и выбор оружия ближнего боя (melee1, melee2)
+            overlay.querySelectorAll('.bst-weapon-picker-inp').forEach(inp => {
+                const slot = inp.dataset.weaponSlot;
+                const dropEl = overlay.querySelector(`[data-weapon-drop="${slot}"]`);
+                const atkInp = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`);
+                const dmgInp = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`);
+                const traitsInp = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`);
+
+                const renderWeapons = (query) => {
+                    const list = searchMeleeWeapons(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(w => {
+                        const critText = getWeaponCritEffect(w.group);
+                        return `
+                            <div class="bst-cantrip-opt" data-wid="${w.id}">
+                                <div class="bst-cantrip-opt-top"><b>${w.name}</b> <span>${w.dmgDice} ${w.dmgType}</span></div>
+                                <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = '360px';
+                    dropEl.style.display = 'block';
+                    dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`;
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_MELEE_WEAPONS.find(x => x.id === optEl.dataset.wid);
+                            if (found) {
+                                const liveStats = {
+                                    level: parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || stats.level || 1,
+                                    str: parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0,
+                                    dex: parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0
+                                };
+                                const { atkStr, dmgStr } = calcMeleeWeaponRoll(found, liveStats);
+                                inp.value = found.name;
+                                if (atkInp) atkInp.value = atkStr;
+                                if (dmgInp) dmgInp.value = dmgStr;
+                                if (traitsInp) traitsInp.value = found.traits;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderWeapons(inp.value));
+                inp.addEventListener('input', () => renderWeapons(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // 2. Поиск и выбор дистанционного оружия (ranged)
+            const rangedInp = overlay.querySelector('.bst-ranged-picker-inp');
+            if (rangedInp) {
+                const dropEl = overlay.querySelector('[data-ranged-drop="1"]');
+                const atkInp = overlay.querySelector('[data-sheet-txt="rangedAtk"]');
+                const dmgInp = overlay.querySelector('[data-sheet-txt="rangedDmg"]');
+                const traitsInp = overlay.querySelector('[data-sheet-txt="rangedTraits"]');
+
+                const renderRanged = (query) => {
+                    const list = searchRangedWeapons(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(w => `
+                        <div class="bst-cantrip-opt" data-rid="${w.id}">
+                            <div class="bst-cantrip-opt-top"><b>${w.name}</b> <span>${w.dmgDice}</span></div>
+                        </div>
+                    `).join('');
+                    const rect = rangedInp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = '360px';
+                    dropEl.style.display = 'block';
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_RANGED_WEAPONS.find(x => x.id === optEl.dataset.rid);
+                            if (found) {
+                                const liveStats = {
+                                    level: parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || stats.level || 1,
+                                    str: parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0,
+                                    dex: parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0
+                                };
+                                const { atkStr, dmgStr } = calcRangedWeaponRoll(found, liveStats);
+                                rangedInp.value = found.name;
+                                if (atkInp) atkInp.value = atkStr;
+                                if (dmgInp) dmgInp.value = dmgStr;
+                                if (traitsInp) traitsInp.value = found.traits;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                rangedInp.addEventListener('focus', () => renderRanged(rangedInp.value));
+                rangedInp.addEventListener('input', () => renderRanged(rangedInp.value));
+                rangedInp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            }
+
+            // 3. Выбор брони из каталога
+            overlay.querySelectorAll('.bst-armor-picker-inp').forEach(inp => {
+                const dropEl = overlay.querySelector('[data-armor-drop="1"]');
+                const typeSel = overlay.querySelector('[data-sheet-txt="armorType"]');
+                const itemInp = overlay.querySelector('[data-sheet-num="acItem"]');
+                const penaltyInp = overlay.querySelector('[data-sheet-num="acArmorPenalty"]');
+                const totalAcInp = overlay.querySelector('[data-sheet-num="ac"]');
+
+                const renderArmorMatches = (query) => {
+                    const list = searchArmorCatalog(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(a => `
+                        <div class="bst-cantrip-opt" data-aid="${a.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${a.name}</b> <span>КБ: +${a.acBonus}</span></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size:11px;">Группа: ${a.group} • Тр. Сила: ${a.strReq} • Штраф: ${a.penalty}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed'; dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`; dropEl.style.width = '260px'; dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_ARMOR_CATALOG.find(x => x.id === optEl.dataset.aid);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats.armorName = found.name;
+                                if (typeSel) typeSel.value = found.category;
+                                if (itemInp) itemInp.value = found.acBonus;
+                                if (penaltyInp) penaltyInp.value = found.penalty;
+
+                                hero.stats.armorType = found.category;
+                                hero.stats.acItem = found.acBonus;
+                                hero.stats.acArmorPenalty = found.penalty;
+
+                                if (totalAcInp) totalAcInp.dataset.currentStrReq = found.strReq;
+                                calculateArmorClass();
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderArmorMatches(inp.value));
+                inp.addEventListener('input', () => renderArmorMatches(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // 4. Выпадающие списки для полей Народ и Класс
+            overlay.querySelectorAll('.bst-meta-picker-inp').forEach(inp => {
+                const type = inp.dataset.metaType;
+                const dropEl = overlay.querySelector(`[data-meta-drop="${type}"]`);
+                const sourceCatalog = type === 'ancestry' ? PF2E_ANCESTRIES : PF2E_CLASSES;
+
+                const renderMetaMatches = (query) => {
+                    const list = searchMetaCatalog(sourceCatalog, query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(x => `
+                        <div class="bst-cantrip-opt" data-meta-id="${x.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${x.name}</b></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px;">${type === 'ancestry' ? x.traits : `Характеристика: ${x.keyStat} • ПЗ: +${x.hp}`}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed'; dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`; dropEl.style.width = `${Math.max(240, rect.width)}px`; dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = sourceCatalog.find(x => x.id === optEl.dataset.metaId);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats[type === 'ancestry' ? 'ancestry' : 'charClass'] = found.name;
+                                if (type === 'class') {
+                                    const hpMaxInp = overlay.querySelector('[data-sheet-num="hpMax"]');
+                                    const hpCurInp = overlay.querySelector('[data-sheet-num="hpCurrent"]');
+                                    const conMod = parseInt(overlay.querySelector('[data-sheet-num="con"]')?.value, 10) || 0;
+                                    if (hpMaxInp && (!hpMaxInp.value || hpMaxInp.value == "10")) {
+                                        const calculatedHp = found.hp + conMod;
+                                        hpMaxInp.value = calculatedHp; hpCurInp.value = calculatedHp;
+                                        hero.stats.hpMax = calculatedHp; hero.stats.hpCurrent = calculatedHp;
+                                    }
+                                }
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderMetaMatches(inp.value));
+                inp.addEventListener('input', () => renderMetaMatches(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // 5. Выпадающий список для Происхождений персонажа
+            overlay.querySelectorAll('.bst-background-picker-inp').forEach(inp => {
+                const dropEl = overlay.querySelector('[data-bg-drop="1"]');
+
+                const renderBgMatches = (query) => {
+                    const list = searchBackgroundsCatalog(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(b => `
+                        <div class="bst-cantrip-opt" data-bg-id="${b.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${b.name}</b></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px;">${b.desc} <br><span style="color:#74b9ff;">✨ Черта: ${b.feat}</span></div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed'; dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`; dropEl.style.width = `${Math.max(260, rect.width)}px`; dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_BACKGROUNDS.find(x => x.id === optEl.dataset.bgId);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats.background = found.name;
+
+                                const targetSkillInp = overlay.querySelector(`[data-sheet-num="prof_${found.skill}"]`);
+                                if (targetSkillInp) {
+                                    targetSkillInp.value = 2; // Автоподстановка Изучен (+2) за Происхождение
+                                }
+
+                                const featInp = overlay.querySelector('[data-sheet-txt="backgroundFeat"]');
+                                if (featInp && !featInp.value) {
+                                    featInp.value = `📜 ${found.feat}`;
+                                    hero.stats.backgroundFeat = `📜 ${found.feat}`;
+                                }
+                                calculateArmorClass();
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderBgMatches(inp.value));
+                inp.addEventListener('input', () => renderBgMatches(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+            // Тултипы для оружия на Странице 1
+            const weaponRows = overlay.querySelectorAll('.bst-weapon-row');
+            weaponRows.forEach((row, rIdx) => {
+                const slot = rIdx === 0 ? 'melee1' : (rIdx === 1 ? 'melee2' : 'ranged');
+                row.addEventListener('mouseenter', (e) => {
+                    const name = overlay.querySelector(`[data-sheet-txt="${slot}Name"]`)?.value.trim();
+                    if (!name) return;
+                    const atk = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`)?.value.trim() || '—';
+                    const dmg = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`)?.value.trim() || '—';
+                    const traits = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`)?.value.trim() || '';
+
+                    const html = `<div class="init-tip-header"><span class="init-tip-name">⚔️ ${name}</span></div><div class="init-tip-top-row"><span>🎯 Атака: <b>${atk}</b></span><span>💥 Урон: <b>${dmg}</b></span></div>${traits ? `<div style="font-size:12px; margin-top:4px; color:#ebd291;">${traits}</div>` : ''}`;
+                    this._showSheetItemTooltip(e, html);
+                });
+                row.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                row.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+
+        } else {
+            // КОД ДЛЯ СТРАНИЦЫ 2 (ФОКУСЫ, ПРЕДМЕТЫ, ЗАКЛИНАНИЯ)
+            // 1. Выбор фокусов
+            overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.cantripRow;
+                const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="cantrip${rowIdx}Notes"]`);
+
+                const renderOptions = (query) => {
+                    const list = searchCantrips(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(c => `
+                        <div class="bst-cantrip-opt" data-cid="${c.id}">
+                            <div class="bst-cantrip-opt-top"><b>${c.name}</b> <span>${c.actions}</span></div>
+                            <div class="bst-cantrip-opt-trad">${c.traditions.join(', ')}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed'; dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`; dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
+                            if (found) {
+                                inp.value = found.name;
+                                if (actInp) actInp.value = found.actions;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderOptions(inp.value));
+                inp.addEventListener('input', () => renderOptions(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // 2. Выбор предметов и провизии
+            overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.itemRow;
+                const dropEl = overlay.querySelector(`[data-item-drop="${rowIdx}"]`);
+                const qtyInp = overlay.querySelector(`[data-sheet-num="item${rowIdx}Qty"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="item${rowIdx}Notes"]`);
+
+                const renderItemOptions = (query) => {
+                    const list = searchItemsCatalog(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(it => `
+                        <div class="bst-cantrip-opt" data-itemid="${it.id}">
+                            <div class="bst-cantrip-opt-top"><b>${it.name}</b> <span>${it.category}</span></div>
+                        </div>
+                    `).join('');
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed'; dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`; dropEl.style.width = '360px'; dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_ITEMS_CATALOG.find(x => x.id === optEl.dataset.itemid);
+                            if (found) {
+                                inp.value = found.name;
+                                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) qtyInp.value = 1;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderItemOptions(inp.value));
+                inp.addEventListener('input', () => renderItemOptions(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // Кнопки - / + и колесо мыши для степпера
+            overlay.querySelectorAll('.bst-qty-stepper').forEach(stepper => {
+                const qtyInp = stepper.querySelector('.bst-qty-inp');
+                if (!qtyInp) return;
+                const changeQty = (delta) => {
+                    const cur = parseInt(qtyInp.value, 10) || 0;
+                    qtyInp.value = Math.max(0, cur + delta);
+                };
+                stepper.querySelectorAll('.bst-qty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => { e.preventDefault(); changeQty(parseInt(btn.dataset.qtyDelta, 10) || 0); });
+                });
+            });
+
+            // Тултипы для предметов в рюкзаке на Странице 2
+            overlay.querySelectorAll('.bst-items-table tbody tr').forEach(tr => {
+                tr.addEventListener('mouseenter', (e) => {
+                    const name = tr.querySelector('input[data-sheet-txt$="Name"]')?.value.trim();
+                    if (!name) return;
+                    const notes = tr.querySelector('input[data-sheet-txt$="Notes"]')?.value.trim() || 'Описание отсутствует.';
+                    const html = `<div class="init-tip-header"><span class="init-tip-name">🎒 ${name}</span></div><div class="init-tip-section"><div style="font-size:13px; color:#ebd291;">${notes}</div></div>`;
+                    this._showSheetItemTooltip(e, html);
+                });
+                tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+        }
 
 
 
