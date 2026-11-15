@@ -14,7 +14,6 @@ import {
 } from '../config/weapons_catalog.js';
 
 
-
 // Добавьте в начало bestiary_manager.js (после импортов)
 export const STAT_CATEGORIES = [
     {
@@ -893,7 +892,136 @@ const BestiaryManager = {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             }
+
+            // 3. Подробный тултип при наведении на строку оружия (ближний и дальний бой)
+            const weaponRows = overlay.querySelectorAll('.bst-weapon-row');
+            weaponRows.forEach((row, rIdx) => {
+                const slot = rIdx === 0 ? 'melee1' : (rIdx === 1 ? 'melee2' : 'ranged');
+
+                const showWeaponTip = (e) => {
+                    // Не показываем тултип, если сейчас открыт выпадающий список выбора оружия
+                    const anyDropOpen = Array.from(overlay.querySelectorAll('.bst-cantrip-dropdown'))
+                        .some(d => d.style.display === 'block');
+                    if (anyDropOpen) {
+                        this._hideSheetItemTooltip();
+                        return;
+                    }
+
+                    const name = overlay.querySelector(`[data-sheet-txt="${slot}Name"]`)?.value.trim();
+                    if (!name) return;
+
+                    const atk = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`)?.value.trim() || '—';
+                    const dmg = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`)?.value.trim() || '—';
+                    const traits = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`)?.value.trim() || '';
+
+                    const allWeapons = [
+                        ...(Array.isArray(PF2E_MELEE_WEAPONS) ? PF2E_MELEE_WEAPONS : []),
+                        ...(Array.isArray(PF2E_RANGED_WEAPONS) ? PF2E_RANGED_WEAPONS : [])
+                    ];
+                    const catalogItem = allWeapons.find(w => w.name.toLowerCase() === name.toLowerCase());
+                    const critText = catalogItem ? getWeaponCritEffect(catalogItem.group) : '';
+
+                    const html = `
+                        <div class="init-tip-header">
+                            <span class="init-tip-name">${slot === 'ranged' ? '🏹' : '⚔️'} ${name}</span>
+                            ${catalogItem ? `<span class="init-tip-turn-tag">${catalogItem.category}</span>` : ''}
+                        </div>
+                        <div class="init-tip-top-row">
+                            <span>🎯 Атака: <b>${atk}</b></span>
+                            <span>💥 Урон: <b>${dmg}</b></span>
+                        </div>
+                        ${catalogItem ? `
+                            <div style="font-size: 13px; color: #dfbc6f; margin-top: 6px;">
+                                Группа: <b>${catalogItem.group}</b> • Рук: <b>${catalogItem.hands}</b>
+                                ${catalogItem.range ? ` • Дистанция: <b>${catalogItem.range}</b>` : ''}
+                                ${catalogItem.reload ? ` • Перезарядка: <b>${catalogItem.reload}</b>` : ''}
+                            </div>
+                        ` : ''}
+                        ${traits ? `
+                            <div class="init-tip-section">
+                                <div class="init-tip-sec-title">🏷️ Дескрипторы и свойства</div>
+                                <div style="font-size: 13px; line-height: 1.4; color: #ebd291;">${traits}</div>
+                            </div>
+                        ` : ''}
+                        ${critText && !traits.includes('Крит:') ? `
+                            <div class="init-tip-section">
+                                <div class="init-tip-sec-title">💥 Критическая специализация (${catalogItem.group})</div>
+                                <div style="font-size: 13px; line-height: 1.4; color: #ff7675;">${critText}</div>
+                            </div>
+                        ` : ''}
+                    `;
+                    this._showSheetItemTooltip(e, html);
+                };
+
+                row.addEventListener('mouseenter', showWeaponTip);
+                row.addEventListener('mousemove', (e) => {
+                    const tip = document.getElementById('bstSheetItemTooltip');
+                    if (tip && tip.style.display === 'block') {
+                        this._positionSheetItemTooltip(e, tip);
+                    } else {
+                        showWeaponTip(e);
+                    }
+                });
+                row.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+
+
+
         } else {
+            // Подробный тултип при наведении на строку фокуса или заклинания 1 круга
+            overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {
+                tr.addEventListener('mouseenter', (e) => {
+                    const nameInp = tr.querySelector('input[data-sheet-txt$="Name"]');
+                    const name = nameInp?.value.trim();
+                    if (!name) return;
+
+                    const actInp = tr.querySelector('input[data-sheet-txt$="Actions"]');
+                    const noteInp = tr.querySelector('input[data-sheet-txt$="Notes"]');
+                    const isCantrip = nameInp.dataset.sheetTxt.startsWith('cantrip');
+
+                    const actions = actInp?.value.trim() || '—';
+                    const notes = noteInp?.value.trim() || 'Описание не заполнено.';
+
+                    // Ищем в справочниках для отображения традиций и круга
+                    const catalogSpell = [...PF2E_CANTRIPS, ...PF2E_SPELLS_LVL1]
+                        .find(s => s.name.toLowerCase() === name.toLowerCase());
+
+                    const spellAtk = overlay.querySelector('[data-sheet-num="spellAttack"]')?.value ?? stats.spellAttack ?? 0;
+                    const spellDc = overlay.querySelector('[data-sheet-num="spellDc"]')?.value ?? stats.spellDc ?? 10;
+                    const fmtMod = (v) => (Number(v) >= 0 ? `+${Number(v)}` : `${Number(v)}`);
+
+                    const html = `
+                        <div class="init-tip-header">
+                            <span class="init-tip-name">${isCantrip ? '✨' : '🔮'} ${name}</span>
+                            <span class="init-tip-turn-tag">${isCantrip ? 'Фокус' : '1 круг'}</span>
+                        </div>
+                        <div class="init-tip-top-row">
+                            <span>⚡ <b>${actions}</b></span>
+                            <span>🎯 Атака: <b>${fmtMod(spellAtk)}</b></span>
+                            <span>🛡️ СЛ: <b>${spellDc}</b></span>
+                        </div>
+                        ${catalogSpell?.traditions?.length ? `
+                            <div style="font-size: 13px; color: #2ecc71; margin-top: 6px;">
+                                📚 Традиции: <b>${catalogSpell.traditions.join(', ')}</b>
+                            </div>
+                        ` : ''}
+                        <div class="init-tip-section">
+                            <div class="init-tip-sec-title">📜 Эффект и описание</div>
+                            <div style="font-size: 13.5px; line-height: 1.45; color: #ebd291;">${notes}</div>
+                        </div>
+                    `;
+                    this._showSheetItemTooltip(e, html);
+                });
+
+                tr.addEventListener('mousemove', (e) => {
+                    const tip = document.getElementById('bstSheetItemTooltip');
+                    if (tip && tip.style.display === 'block') {
+                        this._positionSheetItemTooltip(e, tip);
+                    }
+                });
+
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
 
             // 1. Выбор фокусов
             overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
@@ -1001,6 +1129,7 @@ const BestiaryManager = {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             });
+
         }
 
     },
@@ -1477,6 +1606,43 @@ const BestiaryManager = {
     },
 
 
+    _hideSheetItemTooltip() {
+        const tip = document.getElementById('bstSheetItemTooltip');
+        if (tip) tip.style.display = 'none';
+    },
+
+    _positionSheetItemTooltip(e, tip) {
+        const pad = 14;
+        const rect = tip.getBoundingClientRect();
+        let left = e.clientX + pad;
+        let top = e.clientY + pad;
+
+        if (left + rect.width > window.innerWidth - 12) {
+            left = e.clientX - rect.width - pad;
+        }
+        if (top + rect.height > window.innerHeight - 12) {
+            top = e.clientY - rect.height - pad;
+        }
+
+        tip.style.left = `${Math.max(8, left)}px`;
+        tip.style.top = `${Math.max(8, top)}px`;
+    },
+
+    _showSheetItemTooltip(e, html) {
+        if (!html) return;
+        let tip = document.getElementById('bstSheetItemTooltip');
+        if (!tip) {
+            tip = document.createElement('div');
+            tip.id = 'bstSheetItemTooltip';
+            tip.className = 'init-unit-hover-tooltip';
+            tip.style.maxWidth = '380px';
+            tip.style.zIndex = '10000090';
+            document.body.appendChild(tip);
+        }
+        tip.innerHTML = html;
+        tip.style.display = 'block';
+        this._positionSheetItemTooltip(e, tip);
+    },
 
 
     _hideHeroTooltip() {
@@ -1500,6 +1666,8 @@ const BestiaryManager = {
         tip.style.left = `${Math.max(8, left)}px`;
         tip.style.top = `${Math.max(8, top)}px`;
     },
+
+
 
     _attachHeroTooltip(card, hero, isInactive) {
         card.addEventListener('mouseenter', (e) => {
