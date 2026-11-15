@@ -14,7 +14,7 @@ import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_cat
 
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES } from '../config/companions_catalog.js';
 
-import { PF2E_RANGER_FEATS } from '../config/feats_catalog.js';
+import { PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS } from '../config/feats_catalog.js';
 
 import {
     PF2E_MELEE_WEAPONS,
@@ -115,7 +115,6 @@ const PF2E_SHEET_CONFIG = {
     ]
 };
 
-
 const BestiaryManager = {
     state: {
         party: [],     // Текущий отряд Герои / Союзники
@@ -152,7 +151,6 @@ const BestiaryManager = {
         this.renderUi();
     },
 
-
     moveHeroReserve(fromGroup, toGroup, id) {
         if (!Array.isArray(this.state.party)) this.state.party = [];
         if (!Array.isArray(this.state.inactive)) this.state.inactive = [];
@@ -178,7 +176,6 @@ const BestiaryManager = {
             window.InitiativeManager.renderUi();
         }
     },
-
 
     _ensureCharacterStats(item) {
         if (!item.stats || typeof item.stats !== 'object') {
@@ -387,7 +384,6 @@ const BestiaryManager = {
         });
     },
 
-
     removePreset(groupKey, id) {
         if (groupKey === 'party') {
             this.state.party = this.state.party.filter(x => x.id !== id);
@@ -416,7 +412,6 @@ const BestiaryManager = {
         }
         return this.state.monsters;
     },
-
 
     updatePresetName(groupKey, id, newName) {
         const cleanName = String(newName || '').trim();
@@ -455,7 +450,6 @@ const BestiaryManager = {
         this._save();
     },
 
-
     openCharacterSheetModal(heroId, pageNum = 1) {
         const hero = this.state.party.find(x => x.id === heroId)
             || (this.state.inactive || []).find(x => x.id === heroId)
@@ -489,7 +483,6 @@ const BestiaryManager = {
                 hero.stats[k] = chk.checked;
             });
 
-
             // Синхронизируем полные ключи бланка с короткими ключами трекера инициативы
             const syncMap = {
                 perc: 'perception',
@@ -515,8 +508,6 @@ const BestiaryManager = {
                 }
             });
         };
-
-
 
         const page1Html = `
             <div class="bst-sheet-top-bar">
@@ -568,8 +559,6 @@ const BestiaryManager = {
                             `).join('')}
                         </div>
                     </div>
-
-
                     <div class="k-panel">
                         <div class="k-sec-title">📜 Навыки Pathfinder (Авторасчет)</div>
                         <div class="bst-skills-2col">
@@ -602,14 +591,8 @@ const BestiaryManager = {
                             ${txtInp('skillOtherNotes', '📝 Прочие навыки / заметки...')}
                         </div>
                     </div>
-
-                    
-                    
                 </div>
-
                 <div class="bst-sheet-col">
-                
-                
                     <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">🛡️ Защита, Доспехи и Щит (Калькулятор КБ)</div>
                         <div class="bst-vitals-row" style="margin-bottom: 12px;">
@@ -731,10 +714,6 @@ const BestiaryManager = {
                             ${txtInp('weaponProfNotes', '🥋 Умения в оружии (Простое, Особое, Кулак)...')}
                         </div>
                     </div>
-
-
-                    
-
                     <div class="k-panel">
                         <div class="k-sec-title">🌟 Черты Народа, Происхождения и Класса (Remaster)</div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
@@ -747,9 +726,8 @@ const BestiaryManager = {
                                 ${txtInp('backgroundFeat', '📜 Автовыбор из происхождения...')}
                             </div>
                         </div>
-                        
                         <div class="bst-spell-tier" style="margin-top: 5px;">
-                            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">⚔️ Боевые Черты Класса и Архетипов Следопыта</div>
+                            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">⚔️ Боевые Черты Класса и Архетипов (Следопыт / Поборник)</div>
                             <table class="k-table bst-cantrips-table" style="width: 100%;">
                                 <thead>
                                     <tr>
@@ -781,19 +759,15 @@ const BestiaryManager = {
                             </table>
                         </div>
                     </div>
-
-                    
                 </div>
             </div>
         `;
-
 
         if (stats.cantripsPrepared && !stats.cantrip1Name && !stats.cantrip1Notes) {
             stats.cantrip1Name = stats.cantripsPrepared;
             stats.cantripsPrepared = '';
         }
 
-//        const cantripIndices =;
         const cantripsRowsHtml = Array.from({ length: 5 }, (_, i) => i + 1).map(idx => `
             <tr>
                 <td class="bst-cantrip-num">${idx}</td>
@@ -811,7 +785,6 @@ const BestiaryManager = {
                 <td>${txtInp(`cantrip${idx}Notes`, 'Урон, спасбросок, эффект...')}</td>
             </tr>
         `).join('');
-
 
         if (stats.lvl1Prepared && !stats.lvl1Spell1Name && !stats.lvl1Spell1Notes) {
             stats.lvl1Spell1Name = stats.lvl1Prepared;
@@ -893,8 +866,6 @@ const BestiaryManager = {
             stats.equipmentText = '';
         }
 
-
-
         const itemsRowsHtml = Array.from({ length: 15 }, (_, i) => i + 1).map(idx => `
             <tr>
                 <td class="bst-cantrip-num">${idx}</td>
@@ -923,13 +894,6 @@ const BestiaryManager = {
                 <td>${txtInp(`item${idx}Notes`, 'Эффект, вес, заметка...')}</td>
             </tr>
         `).join('');
-
-
-
-
-
-
-
 
         const page2Html = `
             <div class="bst-sheet-page2-grid">
@@ -1099,14 +1063,6 @@ const BestiaryManager = {
         `;
 
 
-
-
-
-
-
-
-
-
         const isPage1 = pageNum === 1;
 
         const { overlay, close } = ModalManager.open({
@@ -1144,6 +1100,127 @@ const BestiaryManager = {
             ]
         });
 
+        // =========================================================================
+        // СЮДА: ИНИЦИАЛИЗАЦИЯ ЧЕРТ СТРОГО ПОСЛЕ ТОГО, КАК OVERLAY НАПОЛНИЛСЯ HTML
+        // =========================================================================
+
+        // =========================================================================
+        // УНИВЕРСАЛЬНАЯ ИНИЦИАЛИЗАЦИЯ ЧЕРТ С ГАРАНТИРОВАННОЙ ПРИВЯЗКОЙ К DOM
+        // =========================================================================
+        const initRangerFeatPickers = () => {
+            const featInputs = overlay.querySelectorAll('.bst-ranger-feat-picker-inp');
+            if (!featInputs.length) return; // Если мы на Стр. 2, просто выходим без ошибок
+
+            featInputs.forEach(inp => {
+                const lvl = inp.dataset.featLevel;
+                // Находим дропдаун прямо внутри родительского контейнера или ячейки для надежности
+                let dropEl = overlay.querySelector(`[data-feat-drop="${lvl}"]`);
+                const descInp = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`);
+
+                if (!dropEl) {
+                    // Защитный механизм: если контейнер дропдауна потерялся в верстке, создаем его на лету
+                    dropEl = document.createElement('div');
+                    dropEl.className = 'bst-cantrip-dropdown';
+                    dropEl.dataset.featDrop = lvl;
+                    dropEl.style.display = 'none';
+                    inp.parentNode.appendChild(dropEl);
+                }
+
+                const renderFeatOptions = (query) => {
+                    const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+
+                    const combinedFeats = [...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []), ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : [])];
+                    const matches = combinedFeats.filter(f =>
+                        f.level <= parseInt(lvl, 10) &&
+                        f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
+                    );
+
+                    if (!matches.length) { dropEl.style.display = 'none'; return; }
+
+                    dropEl.innerHTML = matches.map(f => `
+                        <div class="bst-cantrip-opt" data-fid="${f.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span style="color: #2ecc71;">[Ур. ${f.level}] ${f.actions && f.actions !== '-' ? `(${f.actions})` : ''}</span></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; color: #ebd291; margin-top: 2px;">
+                                Источник: ${f.source} <br> ${f.desc}
+                            </div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.width = '420px';
+                    dropEl.style.zIndex = '10000160'; // Повышаем z-index, чтобы окно не перекрывало список
+                    dropEl.style.display = 'block';
+
+                    const dropHeight = dropEl.offsetHeight || 200;
+                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                    } else {
+                        dropEl.style.top = `${rect.bottom + 2}px`;
+                    }
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.removeEventListener('mousedown', null); // Очищаем старые слушатели
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            const combinedFeats = [...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []), ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : [])];
+                            const found = combinedFeats.find(x => x.id === optEl.dataset.fid);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats[`classFeatLvl${lvl}Name`] = found.name;
+
+                                const shortDesc = `${found.actions && found.actions !== '-' ? `[${found.actions}] ` : ''}${found.desc}`;
+                                if (descInp) {
+                                    descInp.value = shortDesc;
+                                    hero.stats[`classFeatLvl${lvl}Desc`] = shortDesc;
+                                }
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                // Принудительно очищаем и вешаем заново чистые слушатели ввода
+                inp.addEventListener('focus', (e) => { renderFeatOptions(e.target.value); });
+                inp.addEventListener('input', (e) => { renderFeatOptions(e.target.value); });
+                inp.addEventListener('blur', () => { setTimeout(() => { dropEl.style.display = 'none'; }, 180); });
+            });
+        };
+
+        // Запускаем инициализацию черт
+        if (isPage1) {
+            initRangerFeatPickers();
+
+            // Тултипы строк таблицы
+            overlay.querySelectorAll('.bst-spell-tier table tbody tr').forEach((tr) => {
+                const nameInp = tr.querySelector('.bst-ranger-feat-picker-inp');
+                if (!nameInp) return;
+
+                tr.addEventListener('mouseenter', (e) => {
+                    const name = nameInp.value.trim();
+                    if (!name) return;
+                    const lvl = nameInp.dataset.featLevel;
+                    const desc = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`)?.value || '';
+
+                    const html = `
+                        <div class="init-tip-header">
+                            <span class="init-tip-name">⚔️ ${name}</span>
+                            <span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">ЧЕРТА КЛАССА</span>
+                        </div>
+                        <div class="init-tip-top-row">
+                            <span>⭐ Доступно с: <b>${lvl} уровня</b></span>
+                        </div>
+                        <div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${desc}</div>
+                    `;
+                    this._showSheetItemTooltip(e, html);
+                });
+                tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+        }
 
         // ЕДИНЫЙ СИСТЕМНЫЙ КАЛЬКУЛЯТОР СТРАНИЦЫ 1 (КБ, Спасброски, 17 Навыков)
         const calculateArmorClass = () => {
@@ -1268,86 +1345,20 @@ const BestiaryManager = {
             });
         };
 
-
         // НАВЕШИВАНИЕ СЛУШАТЕЛЕЙ ДЛЯ СТРАНИЦЫ 1 И 2
         if (isPage1) {
-            // 6. ИНИЦИАЛИЗАЦИЯ ИНТЕРАКТИВНОГО ПОИСКА И АВТОПОДСТАНОВКИ ЧЕРТ СЛЕДОПЫТА
-            if (isPage1) {
-                overlay.querySelectorAll('.bst-ranger-feat-picker-inp').forEach(inp => {
-                    const lvl = inp.dataset.featLevel;
-                    const dropEl = overlay.querySelector(`[data-feat-drop="${lvl}"]`);
-                    const descInp = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`);
+            // Навешиваем интерактивные тултипы всплывающих подсказок для строк таблицы черт
+            overlay.querySelectorAll('.bst-spell-tier table tbody tr').forEach((tr) => {
+                const nameInp = tr.querySelector('.bst-ranger-feat-picker-inp');
+                if (!nameInp) return;
 
-                    const renderFeatOptions = (query) => {
-                        const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
+                tr.addEventListener('mouseenter', (e) => {
+                    const name = nameInp.value.trim();
+                    if (!name) return;
+                    const lvl = nameInp.dataset.featLevel;
+                    const desc = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`)?.value || '';
 
-                        // Фильтруем черты по введенному тексту и текущему уровню (или ниже)
-                        const matches = PF2E_RANGER_FEATS.filter(f =>
-                            f.level <= parseInt(lvl, 10) &&
-                            f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
-                        );
-
-                        if (!matches.length) { dropEl.style.display = 'none'; return; }
-
-                        dropEl.innerHTML = matches.map(f => `
-                        <div class="bst-cantrip-opt" data-fid="${f.id}" style="padding: 6px; cursor: pointer;">
-                            <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span style="color: #2ecc71;">[Ур. ${f.level}] ${f.actions ? `(${f.actions})` : ''}</span></div>
-                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; color: #ebd291; margin-top: 2px;">
-                                Источник: ${f.source} <br> ${f.desc}
-                            </div>
-                        </div>
-                    `).join('');
-
-                        const rect = inp.getBoundingClientRect();
-                        dropEl.style.position = 'fixed';
-                        dropEl.style.left = `${rect.left}px`;
-                        dropEl.style.width = '420px';
-                        dropEl.style.display = 'block';
-
-                        // Защита от вылета выпадающего списка за нижний край экрана
-                        const dropHeight = dropEl.offsetHeight || 200;
-                        if (rect.bottom + dropHeight + 10 > window.innerHeight) {
-                            dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
-                        } else {
-                            dropEl.style.top = `${rect.bottom + 2}px`;
-                        }
-
-                        dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                            optEl.addEventListener('mousedown', (e) => {
-                                e.preventDefault();
-                                const found = PF2E_RANGER_FEATS.find(x => x.id === optEl.dataset.fid);
-                                if (found) {
-                                    inp.value = found.name;
-                                    hero.stats[`classFeatLvl${lvl}Name`] = found.name;
-
-                                    const shortDesc = `${found.actions ? `[${found.actions}] ` : ''}${found.desc}`;
-                                    if (descInp) {
-                                        descInp.value = shortDesc;
-                                        hero.stats[`classFeatLvl${lvl}Desc`] = shortDesc;
-                                    }
-                                }
-                                dropEl.style.display = 'none';
-                            });
-                        });
-                    };
-
-                    inp.addEventListener('focus', () => renderFeatOptions(inp.value));
-                    inp.addEventListener('input', () => renderFeatOptions(inp.value));
-                    inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
-                });
-
-                // Навешиваем интерактивные тултипы всплывающих подсказок для строк таблицы черт
-                overlay.querySelectorAll('.bst-spell-tier table tbody tr').forEach((tr) => {
-                    const nameInp = tr.querySelector('.bst-ranger-feat-picker-inp');
-                    if (!nameInp) return;
-
-                    tr.addEventListener('mouseenter', (e) => {
-                        const name = nameInp.value.trim();
-                        if (!name) return;
-                        const lvl = nameInp.dataset.featLevel;
-                        const desc = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`)?.value || '';
-
-                        const html = `
+                    const html = `
                         <div class="init-tip-header">
                             <span class="init-tip-name">⚔️ ${name}</span>
                             <span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">ЧЕРТА КЛАССА</span>
@@ -1357,14 +1368,13 @@ const BestiaryManager = {
                         </div>
                         <div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${desc}</div>
                     `;
-                        this._showSheetItemTooltip(e, html);
-                    });
-                    tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
-                    tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+                    this._showSheetItemTooltip(e, html);
                 });
-            }
+                tr.addEventListener('mousemove', (e) => this._positionSheetItemTooltip(e, document.getElementById('bstSheetItemTooltip')));
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
 
-            // Умные слушатели: перехватывают ручной ввод любых характеристик, умений или спасбросков и запускают калькулятор
+            // Умные слушатели КБ и характеристик
             overlay.querySelectorAll('.bst-armor-calc-trigger, .bst-save-calc-trigger, .bst-skill-calc-trigger, [data-sheet-num="str"], [data-sheet-num="dex"], [data-sheet-num="con"], [data-sheet-num="int"], [data-sheet-num="wis"], [data-sheet-num="cha"]').forEach(el => {
                 el.addEventListener('input', (e) => {
                     const fieldNum = e.target.dataset.sheetNum;
@@ -1376,11 +1386,8 @@ const BestiaryManager = {
                 el.addEventListener('change', calculateArmorClass);
             });
 
-            // Запускаем первичный расчет при открытии модального окна бланка
             calculateArmorClass();
 
-            // Найти место в районе Инициализации выпадающих списков для полей Народ и Класс (Page 1)
-// Добавить обработчик для автозаполнения Черта Следопыта:
 
             overlay.querySelectorAll('[data-sheet-txt="classFeatsLvl1"], [data-sheet-txt="classFeatsLvl2"]').forEach(inp => {
                 // Создаем или привязываем элемент выпадающего списка под инпутом
@@ -2091,8 +2098,6 @@ const BestiaryManager = {
 
         }
 
-
-
         // Привязываем слушатели изменений характеристик и умений для пересчета
         overlay.querySelectorAll('.bst-save-calc-trigger, [data-sheet-num="wis"], [data-sheet-num="con"], [data-sheet-num="dex"]').forEach(el => {
             el.addEventListener('input', (e) => {
@@ -2101,7 +2106,6 @@ const BestiaryManager = {
                 calculateArmorClass();
             });
         });
-
 
         // Инициализация автокомплита для выбора брони
         overlay.querySelectorAll('.bst-armor-picker-inp').forEach(inp => {
@@ -2290,7 +2294,6 @@ const BestiaryManager = {
                         dropEl.style.display = 'none';
                     });
 
-
                 });
             };
 
@@ -2299,11 +2302,7 @@ const BestiaryManager = {
             inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
         });
 
-
-
     },
-
-
 
     deployToInitiative(item, customScore = null) {
         if (!window.InitiativeManager) return;
@@ -2319,8 +2318,6 @@ const BestiaryManager = {
             this.deployToInitiative(hero);
         });
     },
-
-
 
     renderUi() {
         this._hidePresetTooltip();
@@ -2467,15 +2464,11 @@ const BestiaryManager = {
             this.state.inactive || [],
             false
         );
-
-
     },
 
     _renderZone(elId, title, groupKey, items, isParty) {
         const zone = document.getElementById(elId);
         if (!zone) return;
-
-
 
         const isInactive = groupKey === 'inactive';
         const isHeroGroup = isParty || isInactive;
@@ -2652,8 +2645,6 @@ const BestiaryManager = {
         tip.style.top = `${Math.max(8, top)}px`;
     },
 
-
-
     _attachPresetTooltip(card, item, isInactive = false) {
         card.addEventListener('mouseenter', (e) => {
             if (card.querySelector('input.init-inline-name-input')) return;
@@ -2686,15 +2677,14 @@ const BestiaryManager = {
         card.addEventListener('mouseleave', () => this._hidePresetTooltip());
     },
 
-
-
-
     _hideSheetItemTooltip() {
         const tip = document.getElementById('bstSheetItemTooltip');
         if (tip) tip.style.display = 'none';
     },
 
     _positionSheetItemTooltip(e, tip) {
+        if (!tip) return;
+
         const pad = 14;
         const rect = tip.getBoundingClientRect();
         let left = e.clientX + pad;
@@ -2726,139 +2716,6 @@ const BestiaryManager = {
         tip.style.display = 'block';
         this._positionSheetItemTooltip(e, tip);
     },
-
-
-    _hideHeroTooltip() {
-        const tip = document.getElementById('bstHeroHoverTooltip');
-        if (tip) tip.style.display = 'none';
-    },
-
-    _positionHeroTooltip(e, tip) {
-        const pad = 16;
-        const rect = tip.getBoundingClientRect();
-        let left = e.clientX + pad;
-        let top = e.clientY + pad;
-
-        if (left + rect.width > window.innerWidth - 12) {
-            left = e.clientX - rect.width - pad;
-        }
-        if (top + rect.height > window.innerHeight - 12) {
-            top = e.clientY - rect.height - pad;
-        }
-
-        tip.style.left = `${Math.max(8, left)}px`;
-        tip.style.top = `${Math.max(8, top)}px`;
-    },
-
-
-
-    _attachHeroTooltip(card, hero, isInactive) {
-        card.addEventListener('mouseenter', (e) => {
-            if (card.querySelector('input.init-inline-name-input')) return;
-
-            let tip = document.getElementById('bstHeroHoverTooltip');
-            if (!tip) {
-                tip = document.createElement('div');
-                tip.id = 'bstHeroHoverTooltip';
-                tip.className = 'init-unit-hover-tooltip';
-                document.body.appendChild(tip);
-            }
-
-            const stats = hero.stats || {};
-            const fmtMod = (val) => {
-                const n = Number(val) || 0;
-                return n > 0 ? `+${n}` : `${n}`;
-            };
-
-            const metaParts = [
-                stats.charClass,
-                stats.ancestry,
-                stats.level ? `Ур. ${stats.level}` : ''
-            ].filter(Boolean);
-
-            const attrs = [
-                ['Сила', stats.str], ['Ловкость', stats.dex], ['Выносливость', stats.con],
-                ['Интеллект', stats.int], ['Мудрость', stats.wis], ['Харизма', stats.cha]
-            ];
-
-            const defenses = [
-                ['👁️ Внимание', stats.perception ?? stats.perc],
-                ['🛡️ Стойкость', stats.fortitude ?? stats.fort],
-                ['⚡ Реакция', stats.reflex ?? stats.ref],
-                ['🧠 Воля', stats.will]
-            ];
-
-            const skills = [
-                ['Акробатика', stats.acrobatics ?? stats.acro],
-                ['Аркана', stats.arcana ?? stats.arca],
-                ['Атлетика', stats.athletics ?? stats.athl],
-                ['Ремесло', stats.crafting],
-                ['Обман', stats.deception ?? stats.dece],
-                ['Дипломатия', stats.diplomacy ?? stats.dipl],
-                ['Запугивание', stats.intimidation ?? stats.inti],
-                ['Знания (Lore)', stats.lore],
-                ['Медицина', stats.medicine ?? stats.medi],
-                ['Природа', stats.nature ?? stats.natu],
-                ['Оккультизм', stats.occultism ?? stats.occu],
-                ['Выступление', stats.performance],
-                ['Религия', stats.religion ?? stats.reli],
-                ['Общество', stats.society],
-                ['Скрытность', stats.stealth ?? stats.stea],
-                ['Выживание', stats.survival ?? stats.surv],
-                ['Воровство', stats.thievery]
-            ].filter(([, v]) => v !== undefined);
-
-            const statusTag = isInactive
-                ? '<span class="init-tip-turn-tag" style="border-color:#95a5a6; color:#b2bec3; background:rgba(149,165,166,0.18);">💤 В РЕЗЕРВЕ</span>'
-                : '<span class="init-tip-turn-tag">🛡️ В ОТРЯДЕ</span>';
-
-            tip.innerHTML = `
-                <div class="init-tip-header">
-                    <span class="init-tip-name">${hero.name}</span>
-                    ${statusTag}
-                </div>
-                <div class="init-tip-top-row">
-                    <span>🎲 Иниц.: <b>${hero.defaultScore || 10}</b></span>
-                    <span>❤️ ПЗ: <b>${stats.hpCurrent ?? 10}/${stats.hpMax ?? 10}</b></span>
-                    <span>🛡️ КБ: <b>${stats.ac ?? 10}</b></span>
-                </div>
-                ${metaParts.length ? `<div style="font-size:14px; color:#dfbc6f; margin-top:4px;">${metaParts.join(' • ')}</div>` : ''}
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title">⚔️ Характеристики</div>
-                    <div class="init-tip-2col">
-                        ${attrs.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                    </div>
-                </div>
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title">🛡️ Внимание и Спасброски</div>
-                    <div class="init-tip-2col">
-                        ${defenses.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                    </div>
-                </div>
-                <div class="init-tip-section">
-                    <div class="init-tip-sec-title">📜 Навыки</div>
-                    <div class="init-tip-3col">
-                        ${skills.map(([lbl, v]) => `<div>${lbl}: <b>${fmtMod(v)}</b></div>`).join('')}
-                    </div>
-                </div>
-            `;
-
-            tip.style.display = 'block';
-            this._positionHeroTooltip(e, tip);
-        });
-
-        card.addEventListener('mousemove', (e) => {
-            const tip = document.getElementById('bstHeroHoverTooltip');
-            if (tip && tip.style.display === 'block') {
-                this._positionHeroTooltip(e, tip);
-            }
-        });
-
-        card.addEventListener('mouseleave', () => this._hideHeroTooltip());
-    },
-
-
-
 
     _renderCatalogSidebar(filterQuery = '') {
         const listEl = document.getElementById('bstFullCatalogList');
@@ -2941,7 +2798,6 @@ const BestiaryManager = {
         });
     },
 
-
     buildUnitTooltipHtml(item, options = {}) {
         const stats = this._ensureCharacterStats(item);
         const fmtMod = (val) => {
@@ -3005,8 +2861,6 @@ const BestiaryManager = {
             ['Выживание', stats.survival ?? stats.surv],
             ['Воровство', (stats.thievery ?? stats.thievery) - armorPenalty] // Авто-вычитание штрафа
         ].filter(([, v]) => v !== undefined);
-
-
 
         const attacks = [
             stats.melee1Name ? `⚔️ ${stats.melee1Name} <b>${stats.melee1Atk || ''}</b> ${stats.melee1Dmg ? `(${stats.melee1Dmg})` : ''}` : '',
@@ -3110,8 +2964,6 @@ const BestiaryManager = {
             ${options.extraFooterHtml || ''}
         `;
     },
-
-
 
 };
 
