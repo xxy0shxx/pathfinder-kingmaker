@@ -190,6 +190,7 @@ const BestiaryManager = {
             hpMax: 10, hpCurrent: 10, hpTemp: 0,
             ac: 10, acDex: 0, acProf: 0, acItem: 0, acOther: 0,
             acShieldBonus: 0, acShieldHardness: 0, acShieldHp: 0, acArmorPenalty: 0,
+            saveProf_perc: 2, saveProf_fort: 2, saveProf_ref: 2, saveProf_will: 2,
             spellAttack: 0, spellDc: 10,
             cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
             coinsCopper: 0, coinsSilver: 0, coinsGold: 0,
@@ -623,25 +624,34 @@ const BestiaryManager = {
                         </div>
                     </div>
 
-
-                    
-
                     <div class="k-panel" style="margin-bottom: 10px;">
-                        <div class="k-sec-title">👁️ Внимание и Испытания</div>
+                        <div class="k-sec-title">👁️ Внимание и Испытания (Спасброски)</div>
                         <div class="bst-stats-2col">
-                            ${PF2E_SHEET_CONFIG.defenses.map(d => `
-                                <div class="bst-stat-row">
-                                    <label class="bst-stat-label">${d.label}</label>
-                                    ${numInp(d.key)}
-                                </div>
-                            `).join('')}
+                            <div class="bst-stat-row">
+                                <label class="bst-stat-label">👁️ Внимание (Мдр)</label>
+                                <input type="number" data-sheet-num="perception" class="k-inp bst-stat-inp bst-save-total-output" style="color: #ffd875 !important; font-weight: bold;" readonly value="${stats.perception ?? 0}">
+                                <label style="font-size:11px; margin-left:6px;">🏆 Умение: <input type="number" data-sheet-num="saveProf_perc" class="k-inp bst-tiny-num bst-save-calc-trigger" value="${stats.saveProf_perc ?? 0}"></label>
+                            </div>
+                            <div class="bst-stat-row">
+                                <label class="bst-stat-label">🛡️ Стойкость (Вын)</label>
+                                <input type="number" data-sheet-num="fortitude" class="k-inp bst-stat-inp bst-save-total-output" style="color: #ffd875 !important; font-weight: bold;" readonly value="${stats.fortitude ?? 0}">
+                                <label style="font-size:11px; margin-left:6px;">🏆 Умение: <input type="number" data-sheet-num="saveProf_fort" class="k-inp bst-tiny-num bst-save-calc-trigger" value="${stats.saveProf_fort ?? 0}"></label>
+                            </div>
+                            <div class="bst-stat-row">
+                                <label class="bst-stat-label">⚡ Реакция (Лвк)</label>
+                                <input type="number" data-sheet-num="reflex" class="k-inp bst-stat-inp bst-save-total-output" style="color: #ffd875 !important; font-weight: bold;" readonly value="${stats.reflex ?? 0}">
+                                <label style="font-size:11px; margin-left:6px;">🏆 Умение: <input type="number" data-sheet-num="saveProf_ref" class="k-inp bst-tiny-num bst-save-calc-trigger" value="${stats.saveProf_ref ?? 0}"></label>
+                            </div>
+                            <div class="bst-stat-row">
+                                <label class="bst-stat-label">🧠 Воля (Мдр)</label>
+                                <input type="number" data-sheet-num="will" class="k-inp bst-stat-inp bst-save-total-output" style="color: #ffd875 !important; font-weight: bold;" readonly value="${stats.will ?? 0}">
+                                <label style="font-size:11px; margin-left:6px;">🏆 Умение: <input type="number" data-sheet-num="saveProf_will" class="k-inp bst-tiny-num bst-save-calc-trigger" value="${stats.saveProf_will ?? 0}"></label>
+                            </div>
                         </div>
                         <div style="margin-top: 6px;">
                             ${txtInp('perceptionNotes', '👀 Восприятие и прочее (сумеречное зрение и т.д.)...')}
                         </div>
                     </div>
-
-
 
                     <div class="k-panel" style="margin-bottom: 10px;">
                         <div class="k-sec-title">🗡️ Оружие и Атаки</div>
@@ -1639,15 +1649,10 @@ const BestiaryManager = {
                 }, { passive: false });
             });
 
-
-
         }
 
-
-
-
-        // Умный калькулятор брони и автоматическое распределение штрафов
-        // Умный калькулятор брони, лимитов КБ и динамического пересчета инпутов навыков
+        // калькулятор брони, лимитов КБ и динамического пересчета инпутов навыков
+        // Умный калькулятор брони, лимитов КБ и динамического пересчета спасбросков и внимания
         const calculateArmorClass = () => {
             const armorType = overlay.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
             const dexInp = overlay.querySelector('[data-sheet-num="acDex"]');
@@ -1664,7 +1669,6 @@ const BestiaryManager = {
             const item = parseInt(itemInp?.value, 10) || 0;
             const other = parseInt(otherInp?.value, 10) || 0;
 
-            // Проверяем Силу для автоматического снижения штрафа (Str Req)
             const charStr = parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0;
             const armorStrReq = parseInt(totalAcInp.dataset.currentStrReq, 10) || 0;
 
@@ -1676,49 +1680,53 @@ const BestiaryManager = {
             if (rawDex > dexCap) rawDex = dexCap;
 
             let basePenalty = parseInt(penaltyInp?.value, 10) || 0;
-
-            // Вычисляем итоговый штраф: если Сила больше или равна требуемой, то штраф равен 0
             let activePenalty = 0;
             if (armorType !== 'unarmored' && charStr < armorStrReq) {
-                activePenalty = Math.abs(basePenalty); // переводим в положительное для вычитания
+                activePenalty = Math.abs(basePenalty);
             }
 
             hero.stats.acArmorPenalty = basePenalty;
 
-            if (penaltyInp) {
-                if (armorType === 'unarmored') {
-                    penaltyInp.title = "Нет брони — штрафы отсутствуют.";
-                } else if (charStr < armorStrReq) {
-                    penaltyInp.title = `Штраф активен! Сила (${charStr}) меньше требуемой (${armorStrReq}).`;
-                    penaltyInp.style.borderColor = "#e74c3c";
-                } else {
-                    penaltyInp.title = `Штраф аннулирован! Сила (${charStr}) соответствует требованиям (${armorStrReq}).`;
-                    penaltyInp.style.borderColor = "#2ecc71";
-                }
-            }
-
-            // Пересчитываем КБ
+            // Вычисляем КБ
             const totalAc = 10 + rawDex + prof + item + other;
             totalAcInp.value = totalAc;
             hero.stats.ac = totalAc;
 
-            // ДИНАМИЧЕСКИЙ ОБХОД ИНПУТОВ НАВЫКОВ НА СТРАНИЦЕ
+            // --- АВТОРАСЧЕТ ВНИМАНИЯ И СПАСБРОСКОВ ---
+            const charWis = parseInt(overlay.querySelector('[data-sheet-num="wis"]')?.value, 10) || 0;
+            const charCon = parseInt(overlay.querySelector('[data-sheet-num="con"]')?.value, 10) || 0;
+            const charDex = parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0;
+
+            // Считываем значения умений с полей
+            const profPerc = parseInt(overlay.querySelector('[data-sheet-num="saveProf_perc"]')?.value, 10) || 0;
+            const profFort = parseInt(overlay.querySelector('[data-sheet-num="saveProf_fort"]')?.value, 10) || 0;
+            const profRef = parseInt(overlay.querySelector('[data-sheet-num="saveProf_ref"]')?.value, 10) || 0;
+            const profWill = parseInt(overlay.querySelector('[data-sheet-num="saveProf_will"]')?.value, 10) || 0;
+
+            // Итоговые формулы
+            const finalPerc = charWis + profPerc;
+            const finalFort = charCon + profFort;
+            const finalRef = charDex + profRef;
+            const finalWill = charWis + profWill;
+
+            // Выводим в интерфейс и сохраняем в стейт
+            const pEl = overlay.querySelector('[data-sheet-num="perception"]'); if (pEl) { pEl.value = finalPerc; hero.stats.perception = finalPerc; hero.stats.perc = finalPerc; }
+            const fEl = overlay.querySelector('[data-sheet-num="fortitude"]'); if (fEl) { fEl.value = finalFort; hero.stats.fortitude = finalFort; hero.stats.fort = finalFort; }
+            const rEl = overlay.querySelector('[data-sheet-num="reflex"]');    if (rEl) { rEl.value = finalRef;  hero.stats.reflex = finalRef;    hero.stats.ref = finalRef; }
+            const wEl = overlay.querySelector('[data-sheet-num="will"]');      if (wEl) { wEl.value = finalWill; hero.stats.will = finalWill; }
+
+            // Пересчет штрафов навыков
             const penaltySkills = ['acrobatics', 'athletics', 'stealth', 'thievery'];
             penaltySkills.forEach(skillKey => {
                 const skillInp = overlay.querySelector(`[data-sheet-num="${skillKey}"]`);
                 if (skillInp) {
-                    // Сохраняем исходное «чистое» значение навыка без штрафа во временный атрибут
                     if (skillInp.dataset.baseValue === undefined) {
                         skillInp.dataset.baseValue = skillInp.value;
                     }
-
                     const baseSkillValue = parseInt(skillInp.dataset.baseValue, 10) || 0;
-
-                    // Вычитаем активный штраф из базового значения навыка
                     const finalValue = baseSkillValue - activePenalty;
                     skillInp.value = finalValue;
 
-                    // Меняем цвет текста для наглядности
                     if (activePenalty > 0) {
                         skillInp.style.color = "#ff7675";
                         skillInp.title = `Применён штраф от брони: -${activePenalty} (Базовое: ${baseSkillValue})`;
@@ -1729,6 +1737,16 @@ const BestiaryManager = {
                 }
             });
         };
+
+        // Привязываем слушатели изменений характеристик и умений для пересчета
+        overlay.querySelectorAll('.bst-save-calc-trigger, [data-sheet-num="wis"], [data-sheet-num="con"], [data-sheet-num="dex"]').forEach(el => {
+            el.addEventListener('input', (e) => {
+                const fieldNum = e.target.dataset.sheetNum;
+                if (fieldNum) hero.stats[fieldNum] = parseInt(e.target.value, 10) || 0;
+                calculateArmorClass();
+            });
+        });
+
 
         // Инициализация автокомплита для выбора брони
         overlay.querySelectorAll('.bst-armor-picker-inp').forEach(inp => {
