@@ -1777,6 +1777,15 @@ const BestiaryManager = {
                 stats.rangedName ? `🏹 ${stats.rangedName} ${stats.rangedAtk} (${stats.rangedDmg})` : ''
             ].filter(Boolean);
 
+            const focusSpells = [1, 2, 3]
+                .map(i => stats[`focusSpell${i}Name`]
+                    ? `💠 ${stats[`focusSpell${i}Name`]}${stats[`focusSpell${i}Actions`] ? ` (${stats[`focusSpell${i}Actions`]})` : ''}`
+                    : '')
+                .filter(Boolean);
+
+            const hasFocusPool = focusSpells.length > 0 || Number(stats.focusMax) > 0;
+
+
             tip.innerHTML = `
                 <div class="init-tip-header">
                     <span class="init-tip-name">${item.name}</span>
@@ -1806,7 +1815,18 @@ const BestiaryManager = {
                     <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
                         ${attacks.map(a => `<div>${a}</div>`).join('')}
                     </div>
-                </div>` : ''}
+                </div>
+                ` : ''}
+                ${focusSpells.length ? `
+                <div class="init-tip-section">
+                    <div class="init-tip-sec-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>💠 Фокальные заклинания</span>
+                        ${hasFocusPool ? `<span style="color:#3498db;">🔋 Очки: ${stats.focusCurrent ?? 1}/${stats.focusMax ?? 1}</span>` : ''}
+                    </div>
+                    <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
+                        ${focusSpells.map(f => `<div>${f}</div>`).join('')}
+                    </div>
+                ` : ''}
                 <div class="init-tip-section">
                     <div class="init-tip-sec-title">📜 Навыки</div>
                     <div class="init-tip-3col">
