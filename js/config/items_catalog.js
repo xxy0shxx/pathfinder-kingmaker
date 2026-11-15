@@ -168,3 +168,22 @@ export function searchItemsCatalog(query = '') {
         it.notes.toLowerCase().replace(/ё/g, 'е').includes(q)
     );
 }
+
+/**
+ * Проверяет, является ли предмет боевым расходником (зелья, эликсиры, бомбы, свитки и т.д.)
+ */
+export function isCombatConsumable(itemName, itemNotes = '') {
+    const cleanName = String(itemName || '').trim().toLowerCase().replace(/ё/g, 'е');
+    if (!cleanName) return false;
+
+    const found = PF2E_ITEMS_CATALOG.find(
+        it => it.name.toLowerCase().replace(/ё/g, 'е') === cleanName
+    );
+    if (found) {
+        return /^(Зелье|Эликсир|Бомба|Свиток|Талисман|Масло)/i.test(found.category);
+    }
+
+    // Если предмет вписан игроком вручную — проверяем по ключевым словам
+    const text = `${cleanName} ${String(itemNotes || '').toLowerCase().replace(/ё/g, 'е')}`;
+    return /(зель|эликсир|бомб|склянк|свиток|масл|талисман|противояд|античум)/i.test(text);
+}

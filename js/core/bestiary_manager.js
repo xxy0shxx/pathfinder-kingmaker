@@ -2,7 +2,7 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
-import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../config/items_catalog.js';
+import { PF2E_ITEMS_CATALOG, searchItemsCatalog, isCombatConsumable } from '../config/items_catalog.js';
 
 import {
     PF2E_SPELLS_LVL1,
@@ -2173,6 +2173,7 @@ const BestiaryManager = {
         });
     },
 
+
     buildUnitTooltipHtml(item, options = {}) {
         const stats = this._ensureCharacterStats(item);
         const fmtMod = (val) => {
@@ -2264,6 +2265,16 @@ const BestiaryManager = {
                 : '')
             .filter(Boolean);
 
+        const combatItems = Array.from({ length: 15 }, (_, idx) => idx + 1)
+            .map(i => {
+                const name = stats[`item${i}Name`];
+                const qty = Number(stats[`item${i}Qty`]) || 0;
+                const notes = stats[`item${i}Notes`] || '';
+                if (!name || qty <= 0 || !isCombatConsumable(name, notes)) return '';
+                return `🧪 ${name} <b>(×${qty})</b>`;
+            })
+            .filter(Boolean);
+
         const hasFocusPool = focusSpells.length > 0 || Number(stats.focusMax) > 0;
         const hasAnyMagic = cantrips.length > 0 || focusSpells.length > 0 || lvl1Spells.length > 0 || lvl2Spells.length > 0;
 
@@ -2310,6 +2321,13 @@ const BestiaryManager = {
                     ${lvl2Spells.map(s => `<div>${s}</div>`).join('')}
                 </div>
             </div>` : ''}
+            ${combatItems.length ? `
+            <div class="init-tip-section">
+                <div class="init-tip-sec-title">🧪 Боевые расходники</div>
+                <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
+                    ${combatItems.map(ci => `<div>${ci}</div>`).join('')}
+                </div>
+            </div>` : ''}
             <div class="init-tip-section">
                 <div class="init-tip-sec-title">📜 Навыки</div>
                 <div class="init-tip-3col">
@@ -2319,6 +2337,7 @@ const BestiaryManager = {
             ${options.extraFooterHtml || ''}
         `;
     },
+
 
 
 };
