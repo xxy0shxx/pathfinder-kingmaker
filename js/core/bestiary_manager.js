@@ -2,6 +2,8 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
+import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../config/items_catalog.js';
+
 import {
     PF2E_SPELLS_LVL1,
     searchSpellsLvl1,
@@ -186,6 +188,8 @@ const BestiaryManager = {
             cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
             coinsCopper: 0, coinsSilver: 0, coinsGold: 0,
             focusMax: 1, focusCurrent: 1,
+            item1Qty: 1, item2Qty: 1, item3Qty: 1, item4Qty: 1,
+            item5Qty: 1, item6Qty: 1, item7Qty: 1, item8Qty: 1,
         };
 
         Object.entries(numDefaults).forEach(([k, def]) => {
@@ -216,7 +220,16 @@ const BestiaryManager = {
             melee2Name: '', melee2Atk: '', melee2Dmg: '', melee2Traits: '',
             rangedName: '', rangedAtk: '', rangedDmg: '', rangedTraits: '',
             skillOtherNotes: '',
+
             equipmentText: '',
+            item1Name: '', item1Notes: '',
+            item2Name: '', item2Notes: '',
+            item3Name: '', item3Notes: '',
+            item4Name: '', item4Notes: '',
+            item5Name: '', item5Notes: '',
+            item6Name: '', item6Notes: '',
+            item7Name: '', item7Notes: '',
+            item8Name: '', item8Notes: '',
 
             cantripsPrepared: '',
             cantrip1Name: '', cantrip1Actions: '', cantrip1Notes: '', cantrip1Ready: false,
@@ -694,20 +707,59 @@ const BestiaryManager = {
             </tr>
         `).join('');
 
+        if (stats.equipmentText && !stats.item1Name && !stats.item1Notes) {
+            stats.item1Name = 'Снаряжение';
+            stats.item1Notes = stats.equipmentText.replace(/\n+/g, '; ');
+            stats.equipmentText = '';
+        }
+
+        const itemsRowsHtml = Array.from({ length: 8 }, (_, i) => i + 1).map(idx => `
+            <tr>
+                <td class="bst-cantrip-num">${idx}</td>
+                <td style="position: relative;">
+                    <input type="text"
+                           data-sheet-txt="item${idx}Name"
+                           data-item-row="${idx}"
+                           class="k-inp bst-txt-inp bst-item-picker-inp"
+                           autocomplete="off"
+                           placeholder="Выберите или введите предмет..."
+                           value="${esc(stats[`item${idx}Name`])}">
+                    <div class="bst-cantrip-dropdown" data-item-drop="${idx}" style="display: none;"></div>
+                </td>
+                <td style="text-align: center;">
+                    ${numInp(`item${idx}Qty`, 'bst-tiny-num')}
+                </td>
+                <td>${txtInp(`item${idx}Notes`, 'Эффект, вес, заметка...')}</td>
+            </tr>
+        `).join('');
+
         const page2Html = `
             <div class="bst-sheet-page2-grid">
             
                 <div class="bst-sheet-col">
+                
                     <div class="k-panel" style="margin-bottom: 10px;">
-                        <div class="k-sec-title">🎒 Снаряжение и Деньги</div>
+                        <div class="k-sec-title">🎒 Снаряжение, Зелья и Провизия</div>
                         <div class="bst-coins-row">
                             <label>🥉 ММ: ${numInp('coinsCopper', 'bst-mini-num')}</label>
                             <label>🥈 СМ: ${numInp('coinsSilver', 'bst-mini-num')}</label>
                             <label>🥇 ЗМ: ${numInp('coinsGold', 'bst-mini-num')}</label>
                         </div>
-                        ${txtArea('equipmentText', 6, '🎒 Список снаряжения, зелий, свитков и предметов...')}
+                        <table class="k-table bst-cantrips-table bst-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 28px; text-align: center;">#</th>
+                                    <th style="width: 36%;">Предмет / Расходник</th>
+                                    <th style="width: 56px; text-align: center;">Кол-во</th>
+                                    <th>Эффект / Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsRowsHtml}
+                            </tbody>
+                        </table>
                     </div>
-                    
+
                     <div class="k-panel">
                         <div class="k-sec-title">✨ Сотворение заклинаний</div>
                         <div class="bst-spell-stats-row">
@@ -1069,6 +1121,52 @@ const BestiaryManager = {
 
 
         } else {
+            // Тултип при наведении на строку предмета в рюкзаке
+            overlay.querySelectorAll('.bst-items-table tbody tr').forEach(tr => {
+                tr.addEventListener('mouseenter', (e) => {
+                    const anyDropOpen = Array.from(overlay.querySelectorAll('.bst-cantrip-dropdown'))
+                        .some(d => d.style.display === 'block');
+                    if (anyDropOpen) return;
+
+                    const nameInp = tr.querySelector('input[data-sheet-txt$="Name"]');
+                    const name = nameInp?.value.trim();
+                    if (!name) return;
+
+                    const qtyInp = tr.querySelector('input[data-sheet-num$="Qty"]');
+                    const noteInp = tr.querySelector('input[data-sheet-txt$="Notes"]');
+                    const qty = qtyInp?.value ?? 1;
+                    const notes = noteInp?.value.trim() || 'Описание не указано.';
+
+                    const catalogItem = PF2E_ITEMS_CATALOG.find(it => it.name.toLowerCase() === name.toLowerCase());
+
+                    const html = `
+                        <div class="init-tip-header">
+                            <span class="init-tip-name">🎒 ${name}</span>
+                            <span class="init-tip-turn-tag">× ${qty} шт.</span>
+                        </div>
+                        ${catalogItem?.category ? `
+                            <div style="font-size: 13px; color: #2ecc71; margin-top: 4px;">
+                                🏷️ Категория: <b>${catalogItem.category}</b>
+                            </div>
+                        ` : ''}
+                        <div class="init-tip-section">
+                            <div class="init-tip-sec-title">📜 Описание и применение</div>
+                            <div style="font-size: 13.5px; line-height: 1.45; color: #ebd291;">${notes}</div>
+                        </div>
+                    `;
+                    this._showSheetItemTooltip(e, html);
+                });
+
+                tr.addEventListener('mousemove', (e) => {
+                    const tip = document.getElementById('bstSheetItemTooltip');
+                    if (tip && tip.style.display === 'block') {
+                        this._positionSheetItemTooltip(e, tip);
+                    }
+                });
+
+                tr.addEventListener('mouseleave', () => this._hideSheetItemTooltip());
+            });
+
             // Подробный тултип при наведении на строку фокуса или заклинания 1 круга
             overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {
                 tr.addEventListener('mouseenter', (e) => {
@@ -1357,6 +1455,58 @@ const BestiaryManager = {
                     setTimeout(() => { dropEl.style.display = 'none'; }, 150);
                 });
             });
+
+            // Выбор предметов, зелий и провизии
+            overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.itemRow;
+                const dropEl = overlay.querySelector(`[data-item-drop="${rowIdx}"]`);
+                const qtyInp = overlay.querySelector(`[data-sheet-num="item${rowIdx}Qty"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="item${rowIdx}Notes"]`);
+
+                const renderItemOptions = (query) => {
+                    const list = searchItemsCatalog(query);
+                    if (!list.length) {
+                        dropEl.style.display = 'none';
+                        return;
+                    }
+                    dropEl.innerHTML = list.map(it => `
+                        <div class="bst-cantrip-opt" data-itemid="${it.id}">
+                            <div class="bst-cantrip-opt-top">
+                                <b>${it.name}</b>
+                                <span>${it.category}</span>
+                            </div>
+                            <div class="bst-cantrip-opt-trad">${it.notes}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.width = '360px';
+                    dropEl.style.display = 'block';
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_ITEMS_CATALOG.find(x => x.id === optEl.dataset.itemid);
+                            if (found) {
+                                inp.value = found.name;
+                                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) qtyInp.value = 1;
+                                if (noteInp) noteInp.value = found.notes;
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+
+                inp.addEventListener('focus', () => renderItemOptions(inp.value));
+                inp.addEventListener('input', () => renderItemOptions(inp.value));
+                inp.addEventListener('blur', () => {
+                    setTimeout(() => { dropEl.style.display = 'none'; }, 150);
+                });
+            });
+
 
 
         }
