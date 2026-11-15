@@ -4,6 +4,8 @@ import ModalManager from '../ui/modal_manager.js';
 import { PF2E_CANTRIPS, searchCantrips } from '../config/cantrips_catalog.js';
 import { PF2E_ITEMS_CATALOG, searchItemsCatalog, isCombatConsumable } from '../config/items_catalog.js';
 import { PF2E_ARMOR_CATALOG, searchArmorCatalog, getArmorGroupEffect } from '../config/armor_catalog.js';
+import { PF2E_ANCESTRIES, PF2E_CLASSES, searchMetaCatalog } from '../config/meta_catalog.js';
+
 
 import {
     PF2E_SPELLS_LVL1,
@@ -495,12 +497,37 @@ const BestiaryManager = {
         };
 
 
+
         const page1Html = `
             <div class="bst-sheet-top-bar">
-                <div class="bst-top-field"><span>🧬 Народ</span>${txtInp('ancestry', 'Человек, Эльф...')}</div>
-                <div class="bst-top-field"><span>📜 Происхождение</span>${txtInp('background', 'Воин, Учёный...')}</div>
-                <div class="bst-top-field"><span>⚔️ Класс</span>${txtInp('charClass', 'Воин, Жрец...')}</div>
-                <div class="bst-top-field"><span>⚖️ Мировоззрение</span>${txtInp('alignment', 'НД, ПЗ...')}</div>
+                <div class="bst-top-field" style="position: relative;">
+                    <span>🧬 Народ</span>
+                    <input type="text" data-sheet-txt="ancestry" class="k-inp bst-txt-inp bst-meta-picker-inp" data-meta-type="ancestry" autocomplete="off" placeholder="Человек, Эльф..." value="${esc(stats.ancestry)}">
+                    <div class="bst-cantrip-dropdown" data-meta-drop="ancestry" style="display: none; z-index: 10000120;"></div>
+                </div>
+                <div class="bst-top-field" style="position: relative;">
+                    <span>📜 Происхождение</span>${txtInp('background', 'Воин, Учёный...')}
+                </div>
+                <div class="bst-top-field" style="position: relative;">
+                    <span>⚔️ Класс</span>
+                    <input type="text" data-sheet-txt="charClass" class="k-inp bst-txt-inp bst-meta-picker-inp" data-meta-type="class" autocomplete="off" placeholder="Воин, Жрец..." value="${esc(stats.charClass)}">
+                    <div class="bst-cantrip-dropdown" data-meta-drop="class" style="display: none; z-index: 10000120;"></div>
+                </div>
+                <div class="bst-top-field">
+                    <span>⚖️ Мировоззрение</span>
+                    <select data-sheet-txt="alignment" class="k-inp" style="background: #040905; border: 1px solid #543e0d; color: #ebd291; padding: 4px; font-weight: bold; width: 100%;">
+                        <option value="" ${stats.alignment === '' ? 'selected' : ''}>— Выберите —</option>
+                        <option value="ЗД" ${stats.alignment === 'ЗД' ? 'selected' : ''}>⚖️😇 Законопослушный Добрый (ЗД)</option>
+                        <option value="НД" ${stats.alignment === 'НД' ? 'selected' : ''}>😇 Нейтральный Добрый (НД)</option>
+                        <option value="ХД" ${stats.alignment === 'ХД' ? 'selected' : ''}>🌀😇 Хаотичный Добрый (ХД)</option>
+                        <option value="ЗН" ${stats.alignment === 'ЗН' ? 'selected' : ''}>⚖️ Законопослушный Нейтральный (ЗН)</option>
+                        <option value="ИН" ${stats.alignment === 'ИН' || stats.alignment === 'Н' ? 'selected' : ''}>⚖️🌀 Истинный Нейтральный (Н)</option>
+                        <option value="ХН" ${stats.alignment === 'ХН' ? 'selected' : ''}>🌀 Хаотичный Нейтральный (ХН)</option>
+                        <option value="ЗЗ" ${stats.alignment === 'ЗЗ' ? 'selected' : ''}>⚖️😈 Законопослушный Злой (ЗЗ)</option>
+                        <option value="НЗ" ${stats.alignment === 'НЗ' ? 'selected' : ''}>😈 Нейтральный Злой (НЗ)</option>
+                        <option value="ХЗ" ${stats.alignment === 'ХЗ' ? 'selected' : ''}>🌀😈 Хаотичный Злой (ХЗ)</option>
+                    </select>
+                </div>
                 <div class="bst-top-field bst-narrow"><span>⭐ Уровень</span>${numInp('level', 'bst-mini-num')}</div>
                 <div class="bst-top-field bst-narrow"><span>✨ Опыт</span>${numInp('xp', 'bst-mini-num')}</div>
                 <div class="bst-top-field"><span>👤 Игрок</span>${txtInp('playerName', 'Имя игрока')}</div>
@@ -1768,10 +1795,68 @@ const BestiaryManager = {
 
         calculateArmorClass();
 
+        // Инициализация выпадающих списков для полей Народ и Класс
+        overlay.querySelectorAll('.bst-meta-picker-inp').forEach(inp => {
+            const type = inp.dataset.metaType;
+            const dropEl = overlay.querySelector(`[data-meta-drop="${type}"]`);
+            const sourceCatalog = type === 'ancestry' ? PF2E_ANCESTRIES : PF2E_CLASSES;
+
+            const renderMetaMatches = (query) => {
+                const list = searchMetaCatalog(sourceCatalog, query);
+                if (!list.length) { dropEl.style.display = 'none'; return; }
+
+                dropEl.innerHTML = list.map(x => `
+                        <div class="bst-cantrip-opt" data-meta-id="${x.id}" style="padding: 6px; cursor: pointer;">
+                            <div class="bst-cantrip-opt-top"><b>${x.name}</b></div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; margin-top: 2px; color: #ebd291;">
+                                ${type === 'ancestry' ? x.traits : `Характеристика: ${x.keyStat} • ПЗ: +${x.hp}`}
+                            </div>
+                        </div>
+                    `).join('');
+
+                const rect = inp.getBoundingClientRect();
+                dropEl.style.position = 'fixed';
+                dropEl.style.left = `${rect.left}px`;
+                dropEl.style.top = `${rect.bottom + 2}px`;
+                dropEl.style.width = `${Math.max(240, rect.width)}px`;
+                dropEl.style.display = 'block';
+
+                dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                    optEl.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        const found = sourceCatalog.find(x => x.id === optEl.dataset.metaId);
+                        if (found) {
+                            inp.value = found.name;
+                            hero.stats[type === 'ancestry' ? 'ancestry' : 'charClass'] = found.name;
+
+                            // Если выбран класс, можно автоматически подтянуть базовые кости ПЗ
+                            if (type === 'class') {
+                                const hpMaxInp = overlay.querySelector('[data-sheet-num="hpMax"]');
+                                const hpCurInp = overlay.querySelector('[data-sheet-num="hpCurrent"]');
+                                const conMod = parseInt(overlay.querySelector('[data-sheet-num="con"]')?.value, 10) || 0;
+
+                                // Упрощенный расчет стартовых хитов (Базовые класса + Выносливость)
+                                if (hpMaxInp && (!hpMaxInp.value || hpMaxInp.value == "10")) {
+                                    const calculatedHp = found.hp + conMod;
+                                    hpMaxInp.value = calculatedHp;
+                                    hpCurInp.value = calculatedHp;
+                                    hero.stats.hpMax = calculatedHp;
+                                    hero.stats.hpCurrent = calculatedHp;
+                                }
+                            }
+                        }
+                        dropEl.style.display = 'none';
+                    });
+                });
+            };
+
+            inp.addEventListener('focus', () => renderMetaMatches(inp.value));
+            inp.addEventListener('input', () => renderMetaMatches(inp.value));
+            inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+        });
+
 
     },
-
-
 
     deployToInitiative(item, customScore = null) {
         if (!window.InitiativeManager) return;
