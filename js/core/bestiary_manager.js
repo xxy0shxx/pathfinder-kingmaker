@@ -7,15 +7,10 @@ import { PF2E_ARMOR_CATALOG, searchArmorCatalog, getArmorGroupEffect } from '../
 import { PF2E_ANCESTRIES, PF2E_CLASSES, searchMetaCatalog } from '../config/meta_catalog.js';
 import { PF2E_BACKGROUNDS, searchBackgroundsCatalog } from '../config/backgrounds_catalog.js';
 
+import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../config/spells_lvl1_catalog.js';
+import { PF2E_SPELLS_LVL2, searchSpellsLvl2 } from '../config/spells_lvl2_catalog.js';
 
-import {
-    PF2E_SPELLS_LVL1,
-    searchSpellsLvl1,
-    PF2E_SPELLS_LVL2,
-    searchSpellsLvl2
-} from '../config/spells_catalog.js';
 import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../config/focus_spells_catalog.js';
-
 import {
     PF2E_MELEE_WEAPONS,
     searchMeleeWeapons,
@@ -1058,6 +1053,7 @@ const BestiaryManager = {
             ]
         });
 
+
         // ЕДИНЫЙ СИСТЕМНЫЙ КАЛЬКУЛЯТОР СТРАНИЦЫ 1 (КБ, Спасброски, 17 Навыков)
         const calculateArmorClass = () => {
             if (!isPage1) return; // Считаем только на первой странице
@@ -1169,7 +1165,7 @@ const BestiaryManager = {
 
                     if (hasActivePenalty) {
                         totalInp.style.color = "#ff7675";
-                        totalInp.title = `Штраф брони active! (База: ${attrModifier + profValue}, Штраф: -${activePenalty})`;
+                        totalInp.title = `Штраф брони активен! (База: ${attrModifier + profValue}, Штраф: -${activePenalty})`;
                     } else if (profValue > 0) {
                         totalInp.style.color = "#2ecc71";
                         totalInp.title = `Изучен! (Характеристика: ${attrModifier}, Умение: +${profValue})`;
@@ -1180,9 +1176,10 @@ const BestiaryManager = {
                 }
             });
         };
+
         // НАВЕШИВАНИЕ СЛУШАТЕЛЕЙ ДЛЯ СТРАНИЦЫ 1 И 2
         if (isPage1) {
-            // Развешиваем слушатели изменений на все триггеры калькуляторов и характеристики бланка
+            // Умные слушатели: перехватывают ручной ввод любых характеристик, умений или спасбросков и запускают калькулятор
             overlay.querySelectorAll('.bst-armor-calc-trigger, .bst-save-calc-trigger, .bst-skill-calc-trigger, [data-sheet-num="str"], [data-sheet-num="dex"], [data-sheet-num="con"], [data-sheet-num="int"], [data-sheet-num="wis"], [data-sheet-num="cha"]').forEach(el => {
                 el.addEventListener('input', (e) => {
                     const fieldNum = e.target.dataset.sheetNum;
@@ -1194,7 +1191,7 @@ const BestiaryManager = {
                 el.addEventListener('change', calculateArmorClass);
             });
 
-            // Инициализация калькулятора брони при старте
+            // Запускаем первичный расчет при открытии модального окна бланка
             calculateArmorClass();
 
             // 1. Поиск и выбор оружия ближнего боя (melee1, melee2)
@@ -1208,15 +1205,12 @@ const BestiaryManager = {
                 const renderWeapons = (query) => {
                     const list = searchMeleeWeapons(query);
                     if (!list.length) { dropEl.style.display = 'none'; return; }
-                    dropEl.innerHTML = list.map(w => {
-                        const critText = getWeaponCritEffect(w.group);
-                        return `
-                            <div class="bst-cantrip-opt" data-wid="${w.id}">
-                                <div class="bst-cantrip-opt-top"><b>${w.name}</b> <span>${w.dmgDice} ${w.dmgType}</span></div>
-                                <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}</div>
-                            </div>
-                        `;
-                    }).join('');
+                    dropEl.innerHTML = list.map(w => `
+                        <div class="bst-cantrip-opt" data-wid="${w.id}">
+                            <div class="bst-cantrip-opt-top"><b>${w.name}</b> <span>${w.dmgDice} ${w.dmgType}</span></div>
+                            <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}</div>
+                        </div>
+                    `).join('');
 
                     const rect = inp.getBoundingClientRect();
                     dropEl.style.position = 'fixed';
@@ -1224,7 +1218,6 @@ const BestiaryManager = {
                     dropEl.style.top = `${rect.bottom + 2}px`;
                     dropEl.style.width = '360px';
                     dropEl.style.display = 'block';
-                    dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`;
 
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
@@ -1456,8 +1449,10 @@ const BestiaryManager = {
             });
 
         } else {
+
+
             // КОД ДЛЯ СТРАНИЦЫ 2 (ФОКУСЫ, ПРЕДМЕТЫ, ЗАКЛИНАНИЯ)
-            // 1. Выбор фокусов
+            // 1. Выбор фокусов (Страница 2)
             overlay.querySelectorAll('.bst-cantrip-picker-inp').forEach(inp => {
                 const rowIdx = inp.dataset.cantripRow;
                 const dropEl = overlay.querySelector(`[data-cantrip-drop="${rowIdx}"]`);
@@ -1475,7 +1470,10 @@ const BestiaryManager = {
                     `).join('');
 
                     const rect = inp.getBoundingClientRect();
-                    dropEl.style.position = 'fixed'; dropEl.style.left = `${rect.left}px`; dropEl.style.top = `${rect.bottom + 2}px`; dropEl.style.display = 'block';
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.top = `${rect.bottom + 2}px`;
+                    dropEl.style.display = 'block';
 
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
@@ -1483,8 +1481,9 @@ const BestiaryManager = {
                             const found = PF2E_CANTRIPS.find(x => x.id === optEl.dataset.cid);
                             if (found) {
                                 inp.value = found.name;
-                                if (actInp) actInp.value = found.actions;
-                                if (noteInp) noteInp.value = found.notes;
+                                hero.stats[`cantrip${rowIdx}Name`] = found.name; // Фиксация в стейт
+                                if (actInp) { actInp.value = found.actions; hero.stats[`cantrip${rowIdx}Actions`] = found.actions; }
+                                if (noteInp) { noteInp.value = found.notes; hero.stats[`cantrip${rowIdx}Notes`] = found.notes; }
                             }
                             dropEl.style.display = 'none';
                         });
@@ -1492,6 +1491,105 @@ const BestiaryManager = {
                 };
                 inp.addEventListener('focus', () => renderOptions(inp.value));
                 inp.addEventListener('input', () => renderOptions(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+
+            // 2. Выбор заклинаний 1 круга (Страница 2)
+            overlay.querySelectorAll('.bst-lvl1-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.lvl1Row;
+                const dropEl = overlay.querySelector(`[data-lvl1-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="lvl1Spell${rowIdx}Notes"]`);
+
+                const renderLvl1Options = (query) => {
+                    const list = searchSpellsLvl1(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(s => `
+                        <div class="bst-cantrip-opt" data-sid="${s.id}">
+                            <div class="bst-cantrip-opt-top"><b>${s.name}</b> <span>${s.actions}</span></div>
+                            <div class="bst-cantrip-opt-trad">${s.traditions.join(', ')}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.width = '340px';
+                    dropEl.style.display = 'block';
+
+                    const dropHeight = dropEl.offsetHeight || 220;
+                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                    } else {
+                        dropEl.style.top = `${rect.bottom + 2}px`;
+                    }
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_SPELLS_LVL1.find(x => x.id === optEl.dataset.sid);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats[`lvl1Spell${rowIdx}Name`] = found.name; // Фиксация в стейт
+                                if (actInp) { actInp.value = found.actions; hero.stats[`lvl1Spell${rowIdx}Actions`] = found.actions; }
+                                if (noteInp) { noteInp.value = found.notes; hero.stats[`lvl1Spell${rowIdx}Notes`] = found.notes; }
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderLvl1Options(inp.value));
+                inp.addEventListener('input', () => renderLvl1Options(inp.value));
+                inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
+            });
+
+            // 3. Выбор заклинаний 2 круга (Страница 2)
+            overlay.querySelectorAll('.bst-lvl2-picker-inp').forEach(inp => {
+                const rowIdx = inp.dataset.lvl2Row;
+                const dropEl = overlay.querySelector(`[data-lvl2-drop="${rowIdx}"]`);
+                const actInp = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Actions"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="lvl2Spell${rowIdx}Notes"]`);
+
+                const renderLvl2Options = (query) => {
+                    const list = searchSpellsLvl2(query);
+                    if (!list.length) { dropEl.style.display = 'none'; return; }
+                    dropEl.innerHTML = list.map(s => `
+                        <div class="bst-cantrip-opt" data-s2id="${s.id}">
+                            <div class="bst-cantrip-opt-top"><b>${s.name}</b> <span>${s.actions}</span></div>
+                            <div class="bst-cantrip-opt-trad">${s.traditions.join(', ')}</div>
+                        </div>
+                    `).join('');
+
+                    const rect = inp.getBoundingClientRect();
+                    dropEl.style.position = 'fixed';
+                    dropEl.style.left = `${rect.left}px`;
+                    dropEl.style.width = '340px';
+                    dropEl.style.display = 'block';
+
+                    const dropHeight = dropEl.offsetHeight || 220;
+                    if (rect.bottom + dropHeight + 10 > window.innerHeight) {
+                        dropEl.style.top = `${Math.max(8, rect.top - dropHeight - 2)}px`;
+                    } else {
+                        dropEl.style.top = `${rect.bottom + 2}px`;
+                    }
+
+                    dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
+                        optEl.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            const found = PF2E_SPELLS_LVL2.find(x => x.id === optEl.dataset.s2id);
+                            if (found) {
+                                inp.value = found.name;
+                                hero.stats[`lvl2Spell${rowIdx}Name`] = found.name; // Фиксация в стейт
+                                if (actInp) { actInp.value = found.actions; hero.stats[`lvl2Spell${rowIdx}Actions`] = found.actions; }
+                                if (noteInp) { noteInp.value = found.notes; hero.stats[`lvl2Spell${rowIdx}Notes`] = found.notes; }
+                            }
+                            dropEl.style.display = 'none';
+                        });
+                    });
+                };
+                inp.addEventListener('focus', () => renderLvl2Options(inp.value));
+                inp.addEventListener('input', () => renderLvl2Options(inp.value));
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
 
