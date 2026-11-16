@@ -212,7 +212,8 @@ export function exportCharacterToPdf(hero) {
         bgObj ? `${bgObj.desc} (Навык: ${bgObj.skillName}, Знание: ${bgObj.lore})` : ''
     ).filter(Boolean).join('\n');
 
-    // В. Класс и Классовые способности (с подтягиванием описаний из каталога черт, если в бланке пусто)
+
+    // В. Класс, Действия и Классовые способности
     const classObj = findInCat(PF2E_CLASSES, s.charClass);
     const allLevels = new Array(1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
     const classFeatsLines = allLevels.map(lvl => {
@@ -226,10 +227,18 @@ export function exportCharacterToPdf(hero) {
         return `${lvl} ур.: ${fName}${fDesc ? ' — ' + fDesc : ''}`;
     }).filter(Boolean);
 
+    const actionLines = new Array(1, 2, 3).map(i => {
+        const aName = String(s[`actionSlot${i}Name`] || '').trim();
+        const aDesc = String(s[`actionSlot${i}Desc`] || '').trim();
+        return aName ? `⚡ ${aName}${aDesc ? ' — ' + aDesc : ''}` : '';
+    }).filter(Boolean);
+
     const classFullText = new Array(
         classObj ? `Класс (${classObj.hp} ПЗ/ур., ${classObj.keyStat}): ${classObj.desc}` : '',
+        ...actionLines,
         ...classFeatsLines
     ).filter(Boolean).join('\n');
+
 
 
     const html = `<!DOCTYPE html>

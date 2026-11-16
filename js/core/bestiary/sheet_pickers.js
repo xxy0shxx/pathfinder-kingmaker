@@ -7,6 +7,8 @@ import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../../config/spells_lvl1_cat
 import { PF2E_SPELLS_LVL2, searchSpellsLvl2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../../config/focus_spells_catalog.js';
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
+import { searchActionsCatalog } from '../../config/actions_catalog.js';
+
 
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_GENERAL_FEATS } from '../../config/general_feats_catalog.js';
@@ -274,6 +276,27 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
             }
         });
     });
+
+    // Выпадающий список для 3 ячеек действий
+    overlay.querySelectorAll('.bst-action-picker-inp').forEach(inp => {
+        const idx = inp.dataset.actionIdx;
+        bindAutocomplete(inp, overlay.querySelector(`[data-action-drop="${idx}"]`), {
+            width: 340,
+            getItems: (q) => searchActionsCatalog(q),
+            renderOption: (a) => `
+                <div class="bst-cantrip-opt-top"><b>${a.name}</b> <span>${a.actions}</span></div>
+                <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">${a.className ? `[${a.className}] ` : ''}${a.traits}<br>${a.desc}</div>`,
+            onSelect: (found) => {
+                inp.value = found.name;
+                hero.stats[`actionSlot${idx}Name`] = found.name;
+                const descText = `${found.actions} (${found.traits}): ${found.desc}`;
+                const descInp = overlay.querySelector(`[data-sheet-txt="actionSlot${idx}Desc"]`);
+                if (descInp) descInp.value = descText;
+                hero.stats[`actionSlot${idx}Desc`] = descText;
+            }
+        });
+    });
+
 }
 
 

@@ -276,6 +276,17 @@ export function buildCharacterMarkdown(hero) {
     }
 
     lines.push('### ⚔️ Боевые черты класса, народа и архетипов');
+    const pickedActions = [1, 2, 3]
+        .map(i => ({ name: String(s[`actionSlot${i}Name`] || '').trim(), desc: String(s[`actionSlot${i}Desc`] || '').trim() }))
+        .filter(a => a.name || a.desc);
+
+    if (pickedActions.length > 0) {
+        lines.push('#### ⚡ Ключевые действия и способности');
+        pickedActions.forEach(a => {
+            lines.push(`- **${a.name || 'Действие'}:** ${a.desc || '—'}`);
+        });
+        lines.push('');
+    }
     const featLevels = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
     const filledFeats = featLevels
         .map(lvl => ({

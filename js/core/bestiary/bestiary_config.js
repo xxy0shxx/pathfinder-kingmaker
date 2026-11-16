@@ -165,7 +165,11 @@ export function ensureCharacterStats(item) {
         spellbookText: '', adventureLogText: '', notesText: '',
         compName: '', compType: 'none', compAbilitiesText: '',
 
-        compSpeciesId: ''
+        compSpeciesId: '',
+
+        actionSlot1Name: '', actionSlot1Desc: '',
+        actionSlot2Name: '', actionSlot2Desc: '',
+        actionSlot3Name: '', actionSlot3Desc: ''
     };
 
     [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20].forEach(lvl => {

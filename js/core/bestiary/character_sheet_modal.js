@@ -207,12 +207,24 @@ function buildPage1RightColHtml(stats) {
             </div>
             <div style="margin-top: 6px;">${txtInp(stats, 'weaponProfNotes', '🥋 Умения в оружии...')}</div>
         </div>
+        
+        
+        
         <div class="k-panel">
-            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">⚔️ Боевые Черты Класса и Архетипов</div>
+            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 6px; text-transform: uppercase;">⚔️ Боевые Черты и Способности</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
+                ${new Array(1, 2, 3).map(idx => `
+                    <div class="bst-action-slot" data-action-slot="${idx}" style="position: relative; background: rgba(4, 9, 5, 0.7); border: 1px solid #2d5a3c; border-radius: 5px; padding: 5px;">
+                        <span style="font-size: 10px; color: #2ecc71; font-weight: bold; display: block; margin-bottom: 2px;">⚡ Действие ${idx}</span>
+                        <input type="text" data-sheet-txt="actionSlot${idx}Name" data-action-idx="${idx}" class="k-inp bst-txt-inp bst-action-picker-inp" autocomplete="off" placeholder="Град ударов, Удар..." value="${esc(stats[`actionSlot${idx}Name`] ?? '')}">
+                        <input type="hidden" data-sheet-txt="actionSlot${idx}Desc" value="${esc(stats[`actionSlot${idx}Desc`] ?? '')}">
+                        <div class="bst-cantrip-dropdown" data-action-drop="${idx}" style="display: none; z-index: 10000110;"></div>
+                    </div>`).join('')}
+            </div>
             <table class="k-table bst-cantrips-table" style="width: 100%;">
                 <thead><tr><th style="width: 45px; text-align: center;">Ур.</th><th style="width: 35%;">Название черты</th><th>Действие и Эффект</th></tr></thead>
                 <tbody>
-                    ${[1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20].map(lvl => `
+                    ${new Array(1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20).map(lvl => `
                         <tr>
                             <td class="bst-cantrip-num" style="color: #2ecc71; font-weight: bold; text-align: center;">${lvl}</td>
                             <td style="position: relative;">
@@ -224,6 +236,9 @@ function buildPage1RightColHtml(stats) {
                 </tbody>
             </table>
         </div>
+
+        
+
     `;
 }
 
@@ -485,8 +500,6 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             }
         ]
 
-
-
     });
 
     // Закрытие тултипа при клике по тёмному фону вокруг бланка
@@ -494,10 +507,8 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         if (e.target === overlay) hideSheetItemTooltip();
     });
 
-    // ... дальше идёт блок if (isPage1) { ... } else { ... }
-
-
     if (isPage1) {
+
         const lvlInp = overlay.querySelector('[data-sheet-num="level"]');
         if (lvlInp) {
             lvlInp.addEventListener('change', () => {
@@ -604,6 +615,16 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             return `<div class="init-tip-header"><span class="init-tip-name">${name}</span><span class="init-tip-turn-tag" style="border-color:#74b9ff; color:#74b9ff;">ЧЕРТА ПРОИСХОЖДЕНИЯ</span></div><div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${found?.desc || 'Способность происхождения.'}</div>`;
         });
 
+        // Тултипы 3 ячеек действий
+        overlay.querySelectorAll('.bst-action-slot').forEach(slotEl => {
+            const idx = slotEl.dataset.actionSlot;
+            bindSheetTooltip(slotEl, () => {
+                const name = overlay.querySelector(`[data-sheet-txt="actionSlot${idx}Name"]`)?.value.trim();
+                if (!name) return null;
+                const desc = overlay.querySelector(`[data-sheet-txt="actionSlot${idx}Desc"]`)?.value.trim() || 'Описание действия отсутствует.';
+                return `<div class="init-tip-header"><span class="init-tip-name">⚡ ${name}</span><span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">ДЕЙСТВИЕ</span></div><div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${desc}</div>`;
+            });
+        });
 
         // 2. Тултипы оружия (с критическим эффектом группы и расшифровкой дескрипторов)
         overlay.querySelectorAll('.bst-weapon-row').forEach((row, rIdx) => {
