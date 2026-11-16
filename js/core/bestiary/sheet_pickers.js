@@ -281,21 +281,28 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
     overlay.querySelectorAll('.bst-action-picker-inp').forEach(inp => {
         const idx = inp.dataset.actionIdx;
         bindAutocomplete(inp, overlay.querySelector(`[data-action-drop="${idx}"]`), {
-            width: 340,
+            width: 360,
             getItems: (q) => searchActionsCatalog(q),
-            renderOption: (a) => `
-                <div class="bst-cantrip-opt-top"><b>${a.name}</b> <span>${a.actions}</span></div>
-                <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">${a.className ? `[${a.className}] ` : ''}${a.traits}<br>${a.desc}</div>`,
+            renderOption: (a) => {
+                const badge = a.className
+                    ? `<span style="color:#ffd875; font-weight:bold;">[${a.className}]</span> `
+                    : (a.skillName ? `<span style="color:#74b9ff; font-weight:bold;">[${a.skillName}]</span> ` : '');
+                return `
+                    <div class="bst-cantrip-opt-top"><b>${a.name}</b> <span>${a.actions}</span></div>
+                    <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">${badge}${a.traits}<br>${a.desc}</div>`;
+            },
             onSelect: (found) => {
                 inp.value = found.name;
                 hero.stats[`actionSlot${idx}Name`] = found.name;
-                const descText = `${found.actions} (${found.traits}): ${found.desc}`;
+                const tagInfo = found.className || found.skillName || found.traits;
+                const descText = `${found.actions} (${tagInfo}): ${found.desc}`;
                 const descInp = overlay.querySelector(`[data-sheet-txt="actionSlot${idx}Desc"]`);
                 if (descInp) descInp.value = descText;
                 hero.stats[`actionSlot${idx}Desc`] = descText;
             }
         });
     });
+
 
 }
 
@@ -321,7 +328,11 @@ export function initPage2Pickers(overlay, hero) {
                     { keys: ['волшебник', 'маг', 'wizard'], tag: 'волшебник' },
                     { keys: ['ведьма', 'witch'], tag: 'ведьма' },
                     { keys: ['оракул', 'oracle'], tag: 'оракул' },
-                    { keys: ['анимист', 'animist'], tag: 'анимист' }
+                    { keys: ['анимист', 'animist'], tag: 'анимист' },
+                    { keys: ['колдун', 'магус', 'magus'], tag: 'колдун' },
+                    { keys: ['призыватель', 'summoner'], tag: 'призыватель' },
+                    { keys: ['экстрасенс', 'псионик', 'psychic'], tag: 'экстрасенс' },
+                    { keys: ['некромант', 'necromancer'], tag: 'некромант' }
                 ];
                 const matched = classAliases.find(c => c.keys.some(k => cls.includes(k)));
                 if (matched) {
