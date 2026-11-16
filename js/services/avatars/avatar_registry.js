@@ -326,7 +326,6 @@ const AvatarRegistry = {
         return results.slice(0, 12);
     }
 
-
 };
 
 export default AvatarRegistry;

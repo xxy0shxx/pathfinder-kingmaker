@@ -10,6 +10,7 @@ import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../../config/meta_catalog.js';
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_BACKGROUNDS } from '../../config/backgrounds_catalog.js';
 import * as FeatsMod from '../../config/feats_catalog.js';
+import AvatarRegistry from '../../services/avatars/avatar_registry.js';
 
 const esc = (v) => String(v ?? '')
     .replace(/&/g, '&amp;')
@@ -238,6 +239,9 @@ export function exportCharacterToPdf(hero) {
         ...actionLines,
         ...classFeatsLines
     ).filter(Boolean).join('\n');
+
+    const avatarId = hero.avatarType || AvatarRegistry.guessAvatarByName(name) || AvatarRegistry.guessAvatarByName(s.charClass);
+    const portraitUrl = hero.avatarUrl || hero.img || (avatarId ? AvatarRegistry.getAvatarDataUrl(avatarId) : '');
 
 
 
@@ -564,17 +568,14 @@ export function exportCharacterToPdf(hero) {
                 </div>
             </div>
             <div style="width: 47%; display: flex; flex-direction: column; overflow: hidden;">
-                <div class="sec" style="height: 25%;">
-                    <div class="sec-hdr green"><span class="badge">П</span> ${hasComp ? `Спутник (${esc(compTypeName)})` : 'Портрет персонажа'}</div>
-                    <div class="sec-body" style="overflow: hidden;">
-                        ${hasComp ? `
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #d6cbb8; padding-bottom:2px; margin-bottom:2px;">
-                                <b style="font-size:7.5pt; color:#2d4739;">${esc(s.compName || compTypeName)}</b>
-                                <span style="font-size:6.5pt; font-weight:800;">ПЗ: ${s.compHpCur ?? 0}/${s.compHpMax ?? 0} | КБ: ${s.compAc ?? 10} | ${s.compSpeed ?? 25} фт.</span>
-                            </div>
-                            <div class="notes-fill auto-fit-text">${esc(s.compAbilitiesText || 'Способности спутника не указаны.')}</div>
+            
+                <div class="sec" style="height: 28%;">
+                    <div class="sec-hdr green"><span class="badge">П</span> Портрет персонажа</div>
+                    <div class="sec-body" style="padding: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #141920;">
+                        ${portraitUrl ? `
+                            <img src="${portraitUrl}" alt="${esc(name)}" style="height: 100%; aspect-ratio: 1 / 1; max-width: 100%; object-fit: cover; border: 1.5px solid #e6b84c; border-radius: 4px; background: radial-gradient(circle, #2a3441 0%, #141920 100%);">
                         ` : `
-                            <div class="notes-fill" style="display:flex; align-items:center; justify-content:center; color:#888;">Место для портрета персонажа</div>
+                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #7f8c8d; font-size: 7pt;">Нет портрета</div>
                         `}
                     </div>
                 </div>
