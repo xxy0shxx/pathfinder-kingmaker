@@ -457,7 +457,79 @@ export const PF2E_ITEMS_CATALOG = [
         category: 'Атрибутивная руна брони (12 ур.)',
         runeEffect: { target: 'armor', noteTag: 'Укрепление (СЛ 17 от критов)' },
         notes: 'Когда враг наносит по вам критический удар, пройдите чистую проверку СЛ 17 — при успехе крит превращается в обычное попадание (2000 ЗМ).'
+    },
+    // --- Прочные и магические щиты (Sturdy & Special Shields — pf2.ru) ---
+    {
+        id: 'sturdy_shield_minor',
+        name: '🛡️ Малый прочный щит (Minor Sturdy Shield)',
+        category: 'Щит (4 ур.)',
+        shieldStats: { bonus: 2, hardness: 8, hp: 64 },
+        notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 8, ПЗ 64 (ПЛ 32). Масса 1 (100 ЗМ).'
+    },
+    {
+        id: 'sturdy_shield_lesser',
+        name: '🛡️ Младший прочный щит (Lesser Sturdy Shield)',
+        category: 'Щит (7 ур.)',
+        shieldStats: { bonus: 2, hardness: 10, hp: 80 },
+        notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 10, ПЗ 80 (ПЛ 40). Масса 1 (360 ЗМ).'
+    },
+    {
+        id: 'sturdy_shield_moderate',
+        name: '🛡️ Умеренный прочный щит (Moderate Sturdy Shield)',
+        category: 'Щит (10 ур.)',
+        shieldStats: { bonus: 2, hardness: 13, hp: 104 },
+        notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 13, ПЗ 104 (ПЛ 52). Масса 1 (1000 ЗМ).'
+    },
+    {
+        id: 'sturdy_shield_greater',
+        name: '🛡️ Старший прочный щит (Greater Sturdy Shield)',
+        category: 'Щит (13 ур.)',
+        shieldStats: { bonus: 2, hardness: 15, hp: 120 },
+        notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 15, ПЗ 120 (ПЛ 60). Масса 1 (3000 ЗМ).'
+    },
+    {
+        id: 'sturdy_shield_major',
+        name: '🛡️ Великий прочный щит (Major Sturdy Shield)',
+        category: 'Щит (16 ур.)',
+        shieldStats: { bonus: 2, hardness: 17, hp: 136 },
+        notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 17, ПЗ 136 (ПЛ 68). Масса 1 (10000 ЗМ).'
+    },
+    {
+        id: 'sturdy_shield_supreme',
+        name: '🛡️ Высший прочный щит (Supreme Sturdy Shield)',
+        category: 'Щит (19 ур.)',
+        shieldStats: { bonus: 2, hardness: 20, hp: 160 },
+        notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 20, ПЗ 160 (ПЛ 80). Масса 1 (40000 ЗМ).'
+    },
+    {
+        id: 'spellguard_shield',
+        name: '🔮 Щит-чародей (Spellguard Shield)',
+        category: 'Магический щит (6 ур.)',
+        shieldStats: { bonus: 2, hardness: 6, hp: 24 },
+        notes: 'Поднятие щита (◆): +2 к КБ, а также ситуативный бонус +2 к спасброскам против заклинаний (и позволяет делать Блок щитом против атак заклинаниями). Твёрдость 6, ПЗ 24 (250 ЗМ).'
+    },
+    {
+        id: 'lions_shield',
+        name: '🦁 Львиный щит (Lion’s Shield)',
+        category: 'Магический щит (6 ур.)',
+        shieldStats: { bonus: 2, hardness: 6, hp: 36 },
+        notes: 'Поднятие щита (◆): +2 к КБ; 1/день позволяет за ◆ совершить атаку пастью льва (+14, 2d6 колющего урона). Твёрдость 6, ПЗ 36 (275 ЗМ).'
+    },
+    {
+        id: 'forge_warden_shield',
+        name: '🔥 Щит стража кузни (Forge Warden)',
+        category: 'Магический щит (5 ур.)',
+        shieldStats: { bonus: 2, hardness: 5, hp: 20 },
+        notes: 'Поднятие щита (◆): +2 к КБ; даёт владельцу сопротивление огню 5, пока щит поднят. Твёрдость 5, ПЗ 20 (140 ЗМ).'
+    },
+    {
+        id: 'rune_reinforcing_minor',
+        name: '🛡️ Укрепляющая руна щита (Малая)',
+        category: 'Руна щита (4 ур.)',
+        shieldStats: { bonus: 2, hardness: 8, hp: 64 },
+        notes: 'Наносится на любой щит: повышает его Твёрдость до 8 и ПЗ до 64 (до макс. +3 к Твёрдости и +24 ПЗ сверх базы) (75 ЗМ).'
     }
+
 
 
 ];

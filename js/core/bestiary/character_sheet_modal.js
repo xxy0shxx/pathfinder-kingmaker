@@ -561,6 +561,34 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             ].join('');
         });
 
+        // Тултип: Щит (Бонус КБ, Твёрдость, ПЗ, Порог поломки и действия)
+        const shieldContainer = overlay.querySelector('[data-sheet-num="acShieldBonus"]')?.closest('div');
+        bindSheetTooltip(shieldContainer, () => {
+            const bonus = parseInt(overlay.querySelector('[data-sheet-num="acShieldBonus"]')?.value, 10) || 0;
+            const hardness = parseInt(overlay.querySelector('[data-sheet-num="acShieldHardness"]')?.value, 10) || 0;
+            const curHp = parseInt(overlay.querySelector('[data-sheet-num="acShieldHp"]')?.value, 10) || 0;
+
+            if (!bonus && !hardness && !curHp) return null;
+
+            const bt = Math.floor(curHp / 2);
+            const statusText = curHp <= 0
+                ? '<span style="color:#ff7675;">💥 Уничтожен (0 ПЗ)</span>'
+                : (curHp <= bt
+                    ? `<span style="color:#fdcb6e;">⚠️ Сломан (ПЗ ≤ ПЛ ${bt} — нельзя поднимать без починки)</span>`
+                    : `<span style="color:#2ecc71;">✅ Исправен (Порог поломки ПЛ: ${bt})</span>`);
+
+            return [
+                `<div class="init-tip-header"><span class="init-tip-name">🛡️ Параметры щита</span><span class="init-tip-turn-tag" style="border-color:#74b9ff; color:#74b9ff;">+${bonus} КБ</span></div>`,
+                `<div class="init-tip-top-row"><span>🧱 Твёрдость: <b>${hardness}</b></span><span>❤️ ПЗ: <b>${curHp}</b></span><span>💔 ПЛ: <b>${bt}</b></span></div>`,
+                `<div style="font-size:12px; margin-top:5px;">${statusText}</div>`,
+                `<div style="margin-top:6px; border-top:1px dashed rgba(235,210,145,0.25); padding-top:4px; font-size:12px; color:#ebd291; line-height:1.35;">`,
+                `<div>◆ <b>Поднятие щита:</b> даёт ситуативный бонус <b>+${bonus} к КБ</b> до начала вашего следующего хода.</div>`,
+                `<div>↺ <b>Блок щитом</b> (если щит поднят): снижает физический урон от атаки на <b>${hardness}</b>; остаток урона поровну получаете вы и щит.</div>`,
+                `</div>`
+            ].join('');
+        });
+
+
         const triggerRecalc = () => recalculateSheetStats(overlay, hero);
         initPage1Pickers(overlay, hero, triggerRecalc);
         overlay.querySelectorAll('.bst-armor-calc-trigger, .bst-save-calc-trigger, .bst-skill-calc-trigger, [data-sheet-num="str"], [data-sheet-num="dex"], [data-sheet-num="con"], [data-sheet-num="int"], [data-sheet-num="wis"], [data-sheet-num="cha"]').forEach(el => {
