@@ -15,11 +15,6 @@ const fmtMod = (val) => {
     return n >= 0 ? `+${n}` : `${n}`;
 };
 
-const safeCell = (val, fallback = '—') => {
-    const s = String(val ?? '').trim();
-    return s ? s.replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>') : fallback;
-};
-
 const norm = (str) => String(str || '')
     .replace(/^[^\p{L}\p{N}]+/u, '')
     .replace(/\([^)]*\)/g, '')
@@ -34,6 +29,17 @@ const findInCatalog = (list, queryName) => {
         const n = norm(item.name);
         return n === q || (q.length > 3 && (n.includes(q) || q.includes(n)));
     }) || null;
+};
+
+const safeCell = (val, fallback = '—') => {
+    const s = String(val ?? '').trim();
+    if (!s) return fallback;
+    return s
+        .replace(/<br\s*\/?>/gi, ' • ')
+        .replace(/\r?\n+/g, ' • ')
+        .replace(/\|/g, '\\|')
+        .replace(/\s*•\s*(•\s*)+/g, ' • ')
+        .trim();
 };
 
 const formatObjDetails = (obj, excludeKeys = ['id', 'name']) => {
@@ -65,7 +71,18 @@ const formatObjDetails = (obj, excludeKeys = ['id', 'name']) => {
         feat: 'Бонусная черта',
         hp: 'ПЗ за уровень',
         keyStat: 'Ключевая характеристика',
-        prerequisites: 'Требования'
+        prerequisites: 'Требования',
+        reqAbilities: 'Требует способностей',
+        speed: 'Скорость (фт.)',
+        grantedAbilities: 'Дарованные способности',
+        hpBase: 'Базовые ПЗ',
+        size: 'Размер',
+        str: 'СИЛ',
+        dex: 'ЛВК',
+        con: 'ВЫН',
+        skill: 'Навык',
+        attacks: 'Атаки',
+        support: 'Поддержка / Особое'
     };
 
     const out = [];
@@ -75,10 +92,11 @@ const formatObjDetails = (obj, excludeKeys = ['id', 'name']) => {
         const valStr = Array.isArray(v) ? v.join(', ') : String(v).trim();
         if (!valStr) continue;
         const label = labels[k] || k;
-        out.push(`- **${label}:** ${valStr.replace(/\r?\n/g, ' ')}`);
+        out.push(`- **${label}:** ${valStr.replace(/\r?\n+/g, ' • ')}`);
     }
     return out;
 };
+
 
 const profRankLabel = (prof) => {
     const p = Number(prof) || 0;
@@ -314,7 +332,7 @@ export function buildCharacterMarkdown(hero) {
             const metaParts = [];
             if (sp.catMatch?.traditions) metaParts.push(sp.catMatch.traditions.join(', '));
             if (sp.catMatch?.source) metaParts.push(sp.catMatch.source);
-            const metaCell = safeCell(metaParts.join('<br>'), '—');
+            const metaCell = safeCell(metaParts.join(' • '), '—');
 
             const fullNotes = [sp.notes, sp.catMatch?.notes]
                 .filter(Boolean)
@@ -368,7 +386,7 @@ export function buildCharacterMarkdown(hero) {
             if (it.catItem?.price) metaParts.push(`Цена: ${it.catItem.price}`);
             if (it.catItem?.bulk) metaParts.push(`Масса: ${it.catItem.bulk}`);
             if (it.catItem?.traits) metaParts.push(`Дескр.: ${it.catItem.traits}`);
-            const metaCell = safeCell(metaParts.join('<br>'), '—');
+            const metaCell = safeCell(metaParts.join(' • '), '—');
 
             const fullDesc = [it.notes, it.catItem?.notes, it.catItem?.desc]
                 .filter(Boolean)
@@ -399,9 +417,9 @@ export function buildCharacterMarkdown(hero) {
 
         const compDetails = [];
         if (speciesObj) {
-            const specLines = formatObjDetails(speciesObj, ['id', 'name', 'type', 'hasTough'])
+            const specLines = formatObjDetails(speciesObj, ['id', 'name', 'type', 'hasTough', 'desc'])
                 .map(l => l.replace(/^- /, ''));
-            compDetails.push([`Справочные характеристики вида (${speciesObj.name})`, safeCell(specLines.join('<br>'))]);
+            compDetails.push([`Справочные характеристики вида (${speciesObj.name})`, safeCell(specLines.join(' • '))]);
         }
         if (String(s.compAbilitiesText || '').trim()) {
             compDetails.push(['Активные способности и расчёт параметров', safeCell(s.compAbilitiesText)]);
