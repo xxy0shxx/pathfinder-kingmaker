@@ -391,13 +391,37 @@ const CampingManager = {
             });
         }
 
-        const activeInitHeroes = initUnits.filter(u => u && u.faction === 'friend');
-        const activeBestiaryHeroes = bestiaryPresets.filter(p => p && p.faction === 'friend' && !p.inactive);
-        const activeExtraHeroes = extraUnits.filter(x => x && x.faction === 'friend' && !x.inactive && x.stats);
 
-        const heroes = activeInitHeroes.length > 0
+    // Собираем имена всех спутников/фамильяров из бланков героев, чтобы не тратить на них пайки
+        const companionNames = new Set();
+        [...initUnits, ...bestiaryPresets].forEach(u => {
+            const cName = String(u?.stats?.compName || '').trim().toLowerCase();
+            if (cName) companionNames.add(cName);
+        });
+
+        const isPlayableHero = (u) => {
+            if (!u || u.faction !== 'friend' || u.inactive) return false;
+            const normName = String(u.name || '').trim().toLowerCase();
+            if (!normName || companionNames.has(normName)) return false;
+            if (/фамильяр|верный зверь|спутник/i.test(normName)) return false;
+            return true;
+        };
+
+        const activeInitHeroes = initUnits.filter(isPlayableHero);
+        const activeBestiaryHeroes = bestiaryPresets.filter(isPlayableHero);
+        const activeExtraHeroes = extraUnits.filter(x => isPlayableHero(x) && x.stats);
+
+        const rawHeroes = activeInitHeroes.length > 0
             ? activeInitHeroes
             : (activeBestiaryHeroes.length > 0 ? activeBestiaryHeroes : activeExtraHeroes);
+
+        const seenHeroNames = new Set();
+        const heroes = rawHeroes.filter(h => {
+            const key = String(h.name || '').trim().toLowerCase();
+            if (!key || seenHeroNames.has(key)) return false;
+            seenHeroNames.add(key);
+            return true;
+        }).slice(0, 6);
 
         const statusEl = document.getElementById('campSuppliesSyncStatus');
 
