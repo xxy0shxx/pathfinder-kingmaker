@@ -7,6 +7,7 @@ import { PF2E_FOCUS_SPELLS } from '../../config/focus_spells_catalog.js';
 import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_SPELLS_LVL3 } from '../../config/spells_lvl3_catalog.js';
+import { PF2E_SPELLS_LVL4 } from '../../config/spells_lvl4_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
 import { PF2E_COMPANION_ABILITIES } from '../../config/companions_catalog.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
@@ -376,6 +377,7 @@ export function buildCharacterMarkdown(hero) {
     const hasLvl1 = renderSpellSection('1️⃣ Заклинания 1 круга', 'lvl1Spell', 7, PF2E_SPELLS_LVL1, false);
     const hasLvl2 = renderSpellSection('2️⃣ Заклинания 2 круга', 'lvl2Spell', 5, PF2E_SPELLS_LVL2, true);
     const hasLvl3 = renderSpellSection('3️⃣ Заклинания 3 круга', 'lvl3Spell', 5, PF2E_SPELLS_LVL3, true);
+    const hasLvl4 = renderSpellSection('4️⃣ Заклинания 4 круга', 'lvl4Spell', 5, PF2E_SPELLS_LVL4, true);
 
     if (!hasCantrips && !hasFocus && !hasLvl1 && !hasLvl2 && !hasLvl3) {
         lines.push('_Заклинания не заполнены._\n');

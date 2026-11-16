@@ -183,6 +183,7 @@ export function buildUnitTooltipHtml(item, options = {}) {
     const lvl1Spells = mapSpells('lvl1Spell', 7, '1️⃣');
     const lvl2Spells = mapSpells('lvl2Spell', 5, '2️⃣');
     const lvl3Spells = mapSpells('lvl3Spell', 5, '3️⃣');
+    const lvl4Spells = mapSpells('lvl4Spell', 5, '4️⃣');
 
     const combatItems = Array.from({ length: 15 }, (_, idx) => idx + 1)
         .map(i => {
@@ -195,7 +196,7 @@ export function buildUnitTooltipHtml(item, options = {}) {
         .filter(Boolean);
 
     const hasFocusPool = focusSpells.length > 0 || Number(stats.focusMax) > 0;
-    const hasAnyMagic = cantrips.length > 0 || focusSpells.length > 0 || lvl1Spells.length > 0 || lvl2Spells.length > 0 || lvl3Spells.length > 0;
+    const hasAnyMagic = cantrips.length > 0 || focusSpells.length > 0 || lvl1Spells.length > 0 || lvl2Spells.length > 0 || lvl3Spells.length > 0 || lvl4Spells.length > 0;
 
     return `
         <div class="init-tip-header">
@@ -228,7 +229,7 @@ export function buildUnitTooltipHtml(item, options = {}) {
                 ${hasFocusPool ? `<span style="color:#3498db;">🔋 Фокус: ${stats.focusCurrent ?? 1}/${stats.focusMax ?? 1}</span>` : ''}
             </div>
             <div style="font-size:14px; display:flex; flex-direction:column; gap:2px;">
-                    ${[...focusSpells, ...cantrips, ...lvl1Spells, ...lvl2Spells, ...lvl3Spells].map(s => `<div>${s}</div>`).join('')}
+                    ${[...focusSpells, ...cantrips, ...lvl1Spells, ...lvl2Spells, ...lvl3Spells, ...lvl4Spells].map(s => `<div>${s}</div>`).join('')}
             </div>
         </div>` : ''}
         ${combatItems.length ? `

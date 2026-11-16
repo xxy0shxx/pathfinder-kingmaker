@@ -6,6 +6,7 @@ import { PF2E_BACKGROUNDS } from '../../config/backgrounds_catalog.js';
 import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2, searchSpellsLvl2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_SPELLS_LVL3, searchSpellsLvl3 } from '../../config/spells_lvl3_catalog.js';
+import { PF2E_SPELLS_LVL4, searchSpellsLvl4 } from '../../config/spells_lvl4_catalog.js';
 import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../../config/focus_spells_catalog.js';
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
 import { searchActionsCatalog } from '../../config/actions_catalog.js';
@@ -436,7 +437,8 @@ export function initPage2Pickers(overlay, hero) {
         { selector: '.bst-cantrip-picker-inp', rowAttr: 'cantripRow', dropAttr: 'data-cantrip-drop', prefix: 'cantrip', searchFn: searchCantrips },
         { selector: '.bst-lvl1-picker-inp', rowAttr: 'lvl1Row', dropAttr: 'data-lvl1-drop', prefix: 'lvl1Spell', searchFn: searchSpellsLvl1 },
         { selector: '.bst-lvl2-picker-inp', rowAttr: 'lvl2Row', dropAttr: 'data-lvl2-drop', prefix: 'lvl2Spell', searchFn: searchSpellsLvl2 },
-        { selector: '.bst-lvl3-picker-inp', rowAttr: 'lvl3Row', dropAttr: 'data-lvl3-drop', prefix: 'lvl3Spell', searchFn: searchSpellsLvl3 }
+        { selector: '.bst-lvl3-picker-inp', rowAttr: 'lvl3Row', dropAttr: 'data-lvl3-drop', prefix: 'lvl3Spell', searchFn: searchSpellsLvl3 },
+        { selector: '.bst-lvl4-picker-inp', rowAttr: 'lvl4Row', dropAttr: 'data-lvl4-drop', prefix: 'lvl4Spell', searchFn: searchSpellsLvl4 }
     ];
 
     spellTiers.forEach(({ selector, rowAttr, dropAttr, prefix, searchFn }) => {

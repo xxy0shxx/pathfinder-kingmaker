@@ -273,8 +273,12 @@ function getMagicTierVisibility(stats) {
 
     const isSpellcaster = matchWord(casterKeywords);
 
+
     if (!isSpellcaster) {
-        return { showLvl1: false, showLvl2: false, showLvl3: false, lvl1Slots: 0, lvl2Slots: 0, lvl3Slots: 0 };
+        return {
+            showLvl1: false, showLvl2: false, showLvl3: false, showLvl4: false,
+            lvl1Slots: 0, lvl2Slots: 0, lvl3Slots: 0, lvl4Slots: 0
+        };
     }
 
     const hasBonusSlot = matchWord(extraSlotKeywords);
@@ -294,13 +298,21 @@ function getMagicTierVisibility(stats) {
         lvl3Slots = baseLvl3 + (hasBonusSlot ? 1 : 0);
     }
 
+    let lvl4Slots = 0;
+    if (lvl >= 7) {
+        const baseLvl4 = lvl >= 8 ? 3 : 2;
+        lvl4Slots = baseLvl4 + (hasBonusSlot ? 1 : 0);
+    }
+
     return {
         showLvl1: true,
         showLvl2: lvl >= 3,
         showLvl3: lvl >= 5,
+        showLvl4: lvl >= 7,
         lvl1Slots,
         lvl2Slots,
-        lvl3Slots
+        lvl3Slots,
+        lvl4Slots
     };
 
 }
@@ -347,6 +359,7 @@ function buildPage2Html(stats) {
     const lvl1PerDayVal = magicInfo.lvl1Slots;
     const lvl2PerDayVal = magicInfo.lvl2Slots;
     const lvl3PerDayVal = magicInfo.lvl3Slots;
+    const lvl4PerDayVal = magicInfo.lvl4Slots;
 
     const lvl1BlockHtml = magicInfo.showLvl1 ? `
         <div class="bst-spell-tier">
@@ -381,6 +394,16 @@ function buildPage2Html(stats) {
             </table>
         </div>` : '';
 
+    const lvl4BlockHtml = magicInfo.showLvl4 ? `
+        <div class="bst-spell-tier">
+            <div class="bst-spell-tier-head">
+                <span>4️⃣ 4 круг</span>
+                <label>📅 В день: <input type="number" data-sheet-num="lvl4PerDay" class="k-inp bst-tiny-num" value="${lvl4PerDayVal}" readonly></label>
+            </div>
+            <table class="k-table bst-cantrips-table">
+                <tbody>${renderSpellRows(magicInfo.lvl4Slots, 'lvl4Spell', 'data-lvl4-row', 'data-lvl4-drop', 'bst-lvl4-picker-inp', 'Заклинание 4 круга...', true)}</tbody>
+            </table>
+        </div>` : '';
 
     return `
         <div class="bst-sheet-page2-grid">
@@ -761,7 +784,8 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             { prefix: 'focusSpell', rowAttr: 'focusRow', icon: '💠' },
             { prefix: 'lvl1Spell', rowAttr: 'lvl1Row', icon: '1️⃣' },
             { prefix: 'lvl2Spell', rowAttr: 'lvl2Row', icon: '2️⃣' },
-            { prefix: 'lvl3Spell', rowAttr: 'lvl3Row', icon: '3️⃣' }
+            { prefix: 'lvl3Spell', rowAttr: 'lvl3Row', icon: '3️⃣' },
+            { prefix: 'lvl4Spell', rowAttr: 'lvl4Row', icon: '4️⃣' }
         ];
 
         overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {
