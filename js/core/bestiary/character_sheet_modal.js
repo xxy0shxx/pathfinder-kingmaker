@@ -222,22 +222,6 @@ function buildPage1RightColHtml(stats) {
     `;
 }
 
-function getSpellSlotLimits(stats) {
-    const level = Math.max(1, parseInt(stats.level, 10) || 1);
-    const cls = String(stats.charClass || '').toLowerCase().replace(/ё/g, 'е');
-    const isFullCaster = ['волшебник', 'маг', 'wizard', 'чародей', 'сорк', 'sorcerer', 'жрец', 'cleric', 'ведьма', 'witch', 'оракул', 'oracle'].some(k => cls.includes(k));
-
-    let lvl1Slots = 0;
-    if (level === 1) lvl1Slots = isFullCaster ? 3 : 2;
-    else if (level >= 2) lvl1Slots = 3;
-
-    let lvl2Slots = 0;
-    if (level === 3) lvl2Slots = isFullCaster ? 3 : 2;
-    else if (level >= 4) lvl2Slots = 3;
-
-    return { cantrips: 5, lvl1: lvl1Slots, lvl2: lvl2Slots };
-}
-
 function getMagicTierVisibility(stats) {
     const cls = String(stats.charClass || '').toLowerCase().replace(/ё/g, 'е').trim();
     const lvl = Math.max(1, parseInt(stats.level, 10) || 1);
@@ -256,20 +240,38 @@ function getMagicTierVisibility(stats) {
         'призыватель', 'summoner'
     ];
 
-    // Проверяем точное совпадение слова, чтобы избежать ложных срабатываний
-    const isSpellcaster = casterKeywords.some(k => new RegExp(`(^|\\s|\\()${k}($|\\s|\\))`, 'i').test(cls));
+    // Классы с +1 дополнительной ячейкой на новом круге (Жрец, Волшебник, Чародей)
+    const extraSlotKeywords = [
+        'волшебник', 'маг', 'wizard',
+        'чародей', 'сорк', 'sorcerer',
+        'жрец', 'клирик', 'cleric'
+    ];
+
+    const matchWord = (keywords) =>
+        keywords.some(k => new RegExp(`(^|\\s|\\()${k}($|\\s|\\))`, 'i').test(cls));
+
+    const isSpellcaster = matchWord(casterKeywords);
 
     if (!isSpellcaster) {
         return { showLvl1: false, showLvl2: false, lvl1Slots: 0, lvl2Slots: 0 };
     }
 
-    // Прогрессия PF2e:
-    // 1 ур -> 1 круг (2/день)
-    // 2 ур -> 1 круг (3/день)
-    // 3 ур -> 1 круг (3/день), 2 круг (2/день)
-    // 4+ ур -> 1 круг (3/день), 2 круг (3/день)
-    const lvl1Slots = lvl >= 2 ? 3 : 2;
-    const lvl2Slots = lvl >= 3 ? (lvl >= 4 ? 3 : 2) : 0;
+    const hasBonusSlot = matchWord(extraSlotKeywords);
+
+    // 1 круг:
+    // Обычные кастеры (друид, бард, ведьма...): 1 ур -> 2 ячейки, 2+ ур -> 3 ячейки
+    // Жрец, Волшебник, Чародей: 1 ур -> 3 ячейки, 2+ ур -> 4 ячейки
+    const baseLvl1 = lvl >= 2 ? 3 : 2;
+    const lvl1Slots = baseLvl1 + (hasBonusSlot ? 1 : 0);
+
+    // 2 круг (открывается с 3 уровня):
+    // Обычные кастеры: 3 ур -> 2 ячейки, 4+ ур -> 3 ячейки
+    // Жрец, Волшебник, Чародей: 3 ур -> 3 ячейки, 4+ ур -> 4 ячейки
+    let lvl2Slots = 0;
+    if (lvl >= 3) {
+        const baseLvl2 = lvl >= 4 ? 3 : 2;
+        lvl2Slots = baseLvl2 + (hasBonusSlot ? 1 : 0);
+    }
 
     return {
         showLvl1: true,
@@ -316,9 +318,6 @@ function buildPage2Html(stats) {
             </td>
             <td>${txtInp(stats, `item${idx}Notes`, 'Эффект, вес...')}</td>
         </tr>`).join('');
-
-
-    const limits = getSpellSlotLimits(stats);
 
     const magicInfo = getMagicTierVisibility(stats);
 
