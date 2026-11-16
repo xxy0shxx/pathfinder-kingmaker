@@ -143,15 +143,19 @@ export function exportCharacterToPdf(hero) {
     };
 
     const buildRichItems = () => {
-        const entries = new Array();
+        const entries = [];
         for (let i = 1; i <= 15; i++) {
             const itName = String(s[`item${i}Name`] || '').trim();
-            const itQty = Number(s[`item${i}Qty`]) || 1;
+            const itQty = Number(s[`item${i}Qty`]) ?? 1;
             const itNotes = String(s[`item${i}Notes`] || '').trim();
             if (!itName && !itNotes) continue;
             const cat = findInCat(PF2E_ITEMS_CATALOG, itName);
             const desc = itNotes || cat?.notes || cat?.desc || '';
-            const meta = cat ? new Array(cat.price, cat.bulk ? `Масса ${cat.bulk}` : '').filter(Boolean).join(', ') : '';
+            const metaParts = [];
+            if (cat?.category) metaParts.push(cat.category);
+            if (cat?.price) metaParts.push(cat.price);
+            if (cat?.bulk) metaParts.push(`Масса ${cat.bulk}`);
+            const meta = metaParts.join(', ');
             entries.push({ name: itName || 'Предмет', qty: itQty, desc, meta });
         }
         if (!entries.length) {
@@ -167,6 +171,7 @@ export function exportCharacterToPdf(hero) {
             </div>
         `).join('');
     };
+
 
     const armorObj = findInCat(PF2E_ARMOR_CATALOG, s.armorName);
     const armorGroupEff = armorObj ? getArmorGroupEffect(armorObj.group) : '';
@@ -341,7 +346,7 @@ export function exportCharacterToPdf(hero) {
     .re-title { font-size: 7pt; color: #1e242b; }
     .re-tag { font-size: 6pt; background: #eee6d8; border: 1px solid #cbbba0; border-radius: 2px; padding: 0 3px; font-weight: 700; margin-left: auto; white-space: nowrap; }
     .re-qty { font-size: 6.3pt; font-weight: 800; color: #5e1914; margin-left: auto; white-space: nowrap; }
-    .re-desc { font-size: 6.3pt; color: #333; line-height: 1.18; margin-top: 1px; }
+    .re-desc { font-size: 6.3pt; color: #333; line-height: 1.18; margin-top: 1px; white-space: normal; word-break: break-word; }
     .chk { width: 10px; height: 10px; border: 1px solid #333; display: inline-flex; align-items: center; justify-content: center; font-size: 6.5pt; font-weight: 900; flex-shrink: 0; }
     .chk.on { background: #2d4739; color: #fff; }
     .re-num { font-size: 6.5pt; font-weight: 800; color: #5e1914; }
@@ -547,10 +552,11 @@ export function exportCharacterToPdf(hero) {
     <div class="main-area">
         <div class="row" style="flex: 1; overflow: hidden;">
             <div style="width: 53%; display: flex; flex-direction: column; overflow: hidden;">
-                <div class="sec" style="max-height: 36%;">
+            
+                <div class="sec" style="height: 38%; overflow: hidden;">
                     <div class="sec-hdr green"><span class="badge">Н</span> Снаряжение и Деньги</div>
-                    <div class="sec-body" style="overflow: hidden;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; border-bottom:1px solid #d6cbb8; padding-bottom:2px;">
+                    <div class="sec-body" style="overflow: hidden; min-height: 0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; border-bottom:1px solid #d6cbb8; padding-bottom:2px; flex-shrink: 0;">
                             <span class="sub-lbl">РЮКЗАК И ОПИСАНИЯ ПРЕДМЕТОВ</span>
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <span class="sub-lbl">ДЕНЬГИ:</span>
@@ -559,9 +565,11 @@ export function exportCharacterToPdf(hero) {
                                 <div class="box-sub"><div class="box box-xs">${s.coinsGold ?? 0}</div><span>ЗМ</span></div>
                             </div>
                         </div>
-                        <div class="rich-list auto-fit-list">${buildRichItems()}</div>
+                        <div class="rich-list auto-fit-list" style="flex: 1; min-height: 0;">${buildRichItems()}</div>
                     </div>
                 </div>
+
+                
 
                 <div class="sec" style="flex: 1; margin-bottom: 0; overflow: hidden;">
                     <div class="sec-hdr red"><span class="badge">О</span> Сотворение заклинаний (с описаниями)</div>
