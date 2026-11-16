@@ -55,8 +55,9 @@ export function attachPresetTooltip(card, item, isInactive = false) {
     card.addEventListener('mouseleave', () => hidePresetTooltip());
 }
 
+
 export function showSheetItemTooltip(e, html) {
-    if (!html) return;
+    if (!html || !document.getElementById('bstHeroSheetModal')) return;
     let tip = document.getElementById('bstSheetItemTooltip');
     if (!tip) {
         tip = document.createElement('div');
@@ -71,9 +72,18 @@ export function showSheetItemTooltip(e, html) {
     positionTooltipElement(e, tip, 14);
 }
 
+
 export function hideSheetItemTooltip() {
     const tip = document.getElementById('bstSheetItemTooltip');
     if (tip) tip.style.display = 'none';
+}
+
+// Автоматически прячем тултип при нажатии Esc или клике мимо
+if (!window._bstSheetTipGlobalBound) {
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideSheetItemTooltip();
+    }, true);
+    window._bstSheetTipGlobalBound = true;
 }
 
 export function bindSheetTooltip(targetEl, getHtmlFn) {
@@ -83,6 +93,10 @@ export function bindSheetTooltip(targetEl, getHtmlFn) {
         if (html) showSheetItemTooltip(e, html);
     });
     targetEl.addEventListener('mousemove', (e) => {
+        if (!document.getElementById('bstHeroSheetModal')) {
+            hideSheetItemTooltip();
+            return;
+        }
         positionTooltipElement(e, document.getElementById('bstSheetItemTooltip'), 14);
     });
     targetEl.addEventListener('mouseleave', () => hideSheetItemTooltip());

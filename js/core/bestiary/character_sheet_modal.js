@@ -3,7 +3,9 @@ import { PF2E_BACKGROUNDS } from '../../config/backgrounds_catalog.js';
 import { PF2E_SHEET_CONFIG, SHORT_TO_FULL_SKILL_MAP, ensureCharacterStats } from './bestiary_config.js';
 import { recalculateSheetStats } from './sheet_calculator.js';
 import { initPage1Pickers, initPage2Pickers } from './sheet_pickers.js';
-import { bindSheetTooltip } from './bestiary_tooltip_builder.js';
+import { bindSheetTooltip, hideSheetItemTooltip } from './bestiary_tooltip_builder.js';
+import { PF2E_CLASSES } from '../../config/meta_catalog.js';
+import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -339,6 +341,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 label: isPage1 ? '📜 Стр. 2: Снаряжение и Магия ➔' : '⬅ 🛡️ Стр. 1: Бой и Навыки',
                 variant: 'cc',
                 onClick: () => {
+                    hideSheetItemTooltip();
                     collectFormData(overlay, hero);
                     onSaveCallback();
                     close();
@@ -347,12 +350,17 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             },
             {
                 label: '✖ Отмена',
-                variant: 'cc'
+                variant: 'cc',
+                onClick: () => {
+                    hideSheetItemTooltip();
+                    close();
+                }
             },
             {
                 label: '⚜ Сохранить бланк',
                 variant: 'ok',
                 onClick: () => {
+                    hideSheetItemTooltip();
                     collectFormData(overlay, hero);
                     onSaveCallback();
                     close();
@@ -360,9 +368,6 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             }
         ]
     });
-
-
-
 
     if (isPage1) {
         const triggerRecalc = () => recalculateSheetStats(overlay, hero);
@@ -372,6 +377,44 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             el.addEventListener('change', triggerRecalc);
         });
         triggerRecalc();
+
+        const normName = (s) => String(s || '').replace(/[^\p{L}\p{N}\s-]/gu, '').trim().toLowerCase().replace(/ё/g, 'е');
+
+        // Тултип: Происхождение
+        bindSheetTooltip(overlay.querySelector('[data-sheet-txt="background"]')?.closest('.bst-top-field'), () => {
+            const val = overlay.querySelector('[data-sheet-txt="background"]')?.value.trim();
+            if (!val) return null;
+            const found = (PF2E_BACKGROUNDS || []).find(b => normName(b.name) === normName(val));
+            return [
+                '<div class="init-tip-header"><span class="init-tip-name">📜 ' + val + '</span><span class="init-tip-turn-tag" style="border-color:#74b9ff; color:#74b9ff;">ПРОИСХОЖДЕНИЕ</span></div>',
+                found ? '<div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">' + (found.desc || '') + '</div>' : '',
+                found?.feat ? '<div style="font-size:12px; margin-top:6px; color:#74b9ff;">✨ Бонусная черта: <b>' + found.feat + '</b></div>' : ''
+            ].join('');
+        });
+
+        // Тултип: Класс
+        bindSheetTooltip(overlay.querySelector('[data-sheet-txt="charClass"]')?.closest('.bst-top-field'), () => {
+            const val = overlay.querySelector('[data-sheet-txt="charClass"]')?.value.trim();
+            if (!val) return null;
+            const found = (PF2E_CLASSES || []).find(c => normName(c.name) === normName(val));
+            return [
+                '<div class="init-tip-header"><span class="init-tip-name">⚔️ ' + val + '</span><span class="init-tip-turn-tag" style="border-color:#ffd875; color:#ffd875;">КЛАСС</span></div>',
+                found ? '<div class="init-tip-top-row"><span>⭐ Ключевая: <b>' + (found.keyStat || '—') + '</b></span><span>❤️ ПЗ за ур.: <b>+' + (found.hp || 8) + '</b></span></div>' : '',
+                found?.desc ? '<div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">' + found.desc + '</div>' : ''
+            ].join('');
+        });
+
+        // Тултип: Способность народа / Наследие
+        bindSheetTooltip(overlay.querySelector('[data-sheet-txt="heritage"]')?.closest('div'), () => {
+            const val = overlay.querySelector('[data-sheet-txt="heritage"]')?.value.trim();
+            if (!val) return null;
+            const found = (PF2E_HERITAGES || []).find(h => normName(h.name) === normName(val));
+            return [
+                '<div class="init-tip-header"><span class="init-tip-name">🧬 ' + val + '</span><span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">НАСЛЕДИЕ</span></div>',
+                found ? '<div class="init-tip-top-row"><span>👥 Народ: <b>' + (found.ancestryName || 'Общее') + '</b></span>' + (found.source ? '<span>📚 ' + found.source + '</span>' : '') + '</div>' : '',
+                found?.desc ? '<div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">' + found.desc + '</div>' : ''
+            ].join('');
+        });
 
         // 1. Тултип способности происхождения
         bindSheetTooltip(overlay.querySelector('[data-sheet-txt="backgroundFeat"]')?.closest('div'), () => {
