@@ -324,6 +324,7 @@ function buildPage2Html(stats) {
 }
 
 export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
+    hideSheetItemTooltip();
     if (!hero) return;
     const stats = ensureCharacterStats(hero);
     const isPage1 = pageNum === 1;
