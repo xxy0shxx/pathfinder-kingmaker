@@ -8,14 +8,13 @@ import { PF2E_SPELLS_LVL2, searchSpellsLvl2 } from '../../config/spells_lvl2_cat
 import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../../config/focus_spells_catalog.js';
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
 import { searchActionsCatalog } from '../../config/actions_catalog.js';
-
-
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_GENERAL_FEATS } from '../../config/general_feats_catalog.js';
 import { PF2E_SKILL_FEATS } from '../../config/skill_feats_catalog.js';
 import {
     PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS, PF2E_MONK_FEATS, PF2E_BARD_FEATS,
-    PF2E_BARBARIAN_FEATS, PF2E_CLERIC_FEATS, PF2E_SORCERER_FEATS, PF2E_WIZARD_FEATS
+    PF2E_BARBARIAN_FEATS, PF2E_CLERIC_FEATS, PF2E_SORCERER_FEATS, PF2E_WIZARD_FEATS,
+    PF2E_FIGHTER_FEATS, PF2E_ROGUE_FEATS, PF2E_DRUID_FEATS
 } from '../../config/feats_catalog.js';
 import {
     PF2E_MELEE_WEAPONS, searchMeleeWeapons, calcMeleeWeaponRoll,
@@ -86,9 +85,12 @@ function getClassFeatsPool(charClassRaw) {
         [['монах', 'monk'], PF2E_MONK_FEATS],
         [['бард', 'bard'], PF2E_BARD_FEATS],
         [['варвар', 'barbarian'], PF2E_BARBARIAN_FEATS],
-        [['жрец', 'cleric'], PF2E_CLERIC_FEATS],
+        [['жрец', 'клирик', 'клерик', 'cleric'], PF2E_CLERIC_FEATS],
         [['чародей', 'сорк', 'sorcerer'], PF2E_SORCERER_FEATS],
-        [['волшебник', 'маг', 'wizard'], PF2E_WIZARD_FEATS]
+        [['волшебник', 'маг', 'wizard'], PF2E_WIZARD_FEATS],
+        [['воин', 'fighter'], PF2E_FIGHTER_FEATS],
+        [['плут', 'rogue'], PF2E_ROGUE_FEATS],
+        [['друид', 'druid'], PF2E_DRUID_FEATS]
     ];
 
     const matched = allClassMaps.find(([keys]) => keys.some(k => cls.includes(k)));
