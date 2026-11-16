@@ -1114,10 +1114,6 @@ const BestiaryManager = {
         });
 
         // =========================================================================
-        // СЮДА: ИНИЦИАЛИЗАЦИЯ ЧЕРТ СТРОГО ПОСЛЕ ТОГО, КАК OVERLAY НАПОЛНИЛСЯ HTML
-        // =========================================================================
-
-        // =========================================================================
         // УНИВЕРСАЛЬНАЯ ИНИЦИАЛИЗАЦИЯ ЧЕРТ С ГАРАНТИРОВАННОЙ ПРИВЯЗКОЙ К DOM
         // =========================================================================
         const initRangerFeatPickers = () => {
@@ -1126,12 +1122,10 @@ const BestiaryManager = {
 
             featInputs.forEach(inp => {
                 const lvl = inp.dataset.featLevel;
-                // Находим дропдаун прямо внутри родительского контейнера или ячейки для надежности
                 let dropEl = overlay.querySelector(`[data-feat-drop="${lvl}"]`);
                 const descInp = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`);
 
                 if (!dropEl) {
-                    // Защитный механизм: если контейнер дропдауна потерялся в верстке, создаем его на лету
                     dropEl = document.createElement('div');
                     dropEl.className = 'bst-cantrip-dropdown';
                     dropEl.dataset.featDrop = lvl;
@@ -1142,21 +1136,50 @@ const BestiaryManager = {
                 const renderFeatOptions = (query) => {
                     const q = String(query || '').trim().toLowerCase().replace(/ё/g, 'е');
 
+                    // 1. Считываем класс персонажа с бланка
+                    const currentClass = String(hero.stats.charClass || '').trim().toLowerCase().replace(/ё/g, 'е');
+
+                    // 2. Умный выбор каталога черт на основе класса персонажа
+                    let targetFeats = [];
+
+                    if (currentClass.includes('следопыт') || currentClass.includes('рейнджер') || currentClass.includes('ranger')) {
+                        targetFeats = (typeof PF2E_RANGER_FEATS !== 'undefined') ? PF2E_RANGER_FEATS : [];
+                    } else if (currentClass.includes('поборник') || currentClass.includes('паладин') || currentClass.includes('champion')) {
+                        targetFeats = (typeof PF2E_CHAMPION_FEATS !== 'undefined') ? PF2E_CHAMPION_FEATS : [];
+                    } else if (currentClass.includes('монах') || currentClass.includes('monk')) {
+                        targetFeats = (typeof PF2E_MONK_FEATS !== 'undefined') ? PF2E_MONK_FEATS : [];
+                    } else if (currentClass.includes('бард') || currentClass.includes('bard')) {
+                        targetFeats = (typeof PF2E_BARD_FEATS !== 'undefined') ? PF2E_BARD_FEATS : [];
+                    } else if (currentClass.includes('варвар') || currentClass.includes('barbarian')) {
+                        targetFeats = (typeof PF2E_BARBARIAN_FEATS !== 'undefined') ? PF2E_BARBARIAN_FEATS : [];
+                    } else if (currentClass.includes('жрец') || currentClass.includes('cleric')) {
+                        targetFeats = (typeof PF2E_CLERIC_FEATS !== 'undefined') ? PF2E_CLERIC_FEATS : [];
+                    } else if (currentClass.includes('чародей') || currentClass.includes('сорк') || currentClass.includes('sorcerer')) {
+                        targetFeats = (typeof PF2E_SORCERER_FEATS !== 'undefined') ? PF2E_SORCERER_FEATS : [];
+                    } else if (currentClass.includes('волшебник') || currentClass.includes('маг') || currentClass.includes('wizard')) {
+                        targetFeats = (typeof PF2E_WIZARD_FEATS !== 'undefined') ? PF2E_WIZARD_FEATS : [];
+                    } else {
+                        // Если класс не указан или это кастомный класс — объединяем ВСЕ списки (поведение по умолчанию)
+                        targetFeats = [
+                            ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
+                            ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
+                            ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
+                            ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []),
+                            ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
+                            ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
+                            ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
+                            ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : [])
+                        ];
+                    }
+
+                    // 3. Всегда подмешиваем общие черты и черты навыков, так как они доступны любому классу
                     const combinedFeats = [
-                        ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
-                        ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
-                        ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
-                        ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []),
-                        ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
-                        ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
-                        ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
-                        ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []),
+                        ...targetFeats,
                         ...(typeof PF2E_GENERAL_FEATS !== 'undefined' ? PF2E_GENERAL_FEATS : []),
-                        ...(typeof PF2E_SKILL_FEATS !== 'undefined' ? PF2E_SKILL_FEATS : []) // 🌟 ТУДА ЖЕ ДОБАВИЛИ ЧЕРТЫ НАВЫКОВ
+                        ...(typeof PF2E_SKILL_FEATS !== 'undefined' ? PF2E_SKILL_FEATS : [])
                     ];
 
-
-
+                    // Фильтруем по уровню строки и поисковому запросу
                     const matches = combinedFeats.filter(f =>
                         f.level <= parseInt(lvl, 10) &&
                         f.name.toLowerCase().replace(/ё/g, 'е').includes(q)
@@ -1177,7 +1200,7 @@ const BestiaryManager = {
                     dropEl.style.position = 'fixed';
                     dropEl.style.left = `${rect.left}px`;
                     dropEl.style.width = '420px';
-                    dropEl.style.zIndex = '10000160'; // Повышаем z-index, чтобы окно не перекрывало список
+                    dropEl.style.zIndex = '10000160';
                     dropEl.style.display = 'block';
 
                     const dropHeight = dropEl.offsetHeight || 200;
@@ -1188,24 +1211,10 @@ const BestiaryManager = {
                     }
 
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-                        optEl.removeEventListener('mousedown', null); // Очищаем старые слушатели
+                        optEl.removeEventListener('mousedown', null);
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-
-                            const combinedFeats = [
-                                ...(typeof PF2E_RANGER_FEATS !== 'undefined' ? PF2E_RANGER_FEATS : []),
-                                ...(typeof PF2E_CHAMPION_FEATS !== 'undefined' ? PF2E_CHAMPION_FEATS : []),
-                                ...(typeof PF2E_MONK_FEATS !== 'undefined' ? PF2E_MONK_FEATS : []),
-                                ...(typeof PF2E_BARD_FEATS !== 'undefined' ? PF2E_BARD_FEATS : []),
-                                ...(typeof PF2E_BARBARIAN_FEATS !== 'undefined' ? PF2E_BARBARIAN_FEATS : []),
-                                ...(typeof PF2E_CLERIC_FEATS !== 'undefined' ? PF2E_CLERIC_FEATS : []),
-                                ...(typeof PF2E_SORCERER_FEATS !== 'undefined' ? PF2E_SORCERER_FEATS : []),
-                                ...(typeof PF2E_WIZARD_FEATS !== 'undefined' ? PF2E_WIZARD_FEATS : []),
-                                ...(typeof PF2E_GENERAL_FEATS !== 'undefined' ? PF2E_GENERAL_FEATS : []),
-                                ...(typeof PF2E_SKILL_FEATS !== 'undefined' ? PF2E_SKILL_FEATS : []) // 🌟 ТУДА ЖЕ ДОБАВИЛИ ЧЕРТЫ НАВЫКОВ
-                            ];
-
 
                             const found = combinedFeats.find(x => x.id === optEl.dataset.fid);
                             if (found) {
@@ -1223,7 +1232,6 @@ const BestiaryManager = {
                     });
                 };
 
-                // Принудительно очищаем и вешаем заново чистые слушатели ввода
                 inp.addEventListener('focus', (e) => { renderFeatOptions(e.target.value); });
                 inp.addEventListener('input', (e) => { renderFeatOptions(e.target.value); });
                 inp.addEventListener('blur', () => { setTimeout(() => { dropEl.style.display = 'none'; }, 180); });
