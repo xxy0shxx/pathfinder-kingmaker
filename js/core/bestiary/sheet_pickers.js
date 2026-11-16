@@ -278,7 +278,8 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
 
 
 export function initPage2Pickers(overlay, hero) {
-    // 1. Фокальные заклинания (с фильтром по классу)
+
+    // 1. Фокальные заклинания (с умным фильтром по классу и сортировкой по релевантности)
     overlay.querySelectorAll('.bst-focus-picker-inp').forEach(inp => {
         const row = inp.dataset.focusRow;
         bindAutocomplete(inp, overlay.querySelector(`[data-focus-drop="${row}"]`), {
@@ -286,9 +287,33 @@ export function initPage2Pickers(overlay, hero) {
             getItems: (q) => {
                 let list = searchFocusSpells(q);
                 const cls = normalizeStr(hero.stats.charClass);
-                const classKeywords = ['жрец', 'следопыт', 'поборник', 'бард', 'друид', 'монах', 'чародей', 'волшебник', 'ведьма', 'оракул', 'анимист'];
-                const matchedKey = classKeywords.find(k => cls.includes(k));
-                if (matchedKey) list = list.filter(f => normalizeStr(f.source).includes(matchedKey));
+                const classAliases = [
+                    { keys: ['жрец', 'клирик', 'клерик', 'cleric'], tag: 'жрец' },
+                    { keys: ['следопыт', 'рейнджер', 'ranger'], tag: 'следопыт' },
+                    { keys: ['поборник', 'паладин', 'champion'], tag: 'поборник' },
+                    { keys: ['бард', 'bard'], tag: 'бард' },
+                    { keys: ['друид', 'druid'], tag: 'друид' },
+                    { keys: ['монах', 'monk'], tag: 'монах' },
+                    { keys: ['чародей', 'сорк', 'sorcerer'], tag: 'чародей' },
+                    { keys: ['волшебник', 'маг', 'wizard'], tag: 'волшебник' },
+                    { keys: ['ведьма', 'witch'], tag: 'ведьма' },
+                    { keys: ['оракул', 'oracle'], tag: 'оракул' },
+                    { keys: ['анимист', 'animist'], tag: 'анимист' }
+                ];
+                const matched = classAliases.find(c => c.keys.some(k => cls.includes(k)));
+                if (matched) {
+                    list = list.filter(f => normalizeStr(f.source).includes(matched.tag));
+                }
+
+                // Сортируем: сначала те, где запрос совпадает с названием заклинания
+                const normQ = normalizeStr(q);
+                if (normQ) {
+                    list = [...list].sort((a, b) => {
+                        const aTitle = normalizeStr(a.name).includes(normQ) ? 0 : 1;
+                        const bTitle = normalizeStr(b.name).includes(normQ) ? 0 : 1;
+                        return aTitle - bTitle;
+                    });
+                }
                 return list;
             },
             renderOption: (f) => `
@@ -306,6 +331,8 @@ export function initPage2Pickers(overlay, hero) {
             }
         });
     });
+
+
 
     // 2. Фокусы, 1-й круг и 2-й круг
     const spellTiers = [
