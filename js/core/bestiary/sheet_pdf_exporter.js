@@ -4,6 +4,8 @@ import { PF2E_FOCUS_SPELLS } from '../../config/focus_spells_catalog.js';
 import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
+import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
+import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
 
 const esc = (v) => String(v ?? '')
     .replace(/&/g, '&amp;')
@@ -158,6 +160,32 @@ export function exportCharacterToPdf(hero) {
         `).join('');
     };
 
+    const armorObj = findInCat(PF2E_ARMOR_CATALOG, s.armorName);
+    const armorGroupEff = armorObj ? getArmorGroupEffect(armorObj.group) : '';
+    const armorTraitsText = armorObj
+        ? getArmorTraitsDetails(armorObj.traits).map(t => t.desc ? `${t.trait}: ${t.desc}` : t.trait).join(' • ')
+        : '';
+
+    const buildWeaponCardHtml = (label, wName, wAtk, wDmg, wTraits, isRanged = false) => {
+        const cat = findInCat(isRanged ? PF2E_RANGED_WEAPONS : PF2E_MELEE_WEAPONS, wName);
+        const traitsStr = wTraits || cat?.traits || '';
+        const critEff = cat ? getWeaponCritEffect(cat.group) : '';
+        const traitsExplained = getWeaponTraitsDetails(traitsStr)
+            .map(t => t.desc ? `<b>${esc(t.trait)}</b>: ${esc(t.desc)}` : esc(t.trait))
+            .join(' • ');
+
+        return `
+        <div class="wpn-card">
+            <div class="wpn-top">
+                <span class="sub-lbl">${label}:</span>
+                <div class="wpn-title">${esc(wName)}</div>
+                <div class="box-sub"><div class="box box-sm bold">${esc(wAtk || '—')}</div><span>АТАКА</span></div>
+            </div>
+            <div class="wpn-sub"><span><b>Урон:</b> ${esc(wDmg || '—')}</span><span><b>Дескр.:</b> ${esc(traitsStr || '—')}</span></div>
+            ${(critEff || traitsExplained) ? `<div class="wpn-extra">${critEff ? `<span><b>Крит (${esc(cat.group)}):</b> ${esc(critEff)}</span> ` : ''}${traitsExplained ? `<span>${traitsExplained}</span>` : ''}</div>` : ''}
+        </div>`;
+    };
+
     const hasComp = (s.compType && s.compType !== 'none') || String(s.compName || '').trim() || String(s.compAbilitiesText || '').trim();
     const compTypeName = s.compType === 'familiar' ? 'Фамильяр' : (s.compType === 'companion' ? 'Верный зверь' : 'Спутник');
     const html = `<!DOCTYPE html>
@@ -227,6 +255,7 @@ export function exportCharacterToPdf(hero) {
     .wpn-top { display: flex; justify-content: space-between; align-items: center; gap: 4px; margin-bottom: 1.5px; }
     .wpn-title { flex: 1; border-bottom: 1px solid #333; font-weight: 800; font-size: 7.5pt; }
     .wpn-sub { display: flex; justify-content: space-between; font-size: 6.6pt; color: #222; }
+    .wpn-extra { font-size: 5.5pt; color: #444; line-height: 1.15; margin-top: 1.5px; border-top: 1px dashed #d6cbb8; padding-top: 1px; }
     .rich-list { display: flex; flex-direction: column; gap: 2.5px; overflow: hidden; }
     .rich-entry { border-bottom: 1px dashed #cbbba0; padding-bottom: 2px; }
     .rich-entry:last-child { border-bottom: none; padding-bottom: 0; }
@@ -388,6 +417,8 @@ export function exportCharacterToPdf(hero) {
                     </div>
                 </div>
 
+
+
                 <div class="sec">
                     <div class="sec-hdr red"><span class="badge">К</span> Защита и Класс брони</div>
                     <div class="sec-body">
@@ -407,40 +438,26 @@ export function exportCharacterToPdf(hero) {
                                 <div class="box-sub"><div class="box box-xs">${s.acShieldHp ?? 0}</div><span>ПЗ ЩИТА</span></div>
                             </div>
                         </div>
-                        <div style="font-size:6.8pt;"><b>Доспех:</b> ${esc(s.armorName || 'Без брони')} (${esc(s.armorType)})</div>
+                        <div style="font-size:6.5pt; line-height:1.15;">
+                            <b>Доспех:</b> ${esc(s.armorName || 'Без брони')} (${esc(s.armorType)})
+                            ${armorGroupEff ? `<br><span style="color:#2d4739;">${esc(armorGroupEff)}</span>` : ''}
+                            ${armorTraitsText ? `<br><span style="color:#444; font-size:5.7pt;">${esc(armorTraitsText)}</span>` : ''}
+                        </div>
                     </div>
                 </div>
 
                 <div class="sec" style="flex: 1; margin-bottom: 0;">
                     <div class="sec-hdr"><span class="badge">Л</span> Оружие и Атаки</div>
                     <div class="sec-body">
-                        <div class="wpn-card">
-                            <div class="wpn-top">
-                                <span class="sub-lbl">БЛИЖНИЙ БОЙ 1:</span>
-                                <div class="wpn-title">${esc(s.melee1Name)}</div>
-                                <div class="box-sub"><div class="box box-sm bold">${esc(s.melee1Atk || '—')}</div><span>АТАКА</span></div>
-                            </div>
-                            <div class="wpn-sub"><span><b>Урон:</b> ${esc(s.melee1Dmg || '—')}</span><span><b>Дескр.:</b> ${esc(s.melee1Traits || '—')}</span></div>
-                        </div>
-                        <div class="wpn-card">
-                            <div class="wpn-top">
-                                <span class="sub-lbl">БЛИЖНИЙ БОЙ 2:</span>
-                                <div class="wpn-title">${esc(s.melee2Name)}</div>
-                                <div class="box-sub"><div class="box box-sm bold">${esc(s.melee2Atk || '—')}</div><span>АТАКА</span></div>
-                            </div>
-                            <div class="wpn-sub"><span><b>Урон:</b> ${esc(s.melee2Dmg || '—')}</span><span><b>Дескр.:</b> ${esc(s.melee2Traits || '—')}</span></div>
-                        </div>
-                        <div class="wpn-card">
-                            <div class="wpn-top">
-                                <span class="sub-lbl">ДИСТАНЦИОННОЕ:</span>
-                                <div class="wpn-title">${esc(s.rangedName)}</div>
-                                <div class="box-sub"><div class="box box-sm bold">${esc(s.rangedAtk || '—')}</div><span>АТАКА</span></div>
-                            </div>
-                            <div class="wpn-sub"><span><b>Урон/Дист.:</b> ${esc(s.rangedDmg || '—')}</span><span><b>Дескр.:</b> ${esc(s.rangedTraits || '—')}</span></div>
-                        </div>
+                        ${buildWeaponCardHtml('БЛИЖНИЙ БОЙ 1', s.melee1Name, s.melee1Atk, s.melee1Dmg, s.melee1Traits, false)}
+                        ${buildWeaponCardHtml('БЛИЖНИЙ БОЙ 2', s.melee2Name, s.melee2Atk, s.melee2Dmg, s.melee2Traits, false)}
+                        ${buildWeaponCardHtml('ДИСТАНЦИОННОЕ', s.rangedName, s.rangedAtk, s.rangedDmg, s.rangedTraits, true)}
                         <div class="fit-box" style="margin-top: 2px;"><b>Умения в оружии:</b> ${esc(s.weaponProfNotes || '—')}</div>
                     </div>
                 </div>
+
+                
+                
             </div>
         </div>
     </div>

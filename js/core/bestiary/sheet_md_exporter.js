@@ -1,14 +1,16 @@
 import { PF2E_SHEET_CONFIG, ensureCharacterStats } from './bestiary_config.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../../config/meta_catalog.js';
 import { PF2E_BACKGROUNDS } from '../../config/backgrounds_catalog.js';
-import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect } from '../../config/weapons_catalog.js';
+
 import { PF2E_CANTRIPS } from '../../config/cantrips_catalog.js';
 import { PF2E_FOCUS_SPELLS } from '../../config/focus_spells_catalog.js';
 import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
 import { PF2E_COMPANION_ABILITIES } from '../../config/companions_catalog.js';
+import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
+
 import * as FeatsMod from '../../config/feats_catalog.js';
 const fmtMod = (val) => {
     const n = Number(val) || 0;
@@ -191,13 +193,10 @@ export function buildCharacterMarkdown(hero) {
         lines.push(`- **Справочные данные доспеха (${armorObj.name}):**`);
         lines.push(...formatObjDetails(armorObj).map(l => `  ${l}`));
         const groupEff = getArmorGroupEffect(armorObj.group);
-        if (groupEff) {
-            lines.push(`  - **Эффект привычной брони (${armorObj.group}):** ${groupEff}`);
-        }
-        const traitsInfo = getArmorTraitsDetails(armorObj.traits);
-        if (traitsInfo.length) {
-            const formattedTraits = traitsInfo.map(t => t.desc ? `${t.trait} (${t.desc})` : t.trait).join('; ');
-            lines.push(`  - **Расшифровка дескрипторов:** ${formattedTraits}`);
+        if (groupEff) lines.push(`  - **Эффект привычной брони (${armorObj.group}):** ${groupEff}`);
+        const armorTraits = getArmorTraitsDetails(armorObj.traits);
+        if (armorTraits.length) {
+            lines.push(`  - **Расшифровка дескрипторов:** ${armorTraits.map(t => t.desc ? `${t.trait} (${t.desc})` : t.trait).join('; ')}`);
         }
     }
     lines.push('');
@@ -261,6 +260,10 @@ export function buildCharacterMarkdown(hero) {
                 lines.push(...formatObjDetails(catItem, ['id', 'name', 'finesse', 'dmgMode', 'traits']));
                 const critText = getWeaponCritEffect(catItem.group);
                 if (critText) lines.push(`- **Критический эффект специализации (${catItem.group}):** ${critText}`);
+            }
+            const wpnTraits = getWeaponTraitsDetails(w.traits || catItem?.traits || '');
+            if (wpnTraits.length) {
+                lines.push(`- **Расшифровка дескрипторов:** ${wpnTraits.map(t => t.desc ? `${t.trait} (${t.desc})` : t.trait).join('; ')}`);
             }
             lines.push('');
         });

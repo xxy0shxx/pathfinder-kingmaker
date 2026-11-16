@@ -9,8 +9,8 @@ import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
 import { downloadCharacterMarkdown } from './sheet_md_exporter.js';
 import { exportCharacterToPdf } from './sheet_pdf_exporter.js';
+import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
-
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -533,9 +533,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             const val = overlay.querySelector('[data-sheet-txt="armorName"]')?.value.trim();
             if (!val) return null;
             const found = (PF2E_ARMOR_CATALOG || []).find(a => normName(a.name) === normName(val));
-            if (!found) {
-                return `<div class="init-tip-header"><span class="init-tip-name">🛡️ ${val}</span></div>`;
-            }
+            if (!found) return `<div class="init-tip-header"><span class="init-tip-name">🛡️ ${val}</span></div>`;
             const groupEff = getArmorGroupEffect(found.group);
             const traitsList = getArmorTraitsDetails(found.traits);
             const traitsHtml = traitsList.length
@@ -551,8 +549,6 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 traitsHtml
             ].join('');
         });
-
-
 
         const triggerRecalc = () => recalculateSheetStats(overlay, hero);
         initPage1Pickers(overlay, hero, triggerRecalc);
@@ -608,18 +604,39 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             return `<div class="init-tip-header"><span class="init-tip-name">${name}</span><span class="init-tip-turn-tag" style="border-color:#74b9ff; color:#74b9ff;">ЧЕРТА ПРОИСХОЖДЕНИЯ</span></div><div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${found?.desc || 'Способность происхождения.'}</div>`;
         });
 
-        // 2. Тултипы оружия
+
+        // 2. Тултипы оружия (с критическим эффектом группы и расшифровкой дескрипторов)
         overlay.querySelectorAll('.bst-weapon-row').forEach((row, rIdx) => {
             const slot = rIdx === 0 ? 'melee1' : (rIdx === 1 ? 'melee2' : 'ranged');
+            const isRanged = slot === 'ranged';
             bindSheetTooltip(row, () => {
                 const name = overlay.querySelector(`[data-sheet-txt="${slot}Name"]`)?.value.trim();
                 if (!name) return null;
                 const atk = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`)?.value.trim() || '—';
                 const dmg = overlay.querySelector(`[data-sheet-txt="${slot}Dmg"]`)?.value.trim() || '—';
                 const traits = overlay.querySelector(`[data-sheet-txt="${slot}Traits"]`)?.value.trim() || '';
-                return `<div class="init-tip-header"><span class="init-tip-name">⚔️ ${name}</span></div><div class="init-tip-top-row"><span>🎯 Атака: <b>${atk}</b></span><span>💥 Урон: <b>${dmg}</b></span></div>${traits ? `<div style="font-size:12px; margin-top:4px; color:#ebd291;">${traits}</div>` : ''}`;
+
+                const pool = isRanged ? PF2E_RANGED_WEAPONS : PF2E_MELEE_WEAPONS;
+                const found = (pool || []).find(w => normName(w.name) === normName(name));
+                const critEff = found ? getWeaponCritEffect(found.group) : '';
+                const traitsList = getWeaponTraitsDetails(traits || found?.traits || '');
+
+                const traitsHtml = traitsList.length
+                    ? `<div style="margin-top:6px; border-top:1px dashed rgba(235,210,145,0.25); padding-top:4px; font-size:12px; color:#ebd291;">` +
+                    traitsList.map(t => `<div>🏷️ <b>${t.trait}</b>${t.desc ? `: ${t.desc}` : ''}</div>`).join('') +
+                    `</div>`
+                    : '';
+
+                return [
+                    `<div class="init-tip-header"><span class="init-tip-name">⚔️ ${name}</span>${found ? `<span class="init-tip-turn-tag" style="border-color:#ffd875; color:#ffd875;">${found.group.toUpperCase()}</span>` : ''}</div>`,
+                    `<div class="init-tip-top-row"><span>🎯 Атака: <b>${atk}</b></span><span>💥 Урон: <b>${dmg}</b></span></div>`,
+                    critEff ? `<div style="font-size:12px; margin-top:5px; color:#ff7675;">💥 <b>Крит. специализация:</b> ${critEff}</div>` : '',
+                    traitsHtml
+                ].join('');
             });
         });
+
+
 
         // 3. Тултипы боевых черт
         overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {
