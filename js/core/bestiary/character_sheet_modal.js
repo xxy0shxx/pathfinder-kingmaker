@@ -7,7 +7,7 @@ import { bindSheetTooltip, hideSheetItemTooltip } from './bestiary_tooltip_build
 import { PF2E_CLASSES } from '../../config/meta_catalog.js';
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
-
+import { downloadCharacterMarkdown } from './sheet_md_exporter.js';
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -237,9 +237,10 @@ function getMagicTierVisibility(stats) {
         'ведьма', 'witch',
         'оракул', 'oracle',
         'анимист', 'animist',
-        'псионик', 'psychic',
-        'магус', 'magus',
-        'призыватель', 'summoner'
+        'экстрасенс', 'псионик', 'psychic',
+        'колдун', 'магус', 'magus',
+        'призыватель', 'summoner',
+        'некромант', 'necromancer'
     ];
 
     // Классы с +1 дополнительной ячейкой на новом круге (Жрец, Волшебник, Чародей)
@@ -431,6 +432,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         width: '1420px',
         borderColor: '#dfbc6f',
         bodyHtml: isPage1 ? buildPage1Html(stats) : buildPage2Html(stats),
+
         footerButtons: [
             {
                 label: isPage1 ? '📜 Стр. 2: Снаряжение и Магия ➔' : '⬅ 🛡️ Стр. 1: Бой и Навыки',
@@ -444,10 +446,18 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 }
             },
             {
+                label: '📥 Экспорт в .md',
+                variant: 'cc',
+                onClick: () => {
+                    collectFormData(overlay, hero);
+                    downloadCharacterMarkdown(hero);
+                }
+            },
+            {
                 label: '✖ Отмена',
                 variant: 'cc',
                 onClick: () => {
-                    hideSheetItemTooltip(); // 3. Вставить в кнопку отмены
+                    hideSheetItemTooltip();
                     close();
                 }
             },
@@ -455,13 +465,14 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 label: '⚜ Сохранить бланк',
                 variant: 'ok',
                 onClick: () => {
-                    hideSheetItemTooltip(); // 4. Вставить в кнопку сохранения
+                    hideSheetItemTooltip();
                     collectFormData(overlay, hero);
                     onSaveCallback();
                     close();
                 }
             }
         ]
+
     });
 
     // Закрытие тултипа при клике по тёмному фону вокруг бланка
