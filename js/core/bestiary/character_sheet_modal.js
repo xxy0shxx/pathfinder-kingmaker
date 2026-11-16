@@ -238,12 +238,55 @@ function getSpellSlotLimits(stats) {
     return { cantrips: 5, lvl1: lvl1Slots, lvl2: lvl2Slots };
 }
 
+function getMagicTierVisibility(stats) {
+    const cls = String(stats.charClass || '').toLowerCase().replace(/ё/g, 'е').trim();
+    const lvl = Math.max(1, parseInt(stats.level, 10) || 1);
+
+    const casterKeywords = [
+        'волшебник', 'маг', 'wizard',
+        'чародей', 'сорк', 'sorcerer',
+        'жрец', 'клирик', 'cleric',
+        'друид', 'druid',
+        'бард', 'bard',
+        'ведьма', 'witch',
+        'оракул', 'oracle',
+        'анимист', 'animist',
+        'псионик', 'psychic',
+        'магус', 'magus',
+        'призыватель', 'summoner'
+    ];
+
+    // Проверяем точное совпадение слова, чтобы избежать ложных срабатываний
+    const isSpellcaster = casterKeywords.some(k => new RegExp(`(^|\\s|\\()${k}($|\\s|\\))`, 'i').test(cls));
+
+    if (!isSpellcaster) {
+        return { showLvl1: false, showLvl2: false, lvl1Slots: 0, lvl2Slots: 0 };
+    }
+
+    // Прогрессия PF2e:
+    // 1 ур -> 1 круг (2/день)
+    // 2 ур -> 1 круг (3/день)
+    // 3 ур -> 1 круг (3/день), 2 круг (2/день)
+    // 4+ ур -> 1 круг (3/день), 2 круг (3/день)
+    const lvl1Slots = lvl >= 2 ? 3 : 2;
+    const lvl2Slots = lvl >= 3 ? (lvl >= 4 ? 3 : 2) : 0;
+
+    return {
+        showLvl1: true,
+        showLvl2: lvl >= 3,
+        lvl1Slots,
+        lvl2Slots
+    };
+}
+
 
 function buildPage2Html(stats) {
     if (stats.cantripsPrepared && !stats.cantrip1Name) { stats.cantrip1Name = stats.cantripsPrepared; stats.cantripsPrepared = ''; }
     if (stats.lvl1Prepared && !stats.lvl1Spell1Name) { stats.lvl1Spell1Name = stats.lvl1Prepared; stats.lvl1Prepared = ''; }
     if (stats.lvl2Prepared && !stats.lvl2Spell1Name) { stats.lvl2Spell1Name = stats.lvl2Prepared; stats.lvl2Prepared = ''; }
     if (stats.equipmentText && !stats.item1Name) { stats.item1Name = 'Снаряжение'; stats.item1Notes = stats.equipmentText.replace(/\n+/g, '; '); stats.equipmentText = ''; }
+
+
 
     const renderSpellRows = (count, prefix, dataAttr, dropAttr, pickerCls, placeholder, withCheck = false) =>
         Array.from({ length: count }, (_, i) => i + 1).map(idx => `
@@ -277,23 +320,34 @@ function buildPage2Html(stats) {
 
     const limits = getSpellSlotLimits(stats);
 
-    const lvl1BlockHtml = limits.lvl1 > 0
-        ? [
-            '<div class="bst-spell-tier">',
-            '<div class="bst-spell-tier-head"><span>1️⃣ 1 круг</span><label>📅 В день: ' + numInp(stats, 'lvl1PerDay', 'bst-tiny-num') + '</label></div>',
-            '<table class="k-table bst-cantrips-table"><tbody>' + renderSpellRows(limits.lvl1, 'lvl1Spell', 'data-lvl1-row', 'data-lvl1-drop', 'bst-lvl1-picker-inp', 'Заклинание 1 круга...') + '</tbody></table>',
-            '</div>'
-        ].join('')
-        : '';
+    const magicInfo = getMagicTierVisibility(stats);
 
-    const lvl2BlockHtml = limits.lvl2 > 0
-        ? [
-            '<div class="bst-spell-tier">',
-            '<div class="bst-spell-tier-head"><span>2️⃣ 2 круг</span><label>📅 В день: ' + numInp(stats, 'lvl2PerDay', 'bst-tiny-num') + '</label></div>',
-            '<table class="k-table bst-cantrips-table"><tbody>' + renderSpellRows(limits.lvl2, 'lvl2Spell', 'data-lvl2-row', 'data-lvl2-drop', 'bst-lvl2-picker-inp', 'Заклинание 2 круга...', true) + '</tbody></table>',
-            '</div>'
-        ].join('')
-        : '';
+    // Всегда синхронизируем лимит слотов с текущим уровнем персонажа
+    const lvl1PerDayVal = magicInfo.lvl1Slots;
+    const lvl2PerDayVal = magicInfo.lvl2Slots;
+
+    const lvl1BlockHtml = magicInfo.showLvl1 ? `
+        <div class="bst-spell-tier">
+            <div class="bst-spell-tier-head">
+                <span>1️⃣ 1 круг</span>
+                <label>📅 В день: <input type="number" data-sheet-num="lvl1PerDay" class="k-inp bst-tiny-num" value="${lvl1PerDayVal}" readonly></label>
+            </div>
+            <table class="k-table bst-cantrips-table">
+                <tbody>${renderSpellRows(magicInfo.lvl1Slots, 'lvl1Spell', 'data-lvl1-row', 'data-lvl1-drop', 'bst-lvl1-picker-inp', 'Заклинание 1 круга...')}</tbody>
+            </table>
+        </div>` : '';
+
+    const lvl2BlockHtml = magicInfo.showLvl2 ? `
+        <div class="bst-spell-tier">
+            <div class="bst-spell-tier-head">
+                <span>2️⃣ 2 круг</span>
+                <label>📅 В день: <input type="number" data-sheet-num="lvl2PerDay" class="k-inp bst-tiny-num" value="${lvl2PerDayVal}" readonly></label>
+            </div>
+            <table class="k-table bst-cantrips-table">
+                <tbody>${renderSpellRows(magicInfo.lvl2Slots, 'lvl2Spell', 'data-lvl2-row', 'data-lvl2-drop', 'bst-lvl2-picker-inp', 'Заклинание 2 круга...', true)}</tbody>
+            </table>
+        </div>` : '';
+
 
     return `
         <div class="bst-sheet-page2-grid">
@@ -414,6 +468,16 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
 
 
     if (isPage1) {
+        const lvlInp = overlay.querySelector('[data-sheet-num="level"]');
+        if (lvlInp) {
+            lvlInp.addEventListener('change', () => {
+                hero.stats.level = Math.max(1, parseInt(lvlInp.value, 10) || 1);
+                const info = getMagicTierVisibility(hero.stats);
+                hero.stats.lvl1PerDay = info.lvl1Slots;
+                hero.stats.lvl2PerDay = info.lvl2Slots;
+            });
+        }
+
         const triggerRecalc = () => recalculateSheetStats(overlay, hero);
         initPage1Pickers(overlay, hero, triggerRecalc);
         overlay.querySelectorAll('.bst-armor-calc-trigger, .bst-save-calc-trigger, .bst-skill-calc-trigger, [data-sheet-num="str"], [data-sheet-num="dex"], [data-sheet-num="con"], [data-sheet-num="int"], [data-sheet-num="wis"], [data-sheet-num="cha"]').forEach(el => {
