@@ -6,6 +6,8 @@ import { initPage1Pickers, initPage2Pickers } from './sheet_pickers.js';
 import { bindSheetTooltip, hideSheetItemTooltip } from './bestiary_tooltip_builder.js';
 import { PF2E_CLASSES } from '../../config/meta_catalog.js';
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
+import { PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
+
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -470,12 +472,32 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         const lvlInp = overlay.querySelector('[data-sheet-num="level"]');
         if (lvlInp) {
             lvlInp.addEventListener('change', () => {
-                hero.stats.level = Math.max(1, parseInt(lvlInp.value, 10) || 1);
+                const newLvl = Math.max(1, parseInt(lvlInp.value, 10) || 1);
+                hero.stats.level = newLvl;
+
+                // Обновление ячеек заклинаний
                 const info = getMagicTierVisibility(hero.stats);
                 hero.stats.lvl1PerDay = info.lvl1Slots;
                 hero.stats.lvl2PerDay = info.lvl2Slots;
+
+                // Пересчет ПЗ и КБ спутника под новый уровень хозяина
+                if (hero.stats.compType === 'familiar') {
+                    const hasTough = String(hero.stats.compAbilitiesText || '').includes('Живучий');
+                    hero.stats.compHpMax = (5 + (hasTough ? 2 : 0)) * newLvl;
+                    hero.stats.compHpCur = hero.stats.compHpMax;
+                    hero.stats.compAc = 10 + newLvl + 2;
+                } else if (hero.stats.compType === 'companion' && hero.stats.compSpeciesId) {
+                    const species = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
+                    const calc = species ? calcCompanionStats(species, newLvl) : null;
+                    if (calc) {
+                        hero.stats.compHpMax = calc.hpMax;
+                        hero.stats.compHpCur = calc.hpMax;
+                        hero.stats.compAc = calc.ac;
+                    }
+                }
             });
         }
+
 
         const triggerRecalc = () => recalculateSheetStats(overlay, hero);
         initPage1Pickers(overlay, hero, triggerRecalc);

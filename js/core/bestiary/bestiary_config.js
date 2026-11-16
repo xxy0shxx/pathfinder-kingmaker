@@ -123,7 +123,9 @@ export function ensureCharacterStats(item) {
         spellAttack: 0, spellDc: 10,
         cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
         coinsCopper: 0, coinsSilver: 0, coinsGold: 0,
-        focusMax: 1, focusCurrent: 1
+        focusMax: 1, focusCurrent: 1,
+
+        compHpMax: 0, compHpCur: 0, compAc: 10, compSpeed: 25
     };
 
     for (let i = 1; i <= 15; i++) {
@@ -161,7 +163,9 @@ export function ensureCharacterStats(item) {
         equipmentText: '',
         cantripsPrepared: '', lvl1Prepared: '', lvl2Prepared: '',
         spellbookText: '', adventureLogText: '', notesText: '',
-        compName: '', compType: 'none', compAbilitiesText: ''
+        compName: '', compType: 'none', compAbilitiesText: '',
+
+        compSpeciesId: ''
     };
 
     [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20].forEach(lvl => {
