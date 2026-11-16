@@ -8,6 +8,7 @@ import { PF2E_CLASSES } from '../../config/meta_catalog.js';
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
 import { downloadCharacterMarkdown } from './sheet_md_exporter.js';
+import { exportCharacterToPdf } from './sheet_pdf_exporter.js';
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -433,6 +434,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         borderColor: '#dfbc6f',
         bodyHtml: isPage1 ? buildPage1Html(stats) : buildPage2Html(stats),
 
+
         footerButtons: [
             {
                 label: isPage1 ? '📜 Стр. 2: Снаряжение и Магия ➔' : '⬅ 🛡️ Стр. 1: Бой и Навыки',
@@ -454,6 +456,14 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 }
             },
             {
+                label: '🖨️ Экспорт в PDF',
+                variant: 'cc',
+                onClick: () => {
+                    collectFormData(overlay, hero);
+                    exportCharacterToPdf(hero);
+                }
+            },
+            {
                 label: '✖ Отмена',
                 variant: 'cc',
                 onClick: () => {
@@ -472,6 +482,8 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 }
             }
         ]
+
+
 
     });
 
