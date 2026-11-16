@@ -5,7 +5,7 @@ import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_SPELLS_LVL3 } from '../../config/spells_lvl3_catalog.js';
 import { PF2E_SPELLS_LVL4 } from '../../config/spells_lvl4_catalog.js';
-import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
+import { PF2E_ITEMS_CATALOG, calculateCharacterBulk } from '../../config/items_catalog.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../../config/meta_catalog.js';
@@ -250,6 +250,19 @@ export function exportCharacterToPdf(hero) {
         : '';
 
     const fullNotesWithComp = new Array(compSummaryForNotes, String(s.notesText || '').trim())
+        .filter(Boolean)
+        .join('\n\n');
+
+    const bulkInfo = calculateCharacterBulk(s);
+    const bd = bulkInfo.breakdown || { armor: '0', weapons: '0', backpack: '0', coins: '0', totalCoins: 0 };
+    const bulkStr = `${bulkInfo.totalBulk}${bulkInfo.remLight > 0 ? ` и ${bulkInfo.remLight} Л` : ''}`;
+    const bulkStatus = bulkInfo.isOverloaded
+        ? ' [🚫 ПЕРЕГРУЗКА: НЕЛЬЗЯ ПОДНЯТЬ]'
+        : (bulkInfo.isEncumbered ? ' [⚠️ Перегрузка: Неуклюжесть 1, −10 фт. скорости]' : '');
+
+    const bulkSummaryLine = `🎒 МАССА (BULK): ${bulkStr} / ${bulkInfo.encumberedLimit} (Макс. ${bulkInfo.maxLimit})${bulkStatus}\n• Доспех: ${bd.armor} | Оружие: ${bd.weapons} | Рюкзак и щит: ${bd.backpack} | Монеты (${bd.totalCoins}): ${bd.coins}`;
+
+    const notesWithBulk = new Array(bulkSummaryLine, String(s.notesText || '').trim())
         .filter(Boolean)
         .join('\n\n');
 
@@ -583,8 +596,9 @@ export function exportCharacterToPdf(hero) {
                 </div>
             </div>
 
+
             <div style="width: 47%; display: flex; flex-direction: column; overflow: hidden;">
-                <div class="sec" style="height: 26%;">
+                <div class="sec" style="height: 25%;">
                     <div class="sec-hdr green"><span class="badge">П</span> Портрет персонажа</div>
                     <div class="sec-body" style="padding: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #141920;">
                         ${portraitUrl ? `
@@ -596,7 +610,7 @@ export function exportCharacterToPdf(hero) {
                 </div>
 
                 ${hasComp ? `
-                <div class="sec" style="height: 20%;">
+                <div class="sec" style="height: 19%;">
                     <div class="sec-hdr green"><span class="badge">🐾</span> Спутник (${esc(compTypeName)})</div>
                     <div class="sec-body" style="overflow: hidden;">
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #d6cbb8; padding-bottom:2px; margin-bottom:2px;">
@@ -608,27 +622,29 @@ export function exportCharacterToPdf(hero) {
                 </div>
                 ` : ''}
 
-                <div class="sec" style="flex: 1; min-height: 0;">
+                <div class="sec" style="flex: 1.25; min-height: 0;">
+                    <div class="sec-hdr"><span class="badge">С</span> Заметки и Нагрузка</div>
+                    <div class="sec-body" style="overflow: hidden;">
+                        <div class="notes-fill auto-fit-text">${esc(notesWithBulk)}</div>
+                    </div>
+                </div>
+
+                <div class="sec" style="flex: 0.95; min-height: 0;">
                     <div class="sec-hdr"><span class="badge">Р</span> Журнал приключений</div>
                     <div class="sec-body" style="overflow: hidden;">
                         <div class="notes-fill auto-fit-text">${esc(s.adventureLogText || '')}</div>
                     </div>
                 </div>
 
-                <div class="sec" style="flex: 1.15; min-height: 0;">
-                    <div class="sec-hdr"><span class="badge">С</span> Заметки</div>
-                    <div class="sec-body" style="overflow: hidden;">
-                        <div class="notes-fill auto-fit-text">${esc(s.notesText || '')}</div>
-                    </div>
-                </div>
-
-                <div class="sec" style="flex: 1.15; min-height: 0; margin-bottom: 0;">
+                <div class="sec" style="flex: 1.05; min-height: 0; margin-bottom: 0;">
                     <div class="sec-hdr"><span class="badge">Т</span> Книга заклинаний и формул</div>
                     <div class="sec-body" style="overflow: hidden;">
                         <div class="notes-fill auto-fit-text">${esc(s.spellbookText || '')}</div>
                     </div>
                 </div>
             </div>
+
+            
         </div>
     </div>
 </div>
