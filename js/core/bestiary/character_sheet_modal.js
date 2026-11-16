@@ -417,8 +417,6 @@ function buildPage2Html(stats) {
     `;
 }
 
-
-// ➔ ВОТ СЮДА (в начало и внутрь кнопок openCharacterSheetModal):
 export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
     hideSheetItemTooltip(); // 1. Вставить в первую строку функции
     if (!hero) return;
@@ -438,7 +436,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 label: isPage1 ? '📜 Стр. 2: Снаряжение и Магия ➔' : '⬅ 🛡️ Стр. 1: Бой и Навыки',
                 variant: 'cc',
                 onClick: () => {
-                    hideSheetItemTooltip(); // 2. Вставить перед сохранением и переключением
+                    hideSheetItemTooltip();
                     collectFormData(overlay, hero);
                     onSaveCallback();
                     close();

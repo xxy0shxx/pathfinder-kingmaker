@@ -384,9 +384,15 @@ export function initPage2Pickers(overlay, hero) {
     };
 
     const setCompNum = (key, val) => {
-        hero.stats[key] = val;
+        const numVal = Number(val) || 0;
+        hero.stats[key] = numVal;
         const el = overlay.querySelector(`[data-sheet-num="${key}"]`);
-        if (el) el.value = val;
+        if (el) {
+            el.value = String(numVal);
+            el.setAttribute('value', String(numVal));
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
     };
 
     const stripEmoji = (str) => String(str || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
@@ -397,34 +403,58 @@ export function initPage2Pickers(overlay, hero) {
         renderOption: (a) => `
             <div class="bst-cantrip-opt-top"><b>${a.name}</b></div>
             <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; margin-top: 2px; color: #ebd291;">${a.desc}</div>`,
+
+
         onSelect: (found) => {
             const lvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
 
-            // 1. Выбран вид Верного зверя -> полностью перезаписываем статы, имя и карточку
-            if (found.hpBase !== undefined) {
+            // Проверяем, является ли выбранный элемент видом зверя (есть hpBase ИЛИ это не опция/специализация)
+            const isBeastSpecies = found.type === 'companion' &&
+                !found.id.startsWith('comp_opt_') &&
+                !found.id.startsWith('comp_spec_');
+
+            if (isBeastSpecies) {
                 hero.stats.compSpeciesId = found.id;
                 if (typeSel) {
                     typeSel.value = 'companion';
                     hero.stats.compType = 'companion';
                 }
 
-                const calc = calcCompanionStats(found, lvl);
-                if (calc) {
-                    setCompNum('compHpMax', calc.hpMax);
-                    setCompNum('compHpCur', calc.hpCur);
-                    setCompNum('compAc', calc.ac);
-                    setCompNum('compSpeed', calc.speed);
+                // Считаем статы (если новый каталог — по формуле, если старый — парсим из текста или берём базу)
+                let calc = calcCompanionStats(found, lvl);
+                if (!calc) {
+                    const spdMatch = found.desc.match(/Скорость\s*(\d+)/i);
+                    const hpBonus = found.desc.includes('+8') ? 8 : 6;
+                    const acBonus = found.desc.includes('эксперт') ? 4 : 2;
+                    calc = {
+                        hpMax: hpBonus + 7 * lvl,
+                        hpCur: hpBonus + 7 * lvl,
+                        ac: 10 + 2 + lvl + acBonus,
+                        speed: spdMatch ? parseInt(spdMatch[1], 10) : 25
+                    };
                 }
+
+                setCompNum('compHpMax', calc.hpMax);
+                setCompNum('compHpCur', calc.hpCur);
+                setCompNum('compAc', calc.ac);
+                setCompNum('compSpeed', calc.speed);
 
                 const cleanName = stripEmoji(found.name);
                 const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
-                if (nameInp) nameInp.value = cleanName;
+                if (nameInp) {
+                    nameInp.value = cleanName;
+                    nameInp.setAttribute('value', cleanName);
+                }
                 hero.stats.compName = cleanName;
 
-                updateCompInfo(`${found.name}\n${found.desc}`);
+                updateCompInfo(`${found.name} (Расчёт для ${lvl} ур. хозяина)\n${found.desc}`);
                 compInp.value = '';
                 return;
             }
+            // ... дальше обработка comp_opt_, comp_spec_ и familiar
+
+
+
 
             // 2. Выбрана продвинутая опция или специализация верного зверя
             if (found.type === 'companion') {
