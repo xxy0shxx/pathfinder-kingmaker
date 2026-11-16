@@ -294,13 +294,7 @@ const CampingManager = {
                 if (camoRes === 'crit_success') finalEncounterDc += 2;
                 if (camoRes === 'success') finalEncounterDc += 1;
                 if (camoRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
-
-                // Влияние дозора на СЛ обнаружения лагеря чудовищами
-                if (watchRes === 'crit_success') finalEncounterDc += 2;
-                if (watchRes === 'success') finalEncounterDc += 1;
-                if (watchRes === 'crit_failure') finalEncounterDc = Math.max(1, finalEncounterDc - 2);
             }
-
 
             if (prepareRes === 'crit_success') finalEncounterDc += 2;
 
@@ -312,7 +306,7 @@ const CampingManager = {
             if (prepareRes === 'crit_failure') calculatedChecks += 1;
             if (!isCampHorrible && camoRes === 'crit_success') calculatedChecks -= 1;
             if (!isCampHorrible && huntRes === 'crit_failure') calculatedChecks += 1;
-            if (!isCampHorrible && watchRes === 'crit_failure') calculatedChecks += 1; // <-- ДОБАВИТЬ
+            if (!isCampHorrible && watchRes === 'crit_failure') calculatedChecks += 1;
 
             this.state.totalChecks = Math.max(0, calculatedChecks);
 
@@ -435,13 +429,13 @@ const CampingManager = {
 
         if (!isCampHorrible) {
             if (watchRes === 'crit_success') {
-                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-crit-success'>Критический успех</span>: часовые заметили угрозу издалека. Сложность случайной сцены увеличена на +2, а в случае нападения отряд не может быть застигнут врасплох и получает бонус +2 к проверкам инициативы.`, "good");
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-crit-success'>Критический успех</span>: дозорные получают ситуативный бонус +2 к проверкам Внимания во время этой стоянки.`, "good");
             } else if (watchRes === 'success') {
-                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-success'>Успех</span>: бдительный караул вовремя предупреждает об опасности. Сложность случайной сцены увеличена на +1, отряд успевает подготовиться к бою.`, "good");
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-success'>Успех</span>: дозорные получают ситуативный бонус +1 к проверкам Внимания во время этой стоянки.`, "good");
             } else if (watchRes === 'failure') {
-                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-failure'>Провал</span>: часовые не заметили ничего необычного, но и не выдали себя. Изменений нет.`, "generic");
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-failure'>Провал</span>: ничего не происходит.`, "generic");
             } else if (watchRes === 'crit_failure') {
-                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-crit-failure'>Критический провал</span>: часовые уснули на посту или случайно привлекли хищников. Сложность случайной сцены снижена на -2. Пройдите дополнительную чистую проверку со СЛ сцены региона ${this.state.encounterDc} на внезапное нападение (отряд застигнут врасплох).`, "bad");
+                this.addLogLine(effectsList, `Дозор${watchActors}: <span class='outcome-crit-failure'>Критический провал</span>: количество проверок случайных сцен увеличивается на +1.`, "bad");
             }
         }
 
