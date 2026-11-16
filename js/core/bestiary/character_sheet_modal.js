@@ -221,6 +221,24 @@ function buildPage1RightColHtml(stats) {
         </div>
     `;
 }
+
+function getSpellSlotLimits(stats) {
+    const level = Math.max(1, parseInt(stats.level, 10) || 1);
+    const cls = String(stats.charClass || '').toLowerCase().replace(/ё/g, 'е');
+    const isFullCaster = ['волшебник', 'маг', 'wizard', 'чародей', 'сорк', 'sorcerer', 'жрец', 'cleric', 'ведьма', 'witch', 'оракул', 'oracle'].some(k => cls.includes(k));
+
+    let lvl1Slots = 0;
+    if (level === 1) lvl1Slots = isFullCaster ? 3 : 2;
+    else if (level >= 2) lvl1Slots = 3;
+
+    let lvl2Slots = 0;
+    if (level === 3) lvl2Slots = isFullCaster ? 3 : 2;
+    else if (level >= 4) lvl2Slots = 3;
+
+    return { cantrips: 5, lvl1: lvl1Slots, lvl2: lvl2Slots };
+}
+
+
 function buildPage2Html(stats) {
     if (stats.cantripsPrepared && !stats.cantrip1Name) { stats.cantrip1Name = stats.cantripsPrepared; stats.cantripsPrepared = ''; }
     if (stats.lvl1Prepared && !stats.lvl1Spell1Name) { stats.lvl1Spell1Name = stats.lvl1Prepared; stats.lvl1Prepared = ''; }
@@ -256,6 +274,27 @@ function buildPage2Html(stats) {
             <td>${txtInp(stats, `item${idx}Notes`, 'Эффект, вес...')}</td>
         </tr>`).join('');
 
+
+    const limits = getSpellSlotLimits(stats);
+
+    const lvl1BlockHtml = limits.lvl1 > 0
+        ? [
+            '<div class="bst-spell-tier">',
+            '<div class="bst-spell-tier-head"><span>1️⃣ 1 круг</span><label>📅 В день: ' + numInp(stats, 'lvl1PerDay', 'bst-tiny-num') + '</label></div>',
+            '<table class="k-table bst-cantrips-table"><tbody>' + renderSpellRows(limits.lvl1, 'lvl1Spell', 'data-lvl1-row', 'data-lvl1-drop', 'bst-lvl1-picker-inp', 'Заклинание 1 круга...') + '</tbody></table>',
+            '</div>'
+        ].join('')
+        : '';
+
+    const lvl2BlockHtml = limits.lvl2 > 0
+        ? [
+            '<div class="bst-spell-tier">',
+            '<div class="bst-spell-tier-head"><span>2️⃣ 2 круг</span><label>📅 В день: ' + numInp(stats, 'lvl2PerDay', 'bst-tiny-num') + '</label></div>',
+            '<table class="k-table bst-cantrips-table"><tbody>' + renderSpellRows(limits.lvl2, 'lvl2Spell', 'data-lvl2-row', 'data-lvl2-drop', 'bst-lvl2-picker-inp', 'Заклинание 2 круга...', true) + '</tbody></table>',
+            '</div>'
+        ].join('')
+        : '';
+
     return `
         <div class="bst-sheet-page2-grid">
             <div class="bst-sheet-col">
@@ -273,14 +312,8 @@ function buildPage2Html(stats) {
                         <div class="bst-spell-tier-head"><span>💠 Фокальные</span><label>🔋 Очки: ${numInp(stats, 'focusCurrent', 'bst-tiny-num')} / ${numInp(stats, 'focusMax', 'bst-tiny-num')}</label></div>
                         <table class="k-table bst-cantrips-table"><tbody>${renderSpellRows(3, 'focusSpell', 'data-focus-row', 'data-focus-drop', 'bst-focus-picker-inp', 'Фокальное...', true)}</tbody></table>
                     </div>
-                    <div class="bst-spell-tier">
-                        <div class="bst-spell-tier-head"><span>1️⃣ 1 круг</span><label>📅 В день: ${numInp(stats, 'lvl1PerDay', 'bst-tiny-num')}</label></div>
-                        <table class="k-table bst-cantrips-table"><tbody>${renderSpellRows(5, 'lvl1Spell', 'data-lvl1-row', 'data-lvl1-drop', 'bst-lvl1-picker-inp', 'Заклинание 1 круга...')}</tbody></table>
-                    </div>
-                    <div class="bst-spell-tier">
-                        <div class="bst-spell-tier-head"><span>2️⃣ 2 круг</span><label>📅 В день: ${numInp(stats, 'lvl2PerDay', 'bst-tiny-num')}</label></div>
-                        <table class="k-table bst-cantrips-table"><tbody>${renderSpellRows(5, 'lvl2Spell', 'data-lvl2-row', 'data-lvl2-drop', 'bst-lvl2-picker-inp', 'Заклинание 2 круга...', true)}</tbody></table>
-                    </div>
+                    ${lvl1BlockHtml}
+                    ${lvl2BlockHtml}
                 </div>
             </div>
             <div class="bst-sheet-col">
@@ -323,8 +356,10 @@ function buildPage2Html(stats) {
     `;
 }
 
+
+// ➔ ВОТ СЮДА (в начало и внутрь кнопок openCharacterSheetModal):
 export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
-    hideSheetItemTooltip();
+    hideSheetItemTooltip(); // 1. Вставить в первую строку функции
     if (!hero) return;
     const stats = ensureCharacterStats(hero);
     const isPage1 = pageNum === 1;
@@ -342,7 +377,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 label: isPage1 ? '📜 Стр. 2: Снаряжение и Магия ➔' : '⬅ 🛡️ Стр. 1: Бой и Навыки',
                 variant: 'cc',
                 onClick: () => {
-                    hideSheetItemTooltip();
+                    hideSheetItemTooltip(); // 2. Вставить перед сохранением и переключением
                     collectFormData(overlay, hero);
                     onSaveCallback();
                     close();
@@ -353,7 +388,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 label: '✖ Отмена',
                 variant: 'cc',
                 onClick: () => {
-                    hideSheetItemTooltip();
+                    hideSheetItemTooltip(); // 3. Вставить в кнопку отмены
                     close();
                 }
             },
@@ -361,7 +396,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 label: '⚜ Сохранить бланк',
                 variant: 'ok',
                 onClick: () => {
-                    hideSheetItemTooltip();
+                    hideSheetItemTooltip(); // 4. Вставить в кнопку сохранения
                     collectFormData(overlay, hero);
                     onSaveCallback();
                     close();
@@ -369,6 +404,14 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             }
         ]
     });
+
+    // Закрытие тултипа при клике по тёмному фону вокруг бланка
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) hideSheetItemTooltip();
+    });
+
+    // ... дальше идёт блок if (isPage1) { ... } else { ... }
+
 
     if (isPage1) {
         const triggerRecalc = () => recalculateSheetStats(overlay, hero);
