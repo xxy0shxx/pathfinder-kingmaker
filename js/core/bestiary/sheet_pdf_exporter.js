@@ -5,7 +5,8 @@ import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_SPELLS_LVL3 } from '../../config/spells_lvl3_catalog.js';
 import { PF2E_SPELLS_LVL4 } from '../../config/spells_lvl4_catalog.js';
-import { PF2E_ITEMS_CATALOG, calculateCharacterBulk } from '../../config/items_catalog.js';
+import { PF2E_ITEMS_CATALOG, calculateCharacterBulk, getItemLevel } from '../../config/items_catalog.js';
+
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../../config/meta_catalog.js';
@@ -143,20 +144,29 @@ export function exportCharacterToPdf(hero) {
     };
 
     const buildRichItems = () => {
+        const heroLvl = Math.max(1, parseInt(s.level, 10) || 1);
         const entries = [];
         for (let i = 1; i <= 15; i++) {
             const itName = String(s[`item${i}Name`] || '').trim();
             const itQty = Number(s[`item${i}Qty`]) ?? 1;
             const itNotes = String(s[`item${i}Notes`] || '').trim();
             if (!itName && !itNotes) continue;
+
             const cat = findInCat(PF2E_ITEMS_CATALOG, itName);
-            const desc = itNotes || cat?.notes || cat?.desc || '';
+            const reqLvl = cat ? getItemLevel(cat) : 0;
+            const isLocked = reqLvl > heroLvl;
+
+            // Очищаем дублирующийся префикс из заметок, чтобы красиво отрендерить его тегом
+            const cleanNotes = itNotes.replace(/^⚠️\s*\[Требуется\s*\d+\s*ур\.[^\]]*\]\s*/i, '');
+            const desc = cleanNotes || cat?.notes || cat?.desc || '';
+
             const metaParts = [];
             if (cat?.category) metaParts.push(cat.category);
             if (cat?.price) metaParts.push(cat.price);
             if (cat?.bulk) metaParts.push(`Масса ${cat.bulk}`);
             const meta = metaParts.join(', ');
-            entries.push({ name: itName || 'Предмет', qty: itQty, desc, meta });
+
+            entries.push({ name: itName || 'Предмет', qty: itQty, desc, meta, isLocked, reqLvl });
         }
         if (!entries.length) {
             return `<div class="empty-slot">Рюкзак пуст</div>`;
@@ -165,13 +175,13 @@ export function exportCharacterToPdf(hero) {
             <div class="rich-entry">
                 <div class="re-head">
                     <b class="re-title">${esc(it.name)}</b>
+                    ${it.isLocked ? `<span style="font-size:5.8pt; color:#b91c1c; font-weight:800; background:#fee2e2; border:1px solid #f87171; border-radius:2px; padding:0 3px;">🔒 ТРЕБ. ${it.reqLvl} УР.</span>` : ''}
                     <span class="re-qty">×${it.qty}${it.meta ? ` (${esc(it.meta)})` : ''}</span>
                 </div>
-                ${it.desc ? `<div class="re-desc">${esc(it.desc)}</div>` : ''}
+                ${it.desc ? `<div class="re-desc">${it.isLocked ? `<b style="color:#b91c1c;">[Бонусы заблокированы: требуется ${it.reqLvl} уровень]</b> ` : ''}${esc(it.desc)}</div>` : ''}
             </div>
         `).join('');
     };
-
 
     const armorObj = findInCat(PF2E_ARMOR_CATALOG, s.armorName);
     const armorGroupEff = armorObj ? getArmorGroupEffect(armorObj.group) : '';
