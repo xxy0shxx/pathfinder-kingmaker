@@ -243,7 +243,13 @@ export function exportCharacterToPdf(hero) {
     const avatarId = hero.avatarType || AvatarRegistry.guessAvatarByName(name) || AvatarRegistry.guessAvatarByName(s.charClass);
     const portraitUrl = hero.avatarUrl || hero.img || (avatarId ? AvatarRegistry.getAvatarDataUrl(avatarId) : '');
 
+    const compSummaryForNotes = hasComp
+        ? `🐾 ${compTypeName.toUpperCase()}: ${s.compName || 'Без имени'} (ПЗ: ${s.compHpCur ?? 0}/${s.compHpMax ?? 0} | КБ: ${s.compAc ?? 10} | Скор.: ${s.compSpeed ?? 25} фт.)\n${s.compAbilitiesText || ''}`
+        : '';
 
+    const fullNotesWithComp = new Array(compSummaryForNotes, String(s.notesText || '').trim())
+        .filter(Boolean)
+        .join('\n\n');
 
     const html = `<!DOCTYPE html>
 <html lang="ru">
@@ -567,9 +573,9 @@ export function exportCharacterToPdf(hero) {
                     </div>
                 </div>
             </div>
+
             <div style="width: 47%; display: flex; flex-direction: column; overflow: hidden;">
-            
-                <div class="sec" style="height: 28%;">
+                <div class="sec" style="height: 26%;">
                     <div class="sec-hdr green"><span class="badge">П</span> Портрет персонажа</div>
                     <div class="sec-body" style="padding: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #141920;">
                         ${portraitUrl ? `
@@ -580,21 +586,34 @@ export function exportCharacterToPdf(hero) {
                     </div>
                 </div>
 
-                <div class="sec" style="height: 21%;">
+                ${hasComp ? `
+                <div class="sec" style="height: 20%;">
+                    <div class="sec-hdr green"><span class="badge">🐾</span> Спутник (${esc(compTypeName)})</div>
+                    <div class="sec-body" style="overflow: hidden;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #d6cbb8; padding-bottom:2px; margin-bottom:2px;">
+                            <b style="font-size:7.3pt; color:#2d4739;">${esc(s.compName || compTypeName)}</b>
+                            <span style="font-size:6.3pt; font-weight:800;">ПЗ: ${s.compHpCur ?? 0}/${s.compHpMax ?? 0} | КБ: ${s.compAc ?? 10} | ${s.compSpeed ?? 25} фт.</span>
+                        </div>
+                        <div class="notes-fill auto-fit-text">${esc(s.compAbilitiesText || 'Способности спутника не указаны.')}</div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="sec" style="flex: 1; min-height: 0;">
                     <div class="sec-hdr"><span class="badge">Р</span> Журнал приключений</div>
                     <div class="sec-body" style="overflow: hidden;">
                         <div class="notes-fill auto-fit-text">${esc(s.adventureLogText || '')}</div>
                     </div>
                 </div>
 
-                <div class="sec" style="height: 27%;">
+                <div class="sec" style="flex: 1.15; min-height: 0;">
                     <div class="sec-hdr"><span class="badge">С</span> Заметки</div>
                     <div class="sec-body" style="overflow: hidden;">
                         <div class="notes-fill auto-fit-text">${esc(s.notesText || '')}</div>
                     </div>
                 </div>
 
-                <div class="sec" style="flex: 1; margin-bottom: 0;">
+                <div class="sec" style="flex: 1.15; min-height: 0; margin-bottom: 0;">
                     <div class="sec-hdr"><span class="badge">Т</span> Книга заклинаний и формул</div>
                     <div class="sec-body" style="overflow: hidden;">
                         <div class="notes-fill auto-fit-text">${esc(s.spellbookText || '')}</div>
