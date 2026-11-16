@@ -9,6 +9,8 @@ import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
 import { downloadCharacterMarkdown } from './sheet_md_exporter.js';
 import { exportCharacterToPdf } from './sheet_pdf_exporter.js';
+import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
+
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -525,6 +527,31 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 }
             });
         }
+
+        // Тултип: Доспех (статы, эффект группы и дескрипторы)
+        bindSheetTooltip(overlay.querySelector('[data-sheet-txt="armorName"]')?.closest('div'), () => {
+            const val = overlay.querySelector('[data-sheet-txt="armorName"]')?.value.trim();
+            if (!val) return null;
+            const found = (PF2E_ARMOR_CATALOG || []).find(a => normName(a.name) === normName(val));
+            if (!found) {
+                return `<div class="init-tip-header"><span class="init-tip-name">🛡️ ${val}</span></div>`;
+            }
+            const groupEff = getArmorGroupEffect(found.group);
+            const traitsList = getArmorTraitsDetails(found.traits);
+            const traitsHtml = traitsList.length
+                ? `<div style="margin-top:6px; border-top:1px dashed rgba(235,210,145,0.25); padding-top:4px; font-size:12px; color:#ebd291;">` +
+                traitsList.map(t => `<div>🏷️ <b>${t.trait}</b>${t.desc ? `: ${t.desc}` : ''}</div>`).join('') +
+                `</div>`
+                : '';
+
+            return [
+                `<div class="init-tip-header"><span class="init-tip-name">${found.name}</span><span class="init-tip-turn-tag" style="border-color:#74b9ff; color:#74b9ff;">${found.group.toUpperCase()}</span></div>`,
+                `<div class="init-tip-top-row"><span>🛡️ КБ: <b>+${found.acBonus}</b></span><span>🤸 Макс. ЛВК: <b>+${found.dexCap}</b></span><span>⚠️ Штраф: <b>${found.penalty}</b></span></div>`,
+                groupEff ? `<div style="font-size:12px; margin-top:5px; color:#2ecc71;">${groupEff}</div>` : '',
+                traitsHtml
+            ].join('');
+        });
+
 
 
         const triggerRecalc = () => recalculateSheetStats(overlay, hero);

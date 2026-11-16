@@ -8,7 +8,7 @@ import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
 import { PF2E_COMPANION_ABILITIES } from '../../config/companions_catalog.js';
-import { PF2E_ARMOR_CATALOG } from '../../config/armor_catalog.js';
+import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
 import * as FeatsMod from '../../config/feats_catalog.js';
 const fmtMod = (val) => {
     const n = Number(val) || 0;
@@ -186,9 +186,19 @@ export function buildCharacterMarkdown(hero) {
     lines.push(`- **Формула КБ:** 10 + ${s.acDex ?? 0} (Лвк) + ${s.acProf ?? 0} (Умение) + ${s.acItem ?? 0} (Предмет) + ${s.acOther ?? 0} (Прочее) = **${s.ac ?? 10}**`);
     lines.push(`- **Штраф проверки доспеха:** ${s.acArmorPenalty ?? 0}`);
     lines.push(`- **🛡️ Щит:** Бонус при поднятии **+${s.acShieldBonus ?? 0}** | Твёрдость: **${s.acShieldHardness ?? 0}** | Текущие ПЗ щита: **${s.acShieldHp ?? 0}**`);
+
     if (armorObj) {
         lines.push(`- **Справочные данные доспеха (${armorObj.name}):**`);
         lines.push(...formatObjDetails(armorObj).map(l => `  ${l}`));
+        const groupEff = getArmorGroupEffect(armorObj.group);
+        if (groupEff) {
+            lines.push(`  - **Эффект привычной брони (${armorObj.group}):** ${groupEff}`);
+        }
+        const traitsInfo = getArmorTraitsDetails(armorObj.traits);
+        if (traitsInfo.length) {
+            const formattedTraits = traitsInfo.map(t => t.desc ? `${t.trait} (${t.desc})` : t.trait).join('; ');
+            lines.push(`  - **Расшифровка дескрипторов:** ${formattedTraits}`);
+        }
     }
     lines.push('');
 

@@ -62,8 +62,32 @@ export const PF2E_ARMOR_CATALOG = [
     // --- Тяжёлая броня ---
     { id: 'splint_mail', name: '🛡️ Пластинчатый доспех', category: 'heavy', acBonus: 5, dexCap: 1, penalty: -3, speedPenalty: -5, strReq: 16, group: 'Композитная', traits: 'Шумная' },
     { id: 'half_plate', name: '🛡️ Полулаты', category: 'heavy', acBonus: 5, dexCap: 1, penalty: -3, speedPenalty: -5, strReq: 16, group: 'Латная', traits: 'Шумная' },
-    { id: 'full_plate', name: '🛡️ Полные латы', category: 'heavy', acBonus: 6, dexCap: 0, penalty: -3, speedPenalty: -5, strReq: 18, group: 'Латная', traits: 'Шумная, Закрытая' }
+    { id: 'full_plate', name: '🛡️ Полные латы', category: 'heavy', acBonus: 6, dexCap: 0, penalty: -3, speedPenalty: -5, strReq: 18, group: 'Латная', traits: 'Шумная, Закрытая' },
+    // --- Дополнительные виды брони из Основной книги игрока 2, Хранилища сокровищ и Тянь-Ша ---
+    { id: 'silk_armor', name: '👘 Шёлковый доспех', category: 'light', acBonus: 1, dexCap: 4, penalty: 0, speedPenalty: 0, strReq: 10, group: 'Тканевая', traits: 'Удобная, Гибкая' },
+    { id: 'woven_wood_armor', name: '🎋 Плетёная древесная броня', category: 'light', acBonus: 2, dexCap: 3, penalty: -1, speedPenalty: 0, strReq: 12, group: 'Деревянная', traits: 'Гибкая' },
+    { id: 'brigandine', name: '🦺 Бригантина', category: 'medium', acBonus: 3, dexCap: 2, penalty: -2, speedPenalty: -5, strReq: 14, group: 'Композитная', traits: 'Шумная' },
+    { id: 'armored_coat', name: '🧥 Бронированный плащ', category: 'medium', acBonus: 3, dexCap: 2, penalty: -2, speedPenalty: -5, strReq: 14, group: 'Кожаная', traits: 'Удобная' },
+    { id: 'armored_skirt_plate', name: '🦺 Нагрудник с латной юбкой', category: 'medium', acBonus: 4, dexCap: 1, penalty: -2, speedPenalty: -5, strReq: 16, group: 'Латная', traits: 'Шумная, Укрепление (ближний бой)' },
+    { id: 'lorica_segmentata', name: '🛡️ Сегментный доспех (Лорика)', category: 'heavy', acBonus: 5, dexCap: 1, penalty: -3, speedPenalty: -5, strReq: 16, group: 'Латная', traits: 'Ламинарный, Шумная' },
+    { id: 'heavy_chainmail', name: '🛡️ Тяжёлая кольчуга', category: 'heavy', acBonus: 5, dexCap: 1, penalty: -3, speedPenalty: -5, strReq: 16, group: 'Кольчужная', traits: 'Гибкая, Шумная' },
+    { id: 'mountain_pattern_armor', name: '🛡️ Горный чешуйчатый доспех', category: 'heavy', acBonus: 6, dexCap: 0, penalty: -3, speedPenalty: -5, strReq: 18, group: 'Композитная', traits: 'Закрытая, Ламинарный' },
+
 ];
+
+export const PF2E_ARMOR_TRAITS_DESC = {
+    'Аквадинамика': 'Штраф брони не применяется к проверкам Акробатики и Атлетики в воде.',
+    'Гибкая': 'Штраф брони к навыкам не применяется к проверкам Акробатики и Атлетики.',
+    'Задерживающее': 'Постоянный штраф –5 фт. ко всем скоростям, который нельзя снизить высокой Силой.',
+    'Закрытая': 'При испытании Реакции против наносящих урон эффектов по области (например, Огненного шара) используйте +3 вместо модификатора ЛВК.',
+    'Ламинарный': 'При поломке доспеха штраф к КБ снижается: 0 для лёгкой, –1 для средней, –2 для тяжёлой брони.',
+    'Модифицированное': 'Имеет встроенную модификацию; нельзя добавить или заменить на другую.',
+    'Начертанное': 'Позволяет начертать на броне 1 свиток и активировать его свободной рукой без выхватывания.',
+    'Тяжеловесное': 'Штраф –1 к проверкам инициативы (или полный штраф брони, если не хватает Силы).',
+    'Удобная': 'В этой броне можно полноценно отдыхать и спать без штрафа утомления.',
+    'Укрепление': 'За 1 действие (◆) даёт ситуативный бонус +1 к КБ против указанного типа атак до начала следующего хода.',
+    'Шумная': 'Штраф брони всегда применяется к проверкам Скрытности, даже при высокой Силе.'
+};
 
 /**
  * Поиск и фильтрация брони по строке запроса
@@ -93,4 +117,14 @@ export const PF2E_ARMOR_GROUP_EFFECTS = {
 
 export function getArmorGroupEffect(group) {
     return PF2E_ARMOR_GROUP_EFFECTS[group] || '';
+}
+
+export function getArmorTraitsDetails(traitsStr = '') {
+    const raw = String(traitsStr || '').trim();
+    if (!raw) return [];
+    return raw.split(',').map(t => t.trim()).filter(Boolean).map(trait => {
+        const baseName = trait.replace(/\([^)]*\)/g, '').trim();
+        const desc = PF2E_ARMOR_TRAITS_DESC[baseName] || PF2E_ARMOR_TRAITS_DESC[trait] || '';
+        return { trait, desc };
+    });
 }
