@@ -6,6 +6,10 @@ import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
+import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../../config/meta_catalog.js';
+import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
+import { PF2E_BACKGROUNDS } from '../../config/backgrounds_catalog.js';
+import * as FeatsMod from '../../config/feats_catalog.js';
 
 const esc = (v) => String(v ?? '')
     .replace(/&/g, '&amp;')
@@ -70,6 +74,7 @@ const sidebarHtml = (pageNum) => `
     </aside>
 `;
 export function exportCharacterToPdf(hero) {
+
     if (!hero) return;
     const s = ensureCharacterStats(hero);
     const name = hero.name || 'Безымянный герой';
@@ -188,6 +193,45 @@ export function exportCharacterToPdf(hero) {
 
     const hasComp = (s.compType && s.compType !== 'none') || String(s.compName || '').trim() || String(s.compAbilitiesText || '').trim();
     const compTypeName = s.compType === 'familiar' ? 'Фамильяр' : (s.compType === 'companion' ? 'Верный зверь' : 'Спутник');
+
+    const allFeatsPool = Object.values(FeatsMod).filter(Array.isArray).flat();
+
+    // А. Народ и Наследие
+    const ancestryObj = findInCat(PF2E_ANCESTRIES, s.ancestry);
+    const heritageObj = findInCat(PF2E_HERITAGES, s.heritage);
+    const ancestryFullText = new Array(
+        ancestryObj ? `Народ: ${ancestryObj.traits}` : '',
+        s.heritage ? `Наследие: ${s.heritage}${heritageObj?.desc ? ' — ' + heritageObj.desc : ''}` : ''
+    ).filter(Boolean).join('\n');
+
+    // Б. Происхождение и Черта происхождения
+    const bgObj = findInCat(PF2E_BACKGROUNDS, s.background);
+    const bgFeatText = s.backgroundFeat || bgObj?.feat || '';
+    const bgFullText = new Array(
+        bgFeatText ? `Черта: ${bgFeatText}` : '',
+        bgObj ? `${bgObj.desc} (Навык: ${bgObj.skillName}, Знание: ${bgObj.lore})` : ''
+    ).filter(Boolean).join('\n');
+
+    // В. Класс и Классовые способности (с подтягиванием описаний из каталога черт, если в бланке пусто)
+    const classObj = findInCat(PF2E_CLASSES, s.charClass);
+    const allLevels = new Array(1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
+    const classFeatsLines = allLevels.map(lvl => {
+        const fName = String(s[`classFeatLvl${lvl}Name`] || '').trim();
+        let fDesc = String(s[`classFeatLvl${lvl}Desc`] || '').trim();
+        if (!fName && !fDesc) return '';
+        if (!fDesc && fName) {
+            const catFeat = findInCat(allFeatsPool, fName);
+            if (catFeat?.desc) fDesc = catFeat.desc;
+        }
+        return `${lvl} ур.: ${fName}${fDesc ? ' — ' + fDesc : ''}`;
+    }).filter(Boolean);
+
+    const classFullText = new Array(
+        classObj ? `Класс (${classObj.hp} ПЗ/ур., ${classObj.keyStat}): ${classObj.desc}` : '',
+        ...classFeatsLines
+    ).filter(Boolean).join('\n');
+
+
     const html = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -295,36 +339,38 @@ export function exportCharacterToPdf(hero) {
                 </div>
             </div>
 
+
+
             <div class="grid-3">
                 <div class="sec">
                     <div class="sec-hdr red"><span class="badge">А</span> Народ</div>
                     <div class="sec-body">
                         <div class="field-line">${esc(s.ancestry)}</div>
-                        <div class="sub-lbl">Родословная и способности</div>
-                        <div class="fit-box" style="height: 44px;">${esc(s.heritage)}</div>
+                        <div class="sub-lbl">Родословная и особенности народа</div>
+                        <div class="fit-box" style="height: 58px; white-space: pre-line;">${esc(ancestryFullText || '—')}</div>
                     </div>
                 </div>
                 <div class="sec">
                     <div class="sec-hdr red"><span class="badge">Б</span> Происхождение</div>
                     <div class="sec-body">
                         <div class="field-line">${esc(s.background)}</div>
-                        <div class="sub-lbl">Способность происхождения</div>
-                        <div class="fit-box" style="height: 44px;">${esc(s.backgroundFeat)}</div>
+                        <div class="sub-lbl">Способность и описание происхождения</div>
+                        <div class="fit-box" style="height: 58px; white-space: pre-line;">${esc(bgFullText || '—')}</div>
                     </div>
                 </div>
                 <div class="sec">
                     <div class="sec-hdr red"><span class="badge">В</span> Класс</div>
                     <div class="sec-body">
                         <div class="field-line">${esc(s.charClass)}</div>
-                        <div class="sub-lbl">Классовые способности</div>
-                        <div class="fit-box" style="height: 44px;">
-                            ${feat1 ? `<div><b>1 ур.:</b> ${esc(feat1)}</div>` : ''}
-                            ${feat2 ? `<div><b>2 ур.:</b> ${esc(feat2)}</div>` : ''}
-                            ${otherFeats ? `<div>${esc(otherFeats)}</div>` : ''}
-                        </div>
+                        <div class="sub-lbl">Классовые способности и черты</div>
+                        <div class="fit-box" style="height: 58px; white-space: pre-line;">${esc(classFullText || '—')}</div>
                     </div>
                 </div>
             </div>
+
+            
+            
+            
         </div>
 
         <div class="row" style="flex: 1;">
@@ -553,8 +599,8 @@ export function exportCharacterToPdf(hero) {
     window.onload = function() {
         document.querySelectorAll('.auto-fit-list, .auto-fit-text, .fit-box').forEach(function(box) {
             var size = parseFloat(window.getComputedStyle(box).fontSize) || 6.5;
-            while (box.scrollHeight > box.clientHeight + 1 && size > 4.4) {
-                size -= 0.25;
+            while (box.scrollHeight > box.clientHeight + 1 && size > 3.6) {
+                size -= 0.2;
                 box.style.fontSize = size + 'pt';
                 box.querySelectorAll('.re-title, .re-desc, .re-tag, .re-qty').forEach(function(el) {
                     el.style.fontSize = size + 'pt';
