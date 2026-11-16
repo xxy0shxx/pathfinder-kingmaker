@@ -367,7 +367,7 @@ export function initPage2Pickers(overlay, hero) {
     });
 
 
-    // 4. Способности и виды спутников (жёсткая перезапись статов и инфо-блока)
+    // 4. Способности и виды спутников (жёсткая перезапись статов и инфо-блока с расшифровкой формул)
     const compInp = overlay.querySelector('.bst-comp-ability-picker');
     const typeSel = overlay.querySelector('.bst-comp-type-selector');
     const hiddenTextInp = overlay.querySelector('[data-sheet-txt="compAbilitiesText"]');
@@ -397,22 +397,31 @@ export function initPage2Pickers(overlay, hero) {
 
     const stripEmoji = (str) => String(str || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
 
+    const buildBeastFormulaHint = (species, lvl, totalHp, totalAc, extraHp = 0, extraAc = 0) => {
+        const con = species.con || 0;
+        const dex = species.dex || 0;
+        const hpPerLvl = 6 + con;
+        const profVal = species.acProf || 2;
+        const hpExtraStr = extraHp > 0 ? ` + ${extraHp} (опция)` : '';
+        const acExtraStr = extraAc > 0 ? ` + ${extraAc} (опция)` : '';
+
+        return `📊 Расчёт (${lvl} ур.): ПЗ = ${species.hpBase} (вид) + ${hpPerLvl} (6 + ${con} ВЫН) × ${lvl} ур.${hpExtraStr} = ${totalHp} | КБ = 10 + ${dex} ЛВК + ${lvl} ур. + ${profVal} ум.${acExtraStr} = ${totalAc}`;
+    };
+
     bindAutocomplete(compInp, overlay.querySelector('[data-comp-drop="1"]'), {
         width: 400,
         getItems: (q) => searchCompanionAbilities(q, typeSel ? typeSel.value : 'all'),
         renderOption: (a) => `
             <div class="bst-cantrip-opt-top"><b>${a.name}</b></div>
             <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; margin-top: 2px; color: #ebd291;">${a.desc}</div>`,
-
-
         onSelect: (found) => {
             const lvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
 
-            // Проверяем, является ли выбранный элемент видом зверя (есть hpBase ИЛИ это не опция/специализация)
             const isBeastSpecies = found.type === 'companion' &&
                 !found.id.startsWith('comp_opt_') &&
                 !found.id.startsWith('comp_spec_');
 
+            // 1. Выбран вид Верного зверя -> полностью перезаписываем статы, имя и карточку с расшифровкой
             if (isBeastSpecies) {
                 hero.stats.compSpeciesId = found.id;
                 if (typeSel) {
@@ -420,7 +429,6 @@ export function initPage2Pickers(overlay, hero) {
                     hero.stats.compType = 'companion';
                 }
 
-                // Считаем статы (если новый каталог — по формуле, если старый — парсим из текста или берём базу)
                 let calc = calcCompanionStats(found, lvl);
                 if (!calc) {
                     const spdMatch = found.desc.match(/Скорость\s*(\d+)/i);
@@ -447,38 +455,42 @@ export function initPage2Pickers(overlay, hero) {
                 }
                 hero.stats.compName = cleanName;
 
-                updateCompInfo(`${found.name} (Расчёт для ${lvl} ур. хозяина)\n${found.desc}`);
+                const formulaHint = found.hpBase !== undefined
+                    ? buildBeastFormulaHint(found, lvl, calc.hpMax, calc.ac)
+                    : `📊 Расчёт (${lvl} ур.): ПЗ = ${calc.hpMax} | КБ = ${calc.ac}`;
+
+                updateCompInfo(`${found.name}\n${formulaHint}\n${found.desc}`);
                 compInp.value = '';
                 return;
             }
-            // ... дальше обработка comp_opt_, comp_spec_ и familiar
-
-
-
 
             // 2. Выбрана продвинутая опция или специализация верного зверя
             if (found.type === 'companion') {
                 const baseSpecies = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
                 if (baseSpecies) {
                     const calc = calcCompanionStats(baseSpecies, lvl);
-                    let hp = calc.hpMax;
-                    let ac = calc.ac;
+                    let extraHp = 0;
+                    let extraAc = 0;
                     let spd = calc.speed;
 
-                    if (found.id === 'comp_opt_savage') { hp += lvl; ac += 1; }
-                    if (found.id === 'comp_opt_nimble') { hp += lvl; ac += 2; }
-                    if (found.id === 'comp_opt_indomitable') { hp += 2 * lvl; ac += 1; }
+                    if (found.id === 'comp_opt_savage') { extraHp += lvl; extraAc += 1; }
+                    if (found.id === 'comp_opt_nimble') { extraHp += lvl; extraAc += 2; }
+                    if (found.id === 'comp_opt_indomitable') { extraHp += 2 * lvl; extraAc += 1; }
                     if (found.id === 'comp_spec_racer') { spd += 10; }
                     if (found.id === 'comp_spec_ambusher' || found.id === 'comp_spec_daredevil') {
-                        ac += (baseSpecies.acProf === 4 ? 0 : 2) + 1;
+                        extraAc += (baseSpecies.acProf === 4 ? 0 : 2) + 1;
                     }
 
-                    setCompNum('compHpMax', hp);
-                    setCompNum('compHpCur', hp);
-                    setCompNum('compAc', ac);
+                    const totalHp = calc.hpMax + extraHp;
+                    const totalAc = calc.ac + extraAc;
+
+                    setCompNum('compHpMax', totalHp);
+                    setCompNum('compHpCur', totalHp);
+                    setCompNum('compAc', totalAc);
                     setCompNum('compSpeed', spd);
 
-                    updateCompInfo(`${baseSpecies.name}\n${baseSpecies.desc}\n\n★ ${found.name}: ${found.desc}`);
+                    const formulaHint = buildBeastFormulaHint(baseSpecies, lvl, totalHp, totalAc, extraHp, extraAc);
+                    updateCompInfo(`${baseSpecies.name}\n${formulaHint}\n${baseSpecies.desc}\n\n★ ${found.name}: ${found.desc}`);
                 } else {
                     updateCompInfo(`${found.name}\n${found.desc}`);
                 }
@@ -493,15 +505,18 @@ export function initPage2Pickers(overlay, hero) {
                     hero.stats.compType = 'familiar';
                 }
                 const calc = calcCompanionStats(found, lvl);
-                const bonusHp = found.id === 'fam_tough' ? 2 * lvl : 0;
-                const finalHp = (calc ? calc.hpMax : 5 * lvl) + bonusHp;
+                const isTough = found.id === 'fam_tough';
+                const hpPerLvl = isTough ? 7 : 5;
+                const finalHp = hpPerLvl * lvl;
+                const finalAc = calc ? calc.ac : 12 + lvl;
 
                 setCompNum('compHpMax', finalHp);
                 setCompNum('compHpCur', finalHp);
-                setCompNum('compAc', calc ? calc.ac : 12 + lvl);
+                setCompNum('compAc', finalAc);
                 setCompNum('compSpeed', found.id === 'fam_fast_movement' ? 40 : 25);
 
-                updateCompInfo(`${found.name}\n${found.desc}`);
+                const famHint = `📊 Расчёт (${lvl} ур.): ПЗ = ${hpPerLvl} (5${isTough ? ' + 2 Живучий' : ''}) × ${lvl} ур. = ${finalHp} | КБ = 10 + ${lvl} ур. + 2 ум. = ${finalAc}`;
+                updateCompInfo(`${found.name}\n${famHint}\n${found.desc}`);
                 compInp.value = '';
             }
         }
@@ -514,11 +529,13 @@ export function initPage2Pickers(overlay, hero) {
 
             if (typeSel.value === 'familiar') {
                 hero.stats.compSpeciesId = '';
-                setCompNum('compHpMax', 5 * lvl);
-                setCompNum('compHpCur', 5 * lvl);
-                setCompNum('compAc', 12 + lvl);
+                const famHp = 5 * lvl;
+                const famAc = 12 + lvl;
+                setCompNum('compHpMax', famHp);
+                setCompNum('compHpCur', famHp);
+                setCompNum('compAc', famAc);
                 setCompNum('compSpeed', 25);
-                updateCompInfo('🦉 Фамильяр\nКрошечное существо. Базовые ПЗ: 5 за уровень хозяина, КБ равен КБ хозяина без бонусов состояния/обстоятельств.');
+                updateCompInfo(`🦉 Фамильяр\n📊 Расчёт (${lvl} ур.): ПЗ = 5 × ${lvl} ур. = ${famHp} | КБ = 10 + ${lvl} ур. + 2 ум. = ${famAc}\nКрошечное существо. КБ равен КБ хозяина без бонусов состояния/обстоятельств.`);
             } else if (typeSel.value === 'none') {
                 hero.stats.compSpeciesId = '';
                 const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
