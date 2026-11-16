@@ -1916,6 +1916,8 @@ const BestiaryManager = {
 
         } else {
             // 0. Поиск и выбор Фокальных заклинаний (Страница 2)
+
+            // 0. Поиск и выбор Фокальных заклинаний (Страница 2) с автофильтрацией по классу
             overlay.querySelectorAll('.bst-focus-picker-inp').forEach(inp => {
                 const rowIdx = inp.dataset.focusRow;
                 const dropEl = overlay.querySelector(`[data-focus-drop="${rowIdx}"]`);
@@ -1923,19 +1925,54 @@ const BestiaryManager = {
                 const noteInp = overlay.querySelector(`[data-sheet-txt="focusSpell${rowIdx}Notes"]`);
 
                 const renderFocusOptions = (query) => {
-                    const list = searchFocusSpells(query);
+                    // 1. Получаем «сырой» список из каталога
+                    let list = searchFocusSpells(query); //
+
+                    // 2. Считываем текущий класс персонажа из бланка
+                    const currentClass = String(hero.stats.charClass || '').trim().toLowerCase().replace(/ё/g, 'е');
+
+                    // 3. Умная фильтрация по источнику (source) в зависимости от класса персонажа
+                    if (currentClass.includes('жрец') || currentClass.includes('cleric')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('жрец') || f.source.toLowerCase().includes('cleric')); //
+                    } else if (currentClass.includes('следопыт') || currentClass.includes('рейнджер') || currentClass.includes('ranger')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('следопыт') || f.source.toLowerCase().includes('ranger')); //
+                    } else if (currentClass.includes('поборник') || currentClass.includes('паладин') || currentClass.includes('champion')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('поборник') || f.source.toLowerCase().includes('champion')); //
+                    } else if (currentClass.includes('бард') || currentClass.includes('bard')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('бард') || f.source.toLowerCase().includes('bard')); //
+                    } else if (currentClass.includes('друид') || currentClass.includes('druid')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('друид') || f.source.toLowerCase().includes('druid')); //
+                    } else if (currentClass.includes('монах') || currentClass.includes('monk')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('монах') || f.source.toLowerCase().includes('monk')); //
+                    } else if (currentClass.includes('чародей') || currentClass.includes('сорк') || currentClass.includes('sorcerer')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('чародей') || f.source.toLowerCase().includes('sorcerer')); //
+                    } else if (currentClass.includes('волшебник') || currentClass.includes('маг') || currentClass.includes('wizard')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('волшебник') || f.source.toLowerCase().includes('wizard')); //
+                    } else if (currentClass.includes('ведьма') || currentClass.includes('witch')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('ведьма') || f.source.toLowerCase().includes('witch')); //
+                    } else if (currentClass.includes('оракул') || currentClass.includes('oracle')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('оракул') || f.source.toLowerCase().includes('oracle')); //
+                    } else if (currentClass.includes('анимист') || currentClass.includes('animist')) {
+                        list = list.filter(f => f.source.toLowerCase().includes('анимист') || f.source.toLowerCase().includes('animist')); //
+                    }
+
                     if (!list.length) { dropEl.style.display = 'none'; return; }
+
                     dropEl.innerHTML = list.map(f => `
                         <div class="bst-cantrip-opt" data-fid="${f.id}">
                             <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span>${f.actions}</span></div>
-                            <div class="bst-cantrip-opt-trad">${f.source}</div>
+                            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">
+                                ${f.source}<br>${f.notes}
+                            </div>
                         </div>
                     `).join('');
 
                     const rect = inp.getBoundingClientRect();
                     dropEl.style.position = 'fixed';
                     dropEl.style.left = `${rect.left}px`;
-                    dropEl.style.width = '340px';
+                    dropEl.style.width = '380px';
+                    dropEl.style.maxHeight = '250px';
+                    dropEl.style.overflowY = 'auto';
                     dropEl.style.display = 'block';
 
                     const dropHeight = dropEl.offsetHeight || 220;
@@ -1948,10 +1985,10 @@ const BestiaryManager = {
                     dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
                         optEl.addEventListener('mousedown', (e) => {
                             e.preventDefault();
-                            const found = PF2E_FOCUS_SPELLS.find(x => x.id === optEl.dataset.fid);
+                            const found = PF2E_FOCUS_SPELLS.find(x => x.id === optEl.dataset.fid); //
                             if (found) {
                                 inp.value = found.name;
-                                hero.stats[`focusSpell${rowIdx}Name`] = found.name; // Намертво фиксируем в стейт персонажа
+                                hero.stats[`focusSpell${rowIdx}Name`] = found.name;
                                 if (actInp) { actInp.value = found.actions; hero.stats[`focusSpell${rowIdx}Actions`] = found.actions; }
                                 if (noteInp) { noteInp.value = found.notes; hero.stats[`focusSpell${rowIdx}Notes`] = found.notes; }
                             }
@@ -1964,6 +2001,7 @@ const BestiaryManager = {
                 inp.addEventListener('input', () => renderFocusOptions(inp.value));
                 inp.addEventListener('blur', () => setTimeout(() => { dropEl.style.display = 'none'; }, 150));
             });
+
 
 
             // КОД ДЛЯ СТРАНИЦЫ 2 (ФОКУСЫ, ПРЕДМЕТЫ, ЗАКЛИНАНИЯ)
