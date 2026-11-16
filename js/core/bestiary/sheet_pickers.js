@@ -259,11 +259,12 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
         onSelect: (found) => applyWeapon('ranged', found, calcRangedWeaponRoll)
     });
 
-    // 6. Боевые черты по уровням
+
+    // 6. Классовые черты по уровням
     overlay.querySelectorAll('.bst-ranger-feat-picker-inp').forEach(inp => {
         const lvl = parseInt(inp.dataset.featLevel, 10);
         const descInp = overlay.querySelector(`[data-sheet-txt="classFeatLvl${lvl}Desc"]`);
-        bindAutocomplete(inp, overlay.querySelector(`[data-feat-drop="${lvl}"]`), {
+        bindAutocomplete(inp, overlay.querySelector(`[data-feat-drop="class_${lvl}"]`), {
             width: 420,
             zIndex: '10000160',
             getItems: (q) => {
@@ -282,6 +283,44 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
             }
         });
     });
+
+    // 7. Общие черты, Черты навыков и Черты народа
+    overlay.querySelectorAll('.bst-extra-feat-picker-inp').forEach(inp => {
+        const lvl = parseInt(inp.dataset.featLevel, 10);
+        const kind = inp.dataset.featKind;
+        const prefixMap = { general: 'genFeatLvl', skill: 'skillFeatLvl', ancestry: 'ancFeatLvl' };
+        const prefix = prefixMap[kind];
+        const descInp = overlay.querySelector(`[data-sheet-txt="${prefix}${lvl}Desc"]`);
+
+        bindAutocomplete(inp, overlay.querySelector(`[data-feat-drop="${kind}_${lvl}"]`), {
+            width: 420,
+            zIndex: '10000160',
+            getItems: (q) => {
+                const normQ = normalizeStr(q);
+                let pool = [];
+                if (kind === 'general') {
+                    pool = [...(PF2E_GENERAL_FEATS || []), ...(PF2E_SKILL_FEATS || [])];
+                } else if (kind === 'skill') {
+                    pool = PF2E_SKILL_FEATS || [];
+                } else if (kind === 'ancestry') {
+                    const curAnc = normalizeStr(overlay.querySelector('[data-sheet-txt="ancestry"]')?.value);
+                    pool = (PF2E_HERITAGES || []).filter(h => !curAnc || normalizeStr(h.ancestryName) === curAnc || normalizeStr(h.ancestry) === curAnc || h.ancestry === 'versatile');
+                }
+                return pool.filter(f => (f.level || 1) <= lvl && normalizeStr(f.name).includes(normQ));
+            },
+            renderOption: (f) => `
+                <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span style="color: #74b9ff;">${f.level ? `[Ур. ${f.level}]` : ''} ${f.skillName ? `[${f.skillName}]` : ''}</span></div>
+                <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; color: #ebd291; margin-top: 2px;">${f.desc}</div>`,
+            onSelect: (found) => {
+                inp.value = found.name;
+                hero.stats[`${prefix}${lvl}Name`] = found.name;
+                const shortDesc = `${found.actions && found.actions !== '-' ? `[${found.actions}] ` : ''}${found.desc}`;
+                if (descInp) descInp.value = shortDesc;
+                hero.stats[`${prefix}${lvl}Desc`] = shortDesc;
+            }
+        });
+    });
+
 
 
     // Выпадающий список для 3 ячеек действий (с приоритетом действий класса персонажа)

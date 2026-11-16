@@ -178,6 +178,21 @@ export function ensureCharacterStats(item) {
         textDefaults[`classFeatLvl${lvl}Desc`] = '';
     });
 
+    new Array(3, 7, 11, 15, 19).forEach(lvl => {
+        textDefaults[`genFeatLvl${lvl}Name`] = '';
+        textDefaults[`genFeatLvl${lvl}Desc`] = '';
+    });
+
+    new Array(2, 4, 6, 8, 10, 12, 14, 16, 18, 20).forEach(lvl => {
+        textDefaults[`skillFeatLvl${lvl}Name`] = '';
+        textDefaults[`skillFeatLvl${lvl}Desc`] = '';
+    });
+
+    new Array(1, 5, 9, 13, 17).forEach(lvl => {
+        textDefaults[`ancFeatLvl${lvl}Name`] = '';
+        textDefaults[`ancFeatLvl${lvl}Desc`] = '';
+    });
+
     for (let i = 1; i <= 15; i++) {
         textDefaults[`item${i}Name`] = '';
         textDefaults[`item${i}Notes`] = '';

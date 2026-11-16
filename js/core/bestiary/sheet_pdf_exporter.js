@@ -214,12 +214,22 @@ export function exportCharacterToPdf(hero) {
 
     const allFeatsPool = Object.values(FeatsMod).filter(Array.isArray).flat();
 
-    // А. Народ и Наследие
+
+
+    // А. Народ, Наследие и Черты народа (1, 5, 9, 13, 17 ур.)
     const ancestryObj = findInCat(PF2E_ANCESTRIES, s.ancestry);
     const heritageObj = findInCat(PF2E_HERITAGES, s.heritage);
+    const ancLevels = new Array(1, 5, 9, 13, 17);
+    const ancFeatsLines = ancLevels.map(lvl => {
+        const fName = String(s[`ancFeatLvl${lvl}Name`] || '').trim();
+        const fDesc = String(s[`ancFeatLvl${lvl}Desc`] || '').trim();
+        return (fName || fDesc) ? `🧬 ${lvl} ур.: ${fName}${fDesc ? ' — ' + fDesc : ''}` : '';
+    }).filter(Boolean);
+
     const ancestryFullText = new Array(
         ancestryObj ? `Народ: ${ancestryObj.traits}` : '',
-        s.heritage ? `Наследие: ${s.heritage}${heritageObj?.desc ? ' — ' + heritageObj.desc : ''}` : ''
+        s.heritage ? `Наследие: ${s.heritage}${heritageObj?.desc ? ' — ' + heritageObj.desc : ''}` : '',
+        ...ancFeatsLines
     ).filter(Boolean).join('\n');
 
     // Б. Происхождение и Черта происхождения
@@ -230,8 +240,7 @@ export function exportCharacterToPdf(hero) {
         bgObj ? `${bgObj.desc} (Навык: ${bgObj.skillName}, Знание: ${bgObj.lore})` : ''
     ).filter(Boolean).join('\n');
 
-
-    // В. Класс, Действия и Классовые способности
+    // В. Класс, Действия, Классовые, Общие и Навыковые черты
     const classObj = findInCat(PF2E_CLASSES, s.charClass);
     const allLevels = new Array(1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
     const classFeatsLines = allLevels.map(lvl => {
@@ -245,6 +254,20 @@ export function exportCharacterToPdf(hero) {
         return `${lvl} ур.: ${fName}${fDesc ? ' — ' + fDesc : ''}`;
     }).filter(Boolean);
 
+    const genLevels = new Array(3, 7, 11, 15, 19);
+    const genFeatsLines = genLevels.map(lvl => {
+        const fName = String(s[`genFeatLvl${lvl}Name`] || '').trim();
+        const fDesc = String(s[`genFeatLvl${lvl}Desc`] || '').trim();
+        return (fName || fDesc) ? `🌟 Общая (${lvl} ур.): ${fName}${fDesc ? ' — ' + fDesc : ''}` : '';
+    }).filter(Boolean);
+
+    const skillLevels = new Array(2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
+    const skillFeatsLines = skillLevels.map(lvl => {
+        const fName = String(s[`skillFeatLvl${lvl}Name`] || '').trim();
+        const fDesc = String(s[`skillFeatLvl${lvl}Desc`] || '').trim();
+        return (fName || fDesc) ? `📚 Навык (${lvl} ур.): ${fName}${fDesc ? ' — ' + fDesc : ''}` : '';
+    }).filter(Boolean);
+
     const actionLines = new Array(1, 2, 3).map(i => {
         const aName = String(s[`actionSlot${i}Name`] || '').trim();
         const aDesc = String(s[`actionSlot${i}Desc`] || '').trim();
@@ -254,19 +277,13 @@ export function exportCharacterToPdf(hero) {
     const classFullText = new Array(
         classObj ? `Класс (${classObj.hp} ПЗ/ур., ${classObj.keyStat}): ${classObj.desc}` : '',
         ...actionLines,
-        ...classFeatsLines
+        ...classFeatsLines,
+        ...genFeatsLines,
+        ...skillFeatsLines
     ).filter(Boolean).join('\n');
 
     const avatarId = hero.avatarType || AvatarRegistry.guessAvatarByName(name) || AvatarRegistry.guessAvatarByName(s.charClass);
     const portraitUrl = hero.avatarUrl || hero.img || (avatarId ? AvatarRegistry.getAvatarDataUrl(avatarId) : '');
-
-    const compSummaryForNotes = hasComp
-        ? `🐾 ${compTypeName.toUpperCase()}: ${s.compName || 'Без имени'} (ПЗ: ${s.compHpCur ?? 0}/${s.compHpMax ?? 0} | КБ: ${s.compAc ?? 10} | Скор.: ${s.compSpeed ?? 25} фт.)\n${s.compAbilitiesText || ''}`
-        : '';
-
-    const fullNotesWithComp = new Array(compSummaryForNotes, String(s.notesText || '').trim())
-        .filter(Boolean)
-        .join('\n\n');
 
     const bulkInfo = calculateCharacterBulk(s);
     const bd = bulkInfo.breakdown || { armor: '0', weapons: '0', backpack: '0', coins: '0', totalCoins: 0 };
@@ -280,6 +297,8 @@ export function exportCharacterToPdf(hero) {
     const notesWithBulk = new Array(bulkSummaryLine, String(s.notesText || '').trim())
         .filter(Boolean)
         .join('\n\n');
+
+
 
     const html = `<!DOCTYPE html>
 <html lang="ru">

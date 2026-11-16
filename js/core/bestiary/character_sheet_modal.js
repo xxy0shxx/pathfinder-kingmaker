@@ -211,8 +211,17 @@ function buildPage1RightColHtml(stats) {
         
         
         
-        <div class="k-panel">
-            <div style="font-size: 12px; color: #2ecc71; font-weight: bold; margin-bottom: 6px; text-transform: uppercase;">⚔️ Боевые Черты и Способности</div>
+        <div class="k-panel" id="bstFeatsTabbedPanel">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;">
+                <span style="font-size: 12px; color: #2ecc71; font-weight: bold; text-transform: uppercase;">⚔️ Черты и Боевые Действия</span>
+                <div style="display: flex; gap: 4px;">
+                    <button type="button" class="btn ok bst-feat-tab-btn" data-feat-tab="class" style="padding: 2px 7px; font-size: 11px;">⚔️ Классовые</button>
+                    <button type="button" class="btn cc bst-feat-tab-btn" data-feat-tab="general" style="padding: 2px 7px; font-size: 11px;">🌟 Общие (3–19)</button>
+                    <button type="button" class="btn cc bst-feat-tab-btn" data-feat-tab="skill" style="padding: 2px 7px; font-size: 11px;">📚 Навыков (2–20)</button>
+                    <button type="button" class="btn cc bst-feat-tab-btn" data-feat-tab="ancestry" style="padding: 2px 7px; font-size: 11px;">🧬 Народа (1–17)</button>
+                </div>
+            </div>
+
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
                 ${new Array(1, 2, 3).map(idx => `
                     <div class="bst-action-slot" data-action-slot="${idx}" style="position: relative; background: rgba(4, 9, 5, 0.7); border: 1px solid #2d5a3c; border-radius: 5px; padding: 5px;">
@@ -222,21 +231,81 @@ function buildPage1RightColHtml(stats) {
                         <div class="bst-cantrip-dropdown" data-action-drop="${idx}" style="display: none; z-index: 10000110;"></div>
                     </div>`).join('')}
             </div>
-            <table class="k-table bst-cantrips-table" style="width: 100%;">
-                <thead><tr><th style="width: 45px; text-align: center;">Ур.</th><th style="width: 35%;">Название черты</th><th>Действие и Эффект</th></tr></thead>
-                <tbody>
-                    ${new Array(1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20).map(lvl => `
-                        <tr>
-                            <td class="bst-cantrip-num" style="color: #2ecc71; font-weight: bold; text-align: center;">${lvl}</td>
-                            <td style="position: relative;">
-                                <input type="text" data-sheet-txt="classFeatLvl${lvl}Name" data-feat-level="${lvl}" class="k-inp bst-txt-inp bst-ranger-feat-picker-inp" autocomplete="off" placeholder="Поиск черты ${lvl} ур..." value="${esc(stats[`classFeatLvl${lvl}Name`] ?? '')}">
-                                <div class="bst-cantrip-dropdown" data-feat-drop="${lvl}" style="display: none;"></div>
-                            </td>
-                            <td>${txtInp(stats, `classFeatLvl${lvl}Desc`, 'Действие, требования, бонус...')}</td>
-                        </tr>`).join('')}
-                </tbody>
-            </table>
+
+            <!-- Вкладка 1: Классовые черты -->
+            <div class="bst-feat-tab-pane" data-feat-pane="class">
+                <table class="k-table bst-cantrips-table" style="width: 100%;">
+                    <thead><tr><th style="width: 45px; text-align: center;">Ур.</th><th style="width: 35%;">Классовая черта</th><th>Действие и Эффект</th></tr></thead>
+                    <tbody>
+                        ${new Array(1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20).map(lvl => `
+                            <tr>
+                                <td class="bst-cantrip-num" style="color: #2ecc71; font-weight: bold; text-align: center;">${lvl}</td>
+                                <td style="position: relative;">
+                                    <input type="text" data-sheet-txt="classFeatLvl${lvl}Name" data-feat-level="${lvl}" data-feat-kind="class" class="k-inp bst-txt-inp bst-ranger-feat-picker-inp" autocomplete="off" placeholder="Черта класса ${lvl} ур..." value="${esc(stats[`classFeatLvl${lvl}Name`] ?? '')}">
+                                    <div class="bst-cantrip-dropdown" data-feat-drop="class_${lvl}" style="display: none;"></div>
+                                </td>
+                                <td>${txtInp(stats, `classFeatLvl${lvl}Desc`, 'Действие, требования, бонус...')}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Вкладка 2: Общие черты (3, 7, 11, 15, 19) -->
+            <div class="bst-feat-tab-pane" data-feat-pane="general" style="display: none;">
+                <table class="k-table bst-cantrips-table" style="width: 100%;">
+                    <thead><tr><th style="width: 45px; text-align: center;">Ур.</th><th style="width: 35%;">Общая черта</th><th>Эффект</th></tr></thead>
+                    <tbody>
+                        ${new Array(3, 7, 11, 15, 19).map(lvl => `
+                            <tr>
+                                <td class="bst-cantrip-num" style="color: #ffd875; font-weight: bold; text-align: center;">${lvl}</td>
+                                <td style="position: relative;">
+                                    <input type="text" data-sheet-txt="genFeatLvl${lvl}Name" data-feat-level="${lvl}" data-feat-kind="general" class="k-inp bst-txt-inp bst-extra-feat-picker-inp" autocomplete="off" placeholder="Живучесть, Инициатива..." value="${esc(stats[`genFeatLvl${lvl}Name`] ?? '')}">
+                                    <div class="bst-cantrip-dropdown" data-feat-drop="general_${lvl}" style="display: none;"></div>
+                                </td>
+                                <td>${txtInp(stats, `genFeatLvl${lvl}Desc`, 'Описание общей черты...')}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Вкладка 3: Черты навыков (2, 4, 6, 8, 10, 12, 14, 16, 18, 20) -->
+            <div class="bst-feat-tab-pane" data-feat-pane="skill" style="display: none;">
+                <table class="k-table bst-cantrips-table" style="width: 100%;">
+                    <thead><tr><th style="width: 45px; text-align: center;">Ур.</th><th style="width: 35%;">Черта навыка</th><th>Эффект и Навык</th></tr></thead>
+                    <tbody>
+                        ${new Array(2, 4, 6, 8, 10, 12, 14, 16, 18, 20).map(lvl => `
+                            <tr>
+                                <td class="bst-cantrip-num" style="color: #74b9ff; font-weight: bold; text-align: center;">${lvl}</td>
+                                <td style="position: relative;">
+                                    <input type="text" data-sheet-txt="skillFeatLvl${lvl}Name" data-feat-level="${lvl}" data-feat-kind="skill" class="k-inp bst-txt-inp bst-extra-feat-picker-inp" autocomplete="off" placeholder="Медицина в бою, Запугивание..." value="${esc(stats[`skillFeatLvl${lvl}Name`] ?? '')}">
+                                    <div class="bst-cantrip-dropdown" data-feat-drop="skill_${lvl}" style="display: none;"></div>
+                                </td>
+                                <td>${txtInp(stats, `skillFeatLvl${lvl}Desc`, 'Требования и эффект...')}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Вкладка 4: Черты народа (1, 5, 9, 13, 17) -->
+            <div class="bst-feat-tab-pane" data-feat-pane="ancestry" style="display: none;">
+                <table class="k-table bst-cantrips-table" style="width: 100%;">
+                    <thead><tr><th style="width: 45px; text-align: center;">Ур.</th><th style="width: 35%;">Черта народа</th><th>Эффект</th></tr></thead>
+                    <tbody>
+                        ${new Array(1, 5, 9, 13, 17).map(lvl => `
+                            <tr>
+                                <td class="bst-cantrip-num" style="color: #a29bfe; font-weight: bold; text-align: center;">${lvl}</td>
+                                <td style="position: relative;">
+                                    <input type="text" data-sheet-txt="ancFeatLvl${lvl}Name" data-feat-level="${lvl}" data-feat-kind="ancestry" class="k-inp bst-txt-inp bst-extra-feat-picker-inp" autocomplete="off" placeholder="Черта народа ${lvl} ур..." value="${esc(stats[`ancFeatLvl${lvl}Name`] ?? '')}">
+                                    <div class="bst-cantrip-dropdown" data-feat-drop="ancestry_${lvl}" style="display: none;"></div>
+                                </td>
+                                <td>${txtInp(stats, `ancFeatLvl${lvl}Desc`, 'Способность народа...')}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        
 
         
 
@@ -781,6 +850,36 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 return `<div class="init-tip-header"><span class="init-tip-name">⚔️ ${name}</span><span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">УР. ${lvl}</span></div><div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${desc}</div>`;
             });
         });
+
+        // Переключение вкладок черт (Классовые / Общие / Навыков / Народа)
+        overlay.querySelectorAll('.bst-feat-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.featTab;
+                overlay.querySelectorAll('.bst-feat-tab-btn').forEach(b => {
+                    b.className = b === btn ? 'btn ok bst-feat-tab-btn' : 'btn cc bst-feat-tab-btn';
+                });
+                overlay.querySelectorAll('.bst-feat-tab-pane').forEach(pane => {
+                    pane.style.display = pane.dataset.featPane === target ? 'block' : 'none';
+                });
+            });
+        });
+
+        // Тултипы для всех 4 типов черт
+        overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {
+            const nameInp = tr.querySelector('input[data-feat-kind]');
+            if (!nameInp) return;
+            bindSheetTooltip(tr, () => {
+                const name = nameInp.value.trim();
+                if (!name) return null;
+                const lvl = nameInp.dataset.featLevel;
+                const kind = nameInp.dataset.featKind;
+                const prefixMap = { class: 'classFeatLvl', general: 'genFeatLvl', skill: 'skillFeatLvl', ancestry: 'ancFeatLvl' };
+                const labelMap = { class: 'КЛАСС', general: 'ОБЩАЯ', skill: 'НАВЫК', ancestry: 'НАРОД' };
+                const desc = overlay.querySelector(`[data-sheet-txt="${prefixMap[kind]}${lvl}Desc"]`)?.value || '';
+                return `<div class="init-tip-header"><span class="init-tip-name">⚔️ ${name}</span><span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">${labelMap[kind]} • УР. ${lvl}</span></div><div style="font-size:13px; margin-top:6px; color:#ebd291; line-height:1.4;">${desc}</div>`;
+            });
+        });
+
     } else {
         initPage2Pickers(overlay, hero);
 
