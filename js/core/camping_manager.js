@@ -369,6 +369,214 @@ const CampingManager = {
 
 
 
+    syncSuppliesWithParty() {
+        const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
+            ? window.InitiativeManager.state.combatants
+            : (this.mapDataRef?.initiative?.combatants || []);
+
+        const bestiaryPresets = (window.BestiaryManager?.state?.presets && Array.isArray(window.BestiaryManager.state.presets))
+            ? window.BestiaryManager.state.presets
+            : (this.mapDataRef?.bestiary?.presets || []);
+
+        // Также проверяем все массивы внутри mapDataRef на случай нестандартного ключа хранения
+        const extraUnits = [];
+        if (this.mapDataRef && typeof this.mapDataRef === 'object') {
+            Object.values(this.mapDataRef).forEach(val => {
+                if (Array.isArray(val)) extraUnits.push(...val);
+                else if (val && typeof val === 'object') {
+                    Object.values(val).forEach(sub => {
+                        if (Array.isArray(sub)) extraUnits.push(...sub);
+                    });
+                }
+            });
+        }
+
+        const activeInitHeroes = initUnits.filter(u => u && u.faction === 'friend');
+        const activeBestiaryHeroes = bestiaryPresets.filter(p => p && p.faction === 'friend' && !p.inactive);
+        const activeExtraHeroes = extraUnits.filter(x => x && x.faction === 'friend' && !x.inactive && x.stats);
+
+        const heroes = activeInitHeroes.length > 0
+            ? activeInitHeroes
+            : (activeBestiaryHeroes.length > 0 ? activeBestiaryHeroes : activeExtraHeroes);
+
+        const statusEl = document.getElementById('campSuppliesSyncStatus');
+
+        if (!heroes.length) {
+            if (statusEl) {
+                statusEl.style.color = '#ff7675';
+                statusEl.textContent = '⚠️ В отряде нет активных героев.';
+            }
+            return;
+        }
+
+        const allHeroObjects = [...activeInitHeroes, ...activeBestiaryHeroes, ...activeExtraHeroes];
+
+        const getLinkedHeroObjects = (hero) => {
+            const normN = String(hero.name || '').trim().toLowerCase();
+            const linked = [hero];
+            allHeroObjects.forEach(other => {
+                if (other !== hero && (
+                    other.id === hero.id ||
+                    (other.presetId && other.presetId === hero.id) ||
+                    (hero.presetId && hero.presetId === other.id) ||
+                    String(other.name || '').trim().toLowerCase() === normN
+                )) {
+                    if (!linked.includes(other)) linked.push(other);
+                }
+            });
+            return linked;
+        };
+
+        const adjustHeroItem = (hero, matchRegex, defaultName, defaultNotes, deltaQty) => {
+            const targets = getLinkedHeroObjects(hero);
+            // Ищем ту копию героя, у которой реально есть stats с предметами
+            const primary = targets.find(t => t && t.stats && Object.keys(t.stats).some(k => k.startsWith('item'))) || targets.at(0);
+            if (!primary) return 0;
+            if (!primary.stats) primary.stats = {};
+
+            let targetSlot = -1;
+            let emptySlot = -1;
+
+            for (let i = 1; i <= 15; i++) {
+                const name = String(primary.stats[`item${i}Name`] || '').trim();
+                const qty = Number(primary.stats[`item${i}Qty`]) || 0;
+                if (!name && emptySlot === -1) emptySlot = i;
+                if (name && matchRegex.test(name) && (deltaQty > 0 || qty > 0)) {
+                    targetSlot = i;
+                    break;
+                }
+            }
+
+            if (targetSlot !== -1) {
+                const curQty = Math.max(0, Number(primary.stats[`item${targetSlot}Qty`]) || 0);
+                let nextQty = curQty;
+                let applied = 0;
+
+                if (deltaQty < 0) {
+                    applied = Math.min(curQty, Math.abs(deltaQty));
+                    nextQty = curQty - applied;
+                } else {
+                    applied = deltaQty;
+                    nextQty = curQty + deltaQty;
+                }
+
+                targets.forEach(t => {
+                    if (!t.stats) t.stats = {};
+                    t.stats[`item${targetSlot}Name`] = primary.stats[`item${targetSlot}Name`];
+                    t.stats[`item${targetSlot}Qty`] = nextQty;
+                });
+                return applied;
+            } else if (deltaQty > 0 && emptySlot !== -1) {
+                targets.forEach(t => {
+                    if (!t.stats) t.stats = {};
+                    t.stats[`item${emptySlot}Name`] = defaultName;
+                    t.stats[`item${emptySlot}Qty`] = deltaQty;
+                    t.stats[`item${emptySlot}Notes`] = defaultNotes;
+                });
+                return deltaQty;
+            }
+            return 0;
+        };
+
+        const rationRegex = /па[её]к|рацион|rations|провиз|еда|food/i;
+        const hungryHeroes = [];
+
+        heroes.forEach(h => {
+            const tookOwn = adjustHeroItem(h, rationRegex, '', '', -1);
+            if (tookOwn <= 0) {
+                hungryHeroes.push(h);
+            }
+        });
+
+        const stillHungryNames = [];
+        hungryHeroes.forEach(h => {
+            let fedFromParty = false;
+            for (const donor of heroes) {
+                const taken = adjustHeroItem(donor, rationRegex, '', '', -1);
+                if (taken > 0) {
+                    fedFromParty = true;
+                    break;
+                }
+            }
+            if (!fedFromParty) stillHungryNames.push(h.name);
+        });
+
+        const huntAssign = this.state.assignments ? Reflect.get(this.state.assignments, 2) : null;
+        const hunterInfo = Array.isArray(huntAssign) ? huntAssign.at(0) : null;
+        const recipient = (hunterInfo && heroes.find(h => h.id === hunterInfo.id || h.name === hunterInfo.name)) || heroes.at(0);
+
+        const normGain = parseInt(this.state.normalIngredients, 10) || 0;
+        const specGain = parseInt(this.state.specialIngredients, 10) || 0;
+        const lootLog = [];
+
+        if (normGain > 0 && recipient) {
+            const added = adjustHeroItem(
+                recipient,
+                /обычн\w*\s*ингредиент/i,
+                '🏕️ Обычные ингредиенты',
+                'Базовые припасы для приготовления сытной пищи в лагере.',
+                normGain
+            );
+            if (added > 0) lootLog.push(`+${added} 🏕️ обычн.`);
+        }
+
+        if (specGain > 0 && recipient) {
+            const addedSpec = adjustHeroItem(
+                recipient,
+                /особ\w*\s*ингредиент/i,
+                '🌿 Особые ингредиенты',
+                'Редкие травы, дичь или специи для приготовления особых блюд на привале.',
+                specGain
+            );
+            if (addedSpec > 0) lootLog.push(`+${addedSpec} 🌿 особ.`);
+        }
+
+        // Обновляем DOM открытого бланка, если он сейчас открыт
+        const openSheet = document.getElementById('bstHeroSheetModal');
+        if (openSheet) {
+            heroes.forEach(h => {
+                if (openSheet.textContent.includes(h.name) && h.stats) {
+                    for (let i = 1; i <= 15; i++) {
+                        const qtyInp = openSheet.querySelector(`[data-sheet-num="item${i}Qty"]`);
+                        const nameInp = openSheet.querySelector(`[data-sheet-txt="item${i}Name"]`);
+                        if (qtyInp && h.stats[`item${i}Qty`] !== undefined) {
+                            qtyInp.value = h.stats[`item${i}Qty`];
+                            qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                        if (nameInp && !nameInp.value && h.stats[`item${i}Name`]) {
+                            nameInp.value = h.stats[`item${i}Name`];
+                        }
+                    }
+                }
+            });
+        }
+
+        // Принудительно сохраняем и Бестиарий, и Инициативу, и карту
+        if (window.BestiaryManager?._save) window.BestiaryManager._save();
+        if (window.InitiativeManager?._save) window.InitiativeManager._save();
+        EventBus.emit('data:save');
+        if (window.InitiativeManager?.renderUi) window.InitiativeManager.renderUi();
+        if (window.BestiaryManager?.renderUi) window.BestiaryManager.renderUi();
+
+        const fedCount = heroes.length - stillHungryNames.length;
+        const parts = [`🍞 Списано пайков: ${fedCount}/${heroes.length}`];
+        if (stillHungryNames.length > 0) {
+            parts.push(`⚠️ Не хватило пайков: ${stillHungryNames.join(', ')}`);
+        }
+        if (lootLog.length > 0 && recipient) {
+            parts.push(`🎒 ${recipient.name}: ${lootLog.join(', ')}`);
+        } else if (String(this.state.specialIngredients).includes('d')) {
+            parts.push(`🎲 Бросьте ${this.state.specialIngredients} за столом для особых ингредиентов`);
+        }
+
+        if (statusEl) {
+            statusEl.style.color = stillHungryNames.length > 0 ? '#fdcb6e' : '#2ecc71';
+            statusEl.innerHTML = parts.join('<br>');
+        }
+    },
+
+
+
 
 
     renderCalculatedUi(camoRes, prepareRes, huntRes, watchRes, isCampHorrible, lvl, specialYieldText) {
@@ -385,6 +593,24 @@ const CampingManager = {
         if (encEl) encEl.textContent = this.state.encounterDc;
         if (totEl) totEl.textContent = this.state.totalChecks;
         if (modEl) modEl.textContent = this.state.checkMod;
+
+        // Кнопка синхронизации пайков и добычи с рюкзаками отряда
+        const summaryCard = normEl?.closest('.camp-summary-box, .camp-results-panel') || normEl?.parentElement?.parentElement;
+        if (summaryCard && !summaryCard.querySelector('#btnCampSyncSupplies')) {
+            const syncBar = document.createElement('div');
+            syncBar.style.cssText = 'margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.3); display: flex; flex-direction: column; gap: 4px;';
+            syncBar.innerHTML = `
+                <button type="button" id="btnCampSyncSupplies" class="btn ok" style="width: 100%; padding: 5px 8px; font-size: 13px;">
+                    🎒 Списать пайки (−1/чел) и выдать добычу в рюкзак
+                </button>
+                <div id="campSuppliesSyncStatus" style="font-size: 12px; color: #a4b0be; line-height: 1.3;"></div>
+            `;
+            summaryCard.appendChild(syncBar);
+
+            syncBar.querySelector('#btnCampSyncSupplies').addEventListener('click', () => {
+                this.syncSuppliesWithParty();
+            });
+        }
 
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
