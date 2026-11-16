@@ -735,22 +735,21 @@ export function isCombatConsumable(itemName, itemNotes = '') {
     return /(зель|эликсир|бомб|склянк|свиток|масл|талисман|противояд|античум)/i.test(text);
 }
 
+
 /**
  * Подсчитывает общую массу (Bulk) снаряжения и монет персонажа по правилам Pathfinder 2e
  * (10 Л = 1 Масса; 1000 монет = 1 Масса; лимит без перегрузки = 5 + СИЛ; максимум = 10 + СИЛ)
  */
+
 export function calculateCharacterBulk(stats) {
     const strMod = Number(stats?.str) || 0;
-    // Пояс силача (Lifting Belt) даёт +1 к максимальной переносимой массе
     let extraLimit = 0;
-
     let lightCount = 0;
     let heavyBulk = 0;
 
-    // 1. Встроенный словарь масс для базовых предметов PF2e (в десятых долях Массы: 1 = 1 Л, 10 = 1 Масса)
     const knownBulkTenths = [
-        { keys: ['набор искателя приключений', 'adventurer'], tenths: 10 }, // 2 Массы минус 1 (рюкзак надет)
-        { keys: ['сух. паек', 'сухой паек', 'рацион', 'rations'], tenths: 1 }, // 1 Л за 1 день (7 дней = 1 Масса)
+        { keys: ['набор искателя приключений', 'adventurer'], tenths: 10 },
+        { keys: ['сух. паек', 'сухой паек', 'рацион', 'rations'], tenths: 1 },
         { keys: ['веревка', 'верёвка', 'rope'], tenths: 10 },
         { keys: ['крюк-кошка', 'grappling'], tenths: 1 },
         { keys: ['факел', 'torch'], tenths: 1 },
@@ -767,7 +766,7 @@ export function calculateCharacterBulk(stats) {
         { keys: ['башенный щит', 'tower shield'], tenths: 40 },
         { keys: ['баклер', 'buckler'], tenths: 1 },
         { keys: ['пояс силача', 'lifting belt'], tenths: 1 },
-        { keys: ['ингредиент', 'ingredient'], tenths: 0 } // мелкие травы/припасы в мешочке
+        { keys: ['ингредиент', 'ingredient'], tenths: 0 }
     ];
 
     const parseBulkTenths = (rawText) => {
@@ -778,7 +777,6 @@ export function calculateCharacterBulk(stats) {
         return null;
     };
 
-    // 2. Подсчёт всех 15 слотов рюкзака
     for (let i = 1; i <= 15; i++) {
         const name = String(stats?.[`item${i}Name`] || '').trim();
         const qty = Math.max(0, Number(stats?.[`item${i}Qty`]) || 0);
@@ -822,44 +820,63 @@ export function calculateCharacterBulk(stats) {
         }
     }
 
-    // 3. Учёт надетого доспеха с 1-й страницы (по типу брони PF2e)
+    const backpackTenths = heavyBulk * 10 + lightCount;
+    let armorTenths = 0;
+    let weaponsTenths = 0;
+
     const armorType = String(stats?.armorType || 'unarmored');
     const armorName = String(stats?.armorName || '').toLowerCase();
     if (armorType === 'light' || (armorName && armorType === 'unarmored' && !armorName.includes('без брони'))) {
-        heavyBulk += 1;
+        armorTenths = 10;
     } else if (armorType === 'medium') {
-        heavyBulk += 2;
+        armorTenths = 20;
     } else if (armorType === 'heavy') {
-        heavyBulk += 3;
+        armorTenths = 30;
     }
+    heavyBulk += Math.floor(armorTenths / 10);
 
-    // 4. Учёт оружия с 1-й страницы (по умолчанию 1 Масса за каждое заполненное оружие, 1 Л для кинжалов/пращей)
     ['melee1Name', 'melee2Name', 'rangedName'].forEach(wKey => {
         const wName = String(stats?.[wKey] || '').trim().toLowerCase();
         if (!wName) return;
         if (/кинжал|нож|дротик|праща|сюрикен|стилет|кастет|кулак/i.test(wName)) {
+            weaponsTenths += 1;
             lightCount += 1;
         } else {
+            weaponsTenths += 10;
             heavyBulk += 1;
         }
     });
 
-    // 5. Учёт монет (1000 монет = 1 Масса)
     const totalCoins = (Number(stats?.coinsCopper) || 0) + (Number(stats?.coinsSilver) || 0) + (Number(stats?.coinsGold) || 0);
-    heavyBulk += Math.floor(totalCoins / 1000);
+    const coinsTenths = Math.floor(totalCoins / 1000) * 10;
+    heavyBulk += Math.floor(coinsTenths / 10);
 
     const encumberedLimit = Math.max(0, 5 + strMod + extraLimit);
     const maxLimit = Math.max(0, 10 + strMod + extraLimit);
-
     const totalBulk = heavyBulk + Math.floor(lightCount / 10);
     const remLight = lightCount % 10;
+
+    const formatTenths = (t) => {
+        const b = Math.floor(t / 10);
+        const l = t % 10;
+        if (b === 0 && l === 0) return '0';
+        return b > 0 ? `${b}${l > 0 ? ` и ${l} Л` : ''}` : `${l} Л`;
+    };
 
     return {
         totalBulk,
         remLight,
         encumberedLimit,
         maxLimit,
+        extraLimit,
         isOverloaded: totalBulk > maxLimit,
-        isEncumbered: totalBulk > encumberedLimit
+        isEncumbered: totalBulk > encumberedLimit,
+        breakdown: {
+            armor: formatTenths(armorTenths),
+            weapons: formatTenths(weaponsTenths),
+            backpack: formatTenths(backpackTenths),
+            coins: formatTenths(coinsTenths),
+            totalCoins
+        }
     };
 }

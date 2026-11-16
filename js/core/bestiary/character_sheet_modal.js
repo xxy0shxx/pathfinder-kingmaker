@@ -784,6 +784,34 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
     } else {
         initPage2Pickers(overlay, hero);
 
+        // 3. Тултип бейджа Массы (разбивка: Броня + Оружие + Рюкзак + Монеты)
+        const bulkBadgeEl = overlay.querySelector('#bstBulkCounterBadge');
+        if (bulkBadgeEl) {
+            bulkBadgeEl.style.cursor = 'help';
+            bindSheetTooltip(bulkBadgeEl, () => {
+                collectFormData(overlay, hero);
+                const b = calculateCharacterBulk(hero.stats);
+                const bd = b.breakdown || { armor: '0', weapons: '0', backpack: '0', coins: '0', totalCoins: 0 };
+                const bulkStr = `${b.totalBulk}${b.remLight > 0 ? ` и ${b.remLight} Л` : ''}`;
+                const strMod = Number(hero.stats.str) || 0;
+
+                return [
+                    `<div class="init-tip-header"><span class="init-tip-name">🎒 Детализация Массы (Bulk)</span><span class="init-tip-turn-tag" style="border-color:#ffd875; color:#ffd875;">${bulkStr} / ${b.encumberedLimit}</span></div>`,
+                    `<div class="init-tip-2col" style="font-size:13px; margin-top:6px;">`,
+                    `<div>🛡️ Доспех: <b>${bd.armor}</b></div>`,
+                    `<div>⚔️ Оружие: <b>${bd.weapons}</b></div>`,
+                    `<div>📦 Рюкзак и щит: <b>${bd.backpack}</b></div>`,
+                    `<div>🪙 Монеты (${bd.totalCoins}): <b>${bd.coins}</b></div>`,
+                    `</div>`,
+                    `<div style="margin-top:6px; border-top:1px dashed rgba(235,210,145,0.25); padding-top:4px; font-size:12px; color:#ebd291;">`,
+                    `<div>📏 Порог перегрузки: <b>5 + ${strMod} (СИЛ)${b.extraLimit > 0 ? ` + ${b.extraLimit} (предмет)` : ''} = ${b.encumberedLimit}</b> (Макс.: <b>${b.maxLimit}</b>)</div>`,
+                    `<div style="color:#a4b0be; margin-top:2px;">10 Лёгких (Л) = 1 Масса • 1000 монет = 1 Масса</div>`,
+                    `</div>`
+                ].join('');
+            });
+        }
+
+
         const refreshBulkBadge = () => {
             collectFormData(overlay, hero);
             const b = calculateCharacterBulk(hero.stats);
