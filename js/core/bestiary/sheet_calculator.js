@@ -1,4 +1,6 @@
 import { SHORT_TO_FULL_SKILL_MAP } from './bestiary_config.js';
+import { PF2E_ITEMS_CATALOG, getItemLevel } from '../../config/items_catalog.js';
+
 
 const FULL_TO_SHORT_SKILL_MAP = Object.fromEntries(
     Object.entries(SHORT_TO_FULL_SKILL_MAP).map(([shortK, fullK]) => [fullK, shortK])
@@ -53,6 +55,41 @@ export function recalculateSheetStats(overlay, hero) {
     const totalAc = 10 + rawDex + prof + item + other;
     totalAcInp.value = totalAc;
     hero.stats.ac = totalAc;
+
+    // Синхронизация бонусов от предметов в рюкзаке с проверкой уровня персонажа
+    const currentHeroLvl = Math.max(1, parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || Number(hero.stats.level) || 1);
+    const activeSkillBonuses = {};
+    let activeSaveBonus = 0;
+
+    for (let i = 1; i <= 15; i++) {
+        const rawName = String(hero.stats[`item${i}Name`] || '').trim();
+        const qty = Number(hero.stats[`item${i}Qty`]) || 0;
+        if (!rawName || qty <= 0) continue;
+
+        const cleanName = rawName.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
+        const found = PF2E_ITEMS_CATALOG.find(it => {
+            const target = it.name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
+            return target === cleanName || (cleanName.length > 3 && target.includes(cleanName));
+        });
+
+        if (!found) continue;
+        const reqLvl = getItemLevel(found);
+        if (reqLvl > currentHeroLvl) continue; // Предмет не по уровню — пропускаем бонус
+
+        if (found.skillBonus && found.skillBonus.skill) {
+            const sk = found.skillBonus.skill;
+            activeSkillBonuses[sk] = Math.max(activeSkillBonuses[sk] || 0, Number(found.skillBonus.bonus) || 0);
+        }
+        if (found.runeEffect && found.runeEffect.target === 'save' && found.runeEffect.bonus) {
+            activeSaveBonus = Math.max(activeSaveBonus, Number(found.runeEffect.bonus) || 0);
+        }
+    }
+
+    hero.stats.skillItemBonuses = activeSkillBonuses;
+    if (activeSaveBonus > 0 || hero.stats.saveItemBonus) {
+        hero.stats.saveItemBonus = activeSaveBonus;
+    }
+
 
     // Внимание и спасброски
     const charWis = parseInt(overlay.querySelector('[data-sheet-num="wis"]')?.value, 10) || 0;

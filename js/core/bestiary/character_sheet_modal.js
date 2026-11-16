@@ -11,7 +11,7 @@ import { downloadCharacterMarkdown } from './sheet_md_exporter.js';
 import { exportCharacterToPdf } from './sheet_pdf_exporter.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
-import { calculateCharacterBulk } from '../../config/items_catalog.js';
+import { PF2E_ITEMS_CATALOG, calculateCharacterBulk, getItemLevel } from '../../config/items_catalog.js';
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -873,10 +873,27 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         overlay.querySelectorAll('.bst-items-table tbody tr').forEach(tr => {
             bindSheetTooltip(tr, () => {
                 const name = tr.querySelector('input[data-sheet-txt$="Name"]')?.value.trim();
-                const notes = tr.querySelector('input[data-sheet-txt$="Notes"]')?.value.trim();
-                return name ? `<div class="init-tip-header"><span class="init-tip-name">🎒 ${name}</span></div><div style="font-size:13px; color:#ebd291;">${notes || 'Описание отсутствует.'}</div>` : null;
+                if (!name) return null;
+                const notes = tr.querySelector('input[data-sheet-txt$="Notes"]')?.value.trim() || 'Описание отсутствует.';
+                const heroLvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
+
+                const cleanName = name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
+                const found = PF2E_ITEMS_CATALOG.find(it => {
+                    const target = it.name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
+                    return target === cleanName || (cleanName.length > 3 && target.includes(cleanName));
+                });
+                const reqLvl = found ? getItemLevel(found) : 0;
+                const lvlBadge = reqLvl > 0
+                    ? `<span class="init-tip-turn-tag" style="border-color:${reqLvl > heroLvl ? '#e74c3c' : '#2ecc71'}; color:${reqLvl > heroLvl ? '#ff7675' : '#2ecc71'};">УР. ${reqLvl}</span>`
+                    : '';
+                const lockWarn = reqLvl > heroLvl
+                    ? `<div style="font-size:12px; color:#ff7675; margin-bottom:5px; font-weight:bold;">🔒 Требуется ${reqLvl} уровень персонажа (бонусы предмета заблокированы)</div>`
+                    : '';
+
+                return `<div class="init-tip-header"><span class="init-tip-name">🎒 ${name}</span>${lvlBadge}</div>${lockWarn}<div style="font-size:13px; color:#ebd291;">${notes}</div>`;
             });
         });
+
     }
 
 }

@@ -1,5 +1,5 @@
 import { PF2E_CANTRIPS, searchCantrips } from '../../config/cantrips_catalog.js';
-import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../../config/items_catalog.js';
+import { PF2E_ITEMS_CATALOG, searchItemsCatalog, getItemLevel } from '../../config/items_catalog.js';
 import { PF2E_ARMOR_CATALOG, searchArmorCatalog } from '../../config/armor_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES, searchMetaCatalog } from '../../config/meta_catalog.js';
 import { PF2E_BACKGROUNDS } from '../../config/backgrounds_catalog.js';
@@ -352,8 +352,6 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
         });
     });
 
-
-
 }
 
 
@@ -516,6 +514,7 @@ export function initPage2Pickers(overlay, hero) {
     });
 
 
+
     // 3. Предметы, щиты и степперы количества
     overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
         const row = inp.dataset.itemRow;
@@ -524,6 +523,9 @@ export function initPage2Pickers(overlay, hero) {
             getItems: (q) => searchItemsCatalog(q),
             renderOption: (it) => `<div class="bst-cantrip-opt-top"><b>${it.name}</b> <span>${it.category}</span></div>`,
             onSelect: (found) => {
+
+
+
                 inp.value = found.name;
                 hero.stats[`item${row}Name`] = found.name;
 
@@ -536,6 +538,24 @@ export function initPage2Pickers(overlay, hero) {
                 if (noteInp) {
                     noteInp.value = found.notes;
                     hero.stats[`item${row}Notes`] = found.notes;
+                }
+
+                const heroLvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
+                const itemLvl = getItemLevel(found);
+                const isLevelLocked = itemLvl > heroLvl;
+
+                if (noteInp) {
+                    const finalNote = isLevelLocked
+                        ? `⚠️ [Требуется ${itemLvl} ур. — бонусы неактивны] ${found.notes}`
+                        : found.notes;
+                    noteInp.value = finalNote;
+                    hero.stats[`item${row}Notes`] = finalNote;
+                }
+
+                // Если уровень предмета выше уровня персонажа — не применяем бонусы рун, щита и навыков
+                if (isLevelLocked) {
+                    if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                    return;
                 }
 
                 // Если выбран щит — автоматически заполняем его параметры на 1-й странице

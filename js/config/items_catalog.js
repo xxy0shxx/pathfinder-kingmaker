@@ -1060,3 +1060,13 @@ export function calculateCharacterBulk(stats) {
         }
     };
 }
+
+/**
+ * Извлекает уровень предмета из строки категории (например, "Носимый предмет (4 ур.)" -> 4)
+ */
+export function getItemLevel(item) {
+    if (!item) return 0;
+    if (typeof item.level === 'number') return item.level;
+    const m = String(item.category || '').match(/\((\d+)\s*ур\.\)/i);
+    return m && m[1] ? (parseInt(m[1], 10) || 0) : 0;
+}
