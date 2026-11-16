@@ -277,12 +277,55 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
         });
     });
 
-    // Выпадающий список для 3 ячеек действий
+
+    // Выпадающий список для 3 ячеек действий (с приоритетом действий класса персонажа)
+    const getActionClassTag = (charClassRaw) => {
+        const cls = normalizeStr(charClassRaw);
+        if (!cls) return '';
+        const classAliases = [
+            { keys: ['монах', 'monk'], tag: 'монах' },
+            { keys: ['следопыт', 'рейнджер', 'ranger'], tag: 'следопыт' },
+            { keys: ['варвар', 'barbarian'], tag: 'варвар' },
+            { keys: ['следователь', 'investigator'], tag: 'следователь' },
+            { keys: ['тауматург', 'thaumaturge'], tag: 'тауматург' },
+            { keys: ['сорвиголова', 'swashbuckler'], tag: 'сорвиголова' },
+            { keys: ['воин', 'fighter'], tag: 'воин' },
+            { keys: ['плут', 'rogue'], tag: 'плут' },
+            { keys: ['поборник', 'паладин', 'champion'], tag: 'поборник' },
+            { keys: ['бард', 'bard'], tag: 'бард' }
+        ];
+        const matched = classAliases.find(c => c.keys.some(k => cls.includes(k)));
+        return matched ? matched.tag : cls;
+    };
+
     overlay.querySelectorAll('.bst-action-picker-inp').forEach(inp => {
         const idx = inp.dataset.actionIdx;
         bindAutocomplete(inp, overlay.querySelector(`[data-action-drop="${idx}"]`), {
             width: 360,
-            getItems: (q) => searchActionsCatalog(q),
+            getItems: (q) => {
+                const list = searchActionsCatalog(q);
+                const classTag = getActionClassTag(hero.stats.charClass);
+                const normQ = normalizeStr(q);
+
+                return [...list].sort((a, b) => {
+                    // 1. Приоритет: совпадение запроса в самом названии действия
+                    if (normQ) {
+                        const aTitle = normalizeStr(a.name).includes(normQ) ? 0 : 1;
+                        const bTitle = normalizeStr(b.name).includes(normQ) ? 0 : 1;
+                        if (aTitle !== bTitle) return aTitle - bTitle;
+                    }
+
+                    // 2. Приоритет: классовые действия текущего персонажа на самом верху
+                    const getRank = (item) => {
+                        if (classTag && item.className && normalizeStr(item.className).includes(classTag)) return 0;
+                        if (item.category === 'skill') return 1;
+                        if (item.category === 'basic') return 2;
+                        return 3;
+                    };
+
+                    return getRank(a) - getRank(b);
+                });
+            },
             renderOption: (a) => {
                 const badge = a.className
                     ? `<span style="color:#ffd875; font-weight:bold;">[${a.className}]</span> `
@@ -302,6 +345,7 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
             }
         });
     });
+
 
 
 }
