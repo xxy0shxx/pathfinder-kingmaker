@@ -366,14 +366,79 @@ export function initPage2Pickers(overlay, hero) {
         });
     });
 
+    // 2. Фокусы, 1-й круг и 2-й круг (с умной фильтрацией по традиции класса)
+    const getClassTraditionFilter = (charClassRaw) => {
+        const cls = normalizeStr(charClassRaw);
+        if (!cls) return null;
 
+        const traditionMap = [
+            { keys: ['волшебник', 'маг', 'wizard', 'колдун', 'магус', 'magus'], trad: 'Мистическая' },
+            { keys: ['жрец', 'клирик', 'клерик', 'cleric', 'оракул', 'oracle', 'поборник', 'паладин', 'champion'], trad: 'Сакральная' },
+            { keys: ['друид', 'druid', 'следопыт', 'рейнджер', 'ranger'], trad: 'Первобытная' },
+            { keys: ['бард', 'bard', 'экстрасенс', 'псионик', 'psychic', 'некромант', 'necromancer'], trad: 'Оккультная' }
+            // Для Чародея, Ведьмы, Призывателя и Анимиста традиция зависит от наследия/покровителя/эйдолона — показываем все традиции
+        ];
 
-    // 2. Фокусы, 1-й круг и 2-й круг
+        const found = traditionMap.find(item => item.keys.some(k => cls.includes(k)));
+        return found ? found.trad : null;
+    };
+
     const spellTiers = [
         { selector: '.bst-cantrip-picker-inp', rowAttr: 'cantripRow', dropAttr: 'data-cantrip-drop', prefix: 'cantrip', searchFn: searchCantrips },
         { selector: '.bst-lvl1-picker-inp', rowAttr: 'lvl1Row', dropAttr: 'data-lvl1-drop', prefix: 'lvl1Spell', searchFn: searchSpellsLvl1 },
         { selector: '.bst-lvl2-picker-inp', rowAttr: 'lvl2Row', dropAttr: 'data-lvl2-drop', prefix: 'lvl2Spell', searchFn: searchSpellsLvl2 }
     ];
+
+    spellTiers.forEach(({ selector, rowAttr, dropAttr, prefix, searchFn }) => {
+        overlay.querySelectorAll(selector).forEach(inp => {
+            const row = inp.dataset[rowAttr];
+            bindAutocomplete(inp, overlay.querySelector(`[${dropAttr}="${row}"]`), {
+                width: 360,
+                getItems: (q) => {
+                    let list = searchFn(q);
+                    const classTrad = getClassTraditionFilter(hero.stats.charClass);
+
+                    // Если у класса фиксированная традиция — фильтруем по ней, но если совпадений нет (например, заклинание из архетипа), показываем общий поиск
+                    if (classTrad) {
+                        const filtered = list.filter(s =>
+                            Array.isArray(s.traditions) &&
+                            s.traditions.some(t => normalizeStr(t).includes(normalizeStr(classTrad)))
+                        );
+                        if (filtered.length > 0) {
+                            list = filtered;
+                        }
+                    }
+
+                    // Поднимаем совпадения по названию наверх списка
+                    const normQ = normalizeStr(q);
+                    if (normQ) {
+                        list = [...list].sort((a, b) => {
+                            const aTitle = normalizeStr(a.name).includes(normQ) ? 0 : 1;
+                            const bTitle = normalizeStr(b.name).includes(normQ) ? 0 : 1;
+                            return aTitle - bTitle;
+                        });
+                    }
+                    return list;
+                },
+                renderOption: (s) => `
+                    <div class="bst-cantrip-opt-top"><b>${s.name}</b> <span>${s.actions}</span></div>
+                    <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">
+                        <span style="color:#74b9ff;">${s.traditions.join(', ')}</span><br>${s.notes}
+                    </div>`,
+                onSelect: (found) => {
+                    inp.value = found.name;
+                    hero.stats[`${prefix}${row}Name`] = found.name;
+                    const actInp = overlay.querySelector(`[data-sheet-txt="${prefix}${row}Actions"]`);
+                    const noteInp = overlay.querySelector(`[data-sheet-txt="${prefix}${row}Notes"]`);
+                    if (actInp) actInp.value = found.actions;
+                    if (noteInp) noteInp.value = found.notes;
+                    hero.stats[`${prefix}${row}Actions`] = found.actions;
+                    hero.stats[`${prefix}${row}Notes`] = found.notes;
+                }
+            });
+        });
+    });
+
 
     spellTiers.forEach(({ selector, rowAttr, dropAttr, prefix, searchFn }) => {
         overlay.querySelectorAll(selector).forEach(inp => {
