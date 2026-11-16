@@ -381,6 +381,7 @@ function buildPage2Html(stats) {
                     </div>
                     <table class="k-table bst-cantrips-table bst-items-table"><tbody>${itemsRows}</tbody></table>
                 </div>
+                
                 <div class="k-panel" style="margin-bottom: 10px; border-color: #2ecc71;">
                     <div class="k-sec-title" style="color: #2ecc71;">🐾 Спутники</div>
                     <div style="display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 6px; margin-bottom: 8px;">
@@ -397,12 +398,17 @@ function buildPage2Html(stats) {
                             <option value="familiar" ${stats.compType === 'familiar' ? 'selected' : ''}>🦉 Фамильяр</option>
                         </select>
                         <div style="position: relative; flex-grow: 1;">
-                            <input type="text" class="k-inp bst-comp-ability-picker" autocomplete="off" placeholder="🔍 Поиск способностей...">
+                            <input type="text" class="k-inp bst-comp-ability-picker" autocomplete="off" placeholder="🔍 Выберите вид зверя или способность...">
                             <div class="bst-cantrip-dropdown" data-comp-drop="1" style="display: none;"></div>
                         </div>
                     </div>
-                    ${txtArea(stats, 'compAbilitiesText', 3, 'Способности питомца...')}
+                    <input type="hidden" data-sheet-txt="compAbilitiesText" value="${esc(stats.compAbilitiesText)}">
+                    <div id="bstCompInfoBox" style="background: rgba(4, 9, 5, 0.75); border: 1px solid #2d5a3c; border-radius: 6px; padding: 10px; font-size: 13px; color: #ebd291; line-height: 1.45; white-space: pre-line; min-height: 54px;">
+                        ${stats.compAbilitiesText ? esc(stats.compAbilitiesText) : '<span style="color: #7f8c8d;">Спутник не выбран. Выберите тип и найдите зверя или способность в поиске выше.</span>'}
+                    </div>
                 </div>
+
+                
                 <div class="k-panel" style="margin-bottom: 10px;"><div class="k-sec-title">📖 Журнал приключений</div>${txtArea(stats, 'adventureLogText', 3)}</div>
                 <div class="k-panel" style="margin-bottom: 10px;"><div class="k-sec-title">📝 Заметки</div>${txtArea(stats, 'notesText', 3)}</div>
                 <div class="k-panel"><div class="k-sec-title">📚 Книга заклинаний</div>${txtArea(stats, 'spellbookText', 3)}</div>

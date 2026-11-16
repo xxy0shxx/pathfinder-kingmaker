@@ -367,72 +367,29 @@ export function initPage2Pickers(overlay, hero) {
     });
 
 
-    // 4. Способности и виды спутников
+    // 4. Способности и виды спутников (жёсткая перезапись статов и инфо-блока)
     const compInp = overlay.querySelector('.bst-comp-ability-picker');
     const typeSel = overlay.querySelector('.bst-comp-type-selector');
-    const textOut = overlay.querySelector('[data-sheet-txt="compAbilitiesText"]');
+    const hiddenTextInp = overlay.querySelector('[data-sheet-txt="compAbilitiesText"]');
+    const infoBox = overlay.querySelector('#bstCompInfoBox');
 
-    // Вспомогательная функция полного пересчёта статов выбранного зверя с учётом опций
-    const applyCompanionSpecies = (speciesItem, replaceOldSpeciesText = true) => {
-        const calc = calcCompanionStats(speciesItem, hero.stats.level);
-        if (!calc) return;
-
-        const lvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
-        const curAbilities = textOut?.value || '';
-
-        // Учитываем уже добавленные опции и специализации
-        let bonusHp = 0;
-        let bonusAc = 0;
-        let bonusSpeed = 0;
-
-        if (curAbilities.includes('Лютый зверь')) { bonusHp += lvl; bonusAc += 1; }
-        if (curAbilities.includes('Ловкий зверь')) { bonusHp += lvl; bonusAc += 2; }
-        if (curAbilities.includes('Необузданный')) { bonusHp += 2 * lvl; bonusAc += 1; }
-        if (curAbilities.includes('Бегун')) { bonusSpeed += 10; }
-        if (curAbilities.includes('Засадный боец') || curAbilities.includes('Смельчак')) {
-            bonusAc += (speciesItem.acProf === 4 ? 0 : 2) + 1;
-        }
-
-        const setNum = (key, val) => {
-            const el = overlay.querySelector(`[data-sheet-num="${key}"]`);
-            if (el) el.value = val;
-            hero.stats[key] = val;
-        };
-
-        setNum('compHpMax', calc.hpMax + bonusHp);
-        setNum('compHpCur', calc.hpMax + bonusHp);
-        setNum('compAc', calc.ac + bonusAc);
-        setNum('compSpeed', calc.speed + bonusSpeed);
-
-        // Обновляем имя, если оно пустое или совпадает с названием любого зверя из базы
-        const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
-        const cleanNewName = speciesItem.name.replace(/^[^\p{L}]+/u, '').trim();
-        if (nameInp) {
-            const curName = nameInp.value.trim();
-            const isPrevSpeciesName = (PF2E_COMPANION_ABILITIES || []).some(
-                x => x.hpBase !== undefined && x.name.replace(/^[^\p{L}]+/u, '').trim().toLowerCase() === curName.toLowerCase()
-            );
-            if (!curName || isPrevSpeciesName) {
-                nameInp.value = cleanNewName;
-                hero.stats.compName = cleanNewName;
-            }
-        }
-
-        // Заменяем описание старого зверя в списке способностей на нового
-        if (textOut && replaceOldSpeciesText) {
-            const allSpeciesPrefixes = (PF2E_COMPANION_ABILITIES || [])
-                .filter(x => x.hpBase !== undefined)
-                .map(x => `• ${x.name}:`);
-
-            const keptLines = textOut.value
-                .split('\n')
-                .filter(line => !allSpeciesPrefixes.some(pref => line.trim().startsWith(pref)));
-
-            const newSpeciesEntry = `• ${speciesItem.name}: ${speciesItem.desc}`;
-            textOut.value = [newSpeciesEntry, ...keptLines].filter(Boolean).join('\n');
-            hero.stats.compAbilitiesText = textOut.value;
+    const updateCompInfo = (text) => {
+        hero.stats.compAbilitiesText = text;
+        if (hiddenTextInp) hiddenTextInp.value = text;
+        if (infoBox) {
+            infoBox.innerHTML = text
+                ? text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : '<span style="color: #7f8c8d;">Спутник не выбран. Выберите тип и найдите зверя или способность в поиске выше.</span>';
         }
     };
+
+    const setCompNum = (key, val) => {
+        hero.stats[key] = val;
+        const el = overlay.querySelector(`[data-sheet-num="${key}"]`);
+        if (el) el.value = val;
+    };
+
+    const stripEmoji = (str) => String(str || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
 
     bindAutocomplete(compInp, overlay.querySelector('[data-comp-drop="1"]'), {
         width: 400,
@@ -441,73 +398,113 @@ export function initPage2Pickers(overlay, hero) {
             <div class="bst-cantrip-opt-top"><b>${a.name}</b></div>
             <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; line-height: 1.3; margin-top: 2px; color: #ebd291;">${a.desc}</div>`,
         onSelect: (found) => {
-            const setNum = (key, val) => {
-                const el = overlay.querySelector(`[data-sheet-num="${key}"]`);
-                if (el) el.value = val;
-                hero.stats[key] = val;
-            };
+            const lvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
 
-            // 1. Выбран вид Верного зверя -> полностью обновляем статы, имя и блок вида
+            // 1. Выбран вид Верного зверя -> полностью перезаписываем статы, имя и карточку
             if (found.hpBase !== undefined) {
                 hero.stats.compSpeciesId = found.id;
-                applyCompanionSpecies(found, true);
+                if (typeSel) {
+                    typeSel.value = 'companion';
+                    hero.stats.compType = 'companion';
+                }
+
+                const calc = calcCompanionStats(found, lvl);
+                if (calc) {
+                    setCompNum('compHpMax', calc.hpMax);
+                    setCompNum('compHpCur', calc.hpCur);
+                    setCompNum('compAc', calc.ac);
+                    setCompNum('compSpeed', calc.speed);
+                }
+
+                const cleanName = stripEmoji(found.name);
+                const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
+                if (nameInp) nameInp.value = cleanName;
+                hero.stats.compName = cleanName;
+
+                updateCompInfo(`${found.name}\n${found.desc}`);
                 compInp.value = '';
                 return;
             }
 
-            // 2. Выбрана способность Фамильяра -> инициализируем статы фамильяра, если они пустые
-            if ((found.type === 'familiar' || found.type === 'master') && !parseInt(overlay.querySelector('[data-sheet-num="compHpMax"]')?.value, 10)) {
-                const calc = calcCompanionStats(found, hero.stats.level);
-                if (calc) {
-                    setNum('compHpMax', calc.hpMax);
-                    setNum('compHpCur', calc.hpCur);
-                    setNum('compAc', calc.ac);
-                    setNum('compSpeed', calc.speed);
+            // 2. Выбрана продвинутая опция или специализация верного зверя
+            if (found.type === 'companion') {
+                const baseSpecies = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
+                if (baseSpecies) {
+                    const calc = calcCompanionStats(baseSpecies, lvl);
+                    let hp = calc.hpMax;
+                    let ac = calc.ac;
+                    let spd = calc.speed;
+
+                    if (found.id === 'comp_opt_savage') { hp += lvl; ac += 1; }
+                    if (found.id === 'comp_opt_nimble') { hp += lvl; ac += 2; }
+                    if (found.id === 'comp_opt_indomitable') { hp += 2 * lvl; ac += 1; }
+                    if (found.id === 'comp_spec_racer') { spd += 10; }
+                    if (found.id === 'comp_spec_ambusher' || found.id === 'comp_spec_daredevil') {
+                        ac += (baseSpecies.acProf === 4 ? 0 : 2) + 1;
+                    }
+
+                    setCompNum('compHpMax', hp);
+                    setCompNum('compHpCur', hp);
+                    setCompNum('compAc', ac);
+                    setCompNum('compSpeed', spd);
+
+                    updateCompInfo(`${baseSpecies.name}\n${baseSpecies.desc}\n\n★ ${found.name}: ${found.desc}`);
+                } else {
+                    updateCompInfo(`${found.name}\n${found.desc}`);
                 }
+                compInp.value = '';
+                return;
             }
 
-            // 3. Записываем опцию / специализацию / способность в список
-            if (textOut && !textOut.value.includes(found.name)) {
-                textOut.value = (textOut.value.trim() ? `${textOut.value.trim()}\n` : '') + `• ${found.name}: ${found.desc}`;
-                hero.stats.compAbilitiesText = textOut.value;
-            }
+            // 3. Выбрана способность Фамильяра / Хозяина
+            if (found.type === 'familiar' || found.type === 'master') {
+                if (typeSel) {
+                    typeSel.value = 'familiar';
+                    hero.stats.compType = 'familiar';
+                }
+                const calc = calcCompanionStats(found, lvl);
+                const bonusHp = found.id === 'fam_tough' ? 2 * lvl : 0;
+                const finalHp = (calc ? calc.hpMax : 5 * lvl) + bonusHp;
 
-            // 4. Если добавлена опция/специализация верного зверя и вид уже выбран — пересчитываем статы
-            if (hero.stats.compSpeciesId) {
-                const currentSpecies = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
-                if (currentSpecies) applyCompanionSpecies(currentSpecies, false);
-            } else if (found.id === 'fam_tough') {
-                const lvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
-                const curMax = parseInt(overlay.querySelector('[data-sheet-num="compHpMax"]')?.value, 10) || (5 * lvl);
-                setNum('compHpMax', curMax + 2 * lvl);
-                setNum('compHpCur', curMax + 2 * lvl);
-            }
+                setCompNum('compHpMax', finalHp);
+                setCompNum('compHpCur', finalHp);
+                setCompNum('compAc', calc ? calc.ac : 12 + lvl);
+                setCompNum('compSpeed', found.id === 'fam_fast_movement' ? 40 : 25);
 
-            compInp.value = '';
+                updateCompInfo(`${found.name}\n${found.desc}`);
+                compInp.value = '';
+            }
         }
     });
 
     if (typeSel && compInp) {
         typeSel.addEventListener('change', () => {
             compInp.value = '';
+            const lvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
+
             if (typeSel.value === 'familiar') {
                 hero.stats.compSpeciesId = '';
-                const calc = calcCompanionStats({ type: 'familiar' }, hero.stats.level);
-                const hasTough = (textOut?.value || '').includes('Живучий');
-                const lvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
-                const finalHp = calc.hpMax + (hasTough ? 2 * lvl : 0);
-
-                ['compHpMax', 'compHpCur', 'compAc', 'compSpeed'].forEach((k, i) => {
-                    const vals = [finalHp, finalHp, calc.ac, calc.speed];
-                    const el = overlay.querySelector(`[data-sheet-num="${k}"]`);
-                    if (el) el.value = vals[i];
-                    hero.stats[k] = vals[i];
-                });
+                setCompNum('compHpMax', 5 * lvl);
+                setCompNum('compHpCur', 5 * lvl);
+                setCompNum('compAc', 12 + lvl);
+                setCompNum('compSpeed', 25);
+                updateCompInfo('🦉 Фамильяр\nКрошечное существо. Базовые ПЗ: 5 за уровень хозяина, КБ равен КБ хозяина без бонусов состояния/обстоятельств.');
             } else if (typeSel.value === 'none') {
                 hero.stats.compSpeciesId = '';
+                const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
+                if (nameInp) nameInp.value = '';
+                hero.stats.compName = '';
+                setCompNum('compHpMax', 0);
+                setCompNum('compHpCur', 0);
+                setCompNum('compAc', 10);
+                setCompNum('compSpeed', 25);
+                updateCompInfo('');
             }
         });
     }
+
+
+
 
 
 }
