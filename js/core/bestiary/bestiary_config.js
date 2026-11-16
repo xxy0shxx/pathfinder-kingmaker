@@ -122,7 +122,7 @@ export function ensureCharacterStats(item) {
         prof_occultism: 0, prof_nature: 0, prof_religion: 0, prof_crafting: 0, prof_stealth: 0,
 
         spellAttack: 0, spellDc: 10,
-        cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0,
+        cantripsPerDay: 5, lvl1PerDay: 0, lvl2PerDay: 0, lvl3PerDay: 0,
         coinsCopper: 0, coinsSilver: 0, coinsGold: 0,
         focusMax: 1, focusCurrent: 1,
 
@@ -193,6 +193,11 @@ export function ensureCharacterStats(item) {
         textDefaults[`lvl2Spell${i}Actions`] = '';
         textDefaults[`lvl2Spell${i}Notes`] = '';
         if (item.stats[`lvl2Spell${i}Ready`] === undefined) item.stats[`lvl2Spell${i}Ready`] = false;
+
+        textDefaults[`lvl3Spell${i}Name`] = '';
+        textDefaults[`lvl3Spell${i}Actions`] = '';
+        textDefaults[`lvl3Spell${i}Notes`] = '';
+        if (item.stats[`lvl3Spell${i}Ready`] === undefined) item.stats[`lvl3Spell${i}Ready`] = false;
     }
 
     for (let i = 1; i <= 7; i++) {

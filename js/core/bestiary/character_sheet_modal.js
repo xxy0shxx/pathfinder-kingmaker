@@ -274,42 +274,43 @@ function getMagicTierVisibility(stats) {
     const isSpellcaster = matchWord(casterKeywords);
 
     if (!isSpellcaster) {
-        return { showLvl1: false, showLvl2: false, lvl1Slots: 0, lvl2Slots: 0 };
+        return { showLvl1: false, showLvl2: false, showLvl3: false, lvl1Slots: 0, lvl2Slots: 0, lvl3Slots: 0 };
     }
 
     const hasBonusSlot = matchWord(extraSlotKeywords);
 
-    // 1 круг:
-    // Обычные кастеры (друид, бард, ведьма...): 1 ур -> 2 ячейки, 2+ ур -> 3 ячейки
-    // Жрец, Волшебник, Чародей: 1 ур -> 3 ячейки, 2+ ур -> 4 ячейки
     const baseLvl1 = lvl >= 2 ? 3 : 2;
     const lvl1Slots = baseLvl1 + (hasBonusSlot ? 1 : 0);
 
-    // 2 круг (открывается с 3 уровня):
-    // Обычные кастеры: 3 ур -> 2 ячейки, 4+ ур -> 3 ячейки
-    // Жрец, Волшебник, Чародей: 3 ур -> 3 ячейки, 4+ ур -> 4 ячейки
     let lvl2Slots = 0;
     if (lvl >= 3) {
         const baseLvl2 = lvl >= 4 ? 3 : 2;
         lvl2Slots = baseLvl2 + (hasBonusSlot ? 1 : 0);
     }
 
+    let lvl3Slots = 0;
+    if (lvl >= 5) {
+        const baseLvl3 = lvl >= 6 ? 3 : 2;
+        lvl3Slots = baseLvl3 + (hasBonusSlot ? 1 : 0);
+    }
+
     return {
         showLvl1: true,
         showLvl2: lvl >= 3,
+        showLvl3: lvl >= 5,
         lvl1Slots,
-        lvl2Slots
+        lvl2Slots,
+        lvl3Slots
     };
-}
 
+}
 
 function buildPage2Html(stats) {
     if (stats.cantripsPrepared && !stats.cantrip1Name) { stats.cantrip1Name = stats.cantripsPrepared; stats.cantripsPrepared = ''; }
     if (stats.lvl1Prepared && !stats.lvl1Spell1Name) { stats.lvl1Spell1Name = stats.lvl1Prepared; stats.lvl1Prepared = ''; }
     if (stats.lvl2Prepared && !stats.lvl2Spell1Name) { stats.lvl2Spell1Name = stats.lvl2Prepared; stats.lvl2Prepared = ''; }
+
     if (stats.equipmentText && !stats.item1Name) { stats.item1Name = 'Снаряжение'; stats.item1Notes = stats.equipmentText.replace(/\n+/g, '; '); stats.equipmentText = ''; }
-
-
 
     const renderSpellRows = (count, prefix, dataAttr, dropAttr, pickerCls, placeholder, withCheck = false) =>
         Array.from({ length: count }, (_, i) => i + 1).map(idx => `
@@ -345,6 +346,7 @@ function buildPage2Html(stats) {
     // Всегда синхронизируем лимит слотов с текущим уровнем персонажа
     const lvl1PerDayVal = magicInfo.lvl1Slots;
     const lvl2PerDayVal = magicInfo.lvl2Slots;
+    const lvl3PerDayVal = magicInfo.lvl3Slots;
 
     const lvl1BlockHtml = magicInfo.showLvl1 ? `
         <div class="bst-spell-tier">
@@ -368,6 +370,17 @@ function buildPage2Html(stats) {
             </table>
         </div>` : '';
 
+    const lvl3BlockHtml = magicInfo.showLvl3 ? `
+        <div class="bst-spell-tier">
+            <div class="bst-spell-tier-head">
+                <span>3️⃣ 3 круг</span>
+                <label>📅 В день: <input type="number" data-sheet-num="lvl3PerDay" class="k-inp bst-tiny-num" value="${lvl3PerDayVal}" readonly></label>
+            </div>
+            <table class="k-table bst-cantrips-table">
+                <tbody>${renderSpellRows(magicInfo.lvl3Slots, 'lvl3Spell', 'data-lvl3-row', 'data-lvl3-drop', 'bst-lvl3-picker-inp', 'Заклинание 3 круга...', true)}</tbody>
+            </table>
+        </div>` : '';
+
 
     return `
         <div class="bst-sheet-page2-grid">
@@ -388,6 +401,7 @@ function buildPage2Html(stats) {
                     </div>
                     ${lvl1BlockHtml}
                     ${lvl2BlockHtml}
+                    ${lvl3BlockHtml}
                 </div>
             </div>
             <div class="bst-sheet-col">
@@ -519,6 +533,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 const info = getMagicTierVisibility(hero.stats);
                 hero.stats.lvl1PerDay = info.lvl1Slots;
                 hero.stats.lvl2PerDay = info.lvl2Slots;
+                hero.stats.lvl3PerDay = info.lvl3Slots;
 
                 // Пересчет ПЗ и КБ спутника под новый уровень хозяина
                 if (hero.stats.compType === 'familiar') {
@@ -745,7 +760,8 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             { prefix: 'cantrip', rowAttr: 'cantripRow', icon: '✨' },
             { prefix: 'focusSpell', rowAttr: 'focusRow', icon: '💠' },
             { prefix: 'lvl1Spell', rowAttr: 'lvl1Row', icon: '1️⃣' },
-            { prefix: 'lvl2Spell', rowAttr: 'lvl2Row', icon: '2️⃣' }
+            { prefix: 'lvl2Spell', rowAttr: 'lvl2Row', icon: '2️⃣' },
+            { prefix: 'lvl3Spell', rowAttr: 'lvl3Row', icon: '3️⃣' }
         ];
 
         overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {

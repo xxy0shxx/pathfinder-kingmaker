@@ -3,6 +3,7 @@ import { PF2E_CANTRIPS } from '../../config/cantrips_catalog.js';
 import { PF2E_FOCUS_SPELLS } from '../../config/focus_spells_catalog.js';
 import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
+import { PF2E_SPELLS_LVL3 } from '../../config/spells_lvl3_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
@@ -569,6 +570,9 @@ export function exportCharacterToPdf(hero) {
 
                             <div class="tier-bar"><span>2️⃣ ЗАКЛИНАНИЯ 2 КРУГА</span><span>ЯЧЕЕК: ${s.lvl2PerDay ?? 0}</span></div>
                             ${buildRichSpells('lvl2Spell', 5, PF2E_SPELLS_LVL2, true)}
+                            
+                            <div class="tier-bar"><span>3️⃣ ЗАКЛИНАНИЯ 3 КРУГА</span><span>ЯЧЕЕК: ${s.lvl3PerDay ?? 0}</span></div>
+                            ${buildRichSpells('lvl3Spell', 5, PF2E_SPELLS_LVL3, true)}
                         </div>
                     </div>
                 </div>

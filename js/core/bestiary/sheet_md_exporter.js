@@ -6,6 +6,7 @@ import { PF2E_CANTRIPS } from '../../config/cantrips_catalog.js';
 import { PF2E_FOCUS_SPELLS } from '../../config/focus_spells_catalog.js';
 import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
+import { PF2E_SPELLS_LVL3 } from '../../config/spells_lvl3_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
 import { PF2E_COMPANION_ABILITIES } from '../../config/companions_catalog.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
@@ -321,9 +322,9 @@ export function buildCharacterMarkdown(hero) {
 
 
     lines.push('### ✨ Сотворение заклинаний');
-    lines.push('| 🔮 Атака заклинанием | 🎯 СЛ заклинаний | ✨ Фокусов/день | 💠 Фокальные пункты | 1️⃣ Ячейки 1 круга | 2️⃣ Ячейки 2 круга |');
-    lines.push('| :---: | :---: | :---: | :---: | :---: | :---: |');
-    lines.push(`| **${fmtMod(s.spellAttack)}** | **${s.spellDc ?? 10}** | ${s.cantripsPerDay ?? 5} | **${s.focusCurrent ?? 1} / ${s.focusMax ?? 1}** | ${s.lvl1PerDay ?? 0} | ${s.lvl2PerDay ?? 0} |`);
+    lines.push('| 🔮 Атака заклинанием | 🎯 СЛ заклинаний | ✨ Фокусов/день | 💠 Фокальные пункты | 1️⃣ Ячейки 1 круга | 2️⃣ Ячейки 2 круга | 3️⃣ Ячейки 3 круга |');
+    lines.push('| :---: | :---: | :---: | :---: | :---: | :---: | :---: |');
+    lines.push(`| **${fmtMod(s.spellAttack)}** | **${s.spellDc ?? 10}** | ${s.cantripsPerDay ?? 5} | **${s.focusCurrent ?? 1} / ${s.focusMax ?? 1}** | ${s.lvl1PerDay ?? 0} | ${s.lvl2PerDay ?? 0} | ${s.lvl3PerDay ?? 0} |`);
     lines.push('');
 
     const renderSpellSection = (title, prefix, max, catalog, hasReady = false) => {
@@ -374,13 +375,11 @@ export function buildCharacterMarkdown(hero) {
     const hasFocus = renderSpellSection('💠 Фокальные заклинания', 'focusSpell', 3, PF2E_FOCUS_SPELLS, true);
     const hasLvl1 = renderSpellSection('1️⃣ Заклинания 1 круга', 'lvl1Spell', 7, PF2E_SPELLS_LVL1, false);
     const hasLvl2 = renderSpellSection('2️⃣ Заклинания 2 круга', 'lvl2Spell', 5, PF2E_SPELLS_LVL2, true);
+    const hasLvl3 = renderSpellSection('3️⃣ Заклинания 3 круга', 'lvl3Spell', 5, PF2E_SPELLS_LVL3, true);
 
-    if (!hasCantrips && !hasFocus && !hasLvl1 && !hasLvl2) {
+    if (!hasCantrips && !hasFocus && !hasLvl1 && !hasLvl2 && !hasLvl3) {
         lines.push('_Заклинания не заполнены._\n');
     }
-
-
-
 
     lines.push('### 🎒 Снаряжение и Монеты');
     lines.push('| 🥇 Золотые (ЗМ) | 🥈 Серебряные (СМ) | 🥉 Медные (ММ) |');
