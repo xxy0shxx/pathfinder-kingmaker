@@ -14,7 +14,8 @@ import { PF2E_SKILL_FEATS } from '../../config/skill_feats_catalog.js';
 import {
     PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS, PF2E_MONK_FEATS, PF2E_BARD_FEATS,
     PF2E_BARBARIAN_FEATS, PF2E_CLERIC_FEATS, PF2E_SORCERER_FEATS, PF2E_WIZARD_FEATS,
-    PF2E_FIGHTER_FEATS, PF2E_ROGUE_FEATS, PF2E_DRUID_FEATS
+    PF2E_FIGHTER_FEATS, PF2E_ROGUE_FEATS, PF2E_DRUID_FEATS, PF2E_MAGUS_FEATS,
+    PF2E_WITCH_FEATS
 } from '../../config/feats_catalog.js';
 import {
     PF2E_MELEE_WEAPONS, searchMeleeWeapons, calcMeleeWeaponRoll,
@@ -90,7 +91,8 @@ function getClassFeatsPool(charClassRaw) {
         [['волшебник', 'маг', 'wizard'], PF2E_WIZARD_FEATS],
         [['воин', 'fighter'], PF2E_FIGHTER_FEATS],
         [['плут', 'rogue'], PF2E_ROGUE_FEATS],
-        [['друид', 'druid'], PF2E_DRUID_FEATS]
+        [['друид', 'druid'], PF2E_DRUID_FEATS],
+        [['ведьма', 'witch'], PF2E_WITCH_FEATS]
     ];
 
     const matched = allClassMaps.find(([keys]) => keys.some(k => cls.includes(k)));
