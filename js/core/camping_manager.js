@@ -366,7 +366,70 @@ const CampingManager = {
         return ` (${leader}, помощник: ${helper})`;
     },
 
+    getPartySuppliesSummary() {
+        const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
+            ? window.InitiativeManager.state.combatants
+            : (this.mapDataRef?.initiative?.combatants || []);
 
+        const bestiaryPresets = (window.BestiaryManager?.state?.presets && Array.isArray(window.BestiaryManager.state.presets))
+            ? window.BestiaryManager.state.presets
+            : (this.mapDataRef?.bestiary?.presets || []);
+
+        const companionNames = new Set();
+        [...initUnits, ...bestiaryPresets].forEach(u => {
+            const cName = String(u?.stats?.compName || '').trim().toLowerCase();
+            if (cName) companionNames.add(cName);
+        });
+
+        const isPlayableHero = (u) => {
+            if (!u || u.faction !== 'friend' || u.inactive) return false;
+            const normName = String(u.name || '').trim().toLowerCase();
+            if (!normName || companionNames.has(normName)) return false;
+            if (/фамильяр|верный зверь|спутник/i.test(normName)) return false;
+            return true;
+        };
+
+        const rawHeroes = initUnits.filter(isPlayableHero).length > 0
+            ? initUnits.filter(isPlayableHero)
+            : bestiaryPresets.filter(isPlayableHero);
+
+        const seenNames = new Set();
+        const heroes = rawHeroes.filter(h => {
+            const key = String(h.name || '').trim().toLowerCase();
+            if (!key || seenNames.has(key)) return false;
+            seenNames.add(key);
+            return true;
+        }).slice(0, 6);
+
+        let totalRations = 0;
+        let totalNormIng = 0;
+        let totalSpecIng = 0;
+
+        heroes.forEach(h => {
+            const st = h.stats || {};
+            for (let i = 1; i <= 15; i++) {
+                const name = String(st[`item${i}Name`] || '').trim();
+                const qty = Math.max(0, Number(st[`item${i}Qty`]) || 0);
+                if (!name || qty <= 0) continue;
+
+                if (/па[её]к|рацион|rations|провиз|еда|food/i.test(name)) {
+                    totalRations += qty;
+                } else if (/обычн\w*\s*ингредиент/i.test(name)) {
+                    totalNormIng += qty;
+                } else if (/особ\w*\s*ингредиент/i.test(name)) {
+                    totalSpecIng += qty;
+                }
+            }
+        });
+
+        return {
+            heroesCount: heroes.length,
+            totalRations,
+            totalNormIng,
+            totalSpecIng,
+            html: `📦 <b>Запасы группы (${heroes.length} чел.):</b> 🍞 ${totalRations} пайков • 🏕️ ${totalNormIng} обычн. • 🌿 ${totalSpecIng} особ.`
+        };
+    },
 
 
     syncSuppliesWithParty() {
@@ -593,15 +656,14 @@ const CampingManager = {
             parts.push(`🎲 Бросьте ${this.state.specialIngredients} за столом для особых ингредиентов`);
         }
 
+        const totalBox = document.getElementById('campPartySuppliesTotal');
+        if (totalBox) totalBox.innerHTML = this.getPartySuppliesSummary().html;
+
         if (statusEl) {
             statusEl.style.color = stillHungryNames.length > 0 ? '#fdcb6e' : '#2ecc71';
             statusEl.innerHTML = parts.join('<br>');
         }
     },
-
-
-
-
 
     renderCalculatedUi(camoRes, prepareRes, huntRes, watchRes, isCampHorrible, lvl, specialYieldText) {
         watchRes = watchRes || this.getSelectedRadio('res_watch');
@@ -618,22 +680,29 @@ const CampingManager = {
         if (totEl) totEl.textContent = this.state.totalChecks;
         if (modEl) modEl.textContent = this.state.checkMod;
 
-        // Кнопка синхронизации пайков и добычи с рюкзаками отряда
-        const summaryCard = normEl?.closest('.camp-summary-box, .camp-results-panel') || normEl?.parentElement?.parentElement;
-        if (summaryCard && !summaryCard.querySelector('#btnCampSyncSupplies')) {
-            const syncBar = document.createElement('div');
-            syncBar.style.cssText = 'margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.3); display: flex; flex-direction: column; gap: 4px;';
-            syncBar.innerHTML = `
-                <button type="button" id="btnCampSyncSupplies" class="btn ok" style="width: 100%; padding: 5px 8px; font-size: 13px;">
-                    🎒 Списать пайки (−1/чел) и выдать добычу в рюкзак
-                </button>
-                <div id="campSuppliesSyncStatus" style="font-size: 12px; color: #a4b0be; line-height: 1.3;"></div>
-            `;
-            summaryCard.appendChild(syncBar);
 
-            syncBar.querySelector('#btnCampSyncSupplies').addEventListener('click', () => {
-                this.syncSuppliesWithParty();
-            });
+        const summaryCard = normEl?.closest('.camp-summary-box, .camp-results-panel') || normEl?.parentElement?.parentElement;
+        if (summaryCard) {
+            let syncBar = summaryCard.querySelector('#campSyncBarBox');
+            if (!syncBar) {
+                syncBar = document.createElement('div');
+                syncBar.id = 'campSyncBarBox';
+                syncBar.style.cssText = 'margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.3); display: flex; flex-direction: column; gap: 4px;';
+                syncBar.innerHTML = `
+                    <div id="campPartySuppliesTotal" style="font-size: 12px; color: #ffd875; line-height: 1.3;"></div>
+                    <button type="button" id="btnCampSyncSupplies" class="btn ok" style="width: 100%; padding: 5px 8px; font-size: 13px;">
+                        🎒 Списать пайки (−1/чел) и выдать добычу в рюкзак
+                    </button>
+                    <div id="campSuppliesSyncStatus" style="font-size: 12px; color: #a4b0be; line-height: 1.3;"></div>
+                `;
+                summaryCard.appendChild(syncBar);
+
+                syncBar.querySelector('#btnCampSyncSupplies').addEventListener('click', () => {
+                    this.syncSuppliesWithParty();
+                });
+            }
+            const totalBox = syncBar.querySelector('#campPartySuppliesTotal');
+            if (totalBox) totalBox.innerHTML = this.getPartySuppliesSummary().html;
         }
 
         const effectsList = document.getElementById('campEffectsList');
