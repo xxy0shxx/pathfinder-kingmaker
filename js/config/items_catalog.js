@@ -157,29 +157,34 @@ export const PF2E_ITEMS_CATALOG = [
         category: 'Свиток (1 ур.)',
         notes: 'Позволяет сотворить заклинание «Волшебное оружие» 1-го круга (4 ЗМ).'
     },
+
     // --- Щиты (Shields) ---
     {
         id: 'buckler',
         name: '🛡️ Баклер',
         category: 'Щит',
+        shieldStats: { bonus: 1, hardness: 3, hp: 6 },
         notes: 'Поднятие щита (◆): +1 к КБ. Твёрдость 3, ПЗ 6 (ПЛ 3). Оставляет руку свободной для лёгких предметов (1 ЗМ).'
     },
     {
         id: 'wooden_shield',
         name: '🛡️ Деревянный щит',
         category: 'Щит',
+        shieldStats: { bonus: 2, hardness: 3, hp: 12 },
         notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 3, ПЗ 12 (ПЛ 6). Масса 1 (1 ЗМ).'
     },
     {
         id: 'steel_shield',
         name: '🛡️ Стальной щит',
         category: 'Щит',
+        shieldStats: { bonus: 2, hardness: 5, hp: 20 },
         notes: 'Поднятие щита (◆): +2 к КБ. Твёрдость 5, ПЗ 20 (ПЛ 10). Масса 1 (2 ЗМ).'
     },
     {
         id: 'tower_shield',
         name: '🛡️ Башенный щит',
         category: 'Щит',
+        shieldStats: { bonus: 2, hardness: 5, hp: 20 },
         notes: 'Поднятие щита (◆): +2 к КБ (или +4 за ◆ Укрытие за щитом). Твёрдость 5, ПЗ 20 (ПЛ 10). Штраф скорости −5 фт., масса 4 (10 ЗМ).'
     },
 

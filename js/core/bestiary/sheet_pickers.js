@@ -511,7 +511,8 @@ export function initPage2Pickers(overlay, hero) {
         });
     });
 
-    // 3. Предметы и степперы количества
+
+    // 3. Предметы, щиты и степперы количества
     overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
         const row = inp.dataset.itemRow;
         bindAutocomplete(inp, overlay.querySelector(`[data-item-drop="${row}"]`), {
@@ -520,10 +521,25 @@ export function initPage2Pickers(overlay, hero) {
             renderOption: (it) => `<div class="bst-cantrip-opt-top"><b>${it.name}</b> <span>${it.category}</span></div>`,
             onSelect: (found) => {
                 inp.value = found.name;
+                hero.stats[`item${row}Name`] = found.name;
+
                 const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
                 const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
-                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) qtyInp.value = 1;
-                if (noteInp) noteInp.value = found.notes;
+                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) {
+                    qtyInp.value = 1;
+                    hero.stats[`item${row}Qty`] = 1;
+                }
+                if (noteInp) {
+                    noteInp.value = found.notes;
+                    hero.stats[`item${row}Notes`] = found.notes;
+                }
+
+                // Если выбран щит — автоматически заполняем его параметры на 1-й странице
+                if (found.shieldStats) {
+                    hero.stats.acShieldBonus = found.shieldStats.bonus;
+                    hero.stats.acShieldHardness = found.shieldStats.hardness;
+                    hero.stats.acShieldHp = found.shieldStats.hp;
+                }
             }
         });
     });
