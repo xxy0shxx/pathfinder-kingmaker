@@ -66,11 +66,13 @@ export function recalculateSheetStats(overlay, hero) {
     const profRef = parseInt(overlay.querySelector('[data-sheet-num="saveProf_ref"]')?.value, 10) || 0;
     const profWill = parseInt(overlay.querySelector('[data-sheet-num="saveProf_will"]')?.value, 10) || 0;
 
+    const saveItem = Number(hero.stats.saveItemBonus) || 0;
+
     const saves = [
         ['perception', 'perc', charWis + profPerc],
-        ['fortitude', 'fort', charCon + profFort],
-        ['reflex', 'ref', charDex + profRef],
-        ['will', null, charWis + profWill]
+        ['fortitude', 'fort', charCon + profFort + saveItem],
+        ['reflex', 'ref', charDex + profRef + saveItem],
+        ['will', null, charWis + profWill + saveItem]
     ];
 
     saves.forEach(([fullKey, shortKey, val]) => {

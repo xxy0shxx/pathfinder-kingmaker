@@ -114,6 +114,7 @@ export function ensureCharacterStats(item) {
         ac: 10, acDex: 0, acProf: 0, acItem: 0, acOther: 0,
         acShieldBonus: 0, acShieldHardness: 0, acShieldHp: 0, acArmorPenalty: 0,
         saveProf_perc: 2, saveProf_fort: 2, saveProf_ref: 2, saveProf_will: 2,
+        saveItemBonus: 0,
 
         prof_acrobatics: 0, prof_athletics: 0, prof_thievery: 0, prof_survival: 0,
         prof_diplomacy: 0, prof_intimidation: 0, prof_lore: 0, prof_performance: 0,

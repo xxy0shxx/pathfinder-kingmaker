@@ -540,6 +540,67 @@ export function initPage2Pickers(overlay, hero) {
                     hero.stats.acShieldHardness = found.shieldStats.hardness;
                     hero.stats.acShieldHp = found.shieldStats.hp;
                 }
+
+                // Автоматическое применение фундаментальных и атрибутивных рун
+                if (found.runeEffect) {
+                    const eff = found.runeEffect;
+
+                    if (eff.target === 'weapon') {
+                        // Применяем к первому заполненному слоту оружия (melee1, melee2 или ranged)
+                        const slot = ['melee1', 'melee2', 'ranged'].find(s => String(hero.stats[`${s}Name`] || '').trim()) || 'melee1';
+
+                        if (eff.potency) {
+                            const curAtk = parseInt(String(hero.stats[`${slot}Atk`] || '0').replace(/[^\d+-]/g, ''), 10) || 0;
+                            const nextAtk = curAtk + eff.potency;
+                            hero.stats[`${slot}Atk`] = nextAtk >= 0 ? `+${nextAtk}` : `${nextAtk}`;
+                            const wName = String(hero.stats[`${slot}Name`] || '').trim();
+                            if (wName && !/^\+\d/.test(wName)) {
+                                hero.stats[`${slot}Name`] = `+${eff.potency} ${wName}`;
+                            }
+                        }
+                        if (eff.striking) {
+                            const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
+                            if (curDmg) {
+                                hero.stats[`${slot}Dmg`] = curDmg.replace(/^\d+(d\d+)/i, `${eff.striking}$1`);
+                            }
+                            const wName = String(hero.stats[`${slot}Name`] || '').trim();
+                            if (wName && !wName.toLowerCase().includes('разящ')) {
+                                hero.stats[`${slot}Name`] = `${wName} (Разящее)`;
+                            }
+                        }
+                        if (eff.extraDmg) {
+                            const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
+                            if (curDmg && !curDmg.includes(eff.extraDmg)) {
+                                hero.stats[`${slot}Dmg`] = `${curDmg} ${eff.extraDmg}`;
+                            }
+                        }
+                        if (eff.extraTrait) {
+                            const curTraits = String(hero.stats[`${slot}Traits`] || '').trim();
+                            if (!curTraits.includes(eff.extraTrait)) {
+                                hero.stats[`${slot}Traits`] = curTraits ? `${curTraits}, ${eff.extraTrait}` : eff.extraTrait;
+                            }
+                        }
+                    } else if (eff.target === 'armor') {
+                        if (eff.potency) {
+                            const baseArmor = (PF2E_ARMOR_CATALOG || []).find(a => normalizeStr(a.name) === normalizeStr(hero.stats.armorName));
+                            const baseBonus = baseArmor ? (Number(baseArmor.acBonus) || 0) : (Number(hero.stats.acItem) || 0);
+                            hero.stats.acItem = baseBonus + eff.potency;
+                            const aName = String(hero.stats.armorName || '').trim();
+                            if (aName && !/^\+\d/.test(aName)) {
+                                hero.stats.armorName = `+${eff.potency} ${aName}`;
+                            }
+                        }
+                        if (eff.noteTag) {
+                            const aName = String(hero.stats.armorName || '').trim();
+                            if (aName && !aName.includes(eff.noteTag)) {
+                                hero.stats.armorName = `${aName} [${eff.noteTag}]`;
+                            }
+                        }
+                    } else if (eff.target === 'save' && eff.bonus) {
+                        hero.stats.saveItemBonus = eff.bonus;
+                    }
+                }
+
             }
         });
     });
