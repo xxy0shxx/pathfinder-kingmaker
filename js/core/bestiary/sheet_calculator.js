@@ -99,7 +99,8 @@ export function recalculateSheetStats(overlay, hero) {
         if (!totalInp || !profInp) return;
 
         const profValue = parseInt(profInp.value, 10) || 0;
-        let finalSkillVal = attrModifier + profValue;
+        const itemBonus = Number(hero.stats.skillItemBonuses?.[skillKey]) || 0;
+        let finalSkillVal = attrModifier + profValue + itemBonus;
         const hasActivePenalty = penaltySkills.includes(skillKey) && activePenalty > 0;
 
         if (hasActivePenalty) finalSkillVal -= activePenalty;
@@ -110,12 +111,14 @@ export function recalculateSheetStats(overlay, hero) {
         const shortKey = FULL_TO_SHORT_SKILL_MAP[skillKey];
         if (shortKey) hero.stats[shortKey] = finalSkillVal;
 
+        const itemStr = itemBonus > 0 ? `, Предмет: +${itemBonus}` : '';
+
         if (hasActivePenalty) {
             totalInp.style.color = '#ff7675';
-            totalInp.title = `Штраф брони активен! (База: ${attrModifier + profValue}, Штраф: -${activePenalty})`;
-        } else if (profValue > 0) {
+            totalInp.title = `Штраф брони активен! (База: ${attrModifier + profValue}${itemStr}, Штраф: -${activePenalty})`;
+        } else if (profValue > 0 || itemBonus > 0) {
             totalInp.style.color = '#2ecc71';
-            totalInp.title = `Изучен! (Характеристика: ${attrModifier}, Умение: +${profValue})`;
+            totalInp.title = `Бонус активен! (Характеристика: ${attrModifier}, Умение: +${profValue}${itemStr})`;
         } else {
             totalInp.style.color = '';
             totalInp.title = `Не изучен (Только модификатор характеристики: ${attrModifier})`;

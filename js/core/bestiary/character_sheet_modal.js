@@ -685,7 +685,45 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
             });
         });
 
+        // Тултипы навыков (разбор: Характеристика + Умение + Предмет − Штраф брони)
+        const skillAttrLabels = {
+            acrobatics: ['dex', 'ЛВК'], athletics: ['str', 'СИЛ'], thievery: ['dex', 'ЛВК'], stealth: ['dex', 'ЛВК'],
+            survival: ['wis', 'МДР'], medicine: ['wis', 'МДР'], nature: ['wis', 'МДР'], religion: ['wis', 'МДР'],
+            diplomacy: ['cha', 'ХАР'], intimidation: ['cha', 'ХАР'], deception: ['cha', 'ХАР'], performance: ['cha', 'ХАР'],
+            arcana: ['int', 'ИНТ'], occultism: ['int', 'ИНТ'], society: ['int', 'ИНТ'], crafting: ['int', 'ИНТ'], lore: ['int', 'ИНТ']
+        };
+        const penaltySkillsList = ['acrobatics', 'athletics', 'stealth', 'thievery'];
 
+        Object.entries(skillAttrLabels).forEach(([skKey, [attrKey, attrName]]) => {
+            const totalInp = overlay.querySelector(`[data-sheet-num="${skKey}"]`);
+            const rowEl = totalInp?.closest('tr') || totalInp?.parentElement;
+            if (!rowEl) return;
+
+            bindSheetTooltip(rowEl, () => {
+                const total = parseInt(totalInp.value, 10) || 0;
+                const attrVal = parseInt(overlay.querySelector(`[data-sheet-num="${attrKey}"]`)?.value, 10) || 0;
+                const profVal = parseInt(overlay.querySelector(`[data-sheet-num="prof_${skKey}"]`)?.value, 10) || 0;
+                const itemVal = Number(hero.stats.skillItemBonuses?.[skKey]) || 0;
+
+                const armorType = overlay.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
+                const charStr = parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0;
+                const strReq = parseInt(overlay.querySelector('[data-sheet-num="ac"]')?.dataset.currentStrReq, 10) || 0;
+                const basePen = Math.abs(parseInt(overlay.querySelector('[data-sheet-num="acArmorPenalty"]')?.value, 10) || 0);
+                const penVal = (penaltySkillsList.includes(skKey) && armorType !== 'unarmored' && charStr < strReq) ? basePen : 0;
+
+                const labelText = rowEl.querySelector('td')?.textContent.trim() || skKey;
+                const fmt = (n) => (n >= 0 ? `+${n}` : `${n}`);
+
+                const parts = [`${attrName}: <b>${fmt(attrVal)}</b>`, `Умение: <b>+${profVal}</b>`];
+                if (itemVal > 0) parts.push(`<span style="color:#ffd875;">Предмет: <b>+${itemVal}</b></span>`);
+                if (penVal > 0) parts.push(`<span style="color:#ff7675;">Штраф брони: <b>-${penVal}</b></span>`);
+
+                return [
+                    `<div class="init-tip-header"><span class="init-tip-name">${labelText}</span><span class="init-tip-turn-tag" style="border-color:#2ecc71; color:#2ecc71;">${fmt(total)}</span></div>`,
+                    `<div style="font-size:12px; margin-top:4px; color:#ebd291;">${parts.join(' • ')}</div>`
+                ].join('');
+            });
+        });
 
         // 3. Тултипы боевых черт
         overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {

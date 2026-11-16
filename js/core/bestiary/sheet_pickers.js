@@ -601,6 +601,15 @@ export function initPage2Pickers(overlay, hero) {
                     }
                 }
 
+                if (found.skillBonus && found.skillBonus.skill) {
+                    if (!hero.stats.skillItemBonuses || typeof hero.stats.skillItemBonuses !== 'object') {
+                        hero.stats.skillItemBonuses = {};
+                    }
+                    const sk = found.skillBonus.skill;
+                    const curB = Number(hero.stats.skillItemBonuses[sk]) || 0;
+                    hero.stats.skillItemBonuses[sk] = Math.max(curB, Number(found.skillBonus.bonus) || 0);
+                }
+
             }
         });
     });
