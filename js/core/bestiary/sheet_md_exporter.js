@@ -8,7 +8,8 @@ import { PF2E_SPELLS_LVL1 } from '../../config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_ITEMS_CATALOG } from '../../config/items_catalog.js';
 import { PF2E_COMPANION_ABILITIES } from '../../config/companions_catalog.js';
-
+import { PF2E_ARMOR_CATALOG } from '../../config/armor_catalog.js';
+import * as FeatsMod from '../../config/feats_catalog.js';
 const fmtMod = (val) => {
     const n = Number(val) || 0;
     return n >= 0 ? `+${n}` : `${n}`;
@@ -21,6 +22,7 @@ const safeCell = (val, fallback = '—') => {
 
 const norm = (str) => String(str || '')
     .replace(/^[^\p{L}\p{N}]+/u, '')
+    .replace(/\([^)]*\)/g, '')
     .trim()
     .toLowerCase()
     .replace(/ё/g, 'е');
@@ -30,8 +32,52 @@ const findInCatalog = (list, queryName) => {
     if (!q || !Array.isArray(list)) return null;
     return list.find(item => {
         const n = norm(item.name);
-        return n === q || n.includes(q) || q.includes(n);
+        return n === q || (q.length > 3 && (n.includes(q) || q.includes(n)));
     }) || null;
+};
+
+const formatObjDetails = (obj, excludeKeys = ['id', 'name']) => {
+    if (!obj || typeof obj !== 'object') return [];
+    const labels = {
+        traits: 'Дескрипторы',
+        desc: 'Описание',
+        notes: 'Эффект',
+        category: 'Категория',
+        group: 'Группа',
+        hands: 'Рук',
+        dmgDice: 'Кость урона',
+        dmgType: 'Тип урона',
+        range: 'Дистанция',
+        reload: 'Перезарядка',
+        acBonus: 'Бонус КБ',
+        dexCap: 'Макс. ЛВК',
+        checkPenalty: 'Штраф проверок',
+        speedPenalty: 'Штраф скорости',
+        strReq: 'Треб. Сила',
+        price: 'Цена',
+        bulk: 'Масса',
+        level: 'Уровень',
+        actions: 'Действия',
+        traditions: 'Традиции',
+        source: 'Источник',
+        skillName: 'Навык',
+        lore: 'Знание',
+        feat: 'Бонусная черта',
+        hp: 'ПЗ за уровень',
+        keyStat: 'Ключевая характеристика',
+        prerequisites: 'Требования'
+    };
+
+    const out = [];
+    for (const [k, v] of Object.entries(obj)) {
+        if (excludeKeys.includes(k) || v === undefined || v === null || v === '') continue;
+        if (typeof v === 'boolean' || typeof v === 'function') continue;
+        const valStr = Array.isArray(v) ? v.join(', ') : String(v).trim();
+        if (!valStr) continue;
+        const label = labels[k] || k;
+        out.push(`- **${label}:** ${valStr.replace(/\r?\n/g, ' ')}`);
+    }
+    return out;
 };
 
 const profRankLabel = (prof) => {
@@ -48,28 +94,25 @@ export function buildCharacterMarkdown(hero) {
     const name = hero.name || 'Безымянный герой';
 
     const alignMap = {
-        'ЗД': 'Законопослушный Добрый (ЗД)',
-        'НД': 'Нейтральный Добрый (НД)',
-        'ХД': 'Хаотичный Добрый (ХД)',
-        'ЗН': 'Законопослушный Нейтральный (ЗН)',
-        'ИН': 'Истинный Нейтральный (Н)',
-        'Н': 'Истинный Нейтральный (Н)',
-        'ХН': 'Хаотичный Нейтральный (ХН)',
-        'ЗЗ': 'Законопослушный Злой (ЗЗ)',
-        'НЗ': 'Нейтральный Злой (НЗ)',
-        'ХЗ': 'Хаотичный Злой (ХЗ)'
+        'ЗД': 'Законопослушный Добрый (ЗД)', 'НД': 'Нейтральный Добрый (НД)', 'ХД': 'Хаотичный Добрый (ХД)',
+        'ЗН': 'Законопослушный Нейтральный (ЗН)', 'ИН': 'Истинный Нейтральный (Н)', 'Н': 'Истинный Нейтральный (Н)',
+        'ХН': 'Хаотичный Нейтральный (ХН)', 'ЗЗ': 'Законопослушный Злой (ЗЗ)', 'НЗ': 'Нейтральный Злой (НЗ)', 'ХЗ': 'Хаотичный Злой (ХЗ)'
     };
 
     const armorTypeMap = {
-        unarmored: 'Без брони / Ткань',
-        light: 'Лёгкая броня',
-        medium: 'Средняя броня',
-        heavy: 'Тяжёлая броня'
+        unarmored: 'Без брони / Ткань', light: 'Лёгкая броня', medium: 'Средняя броня', heavy: 'Тяжёлая броня'
     };
 
+    const allFeatsPool = [
+        ...Object.values(FeatsMod).filter(Array.isArray).flat(),
+        ...(PF2E_COMPANION_ABILITIES || [])
+    ];
     const ancestryObj = findInCatalog(PF2E_ANCESTRIES, s.ancestry);
+    const heritageObj = findInCatalog(allFeatsPool, s.heritage);
     const bgObj = findInCatalog(PF2E_BACKGROUNDS, s.background);
+    const bgFeatObj = findInCatalog(allFeatsPool, s.backgroundFeat);
     const classObj = findInCatalog(PF2E_CLASSES, s.charClass);
+    const armorObj = findInCatalog(PF2E_ARMOR_CATALOG, s.armorName);
 
     const lines = [];
 
@@ -77,36 +120,36 @@ export function buildCharacterMarkdown(hero) {
     lines.push(`> **Игрок:** ${safeCell(s.playerName)} | **Уровень:** ${s.level ?? 1} | **Опыт (XP):** ${s.xp ?? 0} | **Базовая инициатива:** ${hero.defaultScore ?? 10}`);
     lines.push('');
 
-    lines.push('## 🧬 Происхождение, Народ и Класс');
+    lines.push('## 🧬 Биография: Народ, Наследие, Происхождение и Класс');
     lines.push('| Параметр | Значение |');
     lines.push('| :--- | :--- |');
     lines.push(`| **🧬 Народ** | **${safeCell(s.ancestry)}** |`);
-    lines.push(`| **🌿 Наследие / Способность народа** | ${safeCell(s.heritage)} |`);
+    lines.push(`| **🌿 Наследие / Способность народа** | **${safeCell(s.heritage)}** |`);
     lines.push(`| **📜 Происхождение** | **${safeCell(s.background)}** |`);
-    lines.push(`| **✨ Способность / Черта происхождения** | ${safeCell(s.backgroundFeat)} |`);
+    lines.push(`| **✨ Черта происхождения** | **${safeCell(s.backgroundFeat)}** |`);
     lines.push(`| **⚔️ Класс** | **${safeCell(s.charClass)}** |`);
     lines.push(`| **⚖️ Мировоззрение** | ${alignMap[s.alignment] || safeCell(s.alignment)} |`);
     lines.push('');
 
     if (ancestryObj) {
-        lines.push(`### 🧬 Особенности народа: ${ancestryObj.name}`);
-        lines.push(`- **Ключевые черты:** ${ancestryObj.traits}`);
-        lines.push('');
+        lines.push(`### 🧬 Полное описание народа: ${ancestryObj.name}`);
+        lines.push(...formatObjDetails(ancestryObj), '');
     }
-
+    if (heritageObj) {
+        lines.push(`### 🌿 Полное описание наследия / черты народа: ${heritageObj.name}`);
+        lines.push(...formatObjDetails(heritageObj), '');
+    }
     if (bgObj) {
-        lines.push(`### 📜 Подробности происхождения: ${bgObj.name}`);
-        lines.push(`- **Изученный навык:** ${bgObj.skillName} | **Знание:** ${bgObj.lore}`);
-        lines.push(`- **Бонусная черта:** ${bgObj.feat} | **Источник:** ${bgObj.source}`);
-        lines.push(`- **Описание:** ${bgObj.desc}`);
-        lines.push('');
+        lines.push(`### 📜 Полное описание происхождения: ${bgObj.name}`);
+        lines.push(...formatObjDetails(bgObj, ['id', 'name', 'skill', 'boosts']), '');
     }
-
+    if (bgFeatObj) {
+        lines.push(`### ✨ Полное описание черты происхождения: ${bgFeatObj.name}`);
+        lines.push(...formatObjDetails(bgFeatObj), '');
+    }
     if (classObj) {
-        lines.push(`### ⚔️ Подробности класса: ${classObj.name}`);
-        lines.push(`- **ПЗ за уровень:** ${classObj.hp} | **Ключевая характеристика:** ${classObj.keyStat}`);
-        lines.push(`- **Описание:** ${classObj.desc}`);
-        lines.push('');
+        lines.push(`### ⚔️ Полное описание класса: ${classObj.name}`);
+        lines.push(...formatObjDetails(classObj), '');
     }
     // =========================================================================
     // СТРАНИЦА 1: БОЙ, ЗАЩИТА, ХАРАКТЕРИСТИКИ И НАВЫКИ
@@ -115,17 +158,20 @@ export function buildCharacterMarkdown(hero) {
     lines.push('## 📄 Страница 1: Бой, Защита и Навыки');
     lines.push('');
 
-    lines.push('### ❤️ Здоровье, Скорость и Класс Брони');
+    lines.push('### ❤️ Здоровье, Скорость, Доспех и Щит');
     lines.push('| ❤️ Макс. ПЗ | 🩸 Текущие ПЗ | 💠 Врем. ПЗ | 👟 Скорость | 🛡️ Итоговый КБ |');
     lines.push('| :---: | :---: | :---: | :---: | :---: |');
     lines.push(`| **${s.hpMax ?? 10}** | ${s.hpCurrent ?? 10} | ${s.hpTemp ?? 0} | ${s.speed ?? 25} фт. | **${s.ac ?? 10}** |`);
     lines.push('');
 
-    lines.push('**Детализация КБ, Доспехов и Щита:**');
-    lines.push(`- **Доспех:** ${safeCell(s.armorName)} (${armorTypeMap[s.armorType] || s.armorType})`);
+    lines.push(`- **Доспех:** **${safeCell(s.armorName)}** (${armorTypeMap[s.armorType] || s.armorType})`);
     lines.push(`- **Формула КБ:** 10 + ${s.acDex ?? 0} (Лвк) + ${s.acProf ?? 0} (Умение) + ${s.acItem ?? 0} (Предмет) + ${s.acOther ?? 0} (Прочее) = **${s.ac ?? 10}**`);
     lines.push(`- **Штраф проверки доспеха:** ${s.acArmorPenalty ?? 0}`);
     lines.push(`- **🛡️ Щит:** Бонус при поднятии **+${s.acShieldBonus ?? 0}** | Твёрдость: **${s.acShieldHardness ?? 0}** | Текущие ПЗ щита: **${s.acShieldHp ?? 0}**`);
+    if (armorObj) {
+        lines.push(`- **Справочные данные доспеха (${armorObj.name}):**`);
+        lines.push(...formatObjDetails(armorObj).map(l => `  ${l}`));
+    }
     lines.push('');
 
     lines.push('### ⚔️ Модификаторы характеристик');
@@ -137,18 +183,16 @@ export function buildCharacterMarkdown(hero) {
     lines.push('### 👁️ Внимание и Испытания (Спасброски)');
     lines.push('| Параметр | Итоговый модификатор | Бонус умения | Ранг владения |');
     lines.push('| :--- | :---: | :---: | :--- |');
-    const savesList = [
+    [
         ['👁️ Внимание (Мдр)', s.perception, s.saveProf_perc],
         ['🛡️ Стойкость (Вын)', s.fortitude, s.saveProf_fort],
         ['⚡ Реакция (Лвк)', s.reflex, s.saveProf_ref],
         ['🧠 Воля (Мдр)', s.will, s.saveProf_will]
-    ];
-    savesList.forEach(([label, total, prof]) => {
+    ].forEach(([label, total, prof]) => {
         lines.push(`| ${label} | **${fmtMod(total)}** | +${prof ?? 0} | ${profRankLabel(prof)} |`);
     });
     if (String(s.perceptionNotes || '').trim()) {
-        lines.push('');
-        lines.push('**Чувства и заметки по восприятию:**');
+        lines.push('\n**Чувства и заметки по восприятию:**');
         lines.push(`> ${String(s.perceptionNotes).trim().replace(/\r?\n/g, '\n> ')}`);
     }
     lines.push('');
@@ -167,8 +211,7 @@ export function buildCharacterMarkdown(hero) {
         lines.push(`| ${cleanLabel} | **${fmtMod(total)}** | +${prof} | ${profRankLabel(prof)} | ${note} |`);
     });
     if (String(s.skillOtherNotes || '').trim()) {
-        lines.push('');
-        lines.push('**Знания (Lore), языки и прочие навыки:**');
+        lines.push('\n**Знания (Lore), языки и прочие навыки:**');
         lines.push(`> ${String(s.skillOtherNotes).trim().replace(/\r?\n/g, '\n> ')}`);
     }
     lines.push('');
@@ -181,36 +224,28 @@ export function buildCharacterMarkdown(hero) {
     ].filter(w => String(w.name || '').trim() || String(w.atk || '').trim() || String(w.dmg || '').trim());
 
     if (weapons.length > 0) {
-        lines.push('| Слот | Оружие | Атака | Урон | Дескрипторы |');
-        lines.push('| :--- | :--- | :---: | :---: | :--- |');
-        weapons.forEach(w => {
-            lines.push(`| ${w.type} | **${safeCell(w.name)}** | **${safeCell(w.atk)}** | ${safeCell(w.dmg)} | ${safeCell(w.traits)} |`);
-        });
-        lines.push('');
-
         weapons.forEach(w => {
             const catItem = findInCatalog(w.isRanged ? PF2E_RANGED_WEAPONS : PF2E_MELEE_WEAPONS, w.name);
+            lines.push(`#### ⚔️ ${w.type}: ${w.name || 'Оружие'}`);
+            lines.push(`- **Атака:** **${safeCell(w.atk)}** | **Урон:** **${safeCell(w.dmg)}**`);
+            lines.push(`- **Дескрипторы:** ${safeCell(w.traits || catItem?.traits, 'Нет')}`);
             if (catItem) {
+                lines.push(...formatObjDetails(catItem, ['id', 'name', 'finesse', 'dmgMode', 'traits']));
                 const critText = getWeaponCritEffect(catItem.group);
-                lines.push(`- **${catItem.name}** (${catItem.category}, группа «${catItem.group}», рук: ${catItem.hands}):`);
-                lines.push(`  - *Дескрипторы:* ${catItem.traits || 'Нет'}`);
-                if (critText) {
-                    lines.push(`  - *Критический эффект специализации:* ${critText}`);
-                }
+                if (critText) lines.push(`- **Критический эффект специализации (${catItem.group}):** ${critText}`);
             }
+            lines.push('');
         });
     } else {
-        lines.push('_Оружие не заполнено._');
+        lines.push('_Оружие не заполнено._\n');
     }
     if (String(s.weaponProfNotes || '').trim()) {
-        lines.push('');
         lines.push('**Умения в оружии и боевые заметки:**');
-        lines.push(`> ${String(s.weaponProfNotes).trim().replace(/\r?\n/g, '\n> ')}`);
+        lines.push(`> ${String(s.weaponProfNotes).trim().replace(/\r?\n/g, '\n> ')}\n`);
     }
-    lines.push('');
 
     lines.push('### ⚔️ Боевые черты класса, народа и архетипов');
-    const featLevels =[1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+    const featLevels = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
     const filledFeats = featLevels
         .map(lvl => ({
             lvl,
@@ -221,8 +256,14 @@ export function buildCharacterMarkdown(hero) {
 
     if (filledFeats.length > 0) {
         filledFeats.forEach(f => {
+            const catFeat = findInCatalog(allFeatsPool, f.name);
             lines.push(`#### 🔹 Уровень ${f.lvl}: ${f.name || 'Без названия'}`);
-            lines.push(f.desc ? f.desc : '_Описание не заполнено._');
+            if (f.desc) lines.push(f.desc);
+            if (catFeat) {
+                if (!f.desc && (catFeat.desc || catFeat.notes)) lines.push(catFeat.desc || catFeat.notes);
+                lines.push(...formatObjDetails(catFeat, ['id', 'name', 'desc', 'notes']));
+            }
+            if (!f.desc && !catFeat) lines.push('_Описание не заполнено._');
             lines.push('');
         });
     } else {
@@ -235,10 +276,12 @@ export function buildCharacterMarkdown(hero) {
     lines.push('## 📜 Страница 2: Магия, Снаряжение, Спутники и Заметки');
     lines.push('');
 
+
+
     lines.push('### ✨ Сотворение заклинаний');
-    lines.push(`- **Атака заклинанием:** **${fmtMod(s.spellAttack)}** | **СЛ заклинаний:** **${s.spellDc ?? 10}**`);
-    lines.push(`- **Фокусов в день:** ${s.cantripsPerDay ?? 5} | **Фокальные пункты (ФП):** ${s.focusCurrent ?? 1} / ${s.focusMax ?? 1}`);
-    lines.push(`- **Ячейки заклинаний:** 1 круг — **${s.lvl1PerDay ?? 0}** / день | 2 круг — **${s.lvl2PerDay ?? 0}** / день`);
+    lines.push('| 🔮 Атака заклинанием | 🎯 СЛ заклинаний | ✨ Фокусов/день | 💠 Фокальные пункты | 1️⃣ Ячейки 1 круга | 2️⃣ Ячейки 2 круга |');
+    lines.push('| :---: | :---: | :---: | :---: | :---: | :---: |');
+    lines.push(`| **${fmtMod(s.spellAttack)}** | **${s.spellDc ?? 10}** | ${s.cantripsPerDay ?? 5} | **${s.focusCurrent ?? 1} / ${s.focusMax ?? 1}** | ${s.lvl1PerDay ?? 0} | ${s.lvl2PerDay ?? 0} |`);
     lines.push('');
 
     const renderSpellSection = (title, prefix, max, catalog, hasReady = false) => {
@@ -256,18 +299,30 @@ export function buildCharacterMarkdown(hero) {
         if (!list.length) return false;
 
         lines.push(`#### ${title}`);
-        list.forEach(sp => {
-            const readyBadge = hasReady ? (sp.ready ? '✅ Подготовлено | ' : '⬜ Не подготовлено | ') : '';
-            const actText = sp.actions || sp.catMatch?.actions || '—';
-            const metaText = sp.catMatch?.traditions
-                ? `Традиции: ${sp.catMatch.traditions.join(', ')}`
-                : (sp.catMatch?.source ? `Источник: ${sp.catMatch.source}` : '');
+        if (hasReady) {
+            lines.push('| Подг. | Заклинание | Действия / Дист. | Традиции / Источник | Полное описание и эффект |');
+            lines.push('| :---: | :--- | :---: | :--- | :--- |');
+        } else {
+            lines.push('| # | Заклинание | Действия / Дист. | Традиции / Источник | Полное описание и эффект |');
+            lines.push('| :---: | :--- | :---: | :--- | :--- |');
+        }
 
-            lines.push(`- **${sp.idx}. ${sp.name || 'Без названия'}** (${readyBadge}Действия/дист.: \`${actText}\`${metaText ? ` | ${metaText}` : ''})`);
-            const fullNotes = sp.notes || sp.catMatch?.notes || '';
-            if (fullNotes) {
-                lines.push(`  > ${fullNotes.replace(/\r?\n/g, '\n  > ')}`);
-            }
+        list.forEach(sp => {
+            const firstCol = hasReady ? (sp.ready ? '✅' : '⬜') : `${sp.idx}`;
+            const actText = sp.actions || sp.catMatch?.actions || '—';
+
+            const metaParts = [];
+            if (sp.catMatch?.traditions) metaParts.push(sp.catMatch.traditions.join(', '));
+            if (sp.catMatch?.source) metaParts.push(sp.catMatch.source);
+            const metaCell = safeCell(metaParts.join('<br>'), '—');
+
+            const fullNotes = [sp.notes, sp.catMatch?.notes]
+                .filter(Boolean)
+                .filter((v, idx, arr) => arr.indexOf(v) === idx)
+                .join('\n\n');
+            const descCell = safeCell(fullNotes, '—');
+
+            lines.push(`| ${firstCol} | **${safeCell(sp.name, 'Без названия')}** | \`${safeCell(actText)}\` | ${metaCell} | ${descCell} |`);
         });
         lines.push('');
         return true;
@@ -282,8 +337,13 @@ export function buildCharacterMarkdown(hero) {
         lines.push('_Заклинания не заполнены._\n');
     }
 
+
+
+
     lines.push('### 🎒 Снаряжение и Монеты');
-    lines.push(`- **Кошелёк:** 🥇 **${s.coinsGold ?? 0}** ЗМ | 🥈 **${s.coinsSilver ?? 0}** СМ | 🥉 **${s.coinsCopper ?? 0}** ММ`);
+    lines.push('| 🥇 Золотые (ЗМ) | 🥈 Серебряные (СМ) | 🥉 Медные (ММ) |');
+    lines.push('| :---: | :---: | :---: |');
+    lines.push(`| **${s.coinsGold ?? 0}** | **${s.coinsSilver ?? 0}** | **${s.coinsCopper ?? 0}** |`);
     lines.push('');
 
     const items = [];
@@ -298,54 +358,68 @@ export function buildCharacterMarkdown(hero) {
     }
 
     if (items.length > 0) {
+        lines.push('| # | Предмет | Кол-во | Характеристики | Полное описание и эффект |');
+        lines.push('| :---: | :--- | :---: | :--- | :--- |');
+
         items.forEach(it => {
             const metaParts = [];
-            if (it.catItem?.category) metaParts.push(it.catItem.category);
+            if (it.catItem?.category) metaParts.push(`Кат.: ${it.catItem.category}`);
+            if (it.catItem?.level !== undefined) metaParts.push(`Ур.: ${it.catItem.level}`);
             if (it.catItem?.price) metaParts.push(`Цена: ${it.catItem.price}`);
             if (it.catItem?.bulk) metaParts.push(`Масса: ${it.catItem.bulk}`);
-            const metaStr = metaParts.length ? ` — *${metaParts.join(', ')}*` : '';
+            if (it.catItem?.traits) metaParts.push(`Дескр.: ${it.catItem.traits}`);
+            const metaCell = safeCell(metaParts.join('<br>'), '—');
 
-            lines.push(`- **${it.idx}. ${it.name || 'Предмет'}** (×${it.qty})${metaStr}`);
-            const fullDesc = it.notes || it.catItem?.notes || '';
-            if (fullDesc) {
-                lines.push(`  > ${fullDesc.replace(/\r?\n/g, '\n  > ')}`);
-            }
+            const fullDesc = [it.notes, it.catItem?.notes, it.catItem?.desc]
+                .filter(Boolean)
+                .filter((v, idx, arr) => arr.indexOf(v) === idx)
+                .join('\n\n');
+            const descCell = safeCell(fullDesc, '—');
+
+            lines.push(`| ${it.idx} | **${safeCell(it.name, 'Предмет')}** | ×${it.qty} | ${metaCell} | ${descCell} |`);
         });
     } else {
         lines.push('_Рюкзак пуст._');
     }
     lines.push('');
 
+
+
     lines.push('### 🐾 Спутники');
-    const compTypeLabels = {
-        none: 'Нет',
-        companion: '🐅 Верный зверь',
-        familiar: '🦉 Фамильяр'
-    };
+    const compTypeLabels = { none: 'Нет', companion: '🐅 Верный зверь', familiar: '🦉 Фамильяр' };
     if ((s.compType && s.compType !== 'none') || String(s.compName || '').trim() || String(s.compAbilitiesText || '').trim()) {
-        lines.push(`- **Тип спутника:** ${compTypeLabels[s.compType] || s.compType}`);
-        lines.push(`- **Имя / Вид:** **${safeCell(s.compName)}**`);
-        lines.push(`- **Параметры:** ❤️ ПЗ **${s.compHpCur ?? 0} / ${s.compHpMax ?? 0}** | 🛡️ КБ **${s.compAc ?? 10}** | 👟 Скорость **${s.compSpeed ?? 25} фт.**`);
+        lines.push('| Тип спутника | Имя / Вид | ❤️ ПЗ (Тек. / Макс.) | 🛡️ КБ | 👟 Скорость |');
+        lines.push('| :---: | :--- | :---: | :---: | :---: |');
+        lines.push(`| ${compTypeLabels[s.compType] || safeCell(s.compType)} | **${safeCell(s.compName)}** | **${s.compHpCur ?? 0} / ${s.compHpMax ?? 0}** | **${s.compAc ?? 10}** | ${s.compSpeed ?? 25} фт. |`);
+        lines.push('');
 
         const speciesObj = s.compSpeciesId
             ? (PF2E_COMPANION_ABILITIES || []).find(x => x.id === s.compSpeciesId)
             : findInCatalog(PF2E_COMPANION_ABILITIES, s.compName);
 
+        const compDetails = [];
         if (speciesObj) {
-            lines.push('');
-            lines.push(`**Справочные характеристики вида (${speciesObj.name}):**`);
-            lines.push(`> ${speciesObj.desc.replace(/\r?\n/g, '\n> ')}`);
+            const specLines = formatObjDetails(speciesObj, ['id', 'name', 'type', 'hasTough'])
+                .map(l => l.replace(/^- /, ''));
+            compDetails.push([`Справочные характеристики вида (${speciesObj.name})`, safeCell(specLines.join('<br>'))]);
+        }
+        if (String(s.compAbilitiesText || '').trim()) {
+            compDetails.push(['Активные способности и расчёт параметров', safeCell(s.compAbilitiesText)]);
         }
 
-        if (String(s.compAbilitiesText || '').trim()) {
-            lines.push('');
-            lines.push('**Активные способности и расчёт параметров спутника:**');
-            lines.push(`> ${String(s.compAbilitiesText).trim().replace(/\r?\n/g, '\n> ')}`);
+        if (compDetails.length > 0) {
+            lines.push('| Раздел | Полное описание |');
+            lines.push('| :--- | :--- |');
+            compDetails.forEach(([title, text]) => {
+                lines.push(`| **${title}** | ${text} |`);
+            });
         }
     } else {
         lines.push('_Спутник отсутствует._');
     }
     lines.push('');
+
+
 
     lines.push('### 📖 Журнал приключений');
     lines.push(String(s.adventureLogText || '').trim() ? String(s.adventureLogText).trim() : '_Записей нет._');
