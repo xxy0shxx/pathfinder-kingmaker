@@ -747,25 +747,29 @@ export function calculateCharacterBulk(stats) {
     let lightCount = 0;
     let heavyBulk = 0;
 
+    // 1. Точный словарь масс для всех предметов из items_catalog.js (в десятых долях: 1 = 1 Л, 10 = 1 Масса)
     const knownBulkTenths = [
         { keys: ['набор искателя приключений', 'adventurer'], tenths: 10 },
         { keys: ['сух. паек', 'сухой паек', 'рацион', 'rations'], tenths: 1 },
         { keys: ['веревка', 'верёвка', 'rope'], tenths: 10 },
         { keys: ['крюк-кошка', 'grappling'], tenths: 1 },
         { keys: ['факел', 'torch'], tenths: 1 },
-        { keys: ['фонарь', 'lantern'], tenths: 1 },
+        { keys: ['направленный фонарь', 'фонарь', 'lantern'], tenths: 1 },
         { keys: ['спальник', 'bedroll'], tenths: 1 },
         { keys: ['ломик', 'crowbar'], tenths: 1 },
         { keys: ['набор лекаря', 'healer'], tenths: 10 },
         { keys: ['воровские инструменты', 'thieves'], tenths: 1 },
+        { keys: ['ремонтный набор', 'repair'], tenths: 10 },
         { keys: ['набор алхимика', 'alchemist'], tenths: 20 },
         { keys: ['набор скалолаза', 'climbing'], tenths: 10 },
         { keys: ['набор для маскировки', 'disguise'], tenths: 1 },
+        { keys: ['священный символ', 'кошель с компонентами'], tenths: 1 },
         { keys: ['кандалы', 'manacles'], tenths: 1 },
-        { keys: ['стальной щит', 'деревянный щит', 'steel shield', 'wooden shield'], tenths: 10 },
         { keys: ['башенный щит', 'tower shield'], tenths: 40 },
         { keys: ['баклер', 'buckler'], tenths: 1 },
+        { keys: ['щит', 'shield'], tenths: 10 }, // Стальной, деревянный, прочные и магические щиты = 1 Масса
         { keys: ['пояс силача', 'lifting belt'], tenths: 1 },
+        { keys: ['руна', 'rune'], tenths: 0 }, // Нанесённые руны не имеют отдельного веса
         { keys: ['ингредиент', 'ingredient'], tenths: 0 }
     ];
 
@@ -777,6 +781,7 @@ export function calculateCharacterBulk(stats) {
         return null;
     };
 
+    // 2. Подсчёт всех 15 слотов рюкзака
     for (let i = 1; i <= 15; i++) {
         const name = String(stats?.[`item${i}Name`] || '').trim();
         const qty = Math.max(0, Number(stats?.[`item${i}Qty`]) || 0);
@@ -824,29 +829,43 @@ export function calculateCharacterBulk(stats) {
     let armorTenths = 0;
     let weaponsTenths = 0;
 
+    // 3. Точный учёт надетого доспеха с 1-й страницы (по правилам PF2e)
     const armorType = String(stats?.armorType || 'unarmored');
-    const armorName = String(stats?.armorName || '').toLowerCase();
-    if (armorType === 'light' || (armorName && armorType === 'unarmored' && !armorName.includes('без брони'))) {
-        armorTenths = 10;
+    const armorName = String(stats?.armorName || '').toLowerCase().replace(/ё/g, 'е');
+    if (armorType === 'unarmored') {
+        if (armorName && !armorName.includes('без брони') && (armorName.includes('одежда') || armorName.includes('роба') || armorName.includes('ги'))) {
+            armorTenths = 1; // 1 Л
+        }
+    } else if (armorType === 'light') {
+        armorTenths = /(стеган|стёган|шелк|шёлк|лиственн)/i.test(armorName) ? 1 : 10; // Стёганка/Шёлк = Л, остальная лёгкая = 1
     } else if (armorType === 'medium') {
-        armorTenths = 20;
+        armorTenths = 20; // Вся средняя броня = 2 Массы
     } else if (armorType === 'heavy') {
-        armorTenths = 30;
+        armorTenths = /(полные латы|крепостные латы|латы бастиона|рыцарей преисподней|серых дев|о-ерой|горный)/i.test(armorName) ? 40 : 30; // Тяжёлые латы = 4, полулаты/пластинчатый = 3
     }
     heavyBulk += Math.floor(armorTenths / 10);
+    lightCount += armorTenths % 10;
 
+    // 4. Точный учёт оружия с 1-й страницы (лёгкое = 1 Л, одноручное = 1, двуручное/луки/арбалеты = 2)
     ['melee1Name', 'melee2Name', 'rangedName'].forEach(wKey => {
-        const wName = String(stats?.[wKey] || '').trim().toLowerCase();
+        const wName = String(stats?.[wKey] || '').trim().toLowerCase().replace(/ё/g, 'е');
         if (!wName) return;
-        if (/кинжал|нож|дротик|праща|сюрикен|стилет|кастет|кулак/i.test(wName)) {
-            weaponsTenths += 1;
-            lightCount += 1;
-        } else {
-            weaponsTenths += 10;
-            heavyBulk += 1;
+
+        let wTenths = 10; // По умолчанию 1 Масса за одноручное оружие
+        if (/кулак|безоруж|рукавиц|кастет/i.test(wName)) {
+            wTenths = 0;
+        } else if (/кинжал|нож|дага|серп|дротик|праща|сюрикен|стилет|духовая|трубка|вакидзаси|собакорез|топорик|легк|лёгк|кнут|умбон|шипы/i.test(wName)) {
+            wTenths = 1; // 1 Л
+        } else if (/двуруч|алебард|глефа|гвизарма|рунка|нагината|нодати|коса|палица|кувалда|фальшион|длинное копь|рыцарское копь|боевой посох|боевой цеп|метеоритный|кусаригама|шипастая цепь|изогнутый клинок|длинный лук|тяжелый арбалет|тяжёлый арбалет|аркебуза|мушкет|мушкетон|стреломет|стреломёт|праща-посох/i.test(wName)) {
+            wTenths = 20; // 2 Массы
         }
+
+        weaponsTenths += wTenths;
+        heavyBulk += Math.floor(wTenths / 10);
+        lightCount += wTenths % 10;
     });
 
+    // 5. Учёт монет (1000 монет = 1 Масса)
     const totalCoins = (Number(stats?.coinsCopper) || 0) + (Number(stats?.coinsSilver) || 0) + (Number(stats?.coinsGold) || 0);
     const coinsTenths = Math.floor(totalCoins / 1000) * 10;
     heavyBulk += Math.floor(coinsTenths / 10);
