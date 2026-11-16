@@ -11,6 +11,7 @@ import { downloadCharacterMarkdown } from './sheet_md_exporter.js';
 import { exportCharacterToPdf } from './sheet_pdf_exporter.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
+import { calculateCharacterBulk } from '../../config/items_catalog.js';
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -430,11 +431,16 @@ function buildPage2Html(stats) {
             <div class="bst-sheet-col">
                 <div class="k-panel" style="margin-bottom: 10px;">
                     <div class="k-sec-title">🎒 Снаряжение и Монеты</div>
-                    <div class="bst-coins-row">
-                        <label>🥉 ММ: ${numInp(stats, 'coinsCopper', 'bst-mini-num')}</label>
-                        <label>🥈 СМ: ${numInp(stats, 'coinsSilver', 'bst-mini-num')}</label>
-                        <label>🥇 ЗМ: ${numInp(stats, 'coinsGold', 'bst-mini-num')}</label>
+                    
+                    <div class="bst-coins-row" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label>🥉 ММ: ${numInp(stats, 'coinsCopper', 'bst-mini-num')}</label>
+                            <label>🥈 СМ: ${numInp(stats, 'coinsSilver', 'bst-mini-num')}</label>
+                            <label>🥇 ЗМ: ${numInp(stats, 'coinsGold', 'bst-mini-num')}</label>
+                        </div>
+                        <div id="bstBulkCounterBadge" style="padding: 4px 10px; border-radius: 5px; border: 1px solid #543e0d; background: rgba(4, 9, 5, 0.85); font-size: 13px; font-weight: bold;"></div>
                     </div>
+                    
                     <table class="k-table bst-cantrips-table bst-items-table"><tbody>${itemsRows}</tbody></table>
                 </div>
                 
@@ -777,6 +783,37 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         });
     } else {
         initPage2Pickers(overlay, hero);
+
+        const refreshBulkBadge = () => {
+            collectFormData(overlay, hero);
+            const b = calculateCharacterBulk(hero.stats);
+            const badge = overlay.querySelector('#bstBulkCounterBadge');
+            if (!badge) return;
+
+            const bulkStr = `${b.totalBulk}${b.remLight > 0 ? ` и ${b.remLight} Л` : ''}`;
+            if (b.isOverloaded) {
+                badge.style.borderColor = '#e74c3c';
+                badge.style.color = '#ff7675';
+                badge.innerHTML = `🚫 Масса: <b>${bulkStr}</b> / ${b.encumberedLimit} (Макс. ${b.maxLimit}) — НЕЛЬЗЯ ПОДНЯТЬ!`;
+            } else if (b.isEncumbered) {
+                badge.style.borderColor = '#f39c12';
+                badge.style.color = '#fdcb6e';
+                badge.innerHTML = `⚠️ Перегрузка: <b>${bulkStr}</b> / ${b.encumberedLimit} (Неуклюжесть 1, −10 фт. скорости)`;
+            } else {
+                badge.style.borderColor = '#2ecc71';
+                badge.style.color = '#2ecc71';
+                badge.innerHTML = `🎒 Масса: <b>${bulkStr}</b> / ${b.encumberedLimit} (Макс. ${b.maxLimit})`;
+            }
+        };
+
+        overlay.querySelectorAll('.bst-items-table input, [data-sheet-num^="coins"]').forEach(el => {
+            el.addEventListener('input', refreshBulkBadge);
+            el.addEventListener('change', refreshBulkBadge);
+        });
+        overlay.querySelectorAll('.bst-qty-btn').forEach(btn => {
+            btn.addEventListener('click', () => setTimeout(refreshBulkBadge, 10));
+        });
+        refreshBulkBadge();
 
         // 1. Тултипы всех 4 типов заклинаний (фокусы, фокальные, 1 и 2 круг)
         const magicGroups = [

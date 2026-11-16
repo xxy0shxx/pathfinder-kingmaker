@@ -614,6 +614,7 @@ export function initPage2Pickers(overlay, hero) {
                     hero.stats.skillItemBonuses[sk] = Math.max(curB, Number(found.skillBonus.bonus) || 0);
                 }
 
+                if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
     });

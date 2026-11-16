@@ -734,3 +734,132 @@ export function isCombatConsumable(itemName, itemNotes = '') {
     const text = `${cleanName} ${String(itemNotes || '').toLowerCase().replace(/ё/g, 'е')}`;
     return /(зель|эликсир|бомб|склянк|свиток|масл|талисман|противояд|античум)/i.test(text);
 }
+
+/**
+ * Подсчитывает общую массу (Bulk) снаряжения и монет персонажа по правилам Pathfinder 2e
+ * (10 Л = 1 Масса; 1000 монет = 1 Масса; лимит без перегрузки = 5 + СИЛ; максимум = 10 + СИЛ)
+ */
+export function calculateCharacterBulk(stats) {
+    const strMod = Number(stats?.str) || 0;
+    // Пояс силача (Lifting Belt) даёт +1 к максимальной переносимой массе
+    let extraLimit = 0;
+
+    let lightCount = 0;
+    let heavyBulk = 0;
+
+    // 1. Встроенный словарь масс для базовых предметов PF2e (в десятых долях Массы: 1 = 1 Л, 10 = 1 Масса)
+    const knownBulkTenths = [
+        { keys: ['набор искателя приключений', 'adventurer'], tenths: 10 }, // 2 Массы минус 1 (рюкзак надет)
+        { keys: ['сух. паек', 'сухой паек', 'рацион', 'rations'], tenths: 1 }, // 1 Л за 1 день (7 дней = 1 Масса)
+        { keys: ['веревка', 'верёвка', 'rope'], tenths: 10 },
+        { keys: ['крюк-кошка', 'grappling'], tenths: 1 },
+        { keys: ['факел', 'torch'], tenths: 1 },
+        { keys: ['фонарь', 'lantern'], tenths: 1 },
+        { keys: ['спальник', 'bedroll'], tenths: 1 },
+        { keys: ['ломик', 'crowbar'], tenths: 1 },
+        { keys: ['набор лекаря', 'healer'], tenths: 10 },
+        { keys: ['воровские инструменты', 'thieves'], tenths: 1 },
+        { keys: ['набор алхимика', 'alchemist'], tenths: 20 },
+        { keys: ['набор скалолаза', 'climbing'], tenths: 10 },
+        { keys: ['набор для маскировки', 'disguise'], tenths: 1 },
+        { keys: ['кандалы', 'manacles'], tenths: 1 },
+        { keys: ['стальной щит', 'деревянный щит', 'steel shield', 'wooden shield'], tenths: 10 },
+        { keys: ['башенный щит', 'tower shield'], tenths: 40 },
+        { keys: ['баклер', 'buckler'], tenths: 1 },
+        { keys: ['пояс силача', 'lifting belt'], tenths: 1 },
+        { keys: ['ингредиент', 'ingredient'], tenths: 0 } // мелкие травы/припасы в мешочке
+    ];
+
+    const parseBulkTenths = (rawText) => {
+        const s = String(rawText || '').toLowerCase();
+        const mHeavy = s.match(/масс[аы]\s*[:\-]?\s*(\d+)/i);
+        if (mHeavy && mHeavy[1]) return (parseInt(mHeavy[1], 10) || 0) * 10;
+        if (/(?:^|[\s(,])(?:масс[аы]\s*)?л(?:[\s).,]|$)/i.test(s)) return 1;
+        return null;
+    };
+
+    // 2. Подсчёт всех 15 слотов рюкзака
+    for (let i = 1; i <= 15; i++) {
+        const name = String(stats?.[`item${i}Name`] || '').trim();
+        const qty = Math.max(0, Number(stats?.[`item${i}Qty`]) || 0);
+        const notes = String(stats?.[`item${i}Notes`] || '').trim();
+        if ((!name && !notes) || qty === 0) continue;
+
+        const cleanName = name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
+        if (cleanName.includes('пояс силача') || cleanName.includes('lifting belt')) {
+            extraLimit = Math.max(extraLimit, 1);
+        }
+
+        const found = PF2E_ITEMS_CATALOG.find(it => {
+            const target = it.name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
+            return target === cleanName || (cleanName.length > 3 && target.includes(cleanName));
+        });
+
+        let unitTenths = null;
+        if (found?.bulk !== undefined) {
+            unitTenths = found.bulk === 'Л' ? 1 : (Number(found.bulk) || 0) * 10;
+        } else {
+            unitTenths = parseBulkTenths(notes) ?? (found ? parseBulkTenths(found.notes) : null);
+        }
+
+        if (unitTenths === null) {
+            const matchedKnown = knownBulkTenths.find(entry => entry.keys.some(k => cleanName.includes(k)));
+            if (matchedKnown) unitTenths = matchedKnown.tenths;
+        }
+
+        if (unitTenths === null && found) {
+            if (/^(Зелье|Эликсир|Бомба|Свиток|Талисман|Масло|Посох|Жезл|Носимый)/i.test(found.category)) {
+                unitTenths = 1;
+            } else if (/Инструменты/i.test(found.category)) {
+                unitTenths = 10;
+            }
+        }
+
+        if (unitTenths) {
+            const itemTotalTenths = unitTenths * qty;
+            heavyBulk += Math.floor(itemTotalTenths / 10);
+            lightCount += itemTotalTenths % 10;
+        }
+    }
+
+    // 3. Учёт надетого доспеха с 1-й страницы (по типу брони PF2e)
+    const armorType = String(stats?.armorType || 'unarmored');
+    const armorName = String(stats?.armorName || '').toLowerCase();
+    if (armorType === 'light' || (armorName && armorType === 'unarmored' && !armorName.includes('без брони'))) {
+        heavyBulk += 1;
+    } else if (armorType === 'medium') {
+        heavyBulk += 2;
+    } else if (armorType === 'heavy') {
+        heavyBulk += 3;
+    }
+
+    // 4. Учёт оружия с 1-й страницы (по умолчанию 1 Масса за каждое заполненное оружие, 1 Л для кинжалов/пращей)
+    ['melee1Name', 'melee2Name', 'rangedName'].forEach(wKey => {
+        const wName = String(stats?.[wKey] || '').trim().toLowerCase();
+        if (!wName) return;
+        if (/кинжал|нож|дротик|праща|сюрикен|стилет|кастет|кулак/i.test(wName)) {
+            lightCount += 1;
+        } else {
+            heavyBulk += 1;
+        }
+    });
+
+    // 5. Учёт монет (1000 монет = 1 Масса)
+    const totalCoins = (Number(stats?.coinsCopper) || 0) + (Number(stats?.coinsSilver) || 0) + (Number(stats?.coinsGold) || 0);
+    heavyBulk += Math.floor(totalCoins / 1000);
+
+    const encumberedLimit = Math.max(0, 5 + strMod + extraLimit);
+    const maxLimit = Math.max(0, 10 + strMod + extraLimit);
+
+    const totalBulk = heavyBulk + Math.floor(lightCount / 10);
+    const remLight = lightCount % 10;
+
+    return {
+        totalBulk,
+        remLight,
+        encumberedLimit,
+        maxLimit,
+        isOverloaded: totalBulk > maxLimit,
+        isEncumbered: totalBulk > encumberedLimit
+    };
+}
