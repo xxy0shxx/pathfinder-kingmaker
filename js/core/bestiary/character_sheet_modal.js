@@ -486,7 +486,8 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
 
                 // Пересчет ПЗ и КБ спутника под новый уровень хозяина
                 if (hero.stats.compType === 'familiar') {
-                    const hasTough = String(hero.stats.compAbilitiesText || '').includes('Живучий');
+                    const famSpecies = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
+                    const hasTough = famSpecies?.hasTough || String(hero.stats.compAbilitiesText || '').includes('Живучий');
                     hero.stats.compHpMax = (5 + (hasTough ? 2 : 0)) * newLvl;
                     hero.stats.compHpCur = hero.stats.compHpMax;
                     hero.stats.compAc = 10 + newLvl + 2;

@@ -367,7 +367,7 @@ export function initPage2Pickers(overlay, hero) {
     });
 
 
-    // 4. Способности и виды спутников (жёсткая перезапись статов и инфо-блока с расшифровкой формул)
+    // 4. Способности и виды спутников (единое поведение для зверей и фамильяров)
     const compInp = overlay.querySelector('.bst-comp-ability-picker');
     const typeSel = overlay.querySelector('.bst-comp-type-selector');
     const hiddenTextInp = overlay.querySelector('[data-sheet-txt="compAbilitiesText"]');
@@ -395,7 +395,23 @@ export function initPage2Pickers(overlay, hero) {
         }
     };
 
-    const stripEmoji = (str) => String(str || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+    const setCompName = (newName, force = false) => {
+        const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
+        const curVal = (nameInp ? nameInp.value : hero.stats.compName || '').trim();
+        if (force || !curVal || curVal === 'Фамильяр') {
+            if (nameInp) {
+                nameInp.value = newName;
+                nameInp.setAttribute('value', newName);
+            }
+            hero.stats.compName = newName;
+        }
+    };
+
+    // Убирает эмодзи в начале и пометки в скобках вроде "(Фамильяр)" или "(Особ., 5 спос.)"
+    const cleanSpeciesName = (str) => String(str || '')
+        .replace(/^[^\p{L}\p{N}]+/u, '')
+        .replace(/\s*\((?:Фамильяр|Особ\.[^)]*|\d+\+\s*ур\.)\)\s*$/i, '')
+        .trim();
 
     const buildBeastFormulaHint = (species, lvl, totalHp, totalAc, extraHp = 0, extraAc = 0) => {
         const con = species.con || 0;
@@ -409,7 +425,7 @@ export function initPage2Pickers(overlay, hero) {
     };
 
     bindAutocomplete(compInp, overlay.querySelector('[data-comp-drop="1"]'), {
-        width: 400,
+        width: 420,
         getItems: (q) => searchCompanionAbilities(q, typeSel ? typeSel.value : 'all'),
         renderOption: (a) => `
             <div class="bst-cantrip-opt-top"><b>${a.name}</b></div>
@@ -421,7 +437,7 @@ export function initPage2Pickers(overlay, hero) {
                 !found.id.startsWith('comp_opt_') &&
                 !found.id.startsWith('comp_spec_');
 
-            // 1. Выбран вид Верного зверя -> полностью перезаписываем статы, имя и карточку с расшифровкой
+            // 1. Выбран вид Верного зверя
             if (isBeastSpecies) {
                 hero.stats.compSpeciesId = found.id;
                 if (typeSel) {
@@ -429,31 +445,13 @@ export function initPage2Pickers(overlay, hero) {
                     hero.stats.compType = 'companion';
                 }
 
-                let calc = calcCompanionStats(found, lvl);
-                if (!calc) {
-                    const spdMatch = found.desc.match(/Скорость\s*(\d+)/i);
-                    const hpBonus = found.desc.includes('+8') ? 8 : 6;
-                    const acBonus = found.desc.includes('эксперт') ? 4 : 2;
-                    calc = {
-                        hpMax: hpBonus + 7 * lvl,
-                        hpCur: hpBonus + 7 * lvl,
-                        ac: 10 + 2 + lvl + acBonus,
-                        speed: spdMatch ? parseInt(spdMatch[1], 10) : 25
-                    };
-                }
+                const calc = calcCompanionStats(found, lvl) || { hpMax: 6 + 7 * lvl, hpCur: 6 + 7 * lvl, ac: 14 + lvl, speed: 25 };
 
                 setCompNum('compHpMax', calc.hpMax);
                 setCompNum('compHpCur', calc.hpCur);
                 setCompNum('compAc', calc.ac);
                 setCompNum('compSpeed', calc.speed);
-
-                const cleanName = stripEmoji(found.name);
-                const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
-                if (nameInp) {
-                    nameInp.value = cleanName;
-                    nameInp.setAttribute('value', cleanName);
-                }
-                hero.stats.compName = cleanName;
+                setCompName(cleanSpeciesName(found.name), true);
 
                 const formulaHint = found.hpBase !== undefined
                     ? buildBeastFormulaHint(found, lvl, calc.hpMax, calc.ac)
@@ -498,25 +496,69 @@ export function initPage2Pickers(overlay, hero) {
                 return;
             }
 
-            // 3. Выбрана способность Фамильяра / Хозяина
+            // 3. Выбран готовый вид Фамильяра (базовый или особенный)
+            if (found.type === 'familiar_species') {
+                hero.stats.compSpeciesId = found.id;
+                if (typeSel) {
+                    typeSel.value = 'familiar';
+                    hero.stats.compType = 'familiar';
+                }
+
+                const calc = calcCompanionStats(found, lvl) || { hpMax: 5 * lvl, hpCur: 5 * lvl, ac: 12 + lvl, speed: 25 };
+                const hpPerLvl = found.hasTough ? 7 : 5;
+
+                setCompNum('compHpMax', calc.hpMax);
+                setCompNum('compHpCur', calc.hpCur);
+                setCompNum('compAc', calc.ac);
+                setCompNum('compSpeed', calc.speed);
+                setCompName(cleanSpeciesName(found.name), true);
+
+                const famHint = `📊 Расчёт (${lvl} ур.): ПЗ = ${hpPerLvl} (5${found.hasTough ? ' + 2 Живучий/Конструкция' : ''}) × ${lvl} ур. = ${calc.hpMax} | КБ = 10 + ${lvl} ур. + 2 ум. = ${calc.ac}`;
+                updateCompInfo(`${found.name}\n${famHint}\n${found.desc}`);
+                compInp.value = '';
+                return;
+            }
+
+            // 4. Выбрана дополнительная способность Фамильяра / Хозяина
             if (found.type === 'familiar' || found.type === 'master') {
                 if (typeSel) {
                     typeSel.value = 'familiar';
                     hero.stats.compType = 'familiar';
                 }
-                const calc = calcCompanionStats(found, lvl);
-                const isTough = found.id === 'fam_tough';
+
+                const baseFamiliar = (PF2E_COMPANION_ABILITIES || []).find(
+                    x => x.id === hero.stats.compSpeciesId && x.type === 'familiar_species'
+                );
+
+                setCompName(baseFamiliar ? cleanSpeciesName(baseFamiliar.name) : `Фамильяр (${cleanSpeciesName(found.name)})`, false);
+
+                const prevText = hero.stats.compAbilitiesText || '';
+                const existingExtra = prevText.split('\n').filter(line => line.startsWith('★ '));
+                const newAbilityLine = `★ ${found.name}: ${found.desc}`;
+                if (!existingExtra.includes(newAbilityLine)) {
+                    existingExtra.push(newAbilityLine);
+                }
+
+                const extraBlock = existingExtra.join('\n');
+                const isTough = found.id === 'fam_tough' || baseFamiliar?.hasTough || extraBlock.includes('Живучий');
+                const isFast = found.id === 'fam_fast_movement' || extraBlock.includes('Быстрое перемещение');
+
                 const hpPerLvl = isTough ? 7 : 5;
                 const finalHp = hpPerLvl * lvl;
-                const finalAc = calc ? calc.ac : 12 + lvl;
+                const finalAc = 12 + lvl;
+                const finalSpeed = isFast ? 40 : (baseFamiliar?.speed || 25);
 
                 setCompNum('compHpMax', finalHp);
                 setCompNum('compHpCur', finalHp);
                 setCompNum('compAc', finalAc);
-                setCompNum('compSpeed', found.id === 'fam_fast_movement' ? 40 : 25);
+                setCompNum('compSpeed', finalSpeed);
 
                 const famHint = `📊 Расчёт (${lvl} ур.): ПЗ = ${hpPerLvl} (5${isTough ? ' + 2 Живучий' : ''}) × ${lvl} ур. = ${finalHp} | КБ = 10 + ${lvl} ур. + 2 ум. = ${finalAc}`;
-                updateCompInfo(`${found.name}\n${famHint}\n${found.desc}`);
+                const headerInfo = baseFamiliar
+                    ? `${baseFamiliar.name}\n${famHint}\n${baseFamiliar.desc}`
+                    : `🦉 Фамильяр\n${famHint}\nКрошечное существо. КБ равен КБ хозяина без бонусов состояния/обстоятельств.`;
+
+                updateCompInfo(`${headerInfo}\n\n${extraBlock}`);
                 compInp.value = '';
             }
         }
@@ -529,6 +571,7 @@ export function initPage2Pickers(overlay, hero) {
 
             if (typeSel.value === 'familiar') {
                 hero.stats.compSpeciesId = '';
+                setCompName('Фамильяр', true);
                 const famHp = 5 * lvl;
                 const famAc = 12 + lvl;
                 setCompNum('compHpMax', famHp);
@@ -538,9 +581,7 @@ export function initPage2Pickers(overlay, hero) {
                 updateCompInfo(`🦉 Фамильяр\n📊 Расчёт (${lvl} ур.): ПЗ = 5 × ${lvl} ур. = ${famHp} | КБ = 10 + ${lvl} ур. + 2 ум. = ${famAc}\nКрошечное существо. КБ равен КБ хозяина без бонусов состояния/обстоятельств.`);
             } else if (typeSel.value === 'none') {
                 hero.stats.compSpeciesId = '';
-                const nameInp = overlay.querySelector('[data-sheet-txt="compName"]');
-                if (nameInp) nameInp.value = '';
-                hero.stats.compName = '';
+                setCompName('', true);
                 setCompNum('compHpMax', 0);
                 setCompNum('compHpCur', 0);
                 setCompNum('compAc', 10);
@@ -549,9 +590,5 @@ export function initPage2Pickers(overlay, hero) {
             }
         });
     }
-
-
-
-
 
 }
