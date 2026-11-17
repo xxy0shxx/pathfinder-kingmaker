@@ -1311,3 +1311,111 @@ export function initPage2Pickers(overlay, hero) {
     }
 
 }
+
+export function initPage3Pickers(overlay, hero) {
+    const isInvestedItem = (it) => /настроенность|вкладываем|invested/i.test(`${it?.notes || ''} ${it?.category || ''}`);
+
+    const updateInvestedCounterUi = () => {
+        const badge = overlay.querySelector('#bstInvestedCounterBadge');
+        const used = Math.min(10, Math.max(0, Number(hero.stats.investedUsedToday) || 0));
+        if (badge) {
+            badge.textContent = `✨ Вложено сегодня: ${used} / 10`;
+            badge.style.color = used >= 10 ? '#ff7675' : '#a29bfe';
+            badge.style.borderColor = used >= 10 ? '#ff7675' : '#a29bfe';
+        }
+    };
+
+    // 1. Автоподбор в слоты куклы (одежда, броня, оружие, кольца)
+    overlay.querySelectorAll('[data-eq-picker]').forEach(inp => {
+        const slot = inp.dataset.eqPicker;
+        const pool = (slot === 'mainHand' || slot === 'offHand')
+            ? [...PF2E_MELEE_WEAPONS, ...PF2E_RANGED_WEAPONS, ...PF2E_ITEMS_CATALOG]
+            : (slot === 'armor' ? PF2E_ARMOR_CATALOG : PF2E_ITEMS_CATALOG);
+
+        bindAutocomplete(inp, null, {
+            width: 340,
+            zIndex: '10000190',
+            getItems: (q) => {
+                const nq = normalizeStr(q);
+                return nq ? pool.filter(x => normalizeStr(x.name).includes(nq)) : pool.slice(0, 30);
+            },
+            renderOption: (it) => `
+                <div class="bst-cantrip-opt-top"><b>${it.name}</b> ${isInvestedItem(it) ? '<span style="color:#a29bfe;">✨ Вкладываемый</span>' : ''}</div>
+                <div class="bst-cantrip-opt-trad" style="font-size:11px;">${it.category || it.group || ''}</div>
+            `,
+            onSelect: (found) => {
+                const needsInvest = isInvestedItem(found);
+                const curUsed = Math.max(0, Number(hero.stats.investedUsedToday) || 0);
+
+                if (needsInvest && curUsed >= 10) {
+                    ModalManager.open({
+                        id: 'bstInvestedLimitModal',
+                        title: '✨ Исчерпан дневной лимит вложения (10/10)',
+                        width: '420px',
+                        borderColor: '#a29bfe',
+                        bodyHtml: `<div style="font-size:14px; color:#ebd291; line-height:1.5;">Вы уже вложили силу в <b>10 магических предметов</b> сегодня. Предмет <b>${found.name}</b> можно надеть, но его пассивные магические свойства не будут работать до следующей <b>🌅 Ежедневной подготовки</b>.</div>`,
+                        footerButtons: [{ label: 'Понятно', variant: 'ok' }]
+                    });
+                    hero.stats[`eq_${slot}_Invested`] = false;
+                } else if (needsInvest) {
+                    hero.stats.investedUsedToday = curUsed + 1;
+                    hero.stats[`eq_${slot}_Invested`] = true;
+                } else {
+                    hero.stats[`eq_${slot}_Invested`] = false;
+                }
+
+                // Контроль двух рук для двуручного оружия
+                if (slot === 'mainHand' && found.hands === 2) {
+                    const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
+                    hero.stats.eq_offHand_Name = '🔒 Занято (двуручное)';
+                    hero.stats.eq_offHand_Invested = false;
+                    if (offInp) offInp.value = '🔒 Занято (двуручное)';
+                }
+
+                inp.value = found.name;
+                hero.stats[`eq_${slot}_Name`] = found.name;
+                updateInvestedCounterUi();
+            }
+        });
+    });
+
+    // 2. Снятие предмета со слота (дневное вложение НЕ возвращается по правилам PF2e)
+    overlay.querySelectorAll('.bst-eq-unequip-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const slot = btn.dataset.unequipSlot;
+            const inp = overlay.querySelector(`[data-eq-picker="${slot}"]`);
+            hero.stats[`eq_${slot}_Name`] = '';
+            hero.stats[`eq_${slot}_Invested`] = false;
+            if (inp) inp.value = '';
+            btn.remove();
+            updateInvestedCounterUi();
+        });
+    });
+
+    // 3. Ежедневная подготовка: сброс счётчика вложений и повторное вложение надетых предметов
+    overlay.querySelector('#btnResetDailyInvested')?.addEventListener('click', () => {
+        let activeInvested = 0;
+        Object.keys(hero.stats).forEach(k => {
+            if (k.startsWith('eq_') && k.endsWith('_Invested') && hero.stats[k]) {
+                activeInvested++;
+            }
+        });
+        hero.stats.investedUsedToday = Math.min(10, activeInvested);
+        updateInvestedCounterUi();
+    });
+
+    // 4. Пояс быстрого доступа (5 слотов, лимит 2.0 Массы)
+    overlay.querySelectorAll('[data-belt-picker]').forEach(inp => {
+        const idx = inp.dataset.beltPicker;
+        bindAutocomplete(inp, null, {
+            width: 320,
+            zIndex: '10000190',
+            getItems: (q) => searchItemsCatalog(q),
+            renderOption: (it) => `<div class="bst-cantrip-opt-top"><b>${it.name}</b> <span>${it.category}</span></div>`,
+            onSelect: (found) => {
+                inp.value = found.name;
+                hero.stats[`beltItem${idx}Name`] = found.name;
+            }
+        });
+    });
+}
