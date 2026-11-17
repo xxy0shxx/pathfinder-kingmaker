@@ -7,6 +7,63 @@ import ModalManager from '../ui/modal_manager.js';
 // МОДУЛЬ: МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 1 ИЗ 3
 // ============================================================================
 
+const CAMP_MEALS_CATALOG = [
+    {
+        id: 'hearty_stew',
+        name: '🍲 Сытная похлёбка (Hearty Meal)',
+        dc: 14,
+        normCost: 2,
+        specCost: 0,
+        buff: '+1 бонус предмета к испытаниям Стойкости на 24 часа (при КУ: +2).',
+        critFailure: 'Несварение: состояние тошнота 1 на 1 час.'
+    },
+    {
+        id: 'hunters_roast',
+        name: '🍖 Охотничье жаркое (Hunter’s Roast)',
+        dc: 16,
+        normCost: 3,
+        specCost: 1,
+        buff: '+5 фт. бонус предмета к Скорости и +1 к Выживанию на 24 часа (при КУ: +10 фт. к Скорости).',
+        critFailure: 'Несварение: штраф −5 фт. к Скорости на 4 часа.'
+    },
+    {
+        id: 'sweet_pancakes',
+        name: '🥞 Сладкие оладьи с ягодами (Sweet Pancakes)',
+        dc: 15,
+        normCost: 2,
+        specCost: 1,
+        buff: '+1 бонус предмета к испытаниям Реакции и Акробатике на 24 часа (при КУ: +2 к Реакции).',
+        critFailure: 'Несварение: неуклюжесть 1 на 1 час.'
+    },
+    {
+        id: 'herbal_broth',
+        name: '🍵 Эльфийский травяной отвар (Elven Herb Broth)',
+        dc: 17,
+        normCost: 2,
+        specCost: 2,
+        buff: '+1 бонус предмета к испытаниям Воли и Вниманию на 24 часа (при КУ: +2 к Воле).',
+        critFailure: 'Несварение: ошеломление 1 на 1 час.'
+    },
+    {
+        id: 'fishermans_pie',
+        name: '🥧 Рыбный пирог первопроходца (Fisherman’s Pie)',
+        dc: 18,
+        normCost: 4,
+        specCost: 1,
+        buff: '+1 бонус предмета ко всем проверкам навыков на основе Интеллекта и Мудрости на 24 часа.',
+        critFailure: 'Несварение: состояние тошнота 1 на 2 часа.'
+    },
+    {
+        id: 'monsters_feast',
+        name: '🍗 Пир охотников на чудовищ (Monster Casserole)',
+        dc: 20,
+        normCost: 5,
+        specCost: 3,
+        buff: '+1 бонус предмета ко всем испытаниям (Стойкость, Реакция, Воля) и +5 временных ПЗ на 24 часа.',
+        critFailure: 'Сильное несварение: тошнота 2 на 1 час.'
+    }
+];
+
 const CampingManager = {
     state: {
         baseChecks: 2,
@@ -721,6 +778,132 @@ const CampingManager = {
         }
     },
 
+    openCookMealModal(meal) {
+        const sup = this.getPartySuppliesSummary();
+        const hasEnoughNorm = sup.totalNormIng >= meal.normCost;
+        const hasEnoughSpec = sup.totalSpecIng >= meal.specCost;
+        const canCook = hasEnoughNorm && hasEnoughSpec;
+
+        const spendIngredients = (normToSpend, specToSpend) => {
+            const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
+                ? window.InitiativeManager.state.combatants
+                : (this.mapDataRef?.initiative?.combatants || []);
+            const bestiaryPresets = (window.BestiaryManager?.state?.presets && Array.isArray(window.BestiaryManager.state.presets))
+                ? window.BestiaryManager.state.presets
+                : (this.mapDataRef?.bestiary?.presets || []);
+
+            const allHeroes = [...initUnits, ...bestiaryPresets].filter(u => u && u.faction === 'friend' && !u.inactive);
+
+            const cleanText = (str) => String(str || '')
+                .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
+                .trim().toLowerCase().replace(/ё/g, 'е');
+
+            const deductFromParty = (regex, amount) => {
+                let rem = amount;
+                const seenNames = new Set();
+                for (const h of allHeroes) {
+                    if (rem <= 0) break;
+                    const key = cleanText(h.name);
+                    if (!key || seenNames.has(key)) continue;
+                    seenNames.add(key);
+
+                    // Находим все копии героя (Бестиарий + Инициатива)
+                    const copies = allHeroes.filter(x => cleanText(x.name) === key);
+                    const primary = copies.find(c => {
+                        if (!c.stats) return false;
+                        for (let i = 1; i <= 15; i++) {
+                            if (String(c.stats[`item${i}Name`] || '').trim() !== '') return true;
+                        }
+                        return false;
+                    }) || copies.at(0);
+
+                    if (!primary?.stats) continue;
+
+                    for (let i = 1; i <= 15; i++) {
+                        if (rem <= 0) break;
+                        const cleaned = cleanText(primary.stats[`item${i}Name`]);
+                        const qty = Math.max(0, Number(primary.stats[`item${i}Qty`]) || 0);
+                        if (cleaned && regex.test(cleaned) && qty > 0) {
+                            const take = Math.min(qty, rem);
+                            const nextQty = qty - take;
+                            rem -= take;
+                            copies.forEach(c => {
+                                if (!c.stats) c.stats = {};
+                                c.stats[`item${i}Qty`] = nextQty;
+                            });
+                        }
+                    }
+                }
+            };
+
+            if (normToSpend > 0) deductFromParty(/обычн.*ингредиент/i, normToSpend);
+            if (specToSpend > 0) deductFromParty(/особ.*ингредиент/i, specToSpend);
+
+            if (window.BestiaryManager?._save) window.BestiaryManager._save();
+            if (window.InitiativeManager?._save) window.InitiativeManager._save();
+            EventBus.emit('data:save');
+            if (window.InitiativeManager?.renderUi) window.InitiativeManager.renderUi();
+            if (window.BestiaryManager?.renderUi) window.BestiaryManager.renderUi();
+        };
+
+        const cookModal = ModalManager.open({
+            id: 'campCookMealModal',
+            title: `🍳 Приготовление: ${meal.name}`,
+            width: '450px',
+            borderColor: canCook ? '#dfbc6f' : '#e74c3c',
+            bodyHtml: `
+                <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                    <div>🎯 <b>Сложность проверки (Кулинария / Выживание):</b> <span style="color:#ffd875; font-weight:bold;">СЛ ${meal.dc}</span></div>
+                    <div style="margin-top: 4px;">📦 <b>Требуется ингредиентов:</b> ${meal.normCost} 🏕️ обычных (в наличии: <b style="color:${hasEnoughNorm ? '#2ecc71' : '#ff7675'}">${sup.totalNormIng}</b>), ${meal.specCost} 🌿 особых (в наличии: <b style="color:${hasEnoughSpec ? '#2ecc71' : '#ff7675'}">${sup.totalSpecIng}</b>)</div>
+                    <div style="margin-top: 8px; padding: 8px; background: rgba(4,9,5,0.75); border: 1px solid #543e0d; border-radius: 5px; font-size: 13px;">
+                        <div style="color:#2ecc71;">✨ <b>Успех / Крит. успех:</b> ${meal.buff}</div>
+                        <div style="color:#ff7675; margin-top: 4px;">💥 <b>Крит. провал:</b> ${meal.critFailure}</div>
+                    </div>
+                    ${canCook ? `
+                        <div style="margin-top: 10px;">
+                            <label style="font-size: 13px; color: #ffd875; font-weight: bold;">🎲 Результат броска повара за столом:</label>
+                            <select id="campCookOutcomeSel" class="k-inp" style="width: 100%; margin-top: 4px; background: #040905; border: 1px solid #543e0d; color: #ebd291; padding: 5px;">
+                                <option value="crit_success">🌟 Критический успех (ингредиенты списаны, усиленный эффект)</option>
+                                <option value="success" selected>✅ Успех (ингредиенты списаны, блюдо готово)</option>
+                                <option value="failure">❌ Провал (ингредиенты испорчены, без эффекта)</option>
+                                <option value="crit_failure">💀 Критический провал (ингредиенты испорчены, несварение!)</option>
+                            </select>
+                        </div>
+                    ` : `<div style="margin-top: 10px; color: #ff7675; font-weight: bold;">⚠️ Недостаточно ингредиентов в рюкзаках отряда!</div>`}
+                </div>
+            `,
+            footerButtons: canCook ? [
+                { label: '✖ Отмена', variant: 'cc', onClick: () => cookModal.close() },
+                {
+                    label: '🍳 Приготовить и списать',
+                    variant: 'ok',
+                    onClick: () => {
+                        const outcome = document.getElementById('campCookOutcomeSel')?.value || 'success';
+                        spendIngredients(meal.normCost, meal.specCost);
+
+                        if (outcome === 'crit_success' || outcome === 'success') {
+                            const tag = outcome === 'crit_success' ? ' [КРИТ. УСПЕХ]' : '';
+                            this.state.activeMeal = { name: `${meal.name}${tag}`, effect: meal.buff };
+                        } else if (outcome === 'crit_failure') {
+                            this.state.activeMeal = { name: `${meal.name} [НЕСВАРЕНИЕ]`, effect: meal.critFailure };
+                        } else {
+                            this.state.activeMeal = null;
+                        }
+
+                        EventBus.emit('data:save');
+                        this.recalculateCamp();
+                        cookModal.close();
+                    }
+                }
+            ] : [
+                { label: 'Понятно', variant: 'cc', onClick: () => cookModal.close() }
+            ]
+        });
+
+        if (cookModal?.overlay) cookModal.overlay.style.zIndex = '10000250';
+    },
+
+
     renderCalculatedUi(camoRes, prepareRes, huntRes, watchRes, isCampHorrible, lvl, specialYieldText) {
         watchRes = watchRes || this.getSelectedRadio('res_watch');
 
@@ -808,6 +991,56 @@ const CampingManager = {
             const totalBox = syncBar.querySelector('#campPartySuppliesTotal');
             if (totalBox) totalBox.innerHTML = this.getPartySuppliesSummary().html;
         }
+
+        // Панель приготовления блюд на привале (Camp Meals)
+        if (summaryCard) {
+            let cookBox = summaryCard.querySelector('#campCookingBox');
+            if (!cookBox) {
+                cookBox = document.createElement('div');
+                cookBox.id = 'campCookingBox';
+                cookBox.style.cssText = 'margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.3); display: flex; flex-direction: column; gap: 5px;';
+                cookBox.innerHTML = `
+                    <div style="font-size: 12px; color: #dfbc6f; font-weight: bold;">🍲 Полевая кухня (Кулинария / Выживание):</div>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <select id="campMealSelect" class="k-inp" style="flex: 1; font-size: 12px; padding: 4px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
+                            ${CAMP_MEALS_CATALOG.map(m => `<option value="${m.id}">${m.name} (СЛ ${m.dc} | ${m.normCost} 🏕️${m.specCost > 0 ? `, ${m.specCost} 🌿` : ''})</option>`).join('')}
+                        </select>
+                        <button type="button" id="btnCampCookMeal" class="btn cc" style="padding: 4px 8px; font-size: 12px; flex-shrink: 0;">🍳 Готовить</button>
+                    </div>
+                    <div id="campMealPreviewDesc" style="font-size: 11px; color: #a4b0be; line-height: 1.3;"></div>
+                    <div id="campActiveMealBanner" style="display: none; padding: 5px 8px; border-radius: 4px; background: rgba(46, 204, 113, 0.14); border: 1px solid #2ecc71; font-size: 12px; color: #2ecc71; line-height: 1.35;"></div>
+                `;
+                summaryCard.appendChild(cookBox);
+
+                const sel = cookBox.querySelector('#campMealSelect');
+                const prevEl = cookBox.querySelector('#campMealPreviewDesc');
+                const updateMealPreview = () => {
+                    const m = CAMP_MEALS_CATALOG.find(x => x.id === sel.value) || CAMP_MEALS_CATALOG.at(0);
+                    if (m && prevEl) {
+                        prevEl.innerHTML = `СЛ <b>${m.dc}</b> • Стоимость: <b>${m.normCost}</b> 🏕️, <b>${m.specCost}</b> 🌿<br><span style="color:#ebd291;">Эффект: ${m.buff}</span>`;
+                    }
+                };
+                sel.addEventListener('change', updateMealPreview);
+                updateMealPreview();
+
+                cookBox.querySelector('#btnCampCookMeal').addEventListener('click', () => {
+                    const chosen = CAMP_MEALS_CATALOG.find(x => x.id === sel.value) || CAMP_MEALS_CATALOG.at(0);
+                    if (chosen) this.openCookMealModal(chosen);
+                });
+            }
+
+            // Отображаем активное приготовленное блюдо отряда (если уже приготовлено)
+            const activeBanner = cookBox.querySelector('#campActiveMealBanner');
+            if (activeBanner) {
+                if (this.state.activeMeal && this.state.activeMeal.name) {
+                    activeBanner.style.display = 'block';
+                    activeBanner.innerHTML = `✨ <b>Активное блюдо (24 ч): ${this.state.activeMeal.name}</b><br>${this.state.activeMeal.effect}`;
+                } else {
+                    activeBanner.style.display = 'none';
+                }
+            }
+        }
+
 
         const effectsList = document.getElementById('campEffectsList');
         if (!effectsList) return;
@@ -1204,6 +1437,7 @@ const CampingManager = {
             this.state.checkMod = 12;
             this.state.assignments = {};
             this.state.hazardRemainingMin = null;
+            this.state.activeMeal = null;
             document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
             this.syncCountersUi();
             this.recalculateCamp();
