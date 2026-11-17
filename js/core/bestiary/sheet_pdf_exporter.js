@@ -611,7 +611,85 @@ function generatePathfinderCombatBadges() {
         ctx.fillText('КБ', 54, 24);
     });
 
-    cachedPfCombatBadges = { hpHeart, speedBox, perceptionGlass, acShield };
+    // 5. Значок «АТАКА» для оружия ближнего боя (свиток-плашка с вогнутыми сторонами)
+    const meleeAtkBadge = makeBadge(116, 86, (ctx) => {
+        const traceMelee = () => {
+            ctx.beginPath();
+            ctx.moveTo(8, 8);
+            ctx.quadraticCurveTo(58, 18, 108, 8);
+            ctx.quadraticCurveTo(96, 42, 108, 78);
+            ctx.quadraticCurveTo(58, 68, 8, 78);
+            ctx.quadraticCurveTo(20, 42, 8, 8);
+            ctx.closePath();
+        };
+
+        // Белое поле для цифры атаки
+        traceMelee();
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        // Нижняя тёмно-красная плашка с белой надписью «АТАКА»
+        ctx.save();
+        traceMelee();
+        ctx.clip();
+        ctx.fillStyle = crimson;
+        ctx.fillRect(0, 56, 116, 30);
+        ctx.restore();
+
+        // Жирный красный контур
+        traceMelee();
+        ctx.lineWidth = 4.2;
+        ctx.strokeStyle = crimson;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 12.5px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('АТАКА', 58, 66);
+    });
+
+    // 6. Значок «АТАКА» для дистанционного оружия (наконечник стрелы вверх)
+    const rangedAtkBadge = makeBadge(124, 92, (ctx) => {
+        const traceArrow = () => {
+            ctx.beginPath();
+            ctx.moveTo(62, 6);
+            ctx.lineTo(116, 46);
+            ctx.lineTo(90, 46);
+            ctx.lineTo(96, 84);
+            ctx.lineTo(28, 84);
+            ctx.lineTo(34, 46);
+            ctx.lineTo(8, 46);
+            ctx.closePath();
+        };
+
+        // Белое поле для цифры атаки
+        traceArrow();
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        // Нижняя тёмно-красная плашка с белой надписью «АТАКА»
+        ctx.save();
+        traceArrow();
+        ctx.clip();
+        ctx.fillStyle = crimson;
+        ctx.fillRect(0, 62, 124, 30);
+        ctx.restore();
+
+        // Жирный красный контур
+        traceArrow();
+        ctx.lineWidth = 4.2;
+        ctx.strokeStyle = crimson;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 12.5px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('АТАКА', 62, 73);
+    });
+
+    cachedPfCombatBadges = { hpHeart, speedBox, perceptionGlass, acShield, meleeAtkBadge, rangedAtkBadge };
     return cachedPfCombatBadges;
 }
 
@@ -679,7 +757,8 @@ export function exportCharacterToPdf(hero) {
     if (!hero) return;
     const s = ensureCharacterStats(hero);
     const name = hero.name || 'Безымянный герой';
-    const { hpHeart, speedBox, perceptionGlass, acShield } = generatePathfinderCombatBadges();
+    const { hpHeart, speedBox, perceptionGlass, acShield, meleeAtkBadge, rangedAtkBadge } = generatePathfinderCombatBadges();
+
 
 
     const feat1 = [s.classFeatLvl1Name, s.classFeatLvl1Desc].filter(Boolean).join(' — ');
@@ -804,17 +883,44 @@ export function exportCharacterToPdf(hero) {
             .map(t => t.desc ? `<b>${esc(t.trait)}</b>: ${esc(t.desc)}` : esc(t.trait))
             .join(' • ');
 
+        const dmgLower = `${wDmg || ''} ${cat?.damageType || ''}`.toLowerCase();
+        const isB = /дроб|bludg|\bд\b/i.test(dmgLower);
+        const isP = /кол|pierc|\bк\b/i.test(dmgLower);
+        const isS = /реж|руб|slash|\bр\b/i.test(dmgLower);
+        const atkIcon = isRanged ? rangedAtkBadge : meleeAtkBadge;
+
         return `
-        <div class="wpn-card">
-            <div class="wpn-top">
-                <span class="sub-lbl">${label}:</span>
-                <div class="wpn-title">${esc(wName)}</div>
-                <div class="box-sub"><div class="box box-sm bold">${esc(wAtk || '—')}</div><span>АТАКА</span></div>
+        <div class="wpn-card" style="border:1.4px solid #5e1914; padding:3px 5px;">
+            <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
+                <div style="flex:1; min-width:0;">
+                    <div class="sub-lbl" style="font-size:5.3pt;">${label}</div>
+                    <div class="wpn-title" style="min-height:14px; font-size:8pt;">${esc(wName || '—')}</div>
+                </div>
+                <div style="position:relative; width:${isRanged ? '52px' : '48px'}; height:38px; flex-shrink:0;">
+                    <img src="${atkIcon}" alt="Атака" style="width:100%; height:100%; object-fit:contain; display:block;">
+                    <span style="position:absolute; top:${isRanged ? '13px' : '9px'}; left:0; right:0; text-align:center; font-size:9.5pt; font-weight:900; color:#111; line-height:1;">${esc(wAtk || '—')}</span>
+                </div>
             </div>
-            <div class="wpn-sub"><span><b>Урон:</b> ${esc(wDmg || '—')}</span><span><b>Дескр.:</b> ${esc(traitsStr || '—')}</span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:6.5pt; margin-bottom:2px;">
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <span class="sub-lbl">УРОН:</span>
+                    <span style="border:1.2px solid #2b2b2b; border-radius:3px; background:#fff; padding:1px 6px; font-weight:800; min-width:48px; text-align:center;">${esc(wDmg || '—')}</span>
+                </div>
+                <div style="display:flex; gap:5px; align-items:center; font-size:5.6pt; font-weight:800;">
+                    <span style="display:inline-flex; align-items:center; gap:2px;"><span class="chk ${isB ? 'on' : ''}">${isB ? '✓' : ''}</span>ДРОБЯЩИЙ</span>
+                    <span style="display:inline-flex; align-items:center; gap:2px;"><span class="chk ${isP ? 'on' : ''}">${isP ? '✓' : ''}</span>КОЛЮЩИЙ</span>
+                    <span style="display:inline-flex; align-items:center; gap:2px;"><span class="chk ${isS ? 'on' : ''}">${isS ? '✓' : ''}</span>РЕЖУЩИЙ</span>
+                </div>
+            </div>
+            <div style="font-size:6pt; color:#222; border-top:1px solid #cbbba0; padding-top:1.5px;">
+                <span class="sub-lbl">ДЕСКРИПТОРЫ:</span> <b>${esc(traitsStr || '—')}</b>
+            </div>
             ${(critEff || traitsExplained) ? `<div class="wpn-extra">${critEff ? `<span><b>Крит (${esc(cat.group)}):</b> ${esc(critEff)}</span> ` : ''}${traitsExplained ? `<span>${traitsExplained}</span>` : ''}</div>` : ''}
         </div>`;
     };
+
+
+
 
     const hasComp = (s.compType && s.compType !== 'none') || String(s.compName || '').trim() || String(s.compAbilitiesText || '').trim();
     const compTypeName = s.compType === 'familiar' ? 'Фамильяр' : (s.compType === 'companion' ? 'Верный зверь' : 'Спутник');
@@ -1218,10 +1324,13 @@ export function exportCharacterToPdf(hero) {
                 <div class="sec">
                     <div class="sec-hdr"><span class="badge">З</span> Внимание</div>
                     <div class="sec-body" style="display:flex; flex-direction:row; align-items:center; gap:4px;">
+                    
                         <div style="position:relative; width:42px; height:42px; flex-shrink:0;">
                             <img src="${perceptionGlass}" alt="Внимание" style="width:100%; height:100%; object-fit:contain; display:block;">
-                            <span style="position:absolute; top:7px; left:11px; width:26px; text-align:center; font-size:9.5pt; font-weight:900; color:#111;">${fmtMod(s.perception)}</span>
+                            <span style="position:absolute; top:10px; left:10px; width:27px; text-align:center; font-size:9.5pt; font-weight:900; color:#111; line-height:1;">${fmtMod(s.perception)}</span>
                         </div>
+
+                        
                         <span class="eq">=</span>
                         <div class="box-sub"><div class="box box-xs">${fmtMod(s.wis)}</div><span>МДР</span></div>
                         <span class="op">+</span>
