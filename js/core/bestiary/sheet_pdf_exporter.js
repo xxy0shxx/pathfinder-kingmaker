@@ -310,17 +310,36 @@ function generatePathfinderSidebarIcons() {
             poly(ctx, [[32, 8], [54, 20], [54, 44], [32, 56], [10, 44], [10, 20]]);
             ctx.lineWidth = 4.0; ctx.stroke();
         }),
+
         d8: makeIcon(64, 64, (ctx) => {
-            const outer = [[32, 7], [53, 19], [53, 45], [32, 57], [11, 45], [11, 19]];
-            const inner = [[32, 7], [47, 38], [17, 38]];
-            poly(ctx, outer); ctx.fillStyle = '#c86026'; ctx.fill();
-            poly(ctx, inner); ctx.fillStyle = '#dc7234'; ctx.fill();
-            ctx.lineWidth = 2.2; ctx.strokeStyle = '#111111';
-            poly(ctx, inner); ctx.stroke();
-            [[53, 19, 47, 38], [11, 19, 17, 38], [53, 45, 47, 38], [11, 45, 17, 38], [32, 57, 47, 38], [32, 57, 17, 38]]
-                .forEach(([x1, y1, x2, y2]) => { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); });
-            poly(ctx, outer); ctx.lineWidth = 4.0; ctx.stroke();
+            const top = new Array(32, 7);
+            const topRight = new Array(54, 19.5);
+            const botRight = new Array(54, 44.5);
+            const bot = new Array(32, 57);
+            const botLeft = new Array(10, 44.5);
+            const topLeft = new Array(10, 19.5);
+
+            const outer = new Array(top, topRight, botRight, bot, botLeft, topLeft);
+            const inner = new Array(top, botRight, botLeft);
+
+            poly(ctx, outer);
+            ctx.fillStyle = '#c86026';
+            ctx.fill();
+
+            poly(ctx, inner);
+            ctx.fillStyle = '#dc7234';
+            ctx.fill();
+
+            ctx.lineWidth = 2.6;
+            ctx.strokeStyle = '#111111';
+            poly(ctx, inner);
+            ctx.stroke();
+
+            poly(ctx, outer);
+            ctx.lineWidth = 4.2;
+            ctx.stroke();
         }),
+
         d10: makeIcon(64, 64, (ctx) => {
             const outer = [[32, 7], [55, 32], [32, 57], [9, 32]];
             poly(ctx, outer); ctx.fillStyle = '#159848'; ctx.fill();
@@ -1384,90 +1403,103 @@ export function exportCharacterToPdf(hero) {
             
         </div>
 
-        <div class="row" style="flex: 1;">
-            <div style="width: 44%; display: flex; flex-direction: column;">
+
+
+        <!-- Верхний пояс: Г (Характеристики) | Д (ПЗ) + Е (Скорость) | З (Внимание) -->
+        <div class="row" style="align-items: stretch;">
+            <div class="sec" style="width: 33%;">
+                <div class="sec-hdr"><span class="badge">Г</span> Модификаторы характеристик</div>
+                <div class="sec-body" style="justify-content: space-between;">
+                    <div class="stat-row"><span class="stat-name">СИЛА (СИЛ)</span><div class="box box-sm bold">${fmtMod(s.str)}</div></div>
+                    <div class="stat-row"><span class="stat-name">ЛОВКОСТЬ (ЛВК)</span><div class="box box-sm bold">${fmtMod(s.dex)}</div></div>
+                    <div class="stat-row"><span class="stat-name">ВЫНОСЛИВОСТЬ (ВЫН)</span><div class="box box-sm bold">${fmtMod(s.con)}</div></div>
+                    <div class="stat-row"><span class="stat-name">ИНТЕЛЛЕКТ (ИНТ)</span><div class="box box-sm bold">${fmtMod(s.int)}</div></div>
+                    <div class="stat-row"><span class="stat-name">МУДРОСТЬ (МДР)</span><div class="box box-sm bold">${fmtMod(s.wis)}</div></div>
+                    <div class="stat-row" style="border:none;"><span class="stat-name">ХАРИЗМА (ХАР)</span><div class="box box-sm bold">${fmtMod(s.cha)}</div></div>
+                </div>
+            </div>
+
+            <div style="width: 35%; display: flex; flex-direction: column;">
                 <div class="sec">
-                    <div class="sec-hdr"><span class="badge">Г</span> Модификаторы характеристик</div>
-                    <div class="sec-body">
-                        <div class="stat-row"><span class="stat-name">СИЛА (СИЛ)</span><div class="box box-sm bold">${fmtMod(s.str)}</div></div>
-                        <div class="stat-row"><span class="stat-name">ЛОВКОСТЬ (ЛВК)</span><div class="box box-sm bold">${fmtMod(s.dex)}</div></div>
-                        <div class="stat-row"><span class="stat-name">ВЫНОСЛИВОСТЬ (ВЫН)</span><div class="box box-sm bold">${fmtMod(s.con)}</div></div>
-                        <div class="stat-row"><span class="stat-name">ИНТЕЛЛЕКТ (ИНТ)</span><div class="box box-sm bold">${fmtMod(s.int)}</div></div>
-                        <div class="stat-row"><span class="stat-name">МУДРОСТЬ (МДР)</span><div class="box box-sm bold">${fmtMod(s.wis)}</div></div>
-                        <div class="stat-row" style="border:none;"><span class="stat-name">ХАРИЗМА (ХАР)</span><div class="box box-sm bold">${fmtMod(s.cha)}</div></div>
+                    <div class="sec-hdr red"><span class="badge">Д</span> Пункты здоровья</div>
+                    <div class="sec-body" style="padding: 3px 5px; gap: 3px;">
+                        <div style="display:flex; align-items:center; gap:0;">
+                            <div style="position:relative; width:50px; height:44px; flex-shrink:0; z-index:2; display:flex; align-items:center; justify-content:center;">
+                                <img src="${hpHeart}" alt="Максимум ПЗ" style="width:100%; height:100%; object-fit:contain;">
+                                <span style="position:absolute; top:17px; left:0; right:0; text-align:center; font-size:10.5pt; font-weight:900; color:#1a1a1a;">${s.hpMax ?? 10}</span>
+                            </div>
+                            <div style="flex:1; margin-left:-11px; padding:2px 5px 2px 14px; border:2.2px solid #8a1c14; border-left:none; border-radius:0 5px 5px 0; background:#ffffff; text-align:center;">
+                                <div style="font-size:5.2pt; font-weight:800; color:#5e1914; letter-spacing:0.3px;">ТЕКУЩИЕ</div>
+                                <div style="font-size:11pt; font-weight:900; color:#1a1a1a; line-height:1.12;">${s.hpCurrent ?? 10}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:3px; font-size:5.5pt; padding-top:1px;">
+                            <div style="display:flex; align-items:center; gap:2px;">
+                                <span style="font-weight:800; color:#5e1914;">При смерти</span>
+                                <span style="width:8px; height:8px; border:1.2px solid #5e1914; border-radius:50%; display:inline-block;"></span>
+                                <span style="width:8px; height:8px; border:1.2px solid #5e1914; border-radius:50%; display:inline-block;"></span>
+                                <span style="width:8px; height:8px; border:1.2px solid #5e1914; border-radius:50%; display:inline-block;"></span>
+                                <span style="width:8px; height:8px; border:1.2px solid #5e1914; border-radius:50%; display:inline-block;"></span>
+                                <span style="font-size:7.5pt; line-height:1;">💀</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:2px;">
+                                <span style="font-weight:800; color:#5e1914;">Ранение</span>
+                                <span class="box box-xs" style="width:16px; height:12px;">${Number(s.hpTemp) > 0 ? `+${s.hpTemp}` : ''}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="sec" style="flex: 1; margin-bottom: 0;">
-                    <div class="sec-hdr"><span class="badge">Ж</span> Навыки</div>
-                    <div class="sec-body">
-                        ${skillsHtml}
-                        <div style="margin-top: 3px; flex: 1; display: flex; flex-direction: column;">
-                            <div class="sub-lbl">Знания (Lore) и прочие навыки</div>
-                            <div class="fit-box">${esc(s.skillOtherNotes)}</div>
+                <div class="sec" style="flex: 1;">
+                    <div class="sec-hdr green"><span class="badge">Е</span> Скорость</div>
+                    <div class="sec-body" style="padding: 3px 5px; display:flex; flex-direction:row; align-items:center; gap:5px;">
+                        <div style="position:relative; width:78px; height:35px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                            <img src="${speedBox}" alt="Скорость" style="width:100%; height:100%; object-fit:contain;">
+                            <span style="position:absolute; left:7px; right:24px; text-align:center; font-size:10.5pt; font-weight:900; color:#1a1a1a;">${s.speed ?? 25}</span>
                         </div>
+                        <div style="font-size:5.3pt; line-height:1.12; color:#222;"><b>ПЕРЕМЕЩЕНИЕ ◆</b><br>Переместитесь на значение скорости.</div>
                     </div>
                 </div>
             </div>
-            
-            
-            
-            <div style="width: 56%; display: flex; flex-direction: column;">
-            
-                <div class="row">
-                    <div class="sec" style="width: 56%;">
-                        <div class="sec-hdr red"><span class="badge">Д</span> Пункты здоровья</div>
-                        <div class="sec-body" style="padding: 3px 5px; gap: 3px;">
-                            <div style="display:flex; align-items:center; gap:0;">
-                                <div style="position:relative; width:56px; height:50px; flex-shrink:0; z-index:2; display:flex; align-items:center; justify-content:center;">
-                                    <img src="${hpHeart}" alt="Максимум ПЗ" style="width:100%; height:100%; object-fit:contain;">
-                                    <span style="position:absolute; top:20px; left:0; right:0; text-align:center; font-size:11.5pt; font-weight:900; color:#1a1a1a;">${s.hpMax ?? 10}</span>
-                                </div>
-                                <div style="flex:1; margin-left:-12px; padding:3px 6px 3px 16px; border:2.4px solid #8a1c14; border-left:none; border-radius:0 5px 5px 0; background:#ffffff; text-align:center;">
-                                    <div style="font-size:5.5pt; font-weight:800; color:#5e1914; letter-spacing:0.3px;">ТЕКУЩИЕ</div>
-                                    <div style="font-size:12pt; font-weight:900; color:#1a1a1a; line-height:1.15;">${s.hpCurrent ?? 10}</div>
-                                </div>
-                            </div>
-                            <div style="display:flex; align-items:center; justify-content:space-between; border:1px solid #8c7b65; border-radius:3px; padding:1px 5px; background:#fff; font-size:6pt;">
-                                <span style="font-weight:800; color:#5e1914;">ВРЕМ. ПЗ / ПРОЧЕЕ:</span>
-                                <b>${Number(s.hpTemp) > 0 ? `+${s.hpTemp} Врем. ПЗ` : '—'}</b>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="sec" style="width: 44%;">
-                        <div class="sec-hdr green"><span class="badge">Е</span> Скорость</div>
-                        <div class="sec-body" style="display:flex; flex-direction:column; justify-content:center; gap:2px;">
-                            <div style="position:relative; width:100%; height:34px; display:flex; align-items:center; justify-content:center;">
-                                <img src="${speedBox}" alt="Скорость" style="width:100%; height:100%; object-fit:contain;">
-                                <span style="position:absolute; left:14px; right:42px; text-align:center; font-size:12pt; font-weight:900; color:#1a1a1a;">${s.speed ?? 25}</span>
-                            </div>
-                            <div style="font-size:5.6pt; line-height:1.1; color:#222;"><b>ПЕРЕМЕЩЕНИЕ ◆:</b> переместитесь на значение скорости.</div>
-                        </div>
-                    </div>
-                </div>
 
-
-
-                <div class="sec">
-                    <div class="sec-hdr"><span class="badge">З</span> Внимание</div>
-                    <div class="sec-body" style="display:flex; flex-direction:row; align-items:center; gap:4px;">
-                    
-                        <div style="position:relative; width:42px; height:42px; flex-shrink:0;">
+            <div class="sec" style="width: 32%;">
+                <div class="sec-hdr"><span class="badge">З</span> Внимание</div>
+                <div class="sec-body" style="display:flex; flex-direction:column; justify-content:space-between; gap:4px;">
+                    <div style="display:flex; align-items:center; gap:2.5px;">
+                        <div style="position:relative; width:40px; height:40px; flex-shrink:0;">
                             <img src="${perceptionGlass}" alt="Внимание" style="width:100%; height:100%; object-fit:contain; display:block;">
-                            <span style="position:absolute; top:10px; left:10px; width:27px; text-align:center; font-size:9.5pt; font-weight:900; color:#111; line-height:1;">${fmtMod(s.perception)}</span>
+                            <span style="position:absolute; top:10px; left:10px; width:24px; text-align:center; font-size:9.5pt; font-weight:900; color:#111; line-height:1;">${fmtMod(s.perception)}</span>
                         </div>
-
-                        
                         <span class="eq">=</span>
-                        <div class="box-sub"><div class="box box-xs">${fmtMod(s.wis)}</div><span>МДР</span></div>
+                        <div class="box-sub"><div class="box box-xs" style="width:20px; height:15px;">${fmtMod(s.wis)}</div><span>МДР</span></div>
                         <span class="op">+</span>
-                        <div class="box-sub"><div class="box box-xs">${s.saveProf_perc ?? 0}</div><span>УМЕНИЕ</span></div>
-                        ${profBoxes(s.saveProf_perc)}
-                        <div class="fit-box" style="height: 28px; margin-left: 3px;"><b>Восприятие:</b> ${esc(s.perceptionNotes || '—')}</div>
+                        <div class="box-sub"><div class="box box-xs" style="width:20px; height:15px;">${s.saveProf_perc ?? 0}</div><span>УМЕНИЕ</span></div>
+                        <div style="display:flex; flex-direction:column; gap:1px; margin-left:1px;">
+                            <span class="pbox ${(Number(s.saveProf_perc) || 0) >= 2 ? 'on' : ''}" style="width:10px; height:10px; font-size:5pt;">И</span>
+                            <span class="pbox ${(Number(s.saveProf_perc) || 0) >= 4 ? 'on' : ''}" style="width:10px; height:10px; font-size:5pt;">Э</span>
+                        </div>
+                    </div>
+                    <div style="flex:1; display:flex; flex-direction:column;">
+                        <div class="sub-lbl" style="font-size:5.2pt; color:#1a1a1a;">ВОСПРИЯТИЕ И ПРОЧЕЕ</div>
+                        <div class="fit-box" style="margin-top:2px; min-height:36px;">${esc(s.perceptionNotes || '—')}</div>
                     </div>
                 </div>
-                
+            </div>
+        </div>
+        <!-- Нижний пояс: Ж (Навыки) слева | И (Испытания) + К (Защита) + Л (Оружие) справа -->
+        <div class="row" style="flex: 1; min-height: 0;">
+            <div class="sec" style="width: 44%; margin-bottom: 0;">
+                <div class="sec-hdr"><span class="badge">Ж</span> Навыки</div>
+                <div class="sec-body">
+                    ${skillsHtml}
+                    <div style="margin-top: 3px; flex: 1; display: flex; flex-direction: column;">
+                        <div class="sub-lbl">Знания (Lore) и прочие навыки</div>
+                        <div class="fit-box">${esc(s.skillOtherNotes)}</div>
+                    </div>
+                </div>
+            </div>
 
+            <div style="width: 56%; display: flex; flex-direction: column;">
                 <div class="sec">
                     <div class="sec-hdr"><span class="badge">И</span> Испытания (Спасброски)</div>
                     <div class="sec-body" style="display:flex; flex-direction:row; gap:5px; align-items:stretch;">
@@ -1516,20 +1548,14 @@ export function exportCharacterToPdf(hero) {
                     </div>
                 </div>
 
-
-
-
                 <div class="sec">
                     <div class="sec-hdr red"><span class="badge">К</span> Защита и Класс брони</div>
                     <div class="sec-body">
                         <div style="display:flex; align-items:center; gap:4px; margin-bottom:3px;">
-                        
                             <div style="position:relative; width:48px; height:52px; flex-shrink:0;">
                                 <img src="${acShield}" alt="КБ" style="width:100%; height:100%; object-fit:contain; display:block;">
                                 <span style="position:absolute; top:22px; left:0; right:0; text-align:center; font-size:12.5pt; font-weight:900; color:#1a1a1a;">${s.ac ?? 10}</span>
                             </div>
-
-                            
                             <span class="eq">= 10 +</span>
                             <div class="box-sub"><div class="box box-xs">${s.acDex ?? 0}</div><span>ЛВК</span></div>
                             <span class="op">+</span>
@@ -1552,10 +1578,6 @@ export function exportCharacterToPdf(hero) {
                     </div>
                 </div>
 
-
-                
-                
-
                 <div class="sec" style="flex: 1; margin-bottom: 0;">
                     <div class="sec-hdr"><span class="badge">Л</span> Оружие и Атаки</div>
                     <div class="sec-body">
@@ -1565,11 +1587,12 @@ export function exportCharacterToPdf(hero) {
                         <div class="fit-box" style="margin-top: 2px;"><b>Умения в оружии:</b> ${esc(s.weaponProfNotes || '—')}</div>
                     </div>
                 </div>
-
-                
-                
             </div>
         </div>
+
+        
+        
+        
     </div>
 </div>
 
