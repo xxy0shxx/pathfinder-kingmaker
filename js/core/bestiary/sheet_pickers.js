@@ -13,6 +13,7 @@ import { searchActionsCatalog } from '../../config/actions_catalog.js';
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_GENERAL_FEATS } from '../../config/general_feats_catalog.js';
 import { PF2E_SKILL_FEATS } from '../../config/skill_feats_catalog.js';
+import ModalManager from '../../ui/modal_manager.js';
 import {
     PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS, PF2E_MONK_FEATS, PF2E_BARD_FEATS,
     PF2E_BARBARIAN_FEATS, PF2E_CLERIC_FEATS, PF2E_SORCERER_FEATS, PF2E_WIZARD_FEATS,
@@ -739,7 +740,7 @@ export function initPage2Pickers(overlay, hero) {
         });
     });
 
-    // Кнопка удаления позиции (🗑️) в каждой строке рюкзака
+    // Кнопка удаления позиции (🗑️) в каждой строке рюкзака с подтверждением
     overlay.querySelectorAll('.bst-item-clear-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -750,21 +751,68 @@ export function initPage2Pickers(overlay, hero) {
             const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
             const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
 
-            hero.stats[`item${row}Name`] = '';
-            hero.stats[`item${row}Qty`] = 0;
-            hero.stats[`item${row}Notes`] = '';
+            const itemName = String(nameInp?.value || hero.stats[`item${row}Name`] || '').trim();
+            const itemQty = Math.max(0, Number(qtyInp?.value ?? hero.stats[`item${row}Qty`]) || 0);
 
-            if (nameInp) {
-                nameInp.value = '';
-                nameInp.dataset.validItem = '';
+            // Если строка и так пустая — просто сбрасываем без модалки
+            if (!itemName && itemQty === 0) {
+                if (noteInp) noteInp.value = '';
+                hero.stats[`item${row}Notes`] = '';
+                return;
             }
-            if (noteInp) noteInp.value = '';
-            if (qtyInp) {
-                qtyInp.value = 0;
-                qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+
+            const executeClear = () => {
+                hero.stats[`item${row}Name`] = '';
+                hero.stats[`item${row}Qty`] = 0;
+                hero.stats[`item${row}Notes`] = '';
+
+                if (nameInp) {
+                    nameInp.value = '';
+                    nameInp.dataset.validItem = '';
+                }
+                if (noteInp) noteInp.value = '';
+                if (qtyInp) {
+                    qtyInp.value = 0;
+                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            };
+
+            const confirmModal = ModalManager.open({
+                id: 'bstConfirmDeleteItemModal',
+                title: '🗑️ Удаление предмета из рюкзака',
+                width: '420px',
+                borderColor: '#e74c3c',
+                bodyHtml: `
+                    <div style="font-size: 14px; color: #ebd291; line-height: 1.5; padding: 6px 2px;">
+                        Вы действительно хотите удалить позицию из рюкзака?<br>
+                        <div style="margin-top: 8px; padding: 8px 10px; background: rgba(59, 23, 23, 0.45); border: 1px solid #9b2c2c; border-radius: 5px; color: #fff;">
+                            <b>${itemName || 'Предмет'}</b> ${itemQty > 0 ? `<span style="color: #ffd875;">(×${itemQty} шт.)</span>` : ''}
+                        </div>
+                    </div>
+                `,
+                footerButtons: [
+                    {
+                        label: '✖ Отмена',
+                        variant: 'cc',
+                        onClick: () => confirmModal.close()
+                    },
+                    {
+                        label: '🗑️ Удалить',
+                        variant: 'del',
+                        onClick: () => {
+                            executeClear();
+                            confirmModal.close();
+                        }
+                    }
+                ]
+            });
+
+            if (confirmModal?.overlay) {
+                confirmModal.overlay.style.zIndex = '10000250';
             }
         });
     });
+
 
 
     // 4. Способности и виды спутников (единое поведение для зверей и фамильяров)
