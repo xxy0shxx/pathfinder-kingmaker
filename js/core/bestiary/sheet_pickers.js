@@ -627,9 +627,125 @@ export function initPage2Pickers(overlay, hero) {
         return true;
     };
 
+    const applySelectedItemToRow = (inp, row, found) => {
+        const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
+        const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
 
+        // Проверяем дубликаты в других ячейках — если есть, стакаем в них
+        const normFoundName = normalizeStr(found.name);
+        let existingRow = null;
+        for (let r = 1; r <= 15; r++) {
+            if (String(r) === String(row)) continue;
+            const otherName = normalizeStr(hero.stats[`item${r}Name`]);
+            if (otherName && otherName === normFoundName) {
+                existingRow = r;
+                break;
+            }
+        }
 
-    // 3. Предметы, щиты и степперы количества (выбор строго из каталога)
+        if (existingRow !== null) {
+            const nextQty = (Math.max(0, Number(hero.stats[`item${existingRow}Qty`]) || 0)) + 1;
+            hero.stats[`item${existingRow}Qty`] = nextQty;
+            const targetQtyInp = overlay.querySelector(`[data-sheet-num="item${existingRow}Qty"]`);
+            if (targetQtyInp) {
+                targetQtyInp.value = nextQty;
+                targetQtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            inp.value = '';
+            inp.dataset.validItem = '';
+            hero.stats[`item${row}Name`] = '';
+            if (qtyInp) { qtyInp.value = 0; hero.stats[`item${row}Qty`] = 0; }
+            if (noteInp) { noteInp.value = ''; hero.stats[`item${row}Notes`] = ''; }
+            return;
+        }
+
+        inp.value = found.name;
+        inp.dataset.validItem = found.name;
+        hero.stats[`item${row}Name`] = found.name;
+
+        if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) {
+            qtyInp.value = 1;
+            hero.stats[`item${row}Qty`] = 1;
+        }
+
+        const heroLvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
+        const itemLvl = getItemLevel(found);
+        const isLevelLocked = itemLvl > heroLvl;
+
+        if (noteInp) {
+            const finalNote = isLevelLocked
+                ? `⚠️ [Требуется ${itemLvl} ур. — бонусы неактивны] ${found.notes}`
+                : found.notes;
+            noteInp.value = finalNote;
+            hero.stats[`item${row}Notes`] = finalNote;
+        }
+
+        if (isLevelLocked) {
+            if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+            return;
+        }
+
+        if (found.shieldStats) {
+            hero.stats.acShieldBonus = found.shieldStats.bonus;
+            hero.stats.acShieldHardness = found.shieldStats.hardness;
+            hero.stats.acShieldHp = found.shieldStats.hp;
+        }
+
+        if (found.runeEffect) {
+            const eff = found.runeEffect;
+            if (eff.target === 'weapon') {
+                const slot = ['melee1', 'melee2', 'ranged'].find(s => String(hero.stats[`${s}Name`] || '').trim()) || 'melee1';
+                if (eff.potency) {
+                    const curAtk = parseInt(String(hero.stats[`${slot}Atk`] || '0').replace(/[^\d+-]/g, ''), 10) || 0;
+                    const nextAtk = curAtk + eff.potency;
+                    hero.stats[`${slot}Atk`] = nextAtk >= 0 ? `+${nextAtk}` : `${nextAtk}`;
+                    const wName = String(hero.stats[`${slot}Name`] || '').trim();
+                    if (wName && !/^\+\d/.test(wName)) hero.stats[`${slot}Name`] = `+${eff.potency} ${wName}`;
+                }
+                if (eff.striking) {
+                    const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
+                    if (curDmg) hero.stats[`${slot}Dmg`] = curDmg.replace(/^\d+(d\d+)/i, `${eff.striking}$1`);
+                    const wName = String(hero.stats[`${slot}Name`] || '').trim();
+                    if (wName && !wName.toLowerCase().includes('разящ')) hero.stats[`${slot}Name`] = `${wName} (Разящее)`;
+                }
+                if (eff.extraDmg) {
+                    const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
+                    if (curDmg && !curDmg.includes(eff.extraDmg)) hero.stats[`${slot}Dmg`] = `${curDmg} ${eff.extraDmg}`;
+                }
+                if (eff.extraTrait) {
+                    const curTraits = String(hero.stats[`${slot}Traits`] || '').trim();
+                    if (!curTraits.includes(eff.extraTrait)) hero.stats[`${slot}Traits`] = curTraits ? `${curTraits}, ${eff.extraTrait}` : eff.extraTrait;
+                }
+            } else if (eff.target === 'armor') {
+                if (eff.potency) {
+                    const baseArmor = (PF2E_ARMOR_CATALOG || []).find(a => normalizeStr(a.name) === normalizeStr(hero.stats.armorName));
+                    const baseBonus = baseArmor ? (Number(baseArmor.acBonus) || 0) : (Number(hero.stats.acItem) || 0);
+                    hero.stats.acItem = baseBonus + eff.potency;
+                    const aName = String(hero.stats.armorName || '').trim();
+                    if (aName && !/^\+\d/.test(aName)) hero.stats.armorName = `+${eff.potency} ${aName}`;
+                }
+                if (eff.noteTag) {
+                    const aName = String(hero.stats.armorName || '').trim();
+                    if (aName && !aName.includes(eff.noteTag)) hero.stats.armorName = `${aName} [${eff.noteTag}]`;
+                }
+            } else if (eff.target === 'save' && eff.bonus) {
+                hero.stats.saveItemBonus = eff.bonus;
+            }
+        }
+
+        if (found.skillBonus && found.skillBonus.skill) {
+            if (!hero.stats.skillItemBonuses || typeof hero.stats.skillItemBonuses !== 'object') {
+                hero.stats.skillItemBonuses = {};
+            }
+            const sk = found.skillBonus.skill;
+            const curB = Number(hero.stats.skillItemBonuses[sk]) || 0;
+            hero.stats.skillItemBonuses[sk] = Math.max(curB, Number(found.skillBonus.bonus) || 0);
+        }
+
+        if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    // 3. Предметы, щиты и степперы количества (выбор строго из каталога + диалог покупки)
     overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
         const row = inp.dataset.itemRow;
         inp.dataset.validItem = inp.value || '';
@@ -638,177 +754,83 @@ export function initPage2Pickers(overlay, hero) {
             width: 390,
             zIndex: '10000180',
             getItems: (q) => searchItemsCatalog(q),
-
-
             renderOption: (it) => {
                 const priceInfo = parseItemPriceCp(it);
-                const buyBtnHtml = priceInfo
-                    ? `<span class="bst-item-buy-btn" data-buy-cp="${priceInfo.totalCp}" data-buy-lbl="${priceInfo.label}" title="Купить и списать ${priceInfo.label} из кошелька героя" style="margin-left: 6px; padding: 2px 7px; font-size: 11px; font-weight: bold; background: #1e3c27; border: 1px solid #ffd875; color: #ffd875; border-radius: 4px; cursor: pointer; white-space: nowrap;">🛒 ${priceInfo.label}</span>`
+                const priceTagHtml = priceInfo
+                    ? `<span style="margin-left: 6px; padding: 2px 7px; font-size: 11px; font-weight: bold; background: #1e3c27; border: 1px solid #ffd875; color: #ffd875; border-radius: 4px; white-space: nowrap;">💰 ${priceInfo.label}</span>`
                     : '';
                 return `<div class="bst-cantrip-opt-top" style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
                     <div style="flex:1; min-width:0;"><b>${it.name}</b> <span style="display:block; font-size:11px; color:#a4b0be;">${it.category}</span></div>
-                    ${buyBtnHtml}
+                    ${priceTagHtml}
                 </div>`;
             },
-
-            onSelect: (found, isBuyClick = false) => {
-
-                if (isBuyClick) {
-                    const priceInfo = parseItemPriceCp(found);
-                    if (priceInfo && priceInfo.totalCp > 0) {
-                        const ok = spendHeroCoinsCp(priceInfo.totalCp);
-                        if (!ok) {
-                            const errModal = ModalManager.open({
-                                id: 'bstNotEnoughCoinsModal',
-                                title: '⚠️ Недостаточно монет',
-                                width: '400px',
-                                borderColor: '#e74c3c',
-                                bodyHtml: `<div style="font-size: 14px; color: #ebd291; line-height: 1.5;">Для покупки предмета <b>${found.name}</b> требуется <b style="color:#ffd875;">${priceInfo.label}</b>, но в кошельке героя не хватает средств.</div>`,
-                                footerButtons: [{ label: 'Понятно', variant: 'ok' }]
-                            });
-                            if (errModal?.overlay) errModal.overlay.style.zIndex = '10000250';
-                            return;
-                        }
-                    }
-                }
-
-                const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
-                const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
-
-                // Проверяем, есть ли уже такой же предмет в другой ячейке рюкзака — если да, стакаем в него
-                const normFoundName = normalizeStr(found.name);
-                let existingRow = null;
-                for (let r = 1; r <= 15; r++) {
-                    if (String(r) === String(row)) continue;
-                    const otherName = normalizeStr(hero.stats[`item${r}Name`]);
-                    if (otherName && otherName === normFoundName) {
-                        existingRow = r;
-                        break;
-                    }
-                }
-
-                if (existingRow !== null) {
-                    const prevQty = Math.max(0, Number(hero.stats[`item${existingRow}Qty`]) || 0);
-                    const nextQty = prevQty + 1;
-                    hero.stats[`item${existingRow}Qty`] = nextQty;
-
-                    const targetQtyInp = overlay.querySelector(`[data-sheet-num="item${existingRow}Qty"]`);
-                    if (targetQtyInp) {
-                        targetQtyInp.value = nextQty;
-                        targetQtyInp.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-
-                    inp.value = '';
-                    inp.dataset.validItem = '';
-                    hero.stats[`item${row}Name`] = '';
-                    if (qtyInp) { qtyInp.value = 0; hero.stats[`item${row}Qty`] = 0; }
-                    if (noteInp) { noteInp.value = ''; hero.stats[`item${row}Notes`] = ''; }
+            onSelect: (found) => {
+                const priceInfo = parseItemPriceCp(found);
+                if (!priceInfo || priceInfo.totalCp <= 0) {
+                    applySelectedItemToRow(inp, row, found);
                     return;
                 }
 
-                // Записываем выбранный предмет в текущую строку
-                inp.value = found.name;
-                inp.dataset.validItem = found.name;
-                hero.stats[`item${row}Name`] = found.name;
+                const gInp = overlay.querySelector('[data-sheet-num="coinsGold"]') || document.querySelector('[data-sheet-num="coinsGold"]');
+                const sInp = overlay.querySelector('[data-sheet-num="coinsSilver"]') || document.querySelector('[data-sheet-num="coinsSilver"]');
+                const cInp = overlay.querySelector('[data-sheet-num="coinsCopper"]') || document.querySelector('[data-sheet-num="coinsCopper"]');
+                const curG = Math.max(0, parseInt(gInp ? gInp.value : hero.stats.coinsGold, 10) || 0);
+                const curS = Math.max(0, parseInt(sInp ? sInp.value : hero.stats.coinsSilver, 10) || 0);
+                const curC = Math.max(0, parseInt(cInp ? cInp.value : hero.stats.coinsCopper, 10) || 0);
+                const totalCp = curG * 100 + curS * 10 + curC;
+                const canAfford = totalCp >= priceInfo.totalCp;
 
-                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) {
-                    qtyInp.value = 1;
-                    hero.stats[`item${row}Qty`] = 1;
+                const choiceModal = ModalManager.open({
+                    id: 'bstAcquireItemChoiceModal',
+                    title: '🎒 Получение предмета',
+                    width: '440px',
+                    borderColor: '#ffd875',
+                    bodyHtml: `
+                        <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                            Вы выбрали: <b style="color:#fff;">${found.name}</b><br>
+                            Стоимость по каталогу: <b style="color:#ffd875;">${priceInfo.label}</b><br>
+                            <div style="margin-top: 8px; padding: 6px 10px; background: rgba(4,9,5,0.75); border: 1px solid #543e0d; border-radius: 5px; font-size: 13px;">
+                                В кошельке героя: <b>${curG} ЗМ, ${curS} СМ, ${curC} ММ</b>
+                                ${!canAfford ? `<div style="color:#ff7675; margin-top:3px;">⚠️ Монет недостаточно для покупки — можно взять только как трофей.</div>` : ''}
+                            </div>
+                        </div>
+                    `,
+                    footerButtons: [
+                        {
+                            label: '✖ Отмена',
+                            variant: 'cc',
+                            onClick: () => {
+                                inp.value = inp.dataset.validItem || '';
+                                choiceModal.close();
+                            }
+                        },
+                        {
+                            label: '🎁 Взять бесплатно',
+                            variant: 'cc',
+                            onClick: () => {
+                                applySelectedItemToRow(inp, row, found);
+                                choiceModal.close();
+                            }
+                        },
+                        ...(canAfford ? [{
+                            label: `🛒 Купить (−${priceInfo.label})`,
+                            variant: 'ok',
+                            onClick: () => {
+                                if (spendHeroCoinsCp(priceInfo.totalCp)) {
+                                    applySelectedItemToRow(inp, row, found);
+                                }
+                                choiceModal.close();
+                            }
+                        }] : [])
+                    ]
+                });
+
+                if (choiceModal?.overlay) {
+                    choiceModal.overlay.style.zIndex = '10000250';
                 }
-
-                const heroLvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
-                const itemLvl = getItemLevel(found);
-                const isLevelLocked = itemLvl > heroLvl;
-
-                if (noteInp) {
-                    const finalNote = isLevelLocked
-                        ? `⚠️ [Требуется ${itemLvl} ур. — бонусы неактивны] ${found.notes}`
-                        : found.notes;
-                    noteInp.value = finalNote;
-                    hero.stats[`item${row}Notes`] = finalNote;
-                }
-
-                if (isLevelLocked) {
-                    if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
-                    return;
-                }
-
-                if (found.shieldStats) {
-                    hero.stats.acShieldBonus = found.shieldStats.bonus;
-                    hero.stats.acShieldHardness = found.shieldStats.hardness;
-                    hero.stats.acShieldHp = found.shieldStats.hp;
-                }
-
-                if (found.runeEffect) {
-                    const eff = found.runeEffect;
-                    if (eff.target === 'weapon') {
-                        const slot = ['melee1', 'melee2', 'ranged'].find(s => String(hero.stats[`${s}Name`] || '').trim()) || 'melee1';
-                        if (eff.potency) {
-                            const curAtk = parseInt(String(hero.stats[`${slot}Atk`] || '0').replace(/[^\d+-]/g, ''), 10) || 0;
-                            const nextAtk = curAtk + eff.potency;
-                            hero.stats[`${slot}Atk`] = nextAtk >= 0 ? `+${nextAtk}` : `${nextAtk}`;
-                            const wName = String(hero.stats[`${slot}Name`] || '').trim();
-                            if (wName && !/^\+\d/.test(wName)) {
-                                hero.stats[`${slot}Name`] = `+${eff.potency} ${wName}`;
-                            }
-                        }
-                        if (eff.striking) {
-                            const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
-                            if (curDmg) {
-                                hero.stats[`${slot}Dmg`] = curDmg.replace(/^\d+(d\d+)/i, `${eff.striking}$1`);
-                            }
-                            const wName = String(hero.stats[`${slot}Name`] || '').trim();
-                            if (wName && !wName.toLowerCase().includes('разящ')) {
-                                hero.stats[`${slot}Name`] = `${wName} (Разящее)`;
-                            }
-                        }
-                        if (eff.extraDmg) {
-                            const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
-                            if (curDmg && !curDmg.includes(eff.extraDmg)) {
-                                hero.stats[`${slot}Dmg`] = `${curDmg} ${eff.extraDmg}`;
-                            }
-                        }
-                        if (eff.extraTrait) {
-                            const curTraits = String(hero.stats[`${slot}Traits`] || '').trim();
-                            if (!curTraits.includes(eff.extraTrait)) {
-                                hero.stats[`${slot}Traits`] = curTraits ? `${curTraits}, ${eff.extraTrait}` : eff.extraTrait;
-                            }
-                        }
-                    } else if (eff.target === 'armor') {
-                        if (eff.potency) {
-                            const baseArmor = (PF2E_ARMOR_CATALOG || []).find(a => normalizeStr(a.name) === normalizeStr(hero.stats.armorName));
-                            const baseBonus = baseArmor ? (Number(baseArmor.acBonus) || 0) : (Number(hero.stats.acItem) || 0);
-                            hero.stats.acItem = baseBonus + eff.potency;
-                            const aName = String(hero.stats.armorName || '').trim();
-                            if (aName && !/^\+\d/.test(aName)) {
-                                hero.stats.armorName = `+${eff.potency} ${aName}`;
-                            }
-                        }
-                        if (eff.noteTag) {
-                            const aName = String(hero.stats.armorName || '').trim();
-                            if (aName && !aName.includes(eff.noteTag)) {
-                                hero.stats.armorName = `${aName} [${eff.noteTag}]`;
-                            }
-                        }
-                    } else if (eff.target === 'save' && eff.bonus) {
-                        hero.stats.saveItemBonus = eff.bonus;
-                    }
-                }
-
-                if (found.skillBonus && found.skillBonus.skill) {
-                    if (!hero.stats.skillItemBonuses || typeof hero.stats.skillItemBonuses !== 'object') {
-                        hero.stats.skillItemBonuses = {};
-                    }
-                    const sk = found.skillBonus.skill;
-                    const curB = Number(hero.stats.skillItemBonuses[sk]) || 0;
-                    hero.stats.skillItemBonuses[sk] = Math.max(curB, Number(found.skillBonus.bonus) || 0);
-                }
-
-                if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
 
-        // При выходе из поля с невалидным (произвольным) текстом возвращаем последнее выбранное значение
         inp.addEventListener('change', () => {
             const cur = String(inp.value || '').trim();
             if (!cur) {
@@ -823,6 +845,13 @@ export function initPage2Pickers(overlay, hero) {
             }
         });
     });
+
+
+
+
+
+
+
 
 
 
