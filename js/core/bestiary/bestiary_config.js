@@ -241,5 +241,18 @@ export function ensureCharacterStats(item) {
         }
     });
 
+    if (item.stats.investedUsedToday === undefined) item.stats.investedUsedToday = 0;
+
+    const eqSlots = ['head', 'cloak', 'hands', 'belt', 'neck', 'armor', 'eyes', 'feet', 'mainHand', 'offHand', 'ring_1', 'ring_2', 'ring_3', 'ring_4', 'ring_5'];
+    eqSlots.forEach(sk => {
+        if (item.stats[`eq_${sk}_Name`] === undefined) item.stats[`eq_${sk}_Name`] = '';
+        if (item.stats[`eq_${sk}_Invested`] === undefined) item.stats[`eq_${sk}_Invested`] = false;
+    });
+
+    for (let b = 1; b <= 5; b++) {
+        if (item.stats[`beltItem${b}Name`] === undefined) item.stats[`beltItem${b}Name`] = '';
+    }
+
+
     return item.stats;
 }

@@ -64,6 +64,26 @@ export function recalculateSheetStats(overlay, hero) {
     let activeSaveBonus = 0;
 
     for (let i = 1; i <= 15; i++) {
+        const dollSlots = ['head', 'cloak', 'hands', 'belt', 'neck', 'armor', 'eyes', 'feet', 'mainHand', 'offHand', 'ring_1', 'ring_2', 'ring_3', 'ring_4', 'ring_5'];
+        dollSlots.forEach(sk => {
+            const eqName = String(hero.stats[`eq_${sk}_Name`] || '').trim();
+            if (!eqName) return;
+            const cleanEq = eqName.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
+            const found = PF2E_ITEMS_CATALOG.find(it => it.name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е') === cleanEq);
+            if (!found || getItemLevel(found) > currentHeroLvl) return;
+
+            const isInv = /настроенность|вкладываем|invested/i.test(`${found.notes || ''} ${found.category || ''}`);
+            if (isInv && !hero.stats[`eq_${sk}_Invested`]) return;
+
+            if (found.skillBonus?.skill) {
+                const targetSk = found.skillBonus.skill;
+                activeSkillBonuses[targetSk] = Math.max(activeSkillBonuses[targetSk] || 0, Number(found.skillBonus.bonus) || 0);
+            }
+            if (found.runeEffect?.target === 'save' && found.runeEffect.bonus) {
+                activeSaveBonus = Math.max(activeSaveBonus, Number(found.runeEffect.bonus) || 0);
+            }
+        });
+
         const rawName = String(hero.stats[`item${i}Name`] || '').trim();
         const qty = Number(hero.stats[`item${i}Qty`]) || 0;
         if (!rawName || qty <= 0) continue;

@@ -144,12 +144,10 @@ export function buildUnitTooltipHtml(item, options = {}) {
         ['🧠 Воля', fmtMod(stats.will)]
     ];
 
-    const armorPenalty = Math.abs(Number(stats.acArmorPenalty) || 0);
-
     const skills = [
-        ['Акробатика', (stats.acrobatics ?? stats.acro) - armorPenalty],
+        ['Акробатика', stats.acrobatics ?? stats.acro],
         ['Аркана', stats.arcana ?? stats.arca],
-        ['Атлетика', (stats.athletics ?? stats.athl) - armorPenalty],
+        ['Атлетика', stats.athletics ?? stats.athl],
         ['Ремесло', stats.crafting],
         ['Обман', stats.deception ?? stats.dece],
         ['Дипломатия', stats.diplomacy ?? stats.dipl],
@@ -161,10 +159,11 @@ export function buildUnitTooltipHtml(item, options = {}) {
         ['Выступление', stats.performance],
         ['Религия', stats.religion ?? stats.reli],
         ['Общество', stats.society],
-        ['Скрытность', (stats.stealth ?? stats.stea) - armorPenalty],
+        ['Скрытность', stats.stealth ?? stats.stea],
         ['Выживание', stats.survival ?? stats.surv],
-        ['Воровство', (stats.thievery ?? 0) - armorPenalty]
+        ['Воровство', stats.thievery ?? 0]
     ].filter(([, v]) => v !== undefined);
+
 
     const attacks = [
         stats.melee1Name ? `⚔️ ${stats.melee1Name} <b>${stats.melee1Atk || ''}</b> ${stats.melee1Dmg ? `(${stats.melee1Dmg})` : ''}` : '',

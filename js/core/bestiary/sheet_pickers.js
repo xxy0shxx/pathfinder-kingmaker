@@ -1486,6 +1486,33 @@ export function initPage3Pickers(overlay, hero) {
         return result;
     };
 
+    const parseSingleItemBulk = (rawName) => {
+        const norm = normalizeStr(rawName);
+        if (!norm) return 0;
+        const catItem = (PF2E_ITEMS_CATALOG || []).find(x => normalizeStr(x.name) === norm);
+        const bStr = String(catItem?.bulk || '').trim().toUpperCase();
+        if (!bStr || bStr === '—' || bStr === '-' || bStr === '0') return 0;
+        if (bStr === 'Л' || bStr === 'L') return 0.1;
+        return parseFloat(bStr.replace(',', '.')) || 0;
+    };
+
+    const updateBeltBulkBadge = () => {
+        const badge = overlay.querySelector('#bstBeltBulkBadge');
+        if (!badge) return;
+        let total = 0;
+        for (let b = 1; b <= 5; b++) {
+            total += parseSingleItemBulk(hero.stats[`beltItem${b}Name`]);
+        }
+        const rounded = Math.round(total * 10) / 10;
+        badge.textContent = `${rounded.toFixed(1)} / 2.0 Массы`;
+        if (rounded > 2.0) {
+            badge.style.color = '#ff7675';
+            badge.textContent += ' (Перегруз пояса!)';
+        } else {
+            badge.style.color = '#2ecc71';
+        }
+    };
+
     const syncEquippedSkillBonuses = () => {
         const bonuses = {};
         const allSlotKeys = ['head', 'cloak', 'hands', 'belt', 'neck', 'armor', 'eyes', 'feet', 'mainHand', 'offHand', 'ring_1', 'ring_2', 'ring_3', 'ring_4', 'ring_5'];
@@ -1575,11 +1602,38 @@ export function initPage3Pickers(overlay, hero) {
                         hero.stats[`beltItem${b}Name`] = itemName;
                         const beltInp = overlay.querySelector(`[data-belt-picker="${b}"]`);
                         if (beltInp) beltInp.value = itemName;
+                        updateBeltBulkBadge();
                         break;
                     }
                 }
             });
         });
+    };
+
+    const attachUnequipButton = (slot, inp) => {
+        const rowWrap = inp.parentElement;
+        if (!rowWrap || rowWrap.querySelector('.bst-eq-unequip-btn')) return;
+
+        const unequipBtn = document.createElement('button');
+        unequipBtn.type = 'button';
+        unequipBtn.className = 'bst-eq-unequip-btn';
+        unequipBtn.dataset.unequipSlot = slot;
+        unequipBtn.title = 'Снять предмет (дневной лимит вложения сохраняется)';
+        unequipBtn.style.cssText = 'background:#3b1717; border:1px solid #9b2c2c; color:#ff7675; border-radius:3px; padding:0 5px; height:22px; cursor:pointer; font-size:11px;';
+        unequipBtn.textContent = '✖';
+        unequipBtn.addEventListener('click', () => {
+            if (slot === 'mainHand' && hero.stats.eq_offHand_Name === '🔒 Занято (двуручное)') {
+                hero.stats.eq_offHand_Name = '';
+                const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
+                if (offInp) offInp.value = '';
+            }
+            hero.stats[`eq_${slot}_Name`] = '';
+            hero.stats[`eq_${slot}_Invested`] = false;
+            inp.value = '';
+            unequipBtn.remove();
+            updateInvestedCounterUi();
+        });
+        rowWrap.appendChild(unequipBtn);
     };
 
     const equipItemToSlot = (slot, inp, found) => {
@@ -1613,6 +1667,7 @@ export function initPage3Pickers(overlay, hero) {
 
         inp.value = found.name;
         hero.stats[`eq_${slot}_Name`] = found.name;
+        attachUnequipButton(slot, inp);
         syncDollToPage1Stats(slot, found);
         updateInvestedCounterUi();
     };
@@ -1694,10 +1749,17 @@ export function initPage3Pickers(overlay, hero) {
             onSelect: (found) => {
                 inp.value = found.name;
                 hero.stats[`beltItem${idx}Name`] = found.name;
+                updateBeltBulkBadge();
             }
+        });
+
+        inp.addEventListener('change', () => {
+            hero.stats[`beltItem${idx}Name`] = inp.value;
+            updateBeltBulkBadge();
         });
     });
 
     renderPage3BackpackList();
     updateInvestedCounterUi();
+    updateBeltBulkBadge();
 }
