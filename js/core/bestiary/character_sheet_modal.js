@@ -519,11 +519,16 @@ function buildPage2Html(stats) {
                     <div class="k-sec-title">🎒 Снаряжение и Монеты</div>
                     
                     <div class="bst-coins-row" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <label>🥉 ММ: ${numInp(stats, 'coinsCopper', 'bst-mini-num')}</label>
-                            <label>🥈 СМ: ${numInp(stats, 'coinsSilver', 'bst-mini-num')}</label>
-                            <label>🥇 ЗМ: ${numInp(stats, 'coinsGold', 'bst-mini-num')}</label>
-                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="font-size: 12px; color: #e17055; font-weight: bold;">🥉 ММ:</span>
+                ${numInp(stats, 'coinsCopper', 'bst-mini-num')}
+                <span style="font-size: 12px; color: #dfe6e9; font-weight: bold;">🥈 СМ:</span>
+                ${numInp(stats, 'coinsSilver', 'bst-mini-num')}
+                <span style="font-size: 12px; color: #ffd875; font-weight: bold;">🥇 ЗМ:</span>
+                ${numInp(stats, 'coinsGold', 'bst-mini-num')}
+                <button type="button" id="btnHeroCoinsConvert" class="btn cc" style="padding: 2px 7px; font-size: 11px;" title="Укрупнить монеты (10 ММ → 1 СМ, 10 СМ → 1 ЗМ)">💱</button>
+                <button type="button" id="btnHeroCoinsTransfer" class="btn ok" style="padding: 2px 8px; font-size: 11px;" title="Передать монеты союзнику, в казну или списать за покупку">💸 Передать / Тратить</button>
+            </div>
                         <div id="bstBulkCounterBadge" style="padding: 4px 10px; border-radius: 5px; border: 1px solid #543e0d; background: rgba(4, 9, 5, 0.85); font-size: 13px; font-weight: bold;"></div>
                     </div>
                     
@@ -996,6 +1001,132 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 badge.innerHTML = `🎒 Масса: <b>${bulkStr}</b> / ${b.encumberedLimit} (Макс. ${b.maxLimit})`;
             }
         };
+
+        // Управление личным кошельком героя (укрупнение, перевод союзнику/в казну, покупка)
+        const syncCoinsInputs = () => {
+            const gEl = overlay.querySelector('[data-sheet-num="coinsGold"]');
+            const sEl = overlay.querySelector('[data-sheet-num="coinsSilver"]');
+            const cEl = overlay.querySelector('[data-sheet-num="coinsCopper"]');
+            if (gEl) gEl.value = hero.stats.coinsGold ?? 0;
+            if (sEl) sEl.value = hero.stats.coinsSilver ?? 0;
+            if (cEl) cEl.value = hero.stats.coinsCopper ?? 0;
+            refreshBulkBadge();
+        };
+
+        overlay.querySelector('#btnHeroCoinsConvert')?.addEventListener('click', () => {
+            collectFormData(overlay, hero);
+            const totalCp = (Number(hero.stats.coinsGold) || 0) * 100 +
+                (Number(hero.stats.coinsSilver) || 0) * 10 +
+                (Number(hero.stats.coinsCopper) || 0);
+            hero.stats.coinsGold = Math.floor(totalCp / 100);
+            hero.stats.coinsSilver = Math.floor((totalCp % 100) / 10);
+            hero.stats.coinsCopper = totalCp % 10;
+            syncCoinsInputs();
+        });
+
+        overlay.querySelector('#btnHeroCoinsTransfer')?.addEventListener('click', () => {
+            collectFormData(overlay, hero);
+            const curG = Math.max(0, Number(hero.stats.coinsGold) || 0);
+            const curS = Math.max(0, Number(hero.stats.coinsSilver) || 0);
+            const curC = Math.max(0, Number(hero.stats.coinsCopper) || 0);
+            const totalAvailableCp = curG * 100 + curS * 10 + curC;
+
+            const partyList = (window.BestiaryManager?.state?.party || []).filter(p => p && p.id !== hero.id && !p.inactive);
+            const targetOptionsHtml = [
+                `<option value="spend">🛒 Траты / Покупка / Услуги (списать со счёта)</option>`,
+                `<option value="treasury">💰 В общую казну отряда</option>`,
+                ...partyList.map(p => `<option value="hero:${p.id}">🛡️ Передать герою: ${esc(p.name)}</option>`)
+            ].join('');
+
+            const txModal = ModalManager.open({
+                id: 'bstHeroCoinTxModal',
+                title: `💸 Кошелёк: ${esc(hero.name)}`,
+                width: '440px',
+                borderColor: '#ffd875',
+                bodyHtml: `
+                    <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                        <div style="margin-bottom: 8px; padding: 6px 10px; background: rgba(4,9,5,0.75); border: 1px solid #543e0d; border-radius: 5px;">
+                            В кошельке: <b style="color:#ffd875;">${curG} ЗМ</b>, <b style="color:#dfe6e9;">${curS} СМ</b>, <b style="color:#e17055;">${curC} ММ</b>
+                            <span style="color:#a4b0be; font-size:12px;">(всего ${(totalAvailableCp / 100).toFixed(2)} ЗМ)</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 12px; color: #ffd875; font-weight: bold;">Куда направить монеты:</label>
+                            <select id="bstTxTargetSel" class="k-inp" style="width: 100%; margin-top: 3px; padding: 6px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
+                                ${targetOptionsHtml}
+                            </select>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;">
+                            <div>
+                                <span style="font-size: 12px; color: #ffd875;">🥇 ЗМ:</span>
+                                <input type="number" id="bstTxGold" class="k-inp" min="0" value="0" style="width: 100%; text-align: center;">
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #dfe6e9;">🥈 СМ:</span>
+                                <input type="number" id="bstTxSilver" class="k-inp" min="0" value="0" style="width: 100%; text-align: center;">
+                            </div>
+                            <div>
+                                <span style="font-size: 12px; color: #e17055;">🥉 ММ:</span>
+                                <input type="number" id="bstTxCopper" class="k-inp" min="0" value="0" style="width: 100%; text-align: center;">
+                            </div>
+                        </div>
+                        <input type="text" id="bstTxNote" class="k-inp" placeholder="Комментарий (напр. Зелье лечения, на доспех)..." style="width: 100%; font-size: 13px; padding: 6px 8px;">
+                        <div id="bstTxErr" style="color: #ff7675; font-size: 12px; margin-top: 6px; min-height: 16px;"></div>
+                    </div>
+                `,
+                footerButtons: [
+                    { label: '✖ Отмена', variant: 'cc', onClick: () => txModal.close() },
+                    {
+                        label: '✅ Выполнить',
+                        variant: 'ok',
+                        onClick: () => {
+                            const g = Math.max(0, parseInt(document.getElementById('bstTxGold')?.value, 10) || 0);
+                            const s = Math.max(0, parseInt(document.getElementById('bstTxSilver')?.value, 10) || 0);
+                            const c = Math.max(0, parseInt(document.getElementById('bstTxCopper')?.value, 10) || 0);
+                            const sendCp = g * 100 + s * 10 + c;
+                            const errEl = document.getElementById('bstTxErr');
+
+                            if (sendCp <= 0) {
+                                if (errEl) errEl.textContent = '⚠️ Укажите сумму больше 0.';
+                                return;
+                            }
+                            if (sendCp > totalAvailableCp) {
+                                if (errEl) errEl.textContent = '⚠️ Недостаточно монет в кошельке героя!';
+                                return;
+                            }
+
+                            // Списываем с автоматическим разменом оставшихся монет
+                            const remCp = totalAvailableCp - sendCp;
+                            hero.stats.coinsGold = Math.floor(remCp / 100);
+                            hero.stats.coinsSilver = Math.floor((remCp % 100) / 10);
+                            hero.stats.coinsCopper = remCp % 10;
+
+                            const target = document.getElementById('bstTxTargetSel')?.value || 'spend';
+                            const note = String(document.getElementById('bstTxNote')?.value || '').trim();
+
+                            if (target === 'treasury' && window.BestiaryManager?.addTreasuryLoot) {
+                                window.BestiaryManager.addTreasuryLoot(g, s, c, `${hero.name}${note ? ': ' + note : ''}`);
+                            } else if (target.startsWith('hero:')) {
+                                const recipientId = target.slice(5);
+                                const recipient = (window.BestiaryManager?.state?.party || []).find(p => p.id === recipientId);
+                                if (recipient) {
+                                    if (!recipient.stats) recipient.stats = {};
+                                    recipient.stats.coinsGold = (Number(recipient.stats.coinsGold) || 0) + g;
+                                    recipient.stats.coinsSilver = (Number(recipient.stats.coinsSilver) || 0) + s;
+                                    recipient.stats.coinsCopper = (Number(recipient.stats.coinsCopper) || 0) + c;
+                                }
+                            }
+
+                            syncCoinsInputs();
+                            if (window.BestiaryManager?._save) window.BestiaryManager._save();
+                            txModal.close();
+                        }
+                    }
+                ]
+            });
+
+            if (txModal?.overlay) txModal.overlay.style.zIndex = '10000250';
+        });
+
 
         overlay.querySelectorAll('.bst-items-table input, [data-sheet-num^="coins"]').forEach(el => {
             el.addEventListener('input', refreshBulkBadge);
