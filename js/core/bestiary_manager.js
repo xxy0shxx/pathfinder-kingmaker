@@ -361,6 +361,110 @@ const BestiaryManager = {
         if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
     },
 
+    openCollectPartyCoinsModal() {
+        const tr = this._ensureTreasury();
+        const recipients = this._getTreasuryRecipients();
+
+        if (recipients.length === 0) {
+            alert('В текущем отряде нет активных героев!');
+            return;
+        }
+
+        let sumG = 0;
+        let sumS = 0;
+        let sumC = 0;
+        const donorLines = [];
+
+        recipients.forEach(hero => {
+            const st = hero.stats || {};
+            const g = Math.max(0, Number(st.coinsGold) || 0);
+            const s = Math.max(0, Number(st.coinsSilver) || 0);
+            const c = Math.max(0, Number(st.coinsCopper) || 0);
+            if (g > 0 || s > 0 || c > 0) {
+                sumG += g;
+                sumS += s;
+                sumC += c;
+                const p = [];
+                if (g > 0) p.push(`${g} ЗМ`);
+                if (s > 0) p.push(`${s} СМ`);
+                if (c > 0) p.push(`${c} ММ`);
+                donorLines.push(`• <b>${hero.name}:</b> ${p.join(', ')}`);
+            }
+        });
+
+        if (sumG === 0 && sumS === 0 && sumC === 0) {
+            alert('У героев отряда в кошельках сейчас нет монет!');
+            return;
+        }
+
+        const totalParts = [];
+        if (sumG > 0) totalParts.push(`<b>${sumG}</b> 🥇ЗМ`);
+        if (sumS > 0) totalParts.push(`<b>${sumS}</b> 🥈СМ`);
+        if (sumC > 0) totalParts.push(`<b>${sumC}</b> 🥉ММ`);
+
+        const modal = ModalManager.open({
+            id: 'bstCollectTreasuryModal',
+            title: '📥 Сбор монет со всего отряда в казну',
+            width: '460px',
+            borderColor: '#dfbc6f',
+            bodyHtml: `
+                <div style="font-size: 14px; color: #ebd291; line-height: 1.55;">
+                    <div>Вы действительно хотите собрать все личные монеты героев в общую казну?</div>
+                    <div style="margin-top: 8px; padding: 8px 10px; background: rgba(4, 9, 5, 0.8); border: 1px solid #543e0d; border-radius: 6px; font-size: 13px;">
+                        ${donorLines.join('<br>')}
+                        <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.25); color: #ffd875;">
+                            💰 <b>Итого поступит в казну:</b> ${totalParts.join(', ')}
+                        </div>
+                    </div>
+                </div>
+            `,
+            footerButtons: [
+                { label: '✖ Отмена', variant: 'cc', onClick: () => modal.close() },
+                {
+                    label: '📥 Собрать в казну',
+                    variant: 'ok',
+                    onClick: () => {
+                        const initCombatants = window.InitiativeManager?.state?.combatants || [];
+                        recipients.forEach(hero => {
+                            if (!hero.stats) hero.stats = createDefaultStats();
+                            hero.stats.coinsGold = 0;
+                            hero.stats.coinsSilver = 0;
+                            hero.stats.coinsCopper = 0;
+
+                            const normH = String(hero.name || '').trim().toLowerCase();
+                            initCombatants.forEach(u => {
+                                if (u && u.faction === 'friend' && String(u.name || '').trim().toLowerCase() === normH && u.stats && u.stats !== hero.stats) {
+                                    u.stats.coinsGold = 0;
+                                    u.stats.coinsSilver = 0;
+                                    u.stats.coinsCopper = 0;
+                                }
+                            });
+                        });
+
+                        tr.gold = (Number(tr.gold) || 0) + sumG;
+                        tr.silver = (Number(tr.silver) || 0) + sumS;
+                        tr.copper = (Number(tr.copper) || 0) + sumC;
+
+                        const logStr = [
+                            sumG > 0 ? `${sumG} ЗМ` : '',
+                            sumS > 0 ? `${sumS} СМ` : '',
+                            sumC > 0 ? `${sumC} ММ` : ''
+                        ].filter(Boolean).join(' ');
+
+                        tr.log.unshift(`📥 Собрано с отряда: +${logStr}`);
+                        if (tr.log.length > 8) tr.log.length = 8;
+
+                        this._save();
+                        modal.close();
+                    }
+                }
+            ]
+        });
+
+        if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
+    },
+
+
 
     renderUi() {
         hidePresetTooltip();
@@ -437,6 +541,7 @@ const BestiaryManager = {
                 </div>
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                     <button type="button" id="bstBtnConvertCoins" class="btn cc" style="padding: 4px 10px; font-size: 12px;" title="Обменять каждые 10 ММ → 1 СМ и 10 СМ → 1 ЗМ">💱 Укрупнить монеты</button>
+                    <button type="button" id="bstBtnCollectFromParty" class="btn cc" style="padding: 4px 10px; font-size: 12px;" title="Собрать все монеты из личных кошельков героев в общую казну">📥 Собрать с отряда</button>
                     <button type="button" id="bstBtnSplitTreasury" class="btn ok" style="padding: 4px 12px; font-size: 13px;">⚖️ Разделить поровну на отряд</button>
                 </div>
             </div>
@@ -469,6 +574,7 @@ const BestiaryManager = {
             </div>
         `;
 
+        box.querySelector('#bstBtnCollectFromParty')?.addEventListener('click', () => this.openCollectPartyCoinsModal());
         box.querySelector('#bstTrGold')?.addEventListener('change', (e) => { tr.gold = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrSilver')?.addEventListener('change', (e) => { tr.silver = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrCopper')?.addEventListener('change', (e) => { tr.copper = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
