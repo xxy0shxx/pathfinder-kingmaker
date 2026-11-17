@@ -707,20 +707,22 @@ const KingdomManager = {
     },
 
     addEventCard() {
+        this.saveFromUi();
+        if (!Array.isArray(this.state.events)) this.state.events = [];
         const kingdomLvl = parseInt(this.state.level, 10) || 1;
-        const modVal = parseInt(selectedEvent.dcMod, 10) || 0;
+        const baseCtrlDc = (parseInt(this.state.controlDcBase, 10) || 14) + (parseInt(this.state.controlDcSize, 10) || 0);
 
         this.state.events.push({
             id: 'ev_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-            name: cleanTitle,
-            title: cleanTitle,
+            name: 'Новое событие',
+            title: 'Новое событие',
             level: kingdomLvl,
-            modifier: modVal,
-            skill: selectedEvent.skill || 'statecraft',
-            skillName: rusSkillName,
-            dc: Number(baseCtrlDc + modVal) || 14,
+            modifier: 0,
+            skill: 'statecraft',
+            skillName: 'Управление',
+            dc: baseCtrlDc,
             status: 'active',
-            notes: `Навык разрешения: ${rusSkillName} (СЛ ${baseCtrlDc + modVal}).\n${selectedEvent.desc}`
+            notes: ''
         });
         this._persist();
         this.renderUi();

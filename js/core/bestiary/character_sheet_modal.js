@@ -833,36 +833,6 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         }
 
 
-        if (lvlInp) {
-            lvlInp.addEventListener('change', () => {
-                const newLvl = Math.max(1, parseInt(lvlInp.value, 10) || 1);
-                hero.stats.level = newLvl;
-
-                // Обновление ячеек заклинаний
-                const info = getMagicTierVisibility(hero.stats);
-                hero.stats.lvl1PerDay = info.lvl1Slots;
-                hero.stats.lvl2PerDay = info.lvl2Slots;
-                hero.stats.lvl3PerDay = info.lvl3Slots;
-
-                // Пересчет ПЗ и КБ спутника под новый уровень хозяина
-                if (hero.stats.compType === 'familiar') {
-                    const famSpecies = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
-                    const hasTough = famSpecies?.hasTough || String(hero.stats.compAbilitiesText || '').includes('Живучий');
-                    hero.stats.compHpMax = (5 + (hasTough ? 2 : 0)) * newLvl;
-                    hero.stats.compHpCur = hero.stats.compHpMax;
-                    hero.stats.compAc = 10 + newLvl + 2;
-                } else if (hero.stats.compType === 'companion' && hero.stats.compSpeciesId) {
-                    const species = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
-                    const calc = species ? calcCompanionStats(species, newLvl) : null;
-                    if (calc) {
-                        hero.stats.compHpMax = calc.hpMax;
-                        hero.stats.compHpCur = calc.hpMax;
-                        hero.stats.compAc = calc.ac;
-                    }
-                }
-            });
-        }
-
         // Тултип: Доспех (статы, эффект группы и дескрипторы)
         bindSheetTooltip(overlay.querySelector('[data-sheet-txt="armorName"]')?.closest('div'), () => {
             const val = overlay.querySelector('[data-sheet-txt="armorName"]')?.value.trim();

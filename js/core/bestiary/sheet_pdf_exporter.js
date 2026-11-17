@@ -91,15 +91,22 @@ export function exportCharacterToPdf(hero) {
         .filter(Boolean)
         .join(' • ');
 
-    const penaltySkills = new Array('acrobatics', 'athletics', 'stealth', 'thievery');
+    const penaltySkills = ['acrobatics', 'athletics', 'stealth', 'thievery'];
     const armorPen = Math.abs(Number(s.acArmorPenalty) || 0);
     const statLabels = { str: 'СИЛ', dex: 'ЛВК', con: 'ВЫН', int: 'ИНТ', wis: 'МДР', cha: 'ХАР' };
+    const skillStatMap = {
+        acrobatics: 'dex', athletics: 'str', thievery: 'dex', stealth: 'dex',
+        survival: 'wis', medicine: 'wis', nature: 'wis', religion: 'wis',
+        diplomacy: 'cha', intimidation: 'cha', deception: 'cha', performance: 'cha',
+        arcana: 'int', occultism: 'int', society: 'int', crafting: 'int', lore: 'int'
+    };
 
     const skillsHtml = PF2E_SHEET_CONFIG.skills.map(sk => {
         const cleanName = sk.label.replace(/^[^\p{L}]+/u, '').trim().toUpperCase();
         const total = Number(s[sk.key]) || 0;
         const prof = Number(s[`prof_${sk.key}`]) || 0;
-        const statMod = Number(s[sk.stat]) || 0;
+        const statKey = skillStatMap[sk.key] || 'int';
+        const statMod = Number(s[statKey]) || 0;
         const hasPen = penaltySkills.includes(sk.key);
         return `
         <div class="skill-row">
@@ -108,12 +115,13 @@ export function exportCharacterToPdf(hero) {
             <span class="eq">=</span>
             <div class="box box-sm bold">${fmtMod(total)}</div>
             <span class="op">+</span>
-            <div class="box-sub"><div class="box box-xs">${fmtMod(statMod)}</div><span>${statLabels[sk.stat]}</span></div>
+            <div class="box-sub"><div class="box box-xs">${fmtMod(statMod)}</div><span>${statLabels[statKey]}</span></div>
             <span class="op">+</span>
             <div class="box-sub"><div class="box box-xs">${prof}</div><span>УМЕНИЕ</span></div>
             ${hasPen ? `<span class="op">−</span><div class="box-sub"><div class="box box-xs">${armorPen}</div><span>БРОНЯ</span></div>` : '<div class="pen-spacer"></div>'}
         </div>`;
     }).join('');
+
 
     const buildRichSpells = (prefix, maxCount, catalog, hasReady = false) => {
         const entries = new Array();

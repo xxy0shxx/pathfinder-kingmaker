@@ -492,6 +492,7 @@ export function initPage2Pickers(overlay, hero) {
         { selector: '.bst-lvl4-picker-inp', rowAttr: 'lvl4Row', dropAttr: 'data-lvl4-drop', prefix: 'lvl4Spell', searchFn: searchSpellsLvl4 }
     ];
 
+
     spellTiers.forEach(({ selector, rowAttr, dropAttr, prefix, searchFn }) => {
         overlay.querySelectorAll(selector).forEach(inp => {
             const row = inp.dataset[rowAttr];
@@ -541,32 +542,6 @@ export function initPage2Pickers(overlay, hero) {
             });
         });
     });
-
-
-    spellTiers.forEach(({ selector, rowAttr, dropAttr, prefix, searchFn }) => {
-        overlay.querySelectorAll(selector).forEach(inp => {
-            const row = inp.dataset[rowAttr];
-            bindAutocomplete(inp, overlay.querySelector(`[${dropAttr}="${row}"]`), {
-                width: 340,
-                getItems: (q) => searchFn(q),
-                renderOption: (s) => `
-                    <div class="bst-cantrip-opt-top"><b>${s.name}</b> <span>${s.actions}</span></div>
-                    <div class="bst-cantrip-opt-trad">${s.traditions.join(', ')}</div>`,
-                onSelect: (found) => {
-                    inp.value = found.name;
-                    hero.stats[`${prefix}${row}Name`] = found.name;
-                    const actInp = overlay.querySelector(`[data-sheet-txt="${prefix}${row}Actions"]`);
-                    const noteInp = overlay.querySelector(`[data-sheet-txt="${prefix}${row}Notes"]`);
-                    if (actInp) actInp.value = found.actions;
-                    if (noteInp) noteInp.value = found.notes;
-                    hero.stats[`${prefix}${row}Actions`] = found.actions;
-                    hero.stats[`${prefix}${row}Notes`] = found.notes;
-                }
-            });
-        });
-    });
-
-
 
     // Извлекает цену предмета в медных монетах (1 ЗМ = 100 ММ, 1 СМ = 10 ММ)
     const parseItemPriceCp = (it) => {

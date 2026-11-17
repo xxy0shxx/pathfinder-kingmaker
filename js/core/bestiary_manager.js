@@ -884,10 +884,6 @@ const BestiaryManager = {
         box.querySelector('#bstBtnCollectFromParty')?.addEventListener('click', () => this.openCollectPartyCoinsModal());
         box.querySelector('#bstBtnSplitTreasury')?.addEventListener('click', () => this.openSplitTreasuryModal());
 
-        box.querySelector('#bstBtnOpenFullAuditLog')?.addEventListener('click', () => {
-            this.openFullTreasuryLogModal();
-        });
-
         const lootInp = box.querySelector('#bstTrLootNameInp');
         const lootSuggest = box.querySelector('#bstTrLootSuggestions');
         let lootActiveIdx = -1;

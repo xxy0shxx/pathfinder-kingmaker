@@ -277,6 +277,8 @@ const KingdomModals = {
         }));
     },
 
+
+
     /**
      * 5. Обмен ресурсов (Товары ↔ RP)
      */
@@ -292,16 +294,18 @@ const KingdomModals = {
         const renderTrade = () => {
             const s = km.state;
             const curRp = parseInt(s.rp, 10) || 0;
-            const effectiveSell = Math.min(info.buy, info.sell + (activeTrades > 0 ? 1 : 0));
+            const activeTrades = km.getActiveTradeAgreementsCount();
+
             const rowsHtml = Object.entries(rates).map(([key, info]) => {
                 const c = s.commodities[key] || { value: 0, max: 4 };
+                const effectiveSell = Math.min(info.buy, info.sell + (activeTrades > 0 ? 1 : 0));
                 const canBuy = curRp >= info.buy && c.value < c.max;
                 const canSell = c.value > 0;
                 return `<tr>
                     <td style="font-weight:bold; padding:8px 6px;">${info.label}</td>
                     <td style="text-align:center; font-family:monospace; font-size:16px; color:#ffd875; font-weight:bold;">${c.value} / ${c.max}</td>
                     <td style="text-align:center;"><button type="button" class="btn ok k-trade-buy" data-comm="${key}" ${canBuy ? '' : 'disabled'} style="padding:5px 10px; font-size:12px; opacity:${canBuy ? '1' : '0.4'};">+1 за ${info.buy} RP</button></td>
-                    <td style="text-align:center;"><button type="button" class="btn cc k-trade-sell" data-comm="${key}" ${canSell ? '' : 'disabled'} style="padding:5px 10px; font-size:12px; opacity:${canSell ? '1' : '0.4'};">-1 → +${info.sell} RP</button></td>
+                    <td style="text-align:center;"><button type="button" class="btn cc k-trade-sell" data-comm="${key}" ${canSell ? '' : 'disabled'} style="padding:5px 10px; font-size:12px; opacity:${canSell ? '1' : '0.4'};">-1 → +${effectiveSell} RP</button></td>
                 </tr>`;
             }).join('');
 
@@ -311,13 +315,12 @@ const KingdomModals = {
                 </div>`
                 : '';
 
-
             const { overlay } = ModalManager.open({
                 id: 'kTradeModalOverlay',
                 title: '⚖ Обмен ресурсов (Товары ↔ RP)',
                 headerRightHtml: `<span style="background:#040905; border:1px solid #ffd875; padding:4px 12px; border-radius:5px; font-family:monospace; font-size:17px; font-weight:bold; color:#ffd875;">Казна: ${curRp} RP</span>`,
                 width: '540px',
-                bodyHtml: `<table class="k-table"><thead><tr><th>Ресурс</th><th style="text-align:center;">Склад</th><th style="text-align:center;">Купить</th><th style="text-align:center;">Продать</th></tr></thead><tbody>${rowsHtml}</tbody></table>`,
+                bodyHtml: `${tradeBanner}<table class="k-table"><thead><tr><th>Ресурс</th><th style="text-align:center;">Склад</th><th style="text-align:center;">Купить</th><th style="text-align:center;">Продать</th></tr></thead><tbody>${rowsHtml}</tbody></table>`,
                 footerButtons: [{ label: '⚜ Закрыть', variant: 'ok', style: 'min-width:130px;' }]
             });
 
@@ -330,14 +333,19 @@ const KingdomModals = {
             }));
             overlay.querySelectorAll('.k-trade-sell').forEach(btn => btn.addEventListener('click', () => {
                 const rate = rates[btn.dataset.comm], c = s.commodities[btn.dataset.comm];
+                const effectiveSell = Math.min(rate.buy, rate.sell + (activeTrades > 0 ? 1 : 0));
                 if (c.value > 0) {
-                    c.value -= 1; s.rp = (parseInt(s.rp, 10) || 0) + rate.sell;
+                    c.value -= 1; s.rp = (parseInt(s.rp, 10) || 0) + effectiveSell;
                     km._persist(); km.renderUi(); renderTrade();
                 }
             }));
         };
         renderTrade();
     },
+
+
+
+
 
     /**
      * 6. Атака армии
