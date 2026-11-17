@@ -85,14 +85,14 @@ function generatePathfinderLogoDataUrl() {
 
     // 2. Точный контур ленты: плотное облегание буквы P с обеими выемками слева, пик над I и вензель под R
     // 2. Точный контур ленты: высокий изгиб слева на P, глубокая талия у ножки, пик над I и вензель под R
+    // 2. Точный контур ленты: высокий изгиб слева у самого шипа P, плавное огибание чаши сверху, пик над I и вензель под R
     const traceRibbon = () => {
         ctx.beginPath();
         // Верхний острый шип буквы P
-        ctx.moveTo(41, 22);
-        ctx.lineTo(52, 34);
-        // Верхняя полукруглая чаша буквы P
-        ctx.lineTo(74, 34);
-        ctx.quadraticCurveTo(95, 34, 98, 47);
+        ctx.moveTo(41, 21);
+        ctx.lineTo(50, 31);
+        // Плавное огибание верхней чаши P сверху
+        ctx.quadraticCurveTo(86, 29, 98, 47);
         // Верхняя планка до выступа над I
         ctx.lineTo(iMidX - 12, 47);
         ctx.lineTo(iMidX, 35);
@@ -115,14 +115,15 @@ function generatePathfinderLogoDataUrl() {
         ctx.quadraticCurveTo(36, 121, 36, 113);
         ctx.lineTo(36, 86);
         // Глубокая нижняя выемка слева под чашей P
-        ctx.lineTo(38, 78);
-        // Высокий выступающий изгиб чаши P слева (начинается выше)
-        ctx.quadraticCurveTo(17, 72, 17, 56);
-        ctx.quadraticCurveTo(17, 42, 34, 38);
-        // Короткая верхняя выемка перед острым шипом
-        ctx.lineTo(35, 30);
+        ctx.lineTo(39, 77);
+        // Высокий изгиб слева, начинающийся сразу под верхним шипом P
+        ctx.quadraticCurveTo(18, 69, 18, 52);
+        ctx.quadraticCurveTo(18, 37, 36, 33);
+        // Короткий переход к вершине верхнего шипа
+        ctx.lineTo(37, 27);
         ctx.closePath();
     };
+
 
 
 
