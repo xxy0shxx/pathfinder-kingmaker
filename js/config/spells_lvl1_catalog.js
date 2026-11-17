@@ -451,7 +451,7 @@ export const PF2E_SPELLS_LVL1 = [
         notes: 'Призывает нежить 1-го уровня или ниже на 1 минуту (поддерживаемое заклинание).'
     },
     {
-        id: 'grim_tendrils',
+        id: 'grim_tendrils_remaster_1',
         name: '💀 Тёмные нити (Мрачные щупальца)',
         traditions: ['Мистическая', 'Оккультная'],
         actions: '◆◆ / 30 фт. линия',

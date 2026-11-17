@@ -1504,7 +1504,7 @@ export const PF2E_BARBARIAN_FEATS = [
     },
     {
         id: 'brb_feat_quaking_stomp',
-        name: ' earthquake Сотрясающий топот',
+        name: '💥 Сотрясающий топот',
         level: 20,
         source: 'Основная книга игрока 2',
         prerequisites: 'Варвар; Манипуляция, Ярость',
@@ -2141,7 +2141,7 @@ export const PF2E_CHAMPION_FEATS = [
     },
     {
         id: 'chm_feat_armament_paragon',
-        name: 'Эталон оружия',
+        name: '⚔️ Эталон оружия',
         level: 20,
         source: 'Основная книга игрока 2',
         prerequisites: 'Благословенное оружие',

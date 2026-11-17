@@ -7503,3 +7503,7 @@ canvas[style*="position: fixed"] {
     width: 30px !important;
     cursor: pointer !important;
 }
+
+#campingTabletContainer .camp-invisible-table td.camp-act-cell {
+    padding-right: 135px !important;
+}
