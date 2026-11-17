@@ -144,6 +144,14 @@ const CampingManager = {
 
             EventBus.on('data:imported', (newMapData) => this.updateMapData(newMapData));
             EventBus.on('weather:updated', () => this.recalculateCamp());
+            EventBus.on('data:save', () => {
+                const totalBox = document.getElementById('campPartySuppliesTotal');
+                if (totalBox) {
+                    totalBox.innerHTML = this.getPartySuppliesSummary().html;
+                }
+                const mealSel = document.getElementById('campMealSelect');
+                if (mealSel) mealSel.dispatchEvent(new Event('change'));
+            });
 
             window.CampingManager = this;
             this.syncCountersUi();
@@ -456,17 +464,17 @@ const CampingManager = {
         return ` (${leader}, помощник: ${helper})`;
     },
 
-    getPartySuppliesSummary() {
+    _getActivePartyHeroes() {
         const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
             ? window.InitiativeManager.state.combatants
             : (this.mapDataRef?.initiative?.combatants || []);
 
-        const bestiaryPresets = (window.BestiaryManager?.state?.presets && Array.isArray(window.BestiaryManager.state.presets))
-            ? window.BestiaryManager.state.presets
-            : (this.mapDataRef?.bestiary?.presets || []);
+        const bestiaryParty = (window.BestiaryManager?.state?.party && Array.isArray(window.BestiaryManager.state.party))
+            ? window.BestiaryManager.state.party
+            : (this.mapDataRef?.bestiary?.party || []);
 
         const companionNames = new Set();
-        [...initUnits, ...bestiaryPresets].forEach(u => {
+        [...initUnits, ...bestiaryParty].forEach(u => {
             const cName = String(u?.stats?.compName || '').trim().toLowerCase();
             if (cName) companionNames.add(cName);
         });
@@ -479,35 +487,30 @@ const CampingManager = {
             return true;
         };
 
+        const cleanName = (str) => String(str || '').trim().toLowerCase().replace(/ё/g, 'е');
+        const primaryList = bestiaryParty.filter(isPlayableHero).length > 0
+            ? bestiaryParty.filter(isPlayableHero)
+            : initUnits.filter(isPlayableHero);
+
+        const seenNames = new Set();
+        return primaryList.filter(h => {
+            const key = cleanName(h.name);
+            if (!key || seenNames.has(key)) return false;
+            seenNames.add(key);
+            return true;
+        }).slice(0, 6);
+    },
+
+
+
+    getPartySuppliesSummary() {
         const cleanText = (str) => String(str || '')
             .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
             .trim()
             .toLowerCase()
             .replace(/ё/g, 'е');
 
-        const allHeroes = [...initUnits.filter(isPlayableHero), ...bestiaryPresets.filter(isPlayableHero)];
-        const seenNames = new Set();
-        const uniqueHeroes = [];
-
-        allHeroes.forEach(h => {
-            const key = cleanText(h.name);
-            if (!key || seenNames.has(key)) return;
-            seenNames.add(key);
-
-            // Берём ту копию героя (из Бестиария или Трекерa), где реально заполнены предметы в рюкзаке
-            const copies = allHeroes.filter(x => cleanText(x.name) === key);
-            const filledCopy = copies.find(c => {
-                if (!c.stats) return false;
-                for (let i = 1; i <= 15; i++) {
-                    if (String(c.stats[`item${i}Name`] || '').trim() !== '') return true;
-                }
-                return false;
-            }) || copies.at(0);
-
-            if (filledCopy) uniqueHeroes.push(filledCopy);
-        });
-
-        const heroes = uniqueHeroes.slice(0, 6);
+        const heroes = this._getActivePartyHeroes();
 
         let totalRations = 0;
         let totalNormIng = 0;
@@ -541,14 +544,15 @@ const CampingManager = {
 
 
 
+
     syncSuppliesWithParty() {
         const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
             ? window.InitiativeManager.state.combatants
             : (this.mapDataRef?.initiative?.combatants || []);
 
-        const bestiaryPresets = (window.BestiaryManager?.state?.presets && Array.isArray(window.BestiaryManager.state.presets))
-            ? window.BestiaryManager.state.presets
-            : (this.mapDataRef?.bestiary?.presets || []);
+        const bestiaryPresets = (window.BestiaryManager?.state?.party && Array.isArray(window.BestiaryManager?.state?.party))
+            ? window.BestiaryManager.state.party
+            : (this.mapDataRef?.bestiary?.party || []);
 
         // Также проверяем все массивы внутри mapDataRef на случай нестандартного ключа хранения
         const extraUnits = [];
@@ -843,9 +847,9 @@ const CampingManager = {
             const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
                 ? window.InitiativeManager.state.combatants
                 : (this.mapDataRef?.initiative?.combatants || []);
-            const bestiaryPresets = (window.BestiaryManager?.state?.presets && Array.isArray(window.BestiaryManager.state.presets))
-                ? window.BestiaryManager.state.presets
-                : (this.mapDataRef?.bestiary?.presets || []);
+            const bestiaryPresets = (window.BestiaryManager?.state?.party && Array.isArray(window.BestiaryManager.state.party))
+                ? window.BestiaryManager.state.party
+                : (this.mapDataRef?.bestiary?.party || []);
 
             const allHeroes = [...initUnits, ...bestiaryPresets].filter(u => u && u.faction === 'friend' && !u.inactive);
 
@@ -1124,6 +1128,10 @@ const CampingManager = {
                     activeBanner.style.display = 'none';
                 }
             }
+
+            const mealSel = cookBox.querySelector('#campMealSelect');
+            if (mealSel) mealSel.dispatchEvent(new Event('change'));
+
         }
 
 
