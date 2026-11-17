@@ -1,17 +1,17 @@
 import ModalManager from '../../ui/modal_manager.js';
 import { PF2E_BACKGROUNDS } from '../../config/backgrounds_catalog.js';
 import { PF2E_SHEET_CONFIG, SHORT_TO_FULL_SKILL_MAP, ensureCharacterStats } from './bestiary_config.js';
-import { recalculateSheetStats } from './sheet_calculator.js';
+import { recalculateSheetStats, recalculateLevelProgression } from './sheet_calculator.js';
 import { initPage1Pickers, initPage2Pickers } from './sheet_pickers.js';
 import { bindSheetTooltip, hideSheetItemTooltip } from './bestiary_tooltip_builder.js';
 import { PF2E_CLASSES } from '../../config/meta_catalog.js';
 import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
-import { downloadCharacterMarkdown } from './sheet_md_exporter.js';
 import { exportCharacterToPdf } from './sheet_pdf_exporter.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
 import { PF2E_ITEMS_CATALOG, calculateCharacterBulk, getItemLevel } from '../../config/items_catalog.js';
+
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -79,7 +79,15 @@ function buildPage1Html(stats) {
                     ${alignments.map(([val, lbl]) => `<option value="${val}" ${alignVal === val ? 'selected' : ''}>${lbl}</option>`).join('')}
                 </select>
             </div>
-            <div class="bst-top-field bst-narrow"><span>⭐ Уровень</span>${numInp(stats, 'level', 'bst-mini-num')}</div>
+            
+            <div class="bst-top-field bst-narrow" style="min-width: 96px;">
+                <span>⭐ Уровень</span>
+                <div style="display: flex; align-items: center; gap: 3px;">
+                    ${numInp(stats, 'level', 'bst-mini-num')}
+                    <button type="button" id="btnRecalcByLevel" class="btn cc" style="padding: 2px 5px; font-size: 11px; flex-shrink: 0;" title="Пересчитать Макс. ПЗ, Атаку и СЛ заклинаний по текущему уровню, народу и классу">🔄</button>
+                </div>
+            </div>
+            
             <div class="bst-top-field bst-narrow"><span>✨ Опыт</span>${numInp(stats, 'xp', 'bst-mini-num')}</div>
             <div class="bst-top-field"><span>👤 Игрок</span>${txtInp(stats, 'playerName', 'Имя игрока')}</div>
             <div style="position: relative;">
@@ -495,6 +503,7 @@ function buildPage2Html(stats) {
                     ${lvl1BlockHtml}
                     ${lvl2BlockHtml}
                     ${lvl3BlockHtml}
+                    ${lvl4BlockHtml}
                 </div>
             </div>
             <div class="bst-sheet-col">
@@ -577,14 +586,6 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                 }
             },
             {
-                label: '📥 Экспорт в .md',
-                variant: 'cc',
-                onClick: () => {
-                    collectFormData(overlay, hero);
-                    downloadCharacterMarkdown(hero);
-                }
-            },
-            {
                 label: '🖨️ Экспорт в PDF',
                 variant: 'cc',
                 onClick: () => {
@@ -621,7 +622,62 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
 
     if (isPage1) {
 
+//        const lvlInp = overlay.querySelector('[data-sheet-num="level"]');
+
+        const runLevelProgression = () => {
+            const newLvl = Math.max(1, parseInt(lvlInp?.value, 10) || 1);
+            hero.stats.level = newLvl;
+
+            // Пересчёт Макс. ПЗ, Атаки заклинанием и СЛ заклинаний
+            const res = recalculateLevelProgression(overlay, hero);
+
+            // Обновление ячеек заклинаний (1–4 круги)
+            const info = getMagicTierVisibility(hero.stats);
+            hero.stats.lvl1PerDay = info.lvl1Slots;
+            hero.stats.lvl2PerDay = info.lvl2Slots;
+            hero.stats.lvl3PerDay = info.lvl3Slots;
+            hero.stats.lvl4PerDay = info.lvl4Slots;
+
+            // Пересчёт ПЗ и КБ спутника под новый уровень хозяина
+            if (hero.stats.compType === 'familiar') {
+                const famSpecies = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
+                const hasTough = famSpecies?.hasTough || String(hero.stats.compAbilitiesText || '').includes('Живучий');
+                hero.stats.compHpMax = (5 + (hasTough ? 2 : 0)) * newLvl;
+                hero.stats.compHpCur = hero.stats.compHpMax;
+                hero.stats.compAc = 10 + newLvl + 2;
+            } else if (hero.stats.compType === 'companion' && hero.stats.compSpeciesId) {
+                const species = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);
+                const calc = species ? calcCompanionStats(species, newLvl) : null;
+                if (calc) {
+                    hero.stats.compHpMax = calc.hpMax;
+                    hero.stats.compHpCur = calc.hpMax;
+                    hero.stats.compAc = calc.ac;
+                }
+            }
+
+            recalculateSheetStats(overlay, hero);
+            return res;
+        };
+
         const lvlInp = overlay.querySelector('[data-sheet-num="level"]');
+        if (lvlInp) {
+            lvlInp.addEventListener('change', runLevelProgression);
+        }
+
+        const btnRecalcLvl = overlay.querySelector('#btnRecalcByLevel');
+        if (btnRecalcLvl) {
+            btnRecalcLvl.addEventListener('click', () => {
+                const res = runLevelProgression();
+                if (res) {
+                    const oldText = btnRecalcLvl.textContent;
+                    btnRecalcLvl.textContent = '✅';
+                    btnRecalcLvl.title = `Пересчитано! Макс. ПЗ: ${res.newHpMax} (${res.formulaHp}) | Атака закл.: +${res.newSpellAtk} | СЛ закл.: ${res.newSpellDc}`;
+                    setTimeout(() => { btnRecalcLvl.textContent = oldText; }, 1200);
+                }
+            });
+        }
+
+
         if (lvlInp) {
             lvlInp.addEventListener('change', () => {
                 const newLvl = Math.max(1, parseInt(lvlInp.value, 10) || 1);
