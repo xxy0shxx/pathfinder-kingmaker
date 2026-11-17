@@ -13,6 +13,8 @@ import {
 } from './bestiary/bestiary_tooltip_builder.js';
 import { openCharacterSheetModal } from './bestiary/character_sheet_modal.js';
 import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../config/items_catalog.js';
+import { bindSheetTooltip } from './bestiary/bestiary_tooltip_builder.js';
+
 
 
 export { STAT_CATEGORIES, createDefaultStats };
@@ -764,11 +766,12 @@ const BestiaryManager = {
         const totalGoldEq = ((Number(tr.gold) || 0) + (Number(tr.silver) || 0) / 10 + (Number(tr.copper) || 0) / 100).toFixed(2);
 
         const lootBag = this._ensureTreasuryLootBag();
+
         const lootRowsHtml = lootBag.length === 0
             ? `<div style="font-size: 12px; color: #7f8c8d; padding: 4px 0;">Сундук нераспределённой добычи пуст. Добавьте трофей по названию или из справочника выше.</div>`
             : lootBag.map(it => `
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 4px 6px; background: rgba(0,0,0,0.35); border: 1px solid #543e0d; border-radius: 4px;">
-                    <div style="font-size: 12px; color: #ebd291; min-width: 0; flex: 1;" title="${String(it.notes || '').replace(/"/g, '&quot;')}">
+                <div class="bst-tr-loot-row" data-loot-row-id="${it.id}" style="display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 4px 6px; background: rgba(0,0,0,0.35); border: 1px solid #543e0d; border-radius: 4px; cursor: help;">
+                    <div style="font-size: 12px; color: #ebd291; min-width: 0; flex: 1;">
                         <b>${it.name}</b> <span style="color: #ffd875; font-weight: bold;">×${it.qty}</span>
                     </div>
                     <div style="display: flex; gap: 4px; flex-shrink: 0;">
@@ -778,6 +781,7 @@ const BestiaryManager = {
                     </div>
                 </div>
             `).join('');
+
 
         box.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
@@ -791,50 +795,57 @@ const BestiaryManager = {
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; background: rgba(4, 9, 5, 0.72); border: 1px solid #543e0d; border-radius: 6px; padding: 10px;">
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <label style="color: #ffd875; font-weight: bold;">🥇 ЗМ: <input type="number" id="bstTrGold" class="k-inp bst-mini-num" min="0" value="${Number(tr.gold) || 0}" style="width: 68px; text-align: center;"></label>
-                        <label style="color: #dfe6e9; font-weight: bold;">🥈 СМ: <input type="number" id="bstTrSilver" class="k-inp bst-mini-num" min="0" value="${Number(tr.silver) || 0}" style="width: 68px; text-align: center;"></label>
-                        <label style="color: #e17055; font-weight: bold;">🥉 ММ: <input type="number" id="bstTrCopper" class="k-inp bst-mini-num" min="0" value="${Number(tr.copper) || 0}" style="width: 68px; text-align: center;"></label>
+            <div style="display: grid; grid-template-columns: 405px 1fr; gap: 14px; align-items: start; background: rgba(4, 9, 5, 0.72); border: 1px solid #543e0d; border-radius: 6px; padding: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 8px; border-right: 1px dashed rgba(223,188,111,0.25); padding-right: 12px;">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;">
+                        <label style="color: #ffd875; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">🥇 ЗМ:
+                            <input type="number" id="bstTrGold" class="k-inp bst-mini-num" min="0" value="${Number(tr.gold) || 0}" style="width: 58px !important; text-align: center;">
+                        </label>
+                        <label style="color: #dfe6e9; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">🥈 СМ:
+                            <input type="number" id="bstTrSilver" class="k-inp bst-mini-num" min="0" value="${Number(tr.silver) || 0}" style="width: 58px !important; text-align: center;">
+                        </label>
+                        <label style="color: #e17055; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">🥉 ММ:
+                            <input type="number" id="bstTrCopper" class="k-inp bst-mini-num" min="0" value="${Number(tr.copper) || 0}" style="width: 58px !important; text-align: center;">
+                        </label>
                     </div>
-                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
-                        <input type="number" id="bstLootAddAmt" class="k-inp" min="1" placeholder="Кол-во" style="width: 72px; padding: 4px 6px; font-size: 12px;">
-                        <select id="bstLootAddType" class="k-inp" style="width: 72px; padding: 4px; font-size: 12px; background: #090f0b; border: 1px solid #543e0d; color: #ebd291;">
+                    
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <input type="number" id="bstLootAddAmt" class="k-inp" min="1" placeholder="Кол-во" style="width: 66px !important; padding: 4px 6px; font-size: 12px; text-align: center;">
+                        <select id="bstLootAddType" class="k-inp" style="width: 68px !important; padding: 4px; font-size: 12px; background: #090f0b; border: 1px solid #543e0d; color: #ebd291;">
                             <option value="gold">🥇 ЗМ</option>
                             <option value="silver">🥈 СМ</option>
                             <option value="copper">🥉 ММ</option>
                         </select>
-                        <input type="text" id="bstLootAddNote" class="k-inp" placeholder="За что добыча (гекс, босс)..." style="width: 170px; padding: 4px 6px; font-size: 12px;">
-                        <button type="button" id="bstBtnAddLoot" class="btn ok" style="padding: 4px 10px; font-size: 12px;">➕ В казну</button>
+                        <input type="text" id="bstLootAddNote" class="k-inp" placeholder="За что добыча..." style="flex: 1; min-width: 0; padding: 4px 6px; font-size: 12px;">
+                        <button type="button" id="bstBtnAddLoot" class="btn ok" style="padding: 4px 8px; font-size: 12px; white-space: nowrap;">➕ В казну</button>
                     </div>
-                    <div style="font-size: 11px; color: #a4b0be; line-height: 1.3; max-width: 380px;">
+                    <div style="font-size: 11px; color: #a4b0be; line-height: 1.3;">
                         ${tr.log.length > 0 ? `📜 Последние операции: <span style="color:#ebd291;">${tr.log.slice(0, 3).join(' • ')}</span>` : '📜 История операций казны пока пуста.'}
                     </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <input type="text" id="bstTrNotes" class="k-inp" placeholder="💎 Заметки по казне, доли, долги..." value="${String(tr.notes || '').replace(/"/g, '&quot;')}" style="width: 100%; font-size: 12px; padding: 5px 8px;">
-                    <div style="margin-top: 4px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.25);">
-                        <div style="font-size: 12px; color: #dfbc6f; font-weight: bold; margin-bottom: 4px;">📦 Сундук нераспределённой добычи отряда (${lootBag.length} поз.):</div>
-                        
-                        <div style="display: flex; gap: 4px; align-items: center; margin-bottom: 6px;">
-                            <div class="init-name-autocomplete-wrap" style="position: relative; flex: 1; display: flex;">
-                                <input type="text" id="bstTrLootNameInp" class="k-inp" autocomplete="off" placeholder="🔍 Найти вещь из каталога или вписать трофей..." style="width: 100%; font-size: 12px; padding: 4px 8px;">
-                                <div id="bstTrLootSuggestions" class="init-name-suggestions" style="display: none; z-index: 10000180; max-height: 240px; overflow-y: auto;"></div>
-                            </div>
-                            <input type="number" id="bstTrLootQtyInp" class="k-inp" min="1" value="1" style="width: 54px; text-align: center; font-size: 12px; padding: 4px;">
-                            <button type="button" id="bstBtnAddTreasuryItem" class="btn ok" style="padding: 4px 10px; font-size: 12px; white-space: nowrap;">➕ В сундук</button>
+                <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <span style="font-size: 13px; color: #dfbc6f; font-weight: bold; white-space: nowrap;">📦 Сундук нераспределённой добычи (${lootBag.length} поз.):</span>
+                        <input type="text" id="bstTrNotes" class="k-inp" placeholder="💎 Заметки по казне, доли, долги..." value="${String(tr.notes || '').replace(/"/g, '&quot;')}" style="width: 240px !important; font-size: 12px; padding: 3px 8px;">
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <div class="init-name-autocomplete-wrap" style="position: relative; flex: 1; display: flex; min-width: 0;">
+                            <input type="text" id="bstTrLootNameInp" class="k-inp" autocomplete="off" placeholder="🔍 Найти вещь из каталога или вписать трофей..." style="width: 100%; font-size: 13px; padding: 5px 10px;">
+                            <div id="bstTrLootSuggestions" class="init-name-suggestions" style="display: none; z-index: 10000180; max-height: 240px; overflow-y: auto;"></div>
                         </div>
-
-                        
-                        <div style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
-                            ${lootRowsHtml}
-                        </div>
+                        <input type="number" id="bstTrLootQtyInp" class="k-inp" min="1" value="1" style="width: 56px !important; text-align: center; font-size: 13px; padding: 5px;">
+                        <button type="button" id="bstBtnAddTreasuryItem" class="btn ok" style="padding: 5px 12px; font-size: 12px; white-space: nowrap;">➕ В сундук</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
+                        ${lootRowsHtml}
                     </div>
                 </div>
             </div>
         `;
+
+
+
 
         box.querySelector('#bstTrGold')?.addEventListener('change', (e) => { tr.gold = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrSilver')?.addEventListener('change', (e) => { tr.silver = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
@@ -951,6 +962,66 @@ const BestiaryManager = {
                 this._save();
             });
         });
+
+        box.querySelectorAll('.bst-tr-loot-row').forEach(rowEl => {
+            const lootItem = lootBag.find(x => x.id === rowEl.dataset.lootRowId);
+            if (!lootItem) return;
+
+
+            const showLootTip = (e) => {
+                let tipEl = document.getElementById('bstTreasuryLootTooltip');
+                if (!tipEl) {
+                    tipEl = document.createElement('div');
+                    tipEl.id = 'bstTreasuryLootTooltip';
+                    tipEl.className = 'init-combatant-tooltip';
+                    Object.assign(tipEl.style, {
+                        position: 'fixed',
+                        pointerEvents: 'none',
+                        zIndex: '10000350',
+                        maxWidth: '380px',
+                        background: 'rgba(8, 16, 11, 0.97)',
+                        border: '1.5px solid #d4af37',
+                        borderRadius: '8px',
+                        padding: '10px 12px',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.85)',
+                        color: '#ebd291',
+                        fontFamily: "'Tinos', serif"
+                    });
+                    document.body.appendChild(tipEl);
+                }
+
+                const norm = (s) => String(s || '').replace(/[\u{1F000}-\u{1FAFF}\uFE0F\u200D]/gu, '').trim().toLowerCase().replace(/ё/g, 'е');
+                const catObj = (PF2E_ITEMS_CATALOG || []).find(it => norm(it.name) === norm(lootItem.name));
+                const desc = lootItem.notes || catObj?.notes || 'Описание предмета отсутствует.';
+                const catTag = catObj?.category
+                    ? `<span class="init-tip-turn-tag" style="border-color:#ffd875; color:#ffd875;">${catObj.category}</span>`
+                    : '';
+
+                tipEl.innerHTML = [
+                    `<div class="init-tip-header"><span class="init-tip-name">${lootItem.name} (×${lootItem.qty})</span>${catTag}</div>`,
+                    `<div style="font-size:13px; color:#ebd291; margin-top:4px; line-height:1.4;">${desc}</div>`
+                ].join('');
+
+                tipEl.style.display = 'block';
+                const x = Math.min(window.innerWidth - tipEl.offsetWidth - 16, e.clientX + 14);
+                const y = Math.min(window.innerHeight - tipEl.offsetHeight - 16, e.clientY + 14);
+                tipEl.style.left = Math.max(8, x) + 'px';
+                tipEl.style.top = Math.max(8, y) + 'px';
+            };
+
+            const hideLootTip = () => {
+                const tipEl = document.getElementById('bstTreasuryLootTooltip');
+                if (tipEl) tipEl.style.display = 'none';
+            };
+
+            rowEl.addEventListener('mouseenter', showLootTip);
+            rowEl.addEventListener('mousemove', showLootTip);
+            rowEl.addEventListener('mouseleave', hideLootTip);
+            rowEl.addEventListener('mousedown', hideLootTip);
+        });
+
+
+
     },
 
 
@@ -1220,5 +1291,5 @@ const BestiaryManager = {
     }
 
 
-        };
+};
 export default BestiaryManager;
