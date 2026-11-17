@@ -1536,15 +1536,16 @@ export function exportCharacterToPdf(hero) {
                     <div class="sec-hdr red"><span class="badge">О</span> Сотворение заклинаний (с описаниями)</div>
                     <div class="sec-body" style="overflow: hidden;">
                     
+                    
                         <div style="border-bottom:1.5px solid #5e1914; padding-bottom:3px; margin-bottom:2px; display:flex; flex-direction:column; gap:3px; flex-shrink:0;">
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <span style="width:94px; font-size:5.8pt; font-weight:800; line-height:1.1; color:#1a1a1a;">ПРОВЕРКА АТАКИ<br>ЗАКЛИНАНИЕМ</span>
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                <span style="width:92px; font-size:5.8pt; font-weight:800; line-height:1.1; color:#1a1a1a;">ПРОВЕРКА АТАКИ<br>ЗАКЛИНАНИЕМ</span>
                                 <div style="position:relative; width:36px; height:26px; flex-shrink:0;">
                                     <img src="${spellOctBadge}" alt="Атака закл." style="width:100%; height:100%; object-fit:contain; display:block;">
                                     <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9pt; font-weight:900; color:#111;">${fmtMod(s.spellAttack)}</span>
                                 </div>
-                                <span class="eq">=</span>
-                                <div class="box-sub"><div class="box box-xs" style="width:24px;">${fmtMod(casterStatMod)}</div><span>ИНТ/МДР/ХАР</span></div>
+                                <span class="eq" style="width:28px; text-align:center; flex-shrink:0;">=</span>
+                                <div class="box-sub"><div class="box box-xs" style="width:26px;">${fmtMod(casterStatMod)}</div><span>ИНТ/МДР/ХАР</span></div>
                                 <span class="op">+</span>
                                 <div class="box-sub"><div class="box box-xs" style="width:24px;">${spellProfBonus}</div><span>УМЕНИЕ</span></div>
                                 <span class="pbox ${spellProfBonus >= 2 ? 'on' : ''}" style="margin-bottom:6px;">И</span>
@@ -1553,19 +1554,21 @@ export function exportCharacterToPdf(hero) {
                                     <div class="box box-xs" style="width:26px;">${s.focusCurrent ?? 1}/${s.focusMax ?? 1}</div>
                                 </div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <span style="width:94px; font-size:5.8pt; font-weight:800; line-height:1.1; color:#1a1a1a;">СЛ ЗАКЛИНАНИЙ</span>
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                <span style="width:92px; font-size:5.8pt; font-weight:800; line-height:1.1; color:#1a1a1a;">СЛ ЗАКЛИНАНИЙ</span>
                                 <div style="position:relative; width:36px; height:26px; flex-shrink:0;">
                                     <img src="${spellOctBadge}" alt="СЛ закл." style="width:100%; height:100%; object-fit:contain; display:block;">
                                     <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9pt; font-weight:900; color:#111;">${s.spellDc ?? 10}</span>
                                 </div>
-                                <span class="eq">= 10 +</span>
-                                <div class="box-sub"><div class="box box-xs" style="width:24px;">${fmtMod(casterStatMod)}</div><span>ИНТ/МДР/ХАР</span></div>
+                                <span class="eq" style="width:28px; text-align:center; flex-shrink:0; font-size:6.5pt;">= 10 +</span>
+                                <div class="box-sub"><div class="box box-xs" style="width:26px;">${fmtMod(casterStatMod)}</div><span>ИНТ/МДР/ХАР</span></div>
                                 <span class="op">+</span>
                                 <div class="box-sub"><div class="box box-xs" style="width:24px;">${spellProfBonus}</div><span>УМЕНИЕ</span></div>
                                 <span class="pbox ${spellProfBonus >= 2 ? 'on' : ''}" style="margin-bottom:6px;">И</span>
                             </div>
                         </div>
+
+                        
 
 
                         <div class="rich-list auto-fit-list" style="flex: 1;">
