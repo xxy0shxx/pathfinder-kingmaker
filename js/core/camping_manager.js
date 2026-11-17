@@ -424,10 +424,6 @@ const CampingManager = {
         return ` (${leader}, помощник: ${helper})`;
     },
 
-
-
-
-
     getPartySuppliesSummary() {
         const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
             ? window.InitiativeManager.state.combatants
@@ -451,17 +447,35 @@ const CampingManager = {
             return true;
         };
 
-        const rawHeroes = initUnits.filter(isPlayableHero).length > 0
-            ? initUnits.filter(isPlayableHero)
-            : bestiaryPresets.filter(isPlayableHero);
+        const cleanText = (str) => String(str || '')
+            .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
+            .trim()
+            .toLowerCase()
+            .replace(/ё/g, 'е');
 
+        const allHeroes = [...initUnits.filter(isPlayableHero), ...bestiaryPresets.filter(isPlayableHero)];
         const seenNames = new Set();
-        const heroes = rawHeroes.filter(h => {
-            const key = String(h.name || '').trim().toLowerCase();
-            if (!key || seenNames.has(key)) return false;
+        const uniqueHeroes = [];
+
+        allHeroes.forEach(h => {
+            const key = cleanText(h.name);
+            if (!key || seenNames.has(key)) return;
             seenNames.add(key);
-            return true;
-        }).slice(0, 6);
+
+            // Берём ту копию героя (из Бестиария или Трекерa), где реально заполнены предметы в рюкзаке
+            const copies = allHeroes.filter(x => cleanText(x.name) === key);
+            const filledCopy = copies.find(c => {
+                if (!c.stats) return false;
+                for (let i = 1; i <= 15; i++) {
+                    if (String(c.stats[`item${i}Name`] || '').trim() !== '') return true;
+                }
+                return false;
+            }) || copies.at(0);
+
+            if (filledCopy) uniqueHeroes.push(filledCopy);
+        });
+
+        const heroes = uniqueHeroes.slice(0, 6);
 
         let totalRations = 0;
         let totalNormIng = 0;
@@ -470,15 +484,15 @@ const CampingManager = {
         heroes.forEach(h => {
             const st = h.stats || {};
             for (let i = 1; i <= 15; i++) {
-                const name = String(st[`item${i}Name`] || '').trim();
+                const name = cleanText(st[`item${i}Name`]);
                 const qty = Math.max(0, Number(st[`item${i}Qty`]) || 0);
                 if (!name || qty <= 0) continue;
 
-                if (/па[её]к|рацион|rations|провиз|еда|food/i.test(name)) {
+                if (/паек|рацион|rations|провиз|еда|food/i.test(name)) {
                     totalRations += qty;
-                } else if (/обычн\w*\s*ингредиент/i.test(name)) {
+                } else if (/обычн.*ингредиент/i.test(name)) {
                     totalNormIng += qty;
-                } else if (/особ\w*\s*ингредиент/i.test(name)) {
+                } else if (/особ.*ингредиент/i.test(name)) {
                     totalSpecIng += qty;
                 }
             }
@@ -492,6 +506,7 @@ const CampingManager = {
             html: `📦 <b>Запасы группы (${heroes.length} чел.):</b> 🍞 ${totalRations} пайков • 🏕️ ${totalNormIng} обычн. • 🌿 ${totalSpecIng} особ.`
         };
     },
+
 
 
     syncSuppliesWithParty() {
