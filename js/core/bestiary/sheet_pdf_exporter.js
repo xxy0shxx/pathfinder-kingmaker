@@ -59,7 +59,7 @@ function generatePathfinderLogoDataUrl() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. Заранее вычисляем точные координаты букв, чтобы плашка облегала их по контуру
+    // 1. Вычисляем точные координаты букв
     const pX = 36;
     const pBaseY = 104;
     const word = 'ATHFINDER';
@@ -77,37 +77,55 @@ function generatePathfinderLogoDataUrl() {
     }
 
     const iBox = letterBoxes.find(b => b.ch === 'I') || { x: 245, w: 18 };
+    const rBox = letterBoxes[letterBoxes.length - 1] || { x: 380, w: 32 };
     const iMidX = iBox.x + iBox.w / 2;
-    const rightEndX = curX + 14;
+    const rMidX = rBox.x + rBox.w * 0.55;
+    const rightEndX = curX + 12;
 
-    // 2. Точный контур ленты с выступающим навершием P, пиком над I и удлинённым хвостом P
+
+    // 2. Точный контур ленты: плотное облегание буквы P с обеими выемками слева, пик над I и вензель под R
+    // 2. Точный контур ленты: высокий изгиб слева на P, глубокая талия у ножки, пик над I и вензель под R
     const traceRibbon = () => {
         ctx.beginPath();
-        // Левый верхний остроконечный выступ буквы P
-        ctx.moveTo(22, 46);
-        ctx.lineTo(44, 22);
-        ctx.lineTo(54, 30);
-        ctx.lineTo(76, 30);
-        ctx.quadraticCurveTo(98, 30, 102, 46);
-        // Верхняя планка до выступа над буквой I
-        ctx.lineTo(iMidX - 13, 46);
-        ctx.lineTo(iMidX, 34);
-        ctx.lineTo(iMidX + 13, 46);
-        // Продолжение верхней планки до правого края
-        ctx.lineTo(rightEndX - 18, 46);
-        ctx.quadraticCurveTo(rightEndX, 46, rightEndX, 66);
+        // Верхний острый шип буквы P
+        ctx.moveTo(41, 22);
+        ctx.lineTo(52, 34);
+        // Верхняя полукруглая чаша буквы P
+        ctx.lineTo(74, 34);
+        ctx.quadraticCurveTo(95, 34, 98, 47);
+        // Верхняя планка до выступа над I
+        ctx.lineTo(iMidX - 12, 47);
+        ctx.lineTo(iMidX, 35);
+        ctx.lineTo(iMidX + 12, 47);
+        // Верхняя планка до правого края
+        ctx.lineTo(rightEndX - 16, 47);
+        ctx.quadraticCurveTo(rightEndX, 47, rightEndX, 65);
         ctx.lineTo(rightEndX, 82);
-        ctx.quadraticCurveTo(rightEndX, 98, rightEndX - 18, 98);
-        // Нижняя граница до ножки буквы P
-        ctx.lineTo(74, 98);
-        ctx.lineTo(74, 114);
-        ctx.quadraticCurveTo(74, 122, 64, 122);
-        ctx.lineTo(44, 122);
-        ctx.quadraticCurveTo(36, 122, 36, 112);
+        // Закругление правого края и переход к вензелю под R
+        ctx.quadraticCurveTo(rightEndX, 97, rightEndX - 14, 97);
+        ctx.lineTo(rMidX + 10, 97);
+        ctx.quadraticCurveTo(rMidX + 4, 110, rMidX - 6, 110);
+        ctx.quadraticCurveTo(rMidX - 15, 110, rMidX - 17, 97);
+        // Нижняя горизонтальная линия до ножки P
+        ctx.lineTo(68, 97);
+        // Удлинённая нижняя ножка P с засечкой
+        ctx.lineTo(68, 114);
+        ctx.quadraticCurveTo(68, 121, 60, 121);
+        ctx.lineTo(43, 121);
+        ctx.quadraticCurveTo(36, 121, 36, 113);
         ctx.lineTo(36, 86);
-        ctx.quadraticCurveTo(22, 82, 22, 64);
+        // Глубокая нижняя выемка слева под чашей P
+        ctx.lineTo(38, 78);
+        // Высокий выступающий изгиб чаши P слева (начинается выше)
+        ctx.quadraticCurveTo(17, 72, 17, 56);
+        ctx.quadraticCurveTo(17, 42, 34, 38);
+        // Короткая верхняя выемка перед острым шипом
+        ctx.lineTo(35, 30);
         ctx.closePath();
     };
+
+
+
 
     // Мягкая тень под эмблемой
     ctx.save();
@@ -120,19 +138,19 @@ function generatePathfinderLogoDataUrl() {
     // Внешняя золотисто-кремовая кайма
     traceRibbon();
     ctx.lineJoin = 'round';
-    ctx.lineWidth = 11;
+    ctx.lineWidth = 10;
     ctx.strokeStyle = '#e8d399';
     ctx.stroke();
 
     // Тёмный внешний контур
-    ctx.lineWidth = 14;
+    ctx.lineWidth = 13;
     ctx.strokeStyle = '#1f1008';
     ctx.globalCompositeOperation = 'destination-over';
     ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
 
     // Внутренняя тёмно-бордовая заливка
-    const bgGrad = ctx.createLinearGradient(0, 26, 0, 118);
+    const bgGrad = ctx.createLinearGradient(0, 28, 0, 118);
     bgGrad.addColorStop(0, '#3d150c');
     bgGrad.addColorStop(0.5, '#260b06');
     bgGrad.addColorStop(1, '#170603');
@@ -141,18 +159,28 @@ function generatePathfinderLogoDataUrl() {
     ctx.fill();
 
     // Тонкая внутренняя золотая обводка
-    ctx.lineWidth = 2.0;
+    ctx.lineWidth = 1.8;
     ctx.strokeStyle = '#c8a456';
     traceRibbon();
     ctx.stroke();
 
-    // Декоративная золотая полоса под словом ATHFINDER
-    const barGrad = ctx.createLinearGradient(78, 0, rightEndX - 10, 0);
+    // Декоративная золотая линия под словом ATHFINDER с переходом в завиток под R
+    const barGrad = ctx.createLinearGradient(76, 0, rightEndX - 10, 0);
     barGrad.addColorStop(0, '#c8a456');
     barGrad.addColorStop(0.5, '#f5e4b3');
-    barGrad.addColorStop(1, '#b89242');
-    ctx.fillStyle = barGrad;
-    ctx.fillRect(78, 90, rightEndX - 88, 3.8);
+    barGrad.addColorStop(1, '#c8a456');
+
+    ctx.strokeStyle = barGrad;
+    ctx.lineWidth = 3.2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(76, 90);
+    ctx.lineTo(rMidX - 12, 90);
+    // Маленький S-образный вензель под R
+    ctx.quadraticCurveTo(rMidX - 12, 102, rMidX - 5, 102);
+    ctx.quadraticCurveTo(rMidX + 2, 102, rMidX + 2, 95);
+    ctx.quadraticCurveTo(rMidX + 2, 91, rMidX - 2, 91);
+    ctx.stroke();
 
     // 3. Золотистый градиент для букв
     const textGrad = ctx.createLinearGradient(0, 28, 0, 112);
@@ -179,13 +207,13 @@ function generatePathfinderLogoDataUrl() {
         ctx.fillText(ch, x, wordBaseY);
     });
 
-    // Ромб-звёздочка над буквой I в выступе рамки
+    // Ромб-звёздочка над буквой I
     ctx.fillStyle = '#f5e4b3';
     ctx.beginPath();
     ctx.moveTo(iMidX, 40);
-    ctx.lineTo(iMidX + 4, 44);
+    ctx.lineTo(iMidX + 3.8, 44);
     ctx.lineTo(iMidX, 48);
-    ctx.lineTo(iMidX - 4, 44);
+    ctx.lineTo(iMidX - 3.8, 44);
     ctx.closePath();
     ctx.fill();
 
