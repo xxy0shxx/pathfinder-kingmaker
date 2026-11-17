@@ -10,7 +10,8 @@ const WeatherManager = {
         precip: false,
         cold: false,
         hazardId: null,
-        secondHazardNote: false
+        secondHazardNote: false,
+        chronicle: []
     },
     mapDataRef: null,
     onSaveCallback: null,
@@ -156,6 +157,77 @@ const WeatherManager = {
         EventBus.emit('weather:updated', this.getCalendarInfo());
     },
 
+    _getSquadLocationLabel() {
+        const hexes = this.mapDataRef?.hexes || {};
+        for (const [hexId, h] of Object.entries(hexes)) {
+            if (h && h.squadHere) {
+                const [, r, c] = hexId.split('_');
+                const title = String(h.title || '').trim();
+                return {
+                    hexId,
+                    label: title ? `${title} [${r};${c}]` : `Гекс [${r};${c}]`
+                };
+            }
+        }
+        return { hexId: null, label: 'Украденные земли' };
+    },
+
+    addChronicleEntry(category, title, text) {
+        if (!Array.isArray(this.state.chronicle)) this.state.chronicle = [];
+        const cleanTitle = String(title || '').trim();
+        const cleanText = String(text || '').trim();
+        if (!cleanTitle && !cleanText) return;
+
+        const cal = this.getCalendarInfo();
+        const loc = this._getSquadLocationLabel();
+
+        const entry = {
+            id: 'chr_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            dateStr: `${cal.day} ${cal.monthName} ${cal.year} AR (${cal.weekdayRus})`,
+            seasonLabel: cal.seasonLabel,
+            category: category || '📜 Сюжет',
+            hexId: loc.hexId,
+            location: loc.label,
+            title: cleanTitle || 'Запись в летописи',
+            text: cleanText
+        };
+
+        this.state.chronicle.unshift(entry);
+        this._persist();
+        this.renderTabUi();
+    },
+
+    deleteChronicleEntry(entryId) {
+        if (!Array.isArray(this.state.chronicle)) return;
+        const entry = this.state.chronicle.find(x => x.id === entryId);
+        if (!entry) return;
+
+        ModalManager.open({
+            id: 'wConfirmDeleteChronicleModal',
+            title: '🗑️ Удаление записи из летописи',
+            width: '420px',
+            borderColor: '#e74c3c',
+            bodyHtml: `
+                <div style="font-size: 15px; color: #ebd291; line-height: 1.5;">
+                    Удалить запись <b>«${entry.title}»</b> от <i>${entry.dateStr}</i>?
+                </div>
+            `,
+            footerButtons: [
+                { label: '✖ Отмена', variant: 'cc' },
+                {
+                    label: '🗑️ Удалить',
+                    variant: 'del',
+                    onClick: ({ close }) => {
+                        this.state.chronicle = this.state.chronicle.filter(x => x.id !== entryId);
+                        this._persist();
+                        this.renderTabUi();
+                        if (typeof close === 'function') close();
+                    }
+                }
+            ]
+        });
+    },
+
 
     renderCompactBarHtml() {
         const cal = this.getCalendarInfo();
@@ -270,13 +342,13 @@ const WeatherManager = {
         `;
     },
 
-
     renderTabUi() {
         const container = document.getElementById('weatherTabletContainer');
         if (!container) return;
 
         const cal = this.getCalendarInfo();
         const hazards = MAP_CONFIG.golarionCalendar?.weatherHazardsTable || [];
+        const currentLoc = this._getSquadLocationLabel();
 
         let wIcon = '⛅';
         let wTitle = 'Ясно и благоприятно';
@@ -344,17 +416,16 @@ const WeatherManager = {
                         </div>
                     </div>
                 </div>
+
+                <div id="wChronicleHost"></div>
             </div>
         `;
 
         this.bindBarEvents(container);
 
-        const resetBtn = container.querySelector('#wBtnResetClear');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                this.setDailyWeather({ precip: false, cold: false, hazardId: null, secondHazardNote: false }, false);
-            });
-        }
+        container.querySelector('#wBtnResetClear')?.addEventListener('click', () => {
+            this.setDailyWeather({ precip: false, cold: false, hazardId: null, secondHazardNote: false }, false);
+        });
 
         container.querySelectorAll('[data-pick-hz]').forEach(el => {
             el.addEventListener('click', () => {
@@ -367,7 +438,120 @@ const WeatherManager = {
                 }, false);
             });
         });
+
+        this._renderChroniclePanel(container.querySelector('#wChronicleHost'), cal, currentLoc);
     },
+
+    _renderChroniclePanel(host, cal, currentLoc) {
+        if (!host) return;
+        const chronicleList = Array.isArray(this.state.chronicle) ? this.state.chronicle : [];
+
+        host.innerHTML = `
+            <div class="k-panel" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div class="k-sec-title" style="font-size: 22px; margin-bottom: 0;">📖 Летопись Королевства и Журнал сессий (${chronicleList.length})</div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <select id="wChronicleFilterCat" class="k-inp" style="font-size: 14px; padding: 5px 10px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
+                            <option value="all">Все записи</option>
+                            <option value="📜 Сюжет">📜 Сюжет и сессии</option>
+                            <option value="⚔️ Битва">⚔️ Сражения</option>
+                            <option value="👑 Королевство">👑 События королевства</option>
+                            <option value="🏕️ Поход">🏕️ Исследование и находки</option>
+                        </select>
+                        <input type="text" id="wChronicleSearchInp" class="k-inp" placeholder="🔍 Поиск по летописи..." style="width: 210px; font-size: 14px; padding: 5px 10px;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 180px 260px 1fr auto; gap: 8px; align-items: center; background: rgba(0,0,0,0.38); border: 1px solid #8a6421; border-radius: 6px; padding: 10px 12px;">
+                    <select id="wChrNewCat" class="k-inp" style="font-size: 14px; padding: 6px; background: #040905; border: 1px solid #543e0d; color: #ffd875;">
+                        <option value="📜 Сюжет">📜 Сюжет</option>
+                        <option value="⚔️ Битва">⚔️ Битва</option>
+                        <option value="👑 Королевство">👑 Королевство</option>
+                        <option value="🏕️ Поход">🏕️ Поход</option>
+                    </select>
+                    <input type="text" id="wChrNewTitle" class="k-inp" placeholder="Заголовок (например, Сессия #12)..." style="font-size: 14px; padding: 6px 10px;">
+                    <input type="text" id="wChrNewText" class="k-inp" placeholder="Что произошло (${cal.day} ${cal.monthName}, ${currentLoc.label})..." style="font-size: 14px; padding: 6px 10px;">
+                    <button type="button" id="wBtnAddChronicle" class="btn ok" style="padding: 6px 16px; font-size: 14px; white-space: nowrap;">✒️ Записать</button>
+                </div>
+
+                <div id="wChronicleEntriesHost" style="display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto;"></div>
+            </div>
+        `;
+
+        const entriesHost = host.querySelector('#wChronicleEntriesHost');
+        const filterCatSel = host.querySelector('#wChronicleFilterCat');
+        const searchInp = host.querySelector('#wChronicleSearchInp');
+
+        const renderChronicleList = () => {
+            if (!entriesHost) return;
+            const catVal = filterCatSel?.value || 'all';
+            const q = String(searchInp?.value || '').trim().toLowerCase().replace(/ё/g, 'е');
+
+            const filtered = chronicleList.filter(item => {
+                if (catVal !== 'all' && item.category !== catVal) return false;
+                if (q) {
+                    const hay = `${item.title} ${item.text} ${item.dateStr} ${item.location}`.toLowerCase().replace(/ё/g, 'е');
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            if (!filtered.length) {
+                entriesHost.innerHTML = `<div style="padding: 16px; border: 1px dashed #543e0d; border-radius: 6px; color: #95a5a6; font-size: 16px; text-align: center;">В летописи пока нет записей. Добавьте первую веху выше — дата и гекс подставятся автоматически!</div>`;
+                return;
+            }
+
+            entriesHost.innerHTML = filtered.map(item => `
+                <div style="background: rgba(4, 9, 5, 0.72); border: 1px solid #543e0d; border-left: 4px solid #ffd875; border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                            <span style="background: #14281b; border: 1px solid #2ecc71; color: #2ecc71; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${item.category}</span>
+                            <span style="color: #ffd875; font-weight: bold; font-size: 14px;">📅 ${item.dateStr}</span>
+                            ${item.hexId
+                ? `<button type="button" class="w-chr-loc-link" data-focus-hex="${item.hexId}" title="Показать гекс на карте" style="background: none; border: none; color: #74b9ff; text-decoration: underline; cursor: pointer; font-family: inherit; font-size: 13px; padding: 0;">📍 ${item.location}</button>`
+                : `<span style="color: #a4b0be; font-size: 13px;">📍 ${item.location}</span>`
+            }
+                        </div>
+                        <div style="font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 2px;">${item.title}</div>
+                        ${item.text ? `<div style="font-size: 15px; color: #ebd291; line-height: 1.4;">${item.text.replace(/\n/g, '<br>')}</div>` : ''}
+                    </div>
+                    <button type="button" class="btn del w-chr-del-btn" data-del-chr="${item.id}" title="Удалить запись" style="padding: 3px 8px; font-size: 12px;">🗑️</button>
+                </div>
+            `).join('');
+
+            entriesHost.querySelectorAll('[data-focus-hex]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const hexId = btn.dataset.focusHex;
+                    if (window.HudWindowManager) window.HudWindowManager.close();
+                    if (window.HexCanvasRender?.triggerFocus) window.HexCanvasRender.triggerFocus(hexId);
+                });
+            });
+
+            entriesHost.querySelectorAll('[data-del-chr]').forEach(btn => {
+                btn.addEventListener('click', () => this.deleteChronicleEntry(btn.dataset.delChr));
+            });
+        };
+
+        renderChronicleList();
+
+        filterCatSel?.addEventListener('change', renderChronicleList);
+        searchInp?.addEventListener('input', renderChronicleList);
+
+        const addBtn = host.querySelector('#wBtnAddChronicle');
+        const titleInp = host.querySelector('#wChrNewTitle');
+        const textInp = host.querySelector('#wChrNewText');
+        const catSel = host.querySelector('#wChrNewCat');
+
+        const submitNewEntry = () => {
+            if (!titleInp?.value.trim() && !textInp?.value.trim()) return;
+            this.addChronicleEntry(catSel?.value, titleInp.value, textInp.value);
+        };
+
+        addBtn?.addEventListener('click', submitNewEntry);
+        textInp?.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitNewEntry(); });
+    },
+
+
 
     _renderWeatherHazardCardHtml(hz) {
         if (!hz) return '';
