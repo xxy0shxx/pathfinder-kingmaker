@@ -44,6 +44,9 @@ const BestiaryManager = {
                 if (!Array.isArray(this.state.monsters)) this.state.monsters = [];
                 if (!Array.isArray(this.state.inactive)) this.state.inactive = [];
             }
+            if (!this.state.treasury || typeof this.state.treasury !== 'object') {
+                this.state.treasury = { gold: 0, silver: 0, copper: 0, notes: '', log: [] };
+            }
             this.renderUi();
         });
 
@@ -213,6 +216,152 @@ const BestiaryManager = {
         this.state.party.forEach(hero => this.deployToInitiative(hero));
     },
 
+    _ensureTreasury() {
+        if (!this.state.treasury || typeof this.state.treasury !== 'object') {
+            this.state.treasury = { gold: 0, silver: 0, copper: 0, notes: '', log: [] };
+        }
+        if (!Array.isArray(this.state.treasury.log)) this.state.treasury.log = [];
+        return this.state.treasury;
+    },
+
+    _getTreasuryRecipients() {
+        const companionNames = new Set();
+        (this.state.party || []).forEach(u => {
+            const cName = String(u?.stats?.compName || '').trim().toLowerCase();
+            if (cName) companionNames.add(cName);
+        });
+
+        return (this.state.party || []).filter(u => {
+            if (!u || u.faction !== 'friend' || u.inactive) return false;
+            const normName = String(u.name || '').trim().toLowerCase();
+            if (!normName || companionNames.has(normName)) return false;
+            if (/фамильяр|верный зверь|спутник/i.test(normName)) return false;
+            return true;
+        });
+    },
+
+    addTreasuryLoot(gold, silver, copper, comment = '') {
+        const tr = this._ensureTreasury();
+        const g = Math.max(0, parseInt(gold, 10) || 0);
+        const s = Math.max(0, parseInt(silver, 10) || 0);
+        const c = Math.max(0, parseInt(copper, 10) || 0);
+        if (g === 0 && s === 0 && c === 0) return;
+
+        tr.gold = (Number(tr.gold) || 0) + g;
+        tr.silver = (Number(tr.silver) || 0) + s;
+        tr.copper = (Number(tr.copper) || 0) + c;
+
+        const parts = [];
+        if (g > 0) parts.push(`${g} ЗМ`);
+        if (s > 0) parts.push(`${s} СМ`);
+        if (c > 0) parts.push(`${c} ММ`);
+        const noteStr = String(comment || '').trim();
+        tr.log.unshift(`+${parts.join(', ')}${noteStr ? ` (${noteStr})` : ''}`);
+        if (tr.log.length > 8) tr.log.length = 8;
+
+        this._save();
+    },
+
+    convertTreasuryCoins() {
+        const tr = this._ensureTreasury();
+        const totalCp = (Number(tr.gold) || 0) * 100 + (Number(tr.silver) || 0) * 10 + (Number(tr.copper) || 0);
+        tr.gold = Math.floor(totalCp / 100);
+        tr.silver = Math.floor((totalCp % 100) / 10);
+        tr.copper = totalCp % 10;
+        this._save();
+    },
+
+    openSplitTreasuryModal() {
+        const tr = this._ensureTreasury();
+        const recipients = this._getTreasuryRecipients();
+        const totalCp = (Number(tr.gold) || 0) * 100 + (Number(tr.silver) || 0) * 10 + (Number(tr.copper) || 0);
+
+        if (totalCp <= 0) {
+            alert('В общей казне отряда пока нет монет для деления!');
+            return;
+        }
+        if (recipients.length === 0) {
+            alert('В текущем отряде нет активных героев!');
+            return;
+        }
+
+        const shareCp = Math.floor(totalCp / recipients.length);
+        const remCp = totalCp % recipients.length;
+
+        const shareG = Math.floor(shareCp / 100);
+        const shareS = Math.floor((shareCp % 100) / 10);
+        const shareC = shareCp % 10;
+
+        const remG = Math.floor(remCp / 100);
+        const remS = Math.floor((remCp % 100) / 10);
+        const remC = remCp % 10;
+
+        const fmtCoins = (g, s, c) => {
+            const p = [];
+            if (g > 0) p.push(`<b>${g}</b> 🥇ЗМ`);
+            if (s > 0) p.push(`<b>${s}</b> 🥈СМ`);
+            if (c > 0) p.push(`<b>${c}</b> 🥉ММ`);
+            return p.length > 0 ? p.join(', ') : '<b>0</b> монет';
+        };
+
+        const modal = ModalManager.open({
+            id: 'bstSplitTreasuryModal',
+            title: '⚖️ Деление общей казны отряда',
+            width: '460px',
+            borderColor: '#ffd875',
+            bodyHtml: `
+                <div style="font-size: 14px; color: #ebd291; line-height: 1.55;">
+                    <div>💰 <b>Всего в казне:</b> ${fmtCoins(Number(tr.gold) || 0, Number(tr.silver) || 0, Number(tr.copper) || 0)}</div>
+                    <div>🛡️ <b>Участников деления (${recipients.length} чел.):</b> ${recipients.map(r => `<span style="color:#2ecc71;">${r.name}</span>`).join(', ')}</div>
+                    <div style="margin-top: 10px; padding: 10px; background: rgba(4, 9, 5, 0.8); border: 1px solid #8a6421; border-radius: 6px;">
+                        <div style="color: #ffd875; font-size: 15px;">✨ <b>Доля каждого героя:</b> ${fmtCoins(shareG, shareS, shareC)}</div>
+                        <div style="color: #a4b0be; font-size: 12px; margin-top: 4px;">Останется в общей казне (неделимый остаток): ${fmtCoins(remG, remS, remC)}</div>
+                    </div>
+                </div>
+            `,
+            footerButtons: [
+                { label: '✖ Отмена', variant: 'cc', onClick: () => modal.close() },
+                {
+                    label: '✅ Выдать долю в кошельки',
+                    variant: 'ok',
+                    onClick: () => {
+                        if (shareCp > 0) {
+                            const initCombatants = window.InitiativeManager?.state?.combatants || [];
+                            recipients.forEach(hero => {
+                                if (!hero.stats) hero.stats = createDefaultStats();
+                                hero.stats.coinsGold = (Number(hero.stats.coinsGold) || 0) + shareG;
+                                hero.stats.coinsSilver = (Number(hero.stats.coinsSilver) || 0) + shareS;
+                                hero.stats.coinsCopper = (Number(hero.stats.coinsCopper) || 0) + shareC;
+
+                                // Синхронизируем с копией героя в трекере инициативы, если она отдельная
+                                const normH = String(hero.name || '').trim().toLowerCase();
+                                initCombatants.forEach(u => {
+                                    if (u && u.faction === 'friend' && String(u.name || '').trim().toLowerCase() === normH && u.stats && u.stats !== hero.stats) {
+                                        u.stats.coinsGold = hero.stats.coinsGold;
+                                        u.stats.coinsSilver = hero.stats.coinsSilver;
+                                        u.stats.coinsCopper = hero.stats.coinsCopper;
+                                    }
+                                });
+                            });
+
+                            tr.gold = remG;
+                            tr.silver = remS;
+                            tr.copper = remC;
+                            tr.log.unshift(`⚖️ Разделено по ${shareG} ЗМ ${shareS} СМ ${shareC} ММ на ${recipients.length} чел.`);
+                            if (tr.log.length > 8) tr.log.length = 8;
+
+                            this._save();
+                        }
+                        modal.close();
+                    }
+                }
+            ]
+        });
+
+        if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
+    },
+
+
     renderUi() {
         hidePresetTooltip();
         const container = document.getElementById('bestiaryTabletContainer');
@@ -248,11 +397,15 @@ const BestiaryManager = {
                             <input type="text" id="bstSidebarFilter" class="bst-sidebar-filter-inp" autocomplete="off" placeholder="Фильтр по каталогу...">
                             <div id="bstFullCatalogList" class="bst-full-catalog-list"></div>
                         </aside>
+                        
                         <div class="bst-zones-main">
+                            <div id="bstZoneTreasury" class="init-out-combatants-zone" style="margin-bottom: 16px;"></div>
                             <div id="bstZoneParty" class="init-out-combatants-zone bestiary-zone-party"></div>
                             <div id="bstZoneMonsters" class="init-out-combatants-zone bestiary-zone-monsters" style="margin-top: 16px;"></div>
                             <div id="bstZoneInactive" class="init-out-combatants-zone bestiary-zone-inactive" style="margin-top: 16px;"></div>
                         </div>
+
+                        
                     </div>
                 </div>`;
             this._isBound = false;
@@ -265,10 +418,79 @@ const BestiaryManager = {
 
         const filterVal = document.getElementById('bstSidebarFilter')?.value || '';
         this._renderCatalogSidebar(filterVal);
+        this._renderTreasuryZone();
         this._renderZone('bstZoneParty', '🛡️ Текущий отряд (Герои)', 'party', this.state.party, true);
         this._renderZone('bstZoneMonsters', '👹 Заготовленные монстры и NPC', 'monsters', this.state.monsters, false);
         this._renderZone('bstZoneInactive', '💤 Неактивные персонажи (Резерв)', 'inactive', this.state.inactive || [], false);
     },
+
+    _renderTreasuryZone() {
+        const box = document.getElementById('bstZoneTreasury');
+        if (!box) return;
+        const tr = this._ensureTreasury();
+        const totalGoldEq = ((Number(tr.gold) || 0) + (Number(tr.silver) || 0) / 10 + (Number(tr.copper) || 0) / 100).toFixed(2);
+
+        box.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                <div class="init-out-zone-title" style="margin: 0; font-size: 16px; color: #ffd875;">
+                    💰 Общая казна отряда <span style="font-size: 13px; color: #a4b0be; font-weight: normal;">(≈ ${totalGoldEq} ЗМ)</span>
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="button" id="bstBtnConvertCoins" class="btn cc" style="padding: 4px 10px; font-size: 12px;" title="Обменять каждые 10 ММ → 1 СМ и 10 СМ → 1 ЗМ">💱 Укрупнить монеты</button>
+                    <button type="button" id="bstBtnSplitTreasury" class="btn ok" style="padding: 4px 12px; font-size: 13px;">⚖️ Разделить поровну на отряд</button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; background: rgba(4, 9, 5, 0.72); border: 1px solid #543e0d; border-radius: 6px; padding: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <label style="color: #ffd875; font-weight: bold;">🥇 ЗМ: <input type="number" id="bstTrGold" class="k-inp bst-mini-num" min="0" value="${Number(tr.gold) || 0}" style="width: 68px; text-align: center;"></label>
+                        <label style="color: #dfe6e9; font-weight: bold;">🥈 СМ: <input type="number" id="bstTrSilver" class="k-inp bst-mini-num" min="0" value="${Number(tr.silver) || 0}" style="width: 68px; text-align: center;"></label>
+                        <label style="color: #e17055; font-weight: bold;">🥉 ММ: <input type="number" id="bstTrCopper" class="k-inp bst-mini-num" min="0" value="${Number(tr.copper) || 0}" style="width: 68px; text-align: center;"></label>
+                    </div>
+                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                        <input type="number" id="bstLootAddAmt" class="k-inp" min="1" placeholder="Кол-во" style="width: 72px; padding: 4px 6px; font-size: 12px;">
+                        <select id="bstLootAddType" class="k-inp" style="width: 72px; padding: 4px; font-size: 12px; background: #090f0b; border: 1px solid #543e0d; color: #ebd291;">
+                            <option value="gold">🥇 ЗМ</option>
+                            <option value="silver">🥈 СМ</option>
+                            <option value="copper">🥉 ММ</option>
+                        </select>
+                        <input type="text" id="bstLootAddNote" class="k-inp" placeholder="За что добыча (гекс, босс)..." style="width: 170px; padding: 4px 6px; font-size: 12px;">
+                        <button type="button" id="bstBtnAddLoot" class="btn ok" style="padding: 4px 10px; font-size: 12px;">➕ В казну</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <input type="text" id="bstTrNotes" class="k-inp" placeholder="💎 Неразделённые трофеи, самоцветы, слитки, товары на продажу..." value="${String(tr.notes || '').replace(/"/g, '&quot;')}" style="width: 100%; font-size: 12px; padding: 5px 8px;">
+                    <div style="font-size: 11px; color: #a4b0be; line-height: 1.3;">
+                        ${tr.log.length > 0 ? `📜 Последние операции: <span style="color:#ebd291;">${tr.log.slice(0, 3).join(' • ')}</span>` : '📜 История операций казны пока пуста.'}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        box.querySelector('#bstTrGold')?.addEventListener('change', (e) => { tr.gold = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
+        box.querySelector('#bstTrSilver')?.addEventListener('change', (e) => { tr.silver = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
+        box.querySelector('#bstTrCopper')?.addEventListener('change', (e) => { tr.copper = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
+        box.querySelector('#bstTrNotes')?.addEventListener('change', (e) => { tr.notes = e.target.value; this._save(); });
+
+        box.querySelector('#bstBtnAddLoot')?.addEventListener('click', () => {
+            const amt = parseInt(box.querySelector('#bstLootAddAmt')?.value, 10) || 0;
+            const kind = box.querySelector('#bstLootAddType')?.value || 'gold';
+            const note = box.querySelector('#bstLootAddNote')?.value || '';
+            if (amt <= 0) return;
+            this.addTreasuryLoot(
+                kind === 'gold' ? amt : 0,
+                kind === 'silver' ? amt : 0,
+                kind === 'copper' ? amt : 0,
+                note
+            );
+        });
+
+        box.querySelector('#bstBtnConvertCoins')?.addEventListener('click', () => this.convertTreasuryCoins());
+        box.querySelector('#bstBtnSplitTreasury')?.addEventListener('click', () => this.openSplitTreasuryModal());
+    },
+
 
     _bindSearchControls() {
         const nameInp = document.getElementById('bstInputName');
