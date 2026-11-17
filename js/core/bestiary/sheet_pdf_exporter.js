@@ -53,15 +53,15 @@ function generatePathfinderLogoDataUrl() {
 
     const canvas = document.createElement('canvas');
     canvas.width = 480;
-    canvas.height = 136;
+    canvas.height = 140;
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // 1. Вычисляем точные координаты букв
-    const pX = 36;
-    const pBaseY = 104;
+    const pX = 39;
+    const pBaseY = 98;
     const word = 'ATHFINDER';
     const wordStartX = 96;
     const wordBaseY = 85;
@@ -82,17 +82,15 @@ function generatePathfinderLogoDataUrl() {
     const rMidX = rBox.x + rBox.w * 0.55;
     const rightEndX = curX + 12;
 
-
-    // 2. Точный контур ленты: плотное облегание буквы P с обеими выемками слева, пик над I и вензель под R
-    // 2. Точный контур ленты: высокий изгиб слева на P, глубокая талия у ножки, пик над I и вензель под R
-    // 2. Точный контур ленты: высокий изгиб слева у самого шипа P, плавное огибание чаши сверху, пик над I и вензель под R
+    // 2. Контур ленты в стиле оригинала: высокий шпиль P с левой волютой, пик над I, вензели под P и под R
     const traceRibbon = () => {
         ctx.beginPath();
-        // Верхний острый шип буквы P
-        ctx.moveTo(41, 21);
-        ctx.lineTo(50, 31);
-        // Плавное огибание верхней чаши P сверху
-        ctx.quadraticCurveTo(86, 29, 98, 47);
+        // Вершина шпиля буквы P
+        ctx.moveTo(49, 14);
+        ctx.lineTo(59, 28);
+        // Верхняя правая дуга чаши P
+        ctx.lineTo(75, 32);
+        ctx.quadraticCurveTo(95, 34, 98, 47);
         // Верхняя планка до выступа над I
         ctx.lineTo(iMidX - 12, 47);
         ctx.lineTo(iMidX, 35);
@@ -101,32 +99,27 @@ function generatePathfinderLogoDataUrl() {
         ctx.lineTo(rightEndX - 16, 47);
         ctx.quadraticCurveTo(rightEndX, 47, rightEndX, 65);
         ctx.lineTo(rightEndX, 82);
-        // Закругление правого края и переход к вензелю под R
+        // Правый нижний вензель под R
         ctx.quadraticCurveTo(rightEndX, 97, rightEndX - 14, 97);
         ctx.lineTo(rMidX + 10, 97);
         ctx.quadraticCurveTo(rMidX + 4, 110, rMidX - 6, 110);
         ctx.quadraticCurveTo(rMidX - 15, 110, rMidX - 17, 97);
         // Нижняя горизонтальная линия до ножки P
-        ctx.lineTo(68, 97);
-        // Удлинённая нижняя ножка P с засечкой
-        ctx.lineTo(68, 114);
-        ctx.quadraticCurveTo(68, 121, 60, 121);
-        ctx.lineTo(43, 121);
-        ctx.quadraticCurveTo(36, 121, 36, 113);
-        ctx.lineTo(36, 86);
-        // Глубокая нижняя выемка слева под чашей P
-        ctx.lineTo(39, 77);
-        // Высокий изгиб слева, начинающийся сразу под верхним шипом P
-        ctx.quadraticCurveTo(18, 69, 18, 52);
-        ctx.quadraticCurveTo(18, 37, 36, 33);
-        // Короткий переход к вершине верхнего шипа
-        ctx.lineTo(37, 27);
+        ctx.lineTo(74, 97);
+        // Нижний вензель и удлинённое остриё ножки P
+        ctx.quadraticCurveTo(73, 110, 64, 110);
+        ctx.lineTo(57, 110);
+        ctx.lineTo(49, 125);
+        ctx.lineTo(41, 112);
+        ctx.lineTo(41, 74);
+        // Выемка слева под верхней волютой P
+        ctx.lineTo(34, 64);
+        // Высокая верхняя волюта слева от шпиля P
+        ctx.quadraticCurveTo(18, 60, 18, 45);
+        ctx.quadraticCurveTo(18, 31, 35, 30);
+        ctx.lineTo(39, 28);
         ctx.closePath();
     };
-
-
-
-
 
     // Мягкая тень под эмблемой
     ctx.save();
@@ -151,7 +144,7 @@ function generatePathfinderLogoDataUrl() {
     ctx.globalCompositeOperation = 'source-over';
 
     // Внутренняя тёмно-бордовая заливка
-    const bgGrad = ctx.createLinearGradient(0, 28, 0, 118);
+    const bgGrad = ctx.createLinearGradient(0, 20, 0, 122);
     bgGrad.addColorStop(0, '#3d150c');
     bgGrad.addColorStop(0.5, '#260b06');
     bgGrad.addColorStop(1, '#170603');
@@ -165,26 +158,31 @@ function generatePathfinderLogoDataUrl() {
     traceRibbon();
     ctx.stroke();
 
-    // Декоративная золотая линия под словом ATHFINDER с переходом в завиток под R
-    const barGrad = ctx.createLinearGradient(76, 0, rightEndX - 10, 0);
+    // Декоративная золотая линия под словом ATHFINDER с двумя симметричными вензелями (под P и под R)
+    const barGrad = ctx.createLinearGradient(58, 0, rightEndX - 10, 0);
     barGrad.addColorStop(0, '#c8a456');
     barGrad.addColorStop(0.5, '#f5e4b3');
     barGrad.addColorStop(1, '#c8a456');
 
     ctx.strokeStyle = barGrad;
-    ctx.lineWidth = 3.2;
+    ctx.lineWidth = 3.0;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(76, 90);
+    // Левый вензель под P
+    ctx.moveTo(64, 92);
+    ctx.quadraticCurveTo(60, 92, 60, 96);
+    ctx.quadraticCurveTo(60, 102, 66, 102);
+    ctx.quadraticCurveTo(72, 102, 72, 90);
+    // Горизонтальная перекладина до R
     ctx.lineTo(rMidX - 12, 90);
-    // Маленький S-образный вензель под R
+    // Правый вензель под R
     ctx.quadraticCurveTo(rMidX - 12, 102, rMidX - 5, 102);
     ctx.quadraticCurveTo(rMidX + 2, 102, rMidX + 2, 95);
     ctx.quadraticCurveTo(rMidX + 2, 91, rMidX - 2, 91);
     ctx.stroke();
 
     // 3. Золотистый градиент для букв
-    const textGrad = ctx.createLinearGradient(0, 28, 0, 112);
+    const textGrad = ctx.createLinearGradient(0, 22, 0, 116);
     textGrad.addColorStop(0, '#fff4cf');
     textGrad.addColorStop(0.45, '#e8cd82');
     textGrad.addColorStop(1, '#b58d3d');
@@ -194,11 +192,45 @@ function generatePathfinderLogoDataUrl() {
     ctx.lineJoin = 'round';
     ctx.textBaseline = 'alphabetic';
 
-    // Заглавная буква P
-    ctx.font = '900 84px Georgia, "Times New Roman", serif';
+    // Стилизованная заглавная P со шпилем и верхним завитком
+    ctx.font = '900 82px Georgia, "Times New Roman", serif';
     ctx.lineWidth = 4.5;
     ctx.strokeText('P', pX, pBaseY);
     ctx.fillText('P', pX, pBaseY);
+
+    // Верхний шпиль и левая декоративная волюта у буквы P
+    ctx.fillStyle = textGrad;
+    ctx.strokeStyle = '#140703';
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    ctx.moveTo(49, 18);
+    ctx.lineTo(54, 34);
+    ctx.lineTo(44, 34);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Завиток слева от шпиля P
+    ctx.strokeStyle = '#f5e4b3';
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(45, 36);
+    ctx.quadraticCurveTo(25, 34, 25, 45);
+    ctx.quadraticCurveTo(25, 53, 33, 53);
+    ctx.quadraticCurveTo(37, 53, 37, 48);
+    ctx.stroke();
+
+    // Нижнее остриё ножки P
+    ctx.fillStyle = textGrad;
+    ctx.strokeStyle = '#140703';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(45, 98);
+    ctx.lineTo(53, 98);
+    ctx.lineTo(49, 119);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     // Буквы ATHFINDER
     ctx.font = '900 44px Georgia, "Times New Roman", serif';
@@ -221,6 +253,9 @@ function generatePathfinderLogoDataUrl() {
     cachedPfLogoUrl = canvas.toDataURL('image/png');
     return cachedPfLogoUrl;
 }
+
+
+
 
 
 
