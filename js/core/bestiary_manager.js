@@ -1117,6 +1117,10 @@ const BestiaryManager = {
             ? 'Резерв пуст. Нажмите 💤 на карточке героя в отряде, чтобы убрать его сюда без потери параметров.'
             : 'Список пуст. Добавьте персонажей через строку поиска выше или справочник слева.';
 
+        const gmLinkBtnHtml = isParty
+            ? '<button type="button" class="btn cc" id="bstBtnCopyGmLink" style="padding:4px 10px; font-size:13px; margin-right:6px;" title="Скопировать секретную ссылку ГМа для входа с другого компьютера">👑 Ссылка ГМа</button>'
+            : '';
+
         const deployBtnHtml = (isParty && items.length > 0)
             ? '<button type="button" class="btn ok" id="bstBtnDeployAllParty" style="padding:4px 12px; font-size:13px;">⚔️ Весь отряд в бой</button>'
             : '';
@@ -1124,10 +1128,12 @@ const BestiaryManager = {
             ? '<div style="color:#7f8c8d; font-size:15px; padding:12px;">' + emptyHint + '</div>'
             : '';
 
+
+
         zone.innerHTML = [
             '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">',
             '<div class="init-out-zone-title" style="margin:0; font-size:16px; color:' + headerColor + ';">' + title + ' (' + items.length + ')</div>',
-            deployBtnHtml,
+            '<div>' + gmLinkBtnHtml + deployBtnHtml + '</div>',
             '</div>',
             '<div class="init-cards-scroll-list mode-bg3 init-out-zone-grid">',
             emptyListHtml,
@@ -1135,6 +1141,15 @@ const BestiaryManager = {
         ].join('');
 
         zone.querySelector('#bstBtnDeployAllParty')?.addEventListener('click', () => this.deployWholeParty());
+
+        zone.querySelector('#bstBtnCopyGmLink')?.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            const link = CloudSyncService.getGmInviteUrl();
+            navigator.clipboard.writeText(link).then(() => {
+                btn.textContent = '✅ Скопировано!';
+                setTimeout(() => { btn.textContent = '👑 Ссылка ГМа'; }, 1500);
+            });
+        });
 
         const grid = zone.querySelector('.init-out-zone-grid');
         items.forEach((item, idx) => {

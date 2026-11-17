@@ -10,6 +10,14 @@ const PLAYER_HERO_ID = params.get('playerHeroId');
 const IS_PLAYER_MODE = Boolean(PLAYER_HERO_ID);
 
 function getOrCreateGmSecret() {
+    // 1. Сначала проверяем, не пришёл ли ключ ГМа в URL (вход с нового ПК)
+    const urlSecret = params.get('gmSecret');
+    if (urlSecret) {
+        localStorage.setItem('pf_online_gm_secret', urlSecret);
+        return urlSecret;
+    }
+
+    // 2. Иначе берём из localStorage или генерируем новый
     let secret = localStorage.getItem('pf_online_gm_secret');
     if (!secret) {
         secret = 'gm_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
@@ -19,6 +27,11 @@ function getOrCreateGmSecret() {
 }
 
 const GM_SECRET = !IS_PLAYER_MODE ? getOrCreateGmSecret() : '';
+
+// Если в URL пришёл room — запоминаем его на новом устройстве
+if (params.get('room') && !IS_PLAYER_MODE) {
+    localStorage.setItem('pf_online_room_code', params.get('room'));
+}
 const initialRoomCode = params.get('room') || localStorage.getItem('pf_online_room_code') || '';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -55,22 +68,38 @@ const CloudSyncService = {
         return url.toString();
     },
 
+    getGmInviteUrl() {
+        const url = new URL(window.location.href);
+        url.search = '';
+        url.searchParams.set('room', this.roomCode || this.getRoomCode());
+        url.searchParams.set('gmSecret', GM_SECRET);
+        return url.toString();
+    },
+
     async init() {
         this.roomCode = params.get('room') || this.getRoomCode();
 
-        if (!params.get('room') && !this.isPlayerMode) {
+        // Убираем gmSecret из адресной строки после сохранения в localStorage (для безопасности)
+        if (!this.isPlayerMode) {
             const url = new URL(window.location.href);
             url.searchParams.set('room', this.roomCode);
+            url.searchParams.delete('gmSecret');
             window.history.replaceState({}, '', url);
         }
 
         // 1. Загружаем актуальные данные из облака при старте
         await this.pullFromCloud();
 
-        // Если это ГМ и отряд ещё не в облаке — отправляем стартовое состояние
-        if (!this.isPlayerMode) {
-            await this.pushToCloud();
+        // ВАЖНО: отправляем локальный отряд в облако ТОЛЬКО если в облаке пусто
+        // или если это не пустой новый браузер!
+        if (!this.isPlayerMode && window.BestiaryManager) {
+            const hasLocalHeroes = (window.BestiaryManager.state.party?.length > 0) ||
+                (window.BestiaryManager.state.inactive?.length > 0);
+            if (hasLocalHeroes) {
+                await this.pushToCloud();
+            }
         }
+
 
         // 2. Автоматически отправляем изменения при сохранении в системе
         EventBus.on('data:save', () => {
@@ -186,9 +215,18 @@ const CloudSyncService = {
         const pIdx = party.findIndex(h => h.id === incoming.id);
         const iIdx = inactive.findIndex(h => h.id === incoming.id);
 
-        if (pIdx !== -1) party[pIdx] = incoming;
-        else if (iIdx !== -1) inactive[iIdx] = incoming;
-        else if (this.isPlayerMode) party.push(incoming);
+        if (pIdx !== -1) {
+            party[pIdx] = incoming;
+        } else if (iIdx !== -1) {
+            inactive[iIdx] = incoming;
+        } else {
+            // Добавляем нового героя из облака и для игрока, и для ГМа на новом ПК
+            if (incoming.inactive) {
+                inactive.push(incoming);
+            } else {
+                party.push(incoming);
+            }
+        }
 
         // Перерисовываем открытый бланк у игрока, если ГМ обновил статы или включил/выключил Read-Only
         const openModal = document.getElementById('bstHeroSheetModal');
