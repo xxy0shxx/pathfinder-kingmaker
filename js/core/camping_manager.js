@@ -1,6 +1,7 @@
 import AnimationManager from '../services/animation_manager.js';
 import { MAP_CONFIG } from '../config/app_config.js';
 import EventBus from '../services/event_bus.js';
+import ModalManager from '../ui/modal_manager.js';
 
 // ============================================================================
 // МОДУЛЬ: МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 1 ИЗ 3
@@ -735,7 +736,6 @@ const CampingManager = {
         if (totEl) totEl.textContent = this.state.totalChecks;
         if (modEl) modEl.textContent = this.state.checkMod;
 
-
         const summaryCard = normEl?.closest('.camp-summary-box, .camp-results-panel') || normEl?.parentElement?.parentElement;
         if (summaryCard) {
             let syncBar = summaryCard.querySelector('#campSyncBarBox');
@@ -753,7 +753,56 @@ const CampingManager = {
                 summaryCard.appendChild(syncBar);
 
                 syncBar.querySelector('#btnCampSyncSupplies').addEventListener('click', () => {
-                    this.syncSuppliesWithParty();
+                    const sup = this.getPartySuppliesSummary();
+                    const heroesCount = sup.heroesCount;
+                    const rationsToSpend = Math.min(sup.totalRations, heroesCount);
+                    const normGain = parseInt(this.state.normalIngredients, 10) || 0;
+                    const specGain = parseInt(this.state.specialIngredients, 10) || 0;
+
+                    const huntAssign = this.state.assignments ? Reflect.get(this.state.assignments, 2) : null;
+                    const hunterName = (Array.isArray(huntAssign) && huntAssign.at(0)?.name)
+                        ? huntAssign.at(0).name
+                        : 'первому герою отряда';
+
+                    const lootLines = [];
+                    if (normGain > 0) lootLines.push(`🏕️ Обычные ингредиенты: <b>+${normGain} шт.</b>`);
+                    if (specGain > 0) lootLines.push(`🌿 Особые ингредиенты: <b>+${specGain} шт.</b>`);
+
+                    const confirmModal = ModalManager.open({
+                        id: 'campConfirmSyncSuppliesModal',
+                        title: '🎒 Подтверждение расхода припасов привала',
+                        width: '440px',
+                        borderColor: '#dfbc6f',
+                        bodyHtml: `
+                            <div style="font-size: 14px; color: #ebd291; line-height: 1.5; padding: 4px 2px;">
+                                Вы уверены, что хотите применить итоги стоянки к рюкзакам героев?<br>
+                                <div style="margin-top: 8px; padding: 8px 10px; background: rgba(4, 9, 5, 0.75); border: 1px solid #543e0d; border-radius: 5px;">
+                                    <div>🍞 <b>Списание пайков:</b> −${rationsToSpend} из ${sup.totalRations} шт. (на ${heroesCount} чел.)</div>
+                                    ${sup.totalRations < heroesCount ? `<div style="color: #ff7675; font-size: 12px; margin-top: 2px;">⚠️ Пайков хватит не на всех (не хватает ${heroesCount - sup.totalRations} шт.)</div>` : ''}
+                                    ${lootLines.length > 0 ? `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.25); color: #2ecc71;">📦 <b>Выдача добычи (${hunterName}):</b><br>${lootLines.join('<br>')}</div>` : ''}
+                                </div>
+                            </div>
+                        `,
+                        footerButtons: [
+                            {
+                                label: '✖ Отмена',
+                                variant: 'cc',
+                                onClick: () => confirmModal.close()
+                            },
+                            {
+                                label: '✅ Подтвердить',
+                                variant: 'ok',
+                                onClick: () => {
+                                    this.syncSuppliesWithParty();
+                                    confirmModal.close();
+                                }
+                            }
+                        ]
+                    });
+
+                    if (confirmModal?.overlay) {
+                        confirmModal.overlay.style.zIndex = '10000250';
+                    }
                 });
             }
             const totalBox = syncBar.querySelector('#campPartySuppliesTotal');
