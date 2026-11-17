@@ -689,7 +689,27 @@ function generatePathfinderCombatBadges() {
         ctx.fillText('АТАКА', 62, 73);
     });
 
-    cachedPfCombatBadges = { hpHeart, speedBox, perceptionGlass, acShield, meleeAtkBadge, rangedAtkBadge };
+    // 7. Восьмиугольная красная рамка для «Проверки атаки заклинанием» и «СЛ заклинаний»
+    const spellOctBadge = makeBadge(92, 68, (ctx) => {
+        ctx.beginPath();
+        ctx.moveTo(20, 7);
+        ctx.lineTo(72, 7);
+        ctx.lineTo(85, 20);
+        ctx.lineTo(85, 48);
+        ctx.lineTo(72, 61);
+        ctx.lineTo(20, 61);
+        ctx.lineTo(7, 48);
+        ctx.lineTo(7, 20);
+        ctx.closePath();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 4.6;
+        ctx.strokeStyle = crimson;
+        ctx.stroke();
+    });
+
+    cachedPfCombatBadges = { hpHeart, speedBox, perceptionGlass, acShield, meleeAtkBadge, rangedAtkBadge, spellOctBadge };
     return cachedPfCombatBadges;
 }
 
@@ -757,7 +777,8 @@ export function exportCharacterToPdf(hero) {
     if (!hero) return;
     const s = ensureCharacterStats(hero);
     const name = hero.name || 'Безымянный герой';
-    const { hpHeart, speedBox, perceptionGlass, acShield, meleeAtkBadge, rangedAtkBadge } = generatePathfinderCombatBadges();
+    const { hpHeart, speedBox, perceptionGlass, acShield, meleeAtkBadge, rangedAtkBadge, spellOctBadge } = generatePathfinderCombatBadges();
+
 
 
 
@@ -889,22 +910,58 @@ export function exportCharacterToPdf(hero) {
         const isS = /реж|руб|slash|\bр\b/i.test(dmgLower);
         const atkIcon = isRanged ? rangedAtkBadge : meleeAtkBadge;
 
+        // Вычисляем модификатор характеристики (ЛВК/СИЛ) и бонус умения (И/Э) для формулы АТАКА = ЛВК/СИЛ + УМЕНИЕ
+        const isFinesse = /точн|finesse/i.test(traitsStr);
+        const strMod = Number(s.str) || 0;
+        const dexMod = Number(s.dex) || 0;
+        const statVal = isRanged ? dexMod : (isFinesse ? Math.max(strMod, dexMod) : strMod);
+
+        const parsedAtk = parseInt(String(wAtk || '').replace(/[^\d+-]/g, ''), 10);
+        const hasWeapon = Boolean(String(wName || '').trim() || !isNaN(parsedAtk));
+        const lvl = Math.max(1, Number(s.level) || 1);
+
+        let profVal = 0;
+        if (!isNaN(parsedAtk)) {
+            const diff = parsedAtk - statVal;
+            if (diff >= lvl + 4) profVal = lvl + 4;
+            else if (diff >= lvl + 2) profVal = lvl + 2;
+            else if (diff > 0) profVal = diff;
+        }
+
+        const statDisplay = hasWeapon ? fmtMod(statVal) : '';
+        const profDisplay = hasWeapon ? String(profVal) : '';
+        const statCaption = isRanged ? 'ЛВК' : 'ЛВК/СИЛ';
+
         return `
         <div class="wpn-card" style="border:1.4px solid #5e1914; padding:3px 5px;">
-            <div style="display:flex; align-items:center; gap:5px; margin-bottom:2px;">
+            <div style="display:flex; align-items:center; gap:3px; margin-bottom:3px;">
                 <div style="flex:1; min-width:0;">
-                    <div class="sub-lbl" style="font-size:5.3pt;">${label}</div>
-                    <div class="wpn-title" style="min-height:14px; font-size:8pt;">${esc(wName || '—')}</div>
+                    <div class="sub-lbl" style="font-size:5.2pt;">${label}</div>
+                    <div class="wpn-title" style="min-height:14px; font-size:7.6pt;">${esc(wName || '')}</div>
                 </div>
-                <div style="position:relative; width:${isRanged ? '52px' : '48px'}; height:38px; flex-shrink:0;">
+                <div style="position:relative; width:${isRanged ? '48px' : '44px'}; height:35px; flex-shrink:0;">
                     <img src="${atkIcon}" alt="Атака" style="width:100%; height:100%; object-fit:contain; display:block;">
-                    <span style="position:absolute; top:${isRanged ? '13px' : '9px'}; left:0; right:0; text-align:center; font-size:9.5pt; font-weight:900; color:#111; line-height:1;">${esc(wAtk || '—')}</span>
+                    <span style="position:absolute; top:${isRanged ? '12px' : '8px'}; left:0; right:0; text-align:center; font-size:9pt; font-weight:900; color:#111; line-height:1;">${esc(wAtk || '')}</span>
+                </div>
+                <span class="eq">=</span>
+                <div class="box-sub">
+                    <div class="box box-xs" style="width:24px; height:16px; font-size:7.5pt;">${statDisplay}</div>
+                    <span>${statCaption}</span>
+                </div>
+                <span class="op">+</span>
+                <div class="box-sub">
+                    <div class="box box-xs" style="width:24px; height:16px; font-size:7.5pt;">${profDisplay}</div>
+                    <span>УМЕНИЕ</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:1px; margin-left:1px;">
+                    <span class="pbox ${profVal >= lvl + 2 ? 'on' : ''}" style="width:11px; height:11px; font-size:5.5pt;">И</span>
+                    <span class="pbox ${profVal >= lvl + 4 ? 'on' : ''}" style="width:11px; height:11px; font-size:5.5pt;">Э</span>
                 </div>
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:6.5pt; margin-bottom:2px;">
                 <div style="display:flex; align-items:center; gap:4px;">
                     <span class="sub-lbl">УРОН:</span>
-                    <span style="border:1.2px solid #2b2b2b; border-radius:3px; background:#fff; padding:1px 6px; font-weight:800; min-width:48px; text-align:center;">${esc(wDmg || '—')}</span>
+                    <span style="border:1.2px solid #2b2b2b; border-radius:3px; background:#fff; padding:1px 6px; font-weight:800; min-width:52px; text-align:center;">${esc(wDmg || '—')}</span>
                 </div>
                 <div style="display:flex; gap:5px; align-items:center; font-size:5.6pt; font-weight:800;">
                     <span style="display:inline-flex; align-items:center; gap:2px;"><span class="chk ${isB ? 'on' : ''}">${isB ? '✓' : ''}</span>ДРОБЯЩИЙ</span>
@@ -918,6 +975,8 @@ export function exportCharacterToPdf(hero) {
             ${(critEff || traitsExplained) ? `<div class="wpn-extra">${critEff ? `<span><b>Крит (${esc(cat.group)}):</b> ${esc(critEff)}</span> ` : ''}${traitsExplained ? `<span>${traitsExplained}</span>` : ''}</div>` : ''}
         </div>`;
     };
+
+
 
 
 
@@ -1115,6 +1174,9 @@ export function exportCharacterToPdf(hero) {
         : `<div class="empty-slot">Наденьте предметы на куклу, в кольца или на пояс, чтобы здесь автоматически отобразились их боевые и активируемые свойства.</div>`;
 
 
+
+    const casterStatMod = Math.max(Number(s.int) || 0, Number(s.wis) || 0, Number(s.cha) || 0);
+    const spellProfBonus = Math.max(0, (Number(s.spellAttack) || 0) - casterStatMod);
 
     const html = `<!DOCTYPE html>
 <html lang="ru">
@@ -1343,36 +1405,52 @@ export function exportCharacterToPdf(hero) {
 
                 <div class="sec">
                     <div class="sec-hdr"><span class="badge">И</span> Испытания (Спасброски)</div>
-                    <div class="sec-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                            <span class="stat-name" style="width:68px;">СТОЙКОСТЬ</span>
-                            <div class="box box-sm bold">${fmtMod(s.fortitude)}</div>
-                            <span class="eq">=</span>
-                            <div class="box-sub"><div class="box box-xs">${fmtMod(s.con)}</div><span>ВЫН</span></div>
-                            <span class="op">+</span>
-                            <div class="box-sub"><div class="box box-xs">${s.saveProf_fort ?? 0}</div><span>УМЕНИЕ</span></div>
-                            ${profBoxes(s.saveProf_fort)}
+                    <div class="sec-body" style="display:flex; flex-direction:row; gap:5px; align-items:stretch;">
+                        <div style="flex:1.45; display:flex; flex-direction:column; justify-content:space-between; gap:2px;">
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                <span class="stat-name" style="width:62px; font-size:6.6pt;">СТОЙКОСТЬ</span>
+                                <div class="box box-sm bold" style="border:2.2px solid #8a1c14; width:28px; height:18px; font-size:8.8pt;">${fmtMod(s.fortitude)}</div>
+                                <span class="eq">=</span>
+                                <div class="box-sub"><div class="box box-xs">${fmtMod(s.con)}</div><span>ВЫН</span></div>
+                                <span class="op">+</span>
+                                <div class="box-sub"><div class="box box-xs">${s.saveProf_fort ?? 0}</div><span>УМЕНИЕ</span></div>
+                                <div style="display:flex; flex-direction:column; gap:1px; margin-left:1px;">
+                                    <span class="pbox ${(Number(s.saveProf_fort) || 0) >= 2 ? 'on' : ''}" style="width:11px; height:10px; font-size:5.3pt;">И</span>
+                                    <span class="pbox ${(Number(s.saveProf_fort) || 0) >= 4 ? 'on' : ''}" style="width:11px; height:10px; font-size:5.3pt;">Э</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                <span class="stat-name" style="width:62px; font-size:6.6pt;">РЕАКЦИЯ</span>
+                                <div class="box box-sm bold" style="border:2.2px solid #8a1c14; width:28px; height:18px; font-size:8.8pt;">${fmtMod(s.reflex)}</div>
+                                <span class="eq">=</span>
+                                <div class="box-sub"><div class="box box-xs">${fmtMod(s.dex)}</div><span>ЛВК</span></div>
+                                <span class="op">+</span>
+                                <div class="box-sub"><div class="box box-xs">${s.saveProf_ref ?? 0}</div><span>УМЕНИЕ</span></div>
+                                <div style="display:flex; flex-direction:column; gap:1px; margin-left:1px;">
+                                    <span class="pbox ${(Number(s.saveProf_ref) || 0) >= 2 ? 'on' : ''}" style="width:11px; height:10px; font-size:5.3pt;">И</span>
+                                    <span class="pbox ${(Number(s.saveProf_ref) || 0) >= 4 ? 'on' : ''}" style="width:11px; height:10px; font-size:5.3pt;">Э</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:3px;">
+                                <span class="stat-name" style="width:62px; font-size:6.6pt;">ВОЛЯ</span>
+                                <div class="box box-sm bold" style="border:2.2px solid #8a1c14; width:28px; height:18px; font-size:8.8pt;">${fmtMod(s.will)}</div>
+                                <span class="eq">=</span>
+                                <div class="box-sub"><div class="box box-xs">${fmtMod(s.wis)}</div><span>МДР</span></div>
+                                <span class="op">+</span>
+                                <div class="box-sub"><div class="box box-xs">${s.saveProf_will ?? 0}</div><span>УМЕНИЕ</span></div>
+                                <div style="display:flex; flex-direction:column; gap:1px; margin-left:1px;">
+                                    <span class="pbox ${(Number(s.saveProf_will) || 0) >= 2 ? 'on' : ''}" style="width:11px; height:10px; font-size:5.3pt;">И</span>
+                                    <span class="pbox ${(Number(s.saveProf_will) || 0) >= 4 ? 'on' : ''}" style="width:11px; height:10px; font-size:5.3pt;">Э</span>
+                                </div>
+                            </div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                            <span class="stat-name" style="width:68px;">РЕАКЦИЯ</span>
-                            <div class="box box-sm bold">${fmtMod(s.reflex)}</div>
-                            <span class="eq">=</span>
-                            <div class="box-sub"><div class="box box-xs">${fmtMod(s.dex)}</div><span>ЛВК</span></div>
-                            <span class="op">+</span>
-                            <div class="box-sub"><div class="box box-xs">${s.saveProf_ref ?? 0}</div><span>УМЕНИЕ</span></div>
-                            ${profBoxes(s.saveProf_ref)}
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="stat-name" style="width:68px;">ВОЛЯ</span>
-                            <div class="box box-sm bold">${fmtMod(s.will)}</div>
-                            <span class="eq">=</span>
-                            <div class="box-sub"><div class="box box-xs">${fmtMod(s.wis)}</div><span>МДР</span></div>
-                            <span class="op">+</span>
-                            <div class="box-sub"><div class="box box-xs">${s.saveProf_will ?? 0}</div><span>УМЕНИЕ</span></div>
-                            ${profBoxes(s.saveProf_will)}
+                        <div style="width:32%; border-left:1.5px solid #2b2b2b; padding-left:5px; display:flex; flex-direction:column;">
+                            <div class="sub-lbl" style="font-size:5.5pt; color:#1a1a1a;">ПРОЧЕЕ</div>
+                            <div class="fit-box" style="margin-top:2px; font-size:6.2pt;">${esc(s.saveNotes || '')}</div>
                         </div>
                     </div>
                 </div>
+
 
 
 
@@ -1429,6 +1507,7 @@ export function exportCharacterToPdf(hero) {
         </div>
     </div>
 </div>
+
 <div class="page">
     ${sidebarHtml(2)}
     <div class="main-area">
@@ -1456,11 +1535,38 @@ export function exportCharacterToPdf(hero) {
                 <div class="sec" style="flex: 1; margin-bottom: 0; overflow: hidden;">
                     <div class="sec-hdr red"><span class="badge">О</span> Сотворение заклинаний (с описаниями)</div>
                     <div class="sec-body" style="overflow: hidden;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #d6cbb8; padding-bottom:2px;">
-                            <div style="display:flex; align-items:center; gap:3px;"><span class="sub-lbl">АТАКА ЗАКЛ.:</span><div class="box box-sm bold">${fmtMod(s.spellAttack)}</div></div>
-                            <div style="display:flex; align-items:center; gap:3px;"><span class="sub-lbl">СЛ ЗАКЛ.:</span><div class="box box-sm bold">${s.spellDc ?? 10}</div></div>
-                            <div style="display:flex; align-items:center; gap:3px;"><span class="sub-lbl">ФП:</span><div class="box box-xs">${s.focusCurrent ?? 1}/${s.focusMax ?? 1}</div></div>
+                    
+                        <div style="border-bottom:1.5px solid #5e1914; padding-bottom:3px; margin-bottom:2px; display:flex; flex-direction:column; gap:3px; flex-shrink:0;">
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <span style="width:94px; font-size:5.8pt; font-weight:800; line-height:1.1; color:#1a1a1a;">ПРОВЕРКА АТАКИ<br>ЗАКЛИНАНИЕМ</span>
+                                <div style="position:relative; width:36px; height:26px; flex-shrink:0;">
+                                    <img src="${spellOctBadge}" alt="Атака закл." style="width:100%; height:100%; object-fit:contain; display:block;">
+                                    <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9pt; font-weight:900; color:#111;">${fmtMod(s.spellAttack)}</span>
+                                </div>
+                                <span class="eq">=</span>
+                                <div class="box-sub"><div class="box box-xs" style="width:24px;">${fmtMod(casterStatMod)}</div><span>ИНТ/МДР/ХАР</span></div>
+                                <span class="op">+</span>
+                                <div class="box-sub"><div class="box box-xs" style="width:24px;">${spellProfBonus}</div><span>УМЕНИЕ</span></div>
+                                <span class="pbox ${spellProfBonus >= 2 ? 'on' : ''}" style="margin-bottom:6px;">И</span>
+                                <div style="margin-left:auto; display:flex; align-items:center; gap:2px;">
+                                    <span class="sub-lbl">ФП:</span>
+                                    <div class="box box-xs" style="width:26px;">${s.focusCurrent ?? 1}/${s.focusMax ?? 1}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <span style="width:94px; font-size:5.8pt; font-weight:800; line-height:1.1; color:#1a1a1a;">СЛ ЗАКЛИНАНИЙ</span>
+                                <div style="position:relative; width:36px; height:26px; flex-shrink:0;">
+                                    <img src="${spellOctBadge}" alt="СЛ закл." style="width:100%; height:100%; object-fit:contain; display:block;">
+                                    <span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:9pt; font-weight:900; color:#111;">${s.spellDc ?? 10}</span>
+                                </div>
+                                <span class="eq">= 10 +</span>
+                                <div class="box-sub"><div class="box box-xs" style="width:24px;">${fmtMod(casterStatMod)}</div><span>ИНТ/МДР/ХАР</span></div>
+                                <span class="op">+</span>
+                                <div class="box-sub"><div class="box box-xs" style="width:24px;">${spellProfBonus}</div><span>УМЕНИЕ</span></div>
+                                <span class="pbox ${spellProfBonus >= 2 ? 'on' : ''}" style="margin-bottom:6px;">И</span>
+                            </div>
                         </div>
+
 
                         <div class="rich-list auto-fit-list" style="flex: 1;">
                             <div class="tier-bar"><span>✨ ФОКУСЫ</span><span>В ДЕНЬ: ${s.cantripsPerDay ?? 5}</span></div>
