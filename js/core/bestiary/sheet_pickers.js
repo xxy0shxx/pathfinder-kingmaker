@@ -1315,6 +1315,81 @@ export function initPage2Pickers(overlay, hero) {
 export function initPage3Pickers(overlay, hero) {
     const isInvestedItem = (it) => /настроенность|вкладываем|invested/i.test(`${it?.notes || ''} ${it?.category || ''}`);
 
+    const getBackpackItems = () => {
+        const result = [];
+        for (let i = 1; i <= 15; i++) {
+            const rawName = String(hero.stats[`item${i}Name`] || '').trim();
+            const qty = Math.max(0, Number(hero.stats[`item${i}Qty`]) || 0);
+            if (!rawName || qty <= 0) continue;
+
+            const norm = normalizeStr(rawName);
+            const catItem = [...PF2E_ITEMS_CATALOG, ...PF2E_ARMOR_CATALOG, ...PF2E_MELEE_WEAPONS, ...PF2E_RANGED_WEAPONS]
+                .find(x => normalizeStr(x.name) === norm);
+
+            result.push({
+                ...(catItem || {}),
+                name: rawName,
+                category: catItem?.category || catItem?.group || '🎒 В рюкзаке',
+                notes: catItem?.notes || hero.stats[`item${i}Notes`] || '',
+                fromBackpack: true,
+                backpackRow: i,
+                qty
+            });
+        }
+        return result;
+    };
+
+    const syncEquippedSkillBonuses = () => {
+        const bonuses = {};
+        const allSlotKeys = ['head', 'cloak', 'hands', 'belt', 'neck', 'armor', 'eyes', 'feet', 'mainHand', 'offHand', 'ring_1', 'ring_2', 'ring_3', 'ring_4', 'ring_5'];
+        allSlotKeys.forEach(sk => {
+            const eqName = normalizeStr(hero.stats[`eq_${sk}_Name`]);
+            if (!eqName) return;
+            const found = (PF2E_ITEMS_CATALOG || []).find(it => normalizeStr(it.name) === eqName);
+            if (!found?.skillBonus?.skill) return;
+            if (isInvestedItem(found) && !hero.stats[`eq_${sk}_Invested`]) return;
+
+            const targetSkill = found.skillBonus.skill;
+            const val = Number(found.skillBonus.bonus) || 0;
+            bonuses[targetSkill] = Math.max(bonuses[targetSkill] || 0, val);
+        });
+        hero.stats.skillItemBonuses = bonuses;
+    };
+
+    const syncDollToPage1Stats = (slot, found) => {
+        if (slot === 'armor' && found && found.acBonus !== undefined) {
+            hero.stats.armorName = found.name;
+            hero.stats.armorType = found.category;
+            hero.stats.acItem = found.acBonus;
+            hero.stats.acArmorPenalty = found.penalty || 0;
+        }
+        if (slot === 'mainHand' && found && found.dmgDice) {
+            const liveStats = {
+                level: Number(hero.stats.level) || 1,
+                str: Number(hero.stats.str) || 0,
+                dex: Number(hero.stats.dex) || 0
+            };
+            if (found.range) {
+                const { atkStr, dmgStr } = calcRangedWeaponRoll(found, liveStats);
+                hero.stats.rangedName = found.name;
+                hero.stats.rangedAtk = atkStr;
+                hero.stats.rangedDmg = dmgStr;
+                hero.stats.rangedTraits = found.traits || '';
+            } else {
+                const { atkStr, dmgStr } = calcMeleeWeaponRoll(found, liveStats);
+                hero.stats.melee1Name = found.name;
+                hero.stats.melee1Atk = atkStr;
+                hero.stats.melee1Dmg = dmgStr;
+                hero.stats.melee1Traits = found.traits || '';
+            }
+        }
+        if (slot === 'offHand' && found?.shieldStats) {
+            hero.stats.acShieldBonus = found.shieldStats.bonus;
+            hero.stats.acShieldHardness = found.shieldStats.hardness;
+            hero.stats.acShieldHp = found.shieldStats.hp;
+        }
+    };
+
     const updateInvestedCounterUi = () => {
         const badge = overlay.querySelector('#bstInvestedCounterBadge');
         const used = Math.min(10, Math.max(0, Number(hero.stats.investedUsedToday) || 0));
@@ -1323,67 +1398,111 @@ export function initPage3Pickers(overlay, hero) {
             badge.style.color = used >= 10 ? '#ff7675' : '#a29bfe';
             badge.style.borderColor = used >= 10 ? '#ff7675' : '#a29bfe';
         }
+        syncEquippedSkillBonuses();
+    };
+    const renderPage3BackpackList = () => {
+        const host = overlay.querySelector('#bstPage3BackpackSummary');
+        if (!host) return;
+        const bpItems = getBackpackItems();
+        if (!bpItems.length) {
+            host.innerHTML = `<span style="color:#7f8c8d;">Рюкзак пуст. Добавьте или купите снаряжение на Стр. 2.</span>`;
+            return;
+        }
+
+        host.innerHTML = bpItems.map(it => `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; padding:4px 6px; border-bottom:1px dashed rgba(235,210,145,0.18);">
+                <div style="font-size:12px; color:#ebd291; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    <b>${it.name}</b> <span style="color:#2ecc71;">(×${it.qty})</span>
+                </div>
+                <button type="button" class="btn cc bst-bp-to-belt" data-bp-row="${it.backpackRow}" style="padding:1px 6px; font-size:10px; flex-shrink:0;" title="Поместить в свободный слот пояса быстрого доступа">⚡ На пояс</button>
+            </div>
+        `).join('');
+
+        host.querySelectorAll('.bst-bp-to-belt').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const r = Number(btn.dataset.bpRow);
+                const itemName = hero.stats[`item${r}Name`];
+                if (!itemName) return;
+                for (let b = 1; b <= 5; b++) {
+                    if (!String(hero.stats[`beltItem${b}Name`] || '').trim()) {
+                        hero.stats[`beltItem${b}Name`] = itemName;
+                        const beltInp = overlay.querySelector(`[data-belt-picker="${b}"]`);
+                        if (beltInp) beltInp.value = itemName;
+                        break;
+                    }
+                }
+            });
+        });
     };
 
-    // 1. Автоподбор в слоты куклы (одежда, броня, оружие, кольца)
+    const equipItemToSlot = (slot, inp, found) => {
+        const needsInvest = isInvestedItem(found);
+        const curUsed = Math.max(0, Number(hero.stats.investedUsedToday) || 0);
+
+        if (needsInvest && curUsed >= 10) {
+            const m = ModalManager.open({
+                id: 'bstInvestedLimitModal',
+                title: '✨ Исчерпан дневной лимит вложения (10/10)',
+                width: '420px',
+                borderColor: '#a29bfe',
+                bodyHtml: `<div style="font-size:14px; color:#ebd291; line-height:1.5;">Вы уже вложили силу в <b>10 магических предметов</b> сегодня. Предмет <b>${found.name}</b> надет, но его пассивные бонусы не работают до <b>🌅 Ежедневной подготовки</b>.</div>`,
+                footerButtons: [{ label: 'Понятно', variant: 'ok' }]
+            });
+            if (m?.overlay) m.overlay.style.zIndex = '10000250';
+            hero.stats[`eq_${slot}_Invested`] = false;
+        } else if (needsInvest) {
+            hero.stats.investedUsedToday = curUsed + 1;
+            hero.stats[`eq_${slot}_Invested`] = true;
+        } else {
+            hero.stats[`eq_${slot}_Invested`] = false;
+        }
+
+        if (slot === 'mainHand' && found.hands === 2) {
+            const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
+            hero.stats.eq_offHand_Name = '🔒 Занято (двуручное)';
+            hero.stats.eq_offHand_Invested = false;
+            if (offInp) offInp.value = '🔒 Занято (двуручное)';
+        }
+
+        inp.value = found.name;
+        hero.stats[`eq_${slot}_Name`] = found.name;
+        syncDollToPage1Stats(slot, found);
+        updateInvestedCounterUi();
+    };
+
     overlay.querySelectorAll('[data-eq-picker]').forEach(inp => {
         const slot = inp.dataset.eqPicker;
-        const pool = (slot === 'mainHand' || slot === 'offHand')
+        const basePool = (slot === 'mainHand' || slot === 'offHand')
             ? [...PF2E_MELEE_WEAPONS, ...PF2E_RANGED_WEAPONS, ...PF2E_ITEMS_CATALOG]
             : (slot === 'armor' ? PF2E_ARMOR_CATALOG : PF2E_ITEMS_CATALOG);
 
         bindAutocomplete(inp, null, {
-            width: 340,
+            width: 360,
             zIndex: '10000190',
             getItems: (q) => {
                 const nq = normalizeStr(q);
-                return nq ? pool.filter(x => normalizeStr(x.name).includes(nq)) : pool.slice(0, 30);
+                const combined = [...getBackpackItems(), ...basePool];
+                return nq ? combined.filter(x => normalizeStr(x.name).includes(nq)) : combined.slice(0, 35);
             },
-            renderOption: (it) => `
-                <div class="bst-cantrip-opt-top"><b>${it.name}</b> ${isInvestedItem(it) ? '<span style="color:#a29bfe;">✨ Вкладываемый</span>' : ''}</div>
-                <div class="bst-cantrip-opt-trad" style="font-size:11px;">${it.category || it.group || ''}</div>
-            `,
-            onSelect: (found) => {
-                const needsInvest = isInvestedItem(found);
-                const curUsed = Math.max(0, Number(hero.stats.investedUsedToday) || 0);
-
-                if (needsInvest && curUsed >= 10) {
-                    ModalManager.open({
-                        id: 'bstInvestedLimitModal',
-                        title: '✨ Исчерпан дневной лимит вложения (10/10)',
-                        width: '420px',
-                        borderColor: '#a29bfe',
-                        bodyHtml: `<div style="font-size:14px; color:#ebd291; line-height:1.5;">Вы уже вложили силу в <b>10 магических предметов</b> сегодня. Предмет <b>${found.name}</b> можно надеть, но его пассивные магические свойства не будут работать до следующей <b>🌅 Ежедневной подготовки</b>.</div>`,
-                        footerButtons: [{ label: 'Понятно', variant: 'ok' }]
-                    });
-                    hero.stats[`eq_${slot}_Invested`] = false;
-                } else if (needsInvest) {
-                    hero.stats.investedUsedToday = curUsed + 1;
-                    hero.stats[`eq_${slot}_Invested`] = true;
-                } else {
-                    hero.stats[`eq_${slot}_Invested`] = false;
-                }
-
-                // Контроль двух рук для двуручного оружия
-                if (slot === 'mainHand' && found.hands === 2) {
-                    const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
-                    hero.stats.eq_offHand_Name = '🔒 Занято (двуручное)';
-                    hero.stats.eq_offHand_Invested = false;
-                    if (offInp) offInp.value = '🔒 Занято (двуручное)';
-                }
-
-                inp.value = found.name;
-                hero.stats[`eq_${slot}_Name`] = found.name;
-                updateInvestedCounterUi();
-            }
+            renderOption: (it) => {
+                const bpTag = it.fromBackpack ? '<span style="color:#2ecc71; font-weight:bold;">[🎒 В рюкзаке]</span> ' : '';
+                const invTag = isInvestedItem(it) ? '<span style="color:#a29bfe;">✨ Вкладываемый</span>' : '';
+                return `<div class="bst-cantrip-opt-top"><b>${it.name}</b> ${invTag}</div>
+                        <div class="bst-cantrip-opt-trad" style="font-size:11px;">${bpTag}${it.category || it.group || ''}</div>`;
+            },
+            onSelect: (found) => equipItemToSlot(slot, inp, found)
         });
     });
 
-    // 2. Снятие предмета со слота (дневное вложение НЕ возвращается по правилам PF2e)
     overlay.querySelectorAll('.bst-eq-unequip-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const slot = btn.dataset.unequipSlot;
             const inp = overlay.querySelector(`[data-eq-picker="${slot}"]`);
+            if (slot === 'mainHand' && hero.stats.eq_offHand_Name === '🔒 Занято (двуручное)') {
+                hero.stats.eq_offHand_Name = '';
+                const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
+                if (offInp) offInp.value = '';
+            }
             hero.stats[`eq_${slot}_Name`] = '';
             hero.stats[`eq_${slot}_Invested`] = false;
             if (inp) inp.value = '';
@@ -1392,30 +1511,46 @@ export function initPage3Pickers(overlay, hero) {
         });
     });
 
-    // 3. Ежедневная подготовка: сброс счётчика вложений и повторное вложение надетых предметов
     overlay.querySelector('#btnResetDailyInvested')?.addEventListener('click', () => {
         let activeInvested = 0;
-        Object.keys(hero.stats).forEach(k => {
-            if (k.startsWith('eq_') && k.endsWith('_Invested') && hero.stats[k]) {
+        const allSlotKeys = ['head', 'cloak', 'hands', 'belt', 'neck', 'armor', 'eyes', 'feet', 'mainHand', 'offHand', 'ring_1', 'ring_2', 'ring_3', 'ring_4', 'ring_5'];
+        allSlotKeys.forEach(sk => {
+            const eqName = normalizeStr(hero.stats[`eq_${sk}_Name`]);
+            if (!eqName) { hero.stats[`eq_${sk}_Invested`] = false; return; }
+            const found = (PF2E_ITEMS_CATALOG || []).find(it => normalizeStr(it.name) === eqName);
+            if (found && isInvestedItem(found) && activeInvested < 10) {
+                hero.stats[`eq_${sk}_Invested`] = true;
                 activeInvested++;
+            } else {
+                hero.stats[`eq_${sk}_Invested`] = false;
             }
         });
-        hero.stats.investedUsedToday = Math.min(10, activeInvested);
+        hero.stats.investedUsedToday = activeInvested;
         updateInvestedCounterUi();
     });
 
-    // 4. Пояс быстрого доступа (5 слотов, лимит 2.0 Массы)
     overlay.querySelectorAll('[data-belt-picker]').forEach(inp => {
         const idx = inp.dataset.beltPicker;
         bindAutocomplete(inp, null, {
-            width: 320,
+            width: 340,
             zIndex: '10000190',
-            getItems: (q) => searchItemsCatalog(q),
-            renderOption: (it) => `<div class="bst-cantrip-opt-top"><b>${it.name}</b> <span>${it.category}</span></div>`,
+            getItems: (q) => {
+                const nq = normalizeStr(q);
+                const combined = [...getBackpackItems(), ...PF2E_ITEMS_CATALOG];
+                return nq ? combined.filter(x => normalizeStr(x.name).includes(nq)) : combined.slice(0, 35);
+            },
+            renderOption: (it) => {
+                const bpTag = it.fromBackpack ? '<span style="color:#2ecc71; font-weight:bold;">[🎒 В рюкзаке]</span> ' : '';
+                return `<div class="bst-cantrip-opt-top"><b>${it.name}</b></div>
+                        <div class="bst-cantrip-opt-trad" style="font-size:11px;">${bpTag}${it.category || ''}</div>`;
+            },
             onSelect: (found) => {
                 inp.value = found.name;
                 hero.stats[`beltItem${idx}Name`] = found.name;
             }
         });
     });
+
+    renderPage3BackpackList();
+    updateInvestedCounterUi();
 }
