@@ -12,6 +12,8 @@ import {
     buildUnitTooltipHtml
 } from './bestiary/bestiary_tooltip_builder.js';
 import { openCharacterSheetModal } from './bestiary/character_sheet_modal.js';
+import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../config/items_catalog.js';
+
 
 export { STAT_CATEGORIES, createDefaultStats };
 
@@ -464,6 +466,231 @@ const BestiaryManager = {
         if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
     },
 
+    _ensureTreasuryLootBag() {
+        const tr = this._ensureTreasury();
+        if (!Array.isArray(tr.lootItems)) tr.lootItems = [];
+        return tr.lootItems;
+    },
+
+    addItemToTreasuryLoot(itemName, qty = 1, notes = '') {
+        const cleanName = String(itemName || '').trim();
+        const addQty = Math.max(1, parseInt(qty, 10) || 1);
+        if (!cleanName) return;
+
+        const tr = this._ensureTreasury();
+        const bag = this._ensureTreasuryLootBag();
+        const norm = (s) => String(s || '').replace(/[\u{1F000}-\u{1FAFF}\uFE0F\u200D]/gu, '').trim().toLowerCase().replace(/ё/g, 'е');
+
+        const catMatch = (PF2E_ITEMS_CATALOG || []).find(it => norm(it.name) === norm(cleanName));
+        const finalName = catMatch ? catMatch.name : cleanName;
+        const finalNotes = String(notes || '').trim() || catMatch?.notes || '';
+
+        const existing = bag.find(x => norm(x.name) === norm(finalName));
+        if (existing) {
+            existing.qty = (Number(existing.qty) || 0) + addQty;
+            if (!existing.notes && finalNotes) existing.notes = finalNotes;
+        } else {
+            bag.push({
+                id: 'tr_item_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                name: finalName,
+                qty: addQty,
+                notes: finalNotes
+            });
+        }
+
+        tr.log.unshift(`📦 В сундук: ${finalName} (×${addQty})`);
+        if (tr.log.length > 8) tr.log.length = 8;
+        this._save();
+    },
+
+    openClaimTreasuryItemModal(lootId) {
+        const bag = this._ensureTreasuryLootBag();
+        const item = bag.find(x => x.id === lootId);
+        if (!item) return;
+
+        const recipients = [...(this.state.party || []), ...(this.state.inactive || [])].filter(Boolean);
+        if (!recipients.length) {
+            alert('В отряде нет персонажей!');
+            return;
+        }
+
+        const modal = ModalManager.open({
+            id: 'bstClaimTreasuryItemModal',
+            title: '🎒 Забрать предмет из сундука отряда',
+            width: '440px',
+            borderColor: '#2ecc71',
+            bodyHtml: `
+                <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                    <div>Трофей: <b style="color:#fff;">${item.name}</b> <span style="color:#a4b0be;">(в сундуке: ${item.qty} шт.)</span></div>
+                    ${item.notes ? `<div style="font-size:12px; color:#a4b0be; margin-top:4px;">${item.notes}</div>` : ''}
+                    <div style="display: grid; grid-template-columns: 1fr 110px; gap: 8px; margin-top: 10px;">
+                        <div>
+                            <label style="font-size: 12px; color: #2ecc71; font-weight: bold;">В чей рюкзак положить:</label>
+                            <select id="bstClaimHeroSel" class="k-inp" style="width: 100%; margin-top: 3px; padding: 6px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
+                                ${recipients.map(h => `<option value="${h.id}">🛡️ ${h.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: #2ecc71; font-weight: bold;">Количество:</label>
+                            <input type="number" id="bstClaimQtyInp" class="k-inp" min="1" max="${item.qty}" value="1" style="width: 100%; text-align: center; margin-top: 3px;">
+                        </div>
+                    </div>
+                    <div id="bstClaimErr" style="color: #ff7675; font-size: 12px; margin-top: 6px;"></div>
+                </div>
+            `,
+            footerButtons: [
+                { label: '✖ Отмена', variant: 'cc', onClick: () => modal.close() },
+                {
+                    label: '🎒 Забрать в рюкзак',
+                    variant: 'ok',
+                    onClick: () => {
+                        const heroId = document.getElementById('bstClaimHeroSel')?.value;
+                        const takeQty = Math.max(1, Math.min(item.qty, parseInt(document.getElementById('bstClaimQtyInp')?.value, 10) || 1));
+                        const targetHero = recipients.find(h => h.id === heroId);
+                        const errEl = document.getElementById('bstClaimErr');
+
+                        if (!targetHero) return;
+                        if (!targetHero.stats) targetHero.stats = createDefaultStats();
+
+                        const norm = (s) => String(s || '').replace(/[\u{1F000}-\u{1FAFF}\uFE0F\u200D]/gu, '').trim().toLowerCase().replace(/ё/g, 'е');
+                        const targetNorm = norm(item.name);
+                        let foundSlot = -1;
+                        let emptySlot = -1;
+
+                        for (let i = 1; i <= 15; i++) {
+                            const sName = String(targetHero.stats[`item${i}Name`] || '').trim();
+                            if (!sName && emptySlot === -1) emptySlot = i;
+                            else if (sName && norm(sName) === targetNorm) { foundSlot = i; break; }
+                        }
+
+                        if (foundSlot === -1 && emptySlot === -1) {
+                            if (errEl) errEl.textContent = `⚠️ У героя ${targetHero.name} заполнен весь рюкзак (15/15 слотов)!`;
+                            return;
+                        }
+
+                        const dest = foundSlot !== -1 ? foundSlot : emptySlot;
+                        const prevQty = foundSlot !== -1 ? (Math.max(0, Number(targetHero.stats[`item${dest}Qty`]) || 0)) : 0;
+                        targetHero.stats[`item${dest}Name`] = targetHero.stats[`item${dest}Name`] || item.name;
+                        targetHero.stats[`item${dest}Qty`] = prevQty + takeQty;
+                        if (!targetHero.stats[`item${dest}Notes`]) targetHero.stats[`item${dest}Notes`] = item.notes || '';
+
+                        (window.InitiativeManager?.state?.combatants || []).forEach(u => {
+                            if (u && u.faction === 'friend' && norm(u.name) === norm(targetHero.name) && u.stats && u.stats !== targetHero.stats) {
+                                u.stats[`item${dest}Name`] = targetHero.stats[`item${dest}Name`];
+                                u.stats[`item${dest}Qty`] = targetHero.stats[`item${dest}Qty`];
+                                u.stats[`item${dest}Notes`] = targetHero.stats[`item${dest}Notes`];
+                            }
+                        });
+
+                        item.qty -= takeQty;
+                        const tr = this._ensureTreasury();
+                        if (item.qty <= 0) tr.lootItems = bag.filter(x => x.id !== lootId);
+                        tr.log.unshift(`🎒 ${targetHero.name} забрал: ${item.name} (×${takeQty})`);
+                        if (tr.log.length > 8) tr.log.length = 8;
+
+                        this._save();
+                        modal.close();
+                    }
+                }
+            ]
+        });
+
+        if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
+    },
+
+    openSellTreasuryItemModal(lootId) {
+        const bag = this._ensureTreasuryLootBag();
+        const item = bag.find(x => x.id === lootId);
+        if (!item) return;
+
+        const norm = (s) => String(s || '').replace(/[\u{1F000}-\u{1FAFF}\uFE0F\u200D]/gu, '').trim().toLowerCase().replace(/ё/g, 'е');
+        const catObj = (PF2E_ITEMS_CATALOG || []).find(it => norm(it.name) === norm(item.name));
+        const rawText = `${catObj?.price || ''} ${catObj?.notes || ''} ${item.notes || ''}`;
+        const m = rawText.match(/(\d+(?:[.,]\d+)?)\s*(зм|см|мм|gp|sp|cp)(?![а-яёa-z])/i);
+
+        let baseUnitCp = 0;
+        if (m) {
+            const val = parseFloat(String(m.at(1)).replace(',', '.')) || 0;
+            const unit = String(m.at(2)).toLowerCase();
+            const mult = (unit === 'зм' || unit === 'gp') ? 100 : ((unit === 'см' || unit === 'sp') ? 10 : 1);
+            baseUnitCp = Math.round(val * mult);
+        }
+
+        const fmtCp = (cp) => {
+            if (cp <= 0) return '0 ММ';
+            const g = Math.floor(cp / 100);
+            const s = Math.floor((cp % 100) / 10);
+            const c = cp % 10;
+            return [g > 0 ? `${g} ЗМ` : '', s > 0 ? `${s} СМ` : '', c > 0 ? `${c} ММ` : ''].filter(Boolean).join(', ');
+        };
+
+        const modal = ModalManager.open({
+            id: 'bstSellTreasuryItemModal',
+            title: '💰 Продать трофей прямо в общую казну',
+            width: '440px',
+            borderColor: '#ffd875',
+            bodyHtml: `
+                <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                    <div>Предмет: <b style="color:#fff;">${item.name}</b> <span style="color:#a4b0be;">(в сундуке: ${item.qty} шт.)</span></div>
+                    <div>Базовая цена (1 шт.): <b style="color:#ffd875;">${baseUnitCp > 0 ? fmtCp(baseUnitCp) : 'не указана'}</b></div>
+                    <div style="display: grid; grid-template-columns: 110px 1fr; gap: 8px; margin-top: 10px;">
+                        <div>
+                            <label style="font-size: 12px; color: #a4b0be;">Продать (шт.):</label>
+                            <input type="number" id="bstTrSellQty" class="k-inp" min="1" max="${item.qty}" value="${item.qty}" style="width: 100%; text-align: center; margin-top: 3px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: #a4b0be;">Условия продажи:</label>
+                            <select id="bstTrSellRate" class="k-inp" style="width: 100%; margin-top: 3px; padding: 6px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
+                                <option value="0.5" selected>⚖️ Снаряжение PF2e (50%)</option>
+                                <option value="1">💎 Драгоценности / Трофеи (100%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="bstTrSellPreview" style="margin-top: 10px; padding: 8px; background: rgba(30,60,39,0.45); border: 1px solid #2ecc71; border-radius: 5px; color: #2ecc71; font-weight: bold;"></div>
+                </div>
+            `,
+            footerButtons: [
+                { label: '✖ Отмена', variant: 'cc', onClick: () => modal.close() },
+                {
+                    label: '💰 Продать в казну',
+                    variant: 'ok',
+                    onClick: () => {
+                        const cnt = Math.max(1, Math.min(item.qty, parseInt(document.getElementById('bstTrSellQty')?.value, 10) || 1));
+                        const rate = parseFloat(document.getElementById('bstTrSellRate')?.value) || 0.5;
+                        const gainCp = Math.floor(baseUnitCp * cnt * rate);
+
+                        const tr = this._ensureTreasury();
+                        const totalCp = (Number(tr.gold) || 0) * 100 + (Number(tr.silver) || 0) * 10 + (Number(tr.copper) || 0) + gainCp;
+                        tr.gold = Math.floor(totalCp / 100);
+                        tr.silver = Math.floor((totalCp % 100) / 10);
+                        tr.copper = totalCp % 10;
+
+                        item.qty -= cnt;
+                        if (item.qty <= 0) tr.lootItems = bag.filter(x => x.id !== lootId);
+                        tr.log.unshift(`💰 Продано в казну: ${item.name} ×${cnt} (+${fmtCp(gainCp)})`);
+                        if (tr.log.length > 8) tr.log.length = 8;
+
+                        this._save();
+                        modal.close();
+                    }
+                }
+            ]
+        });
+
+        if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
+
+        const qInp = document.getElementById('bstTrSellQty');
+        const rSel = document.getElementById('bstTrSellRate');
+        const prev = document.getElementById('bstTrSellPreview');
+        const upd = () => {
+            const c = Math.max(1, Math.min(item.qty, parseInt(qInp?.value, 10) || 1));
+            const r = parseFloat(rSel?.value) || 0.5;
+            if (prev) prev.textContent = `Поступит в общую казну: +${fmtCp(Math.floor(baseUnitCp * c * r))}`;
+        };
+        qInp?.addEventListener('input', upd);
+        rSel?.addEventListener('change', upd);
+        upd();
+    },
 
 
     renderUi() {
@@ -528,11 +755,29 @@ const BestiaryManager = {
         this._renderZone('bstZoneInactive', '💤 Неактивные персонажи (Резерв)', 'inactive', this.state.inactive || [], false);
     },
 
+
+
     _renderTreasuryZone() {
         const box = document.getElementById('bstZoneTreasury');
         if (!box) return;
         const tr = this._ensureTreasury();
         const totalGoldEq = ((Number(tr.gold) || 0) + (Number(tr.silver) || 0) / 10 + (Number(tr.copper) || 0) / 100).toFixed(2);
+
+        const lootBag = this._ensureTreasuryLootBag();
+        const lootRowsHtml = lootBag.length === 0
+            ? `<div style="font-size: 12px; color: #7f8c8d; padding: 4px 0;">Сундук нераспределённой добычи пуст. Добавьте трофей по названию или из справочника выше.</div>`
+            : lootBag.map(it => `
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 4px 6px; background: rgba(0,0,0,0.35); border: 1px solid #543e0d; border-radius: 4px;">
+                    <div style="font-size: 12px; color: #ebd291; min-width: 0; flex: 1;" title="${String(it.notes || '').replace(/"/g, '&quot;')}">
+                        <b>${it.name}</b> <span style="color: #ffd875; font-weight: bold;">×${it.qty}</span>
+                    </div>
+                    <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                        <button type="button" class="btn ok bst-tr-claim-btn" data-loot-id="${it.id}" style="padding: 2px 7px; font-size: 11px;" title="Передать в рюкзак выбранного героя">🎒 Забрать</button>
+                        <button type="button" class="btn cc bst-tr-sell-btn" data-loot-id="${it.id}" style="padding: 2px 7px; font-size: 11px;" title="Продать трофей в общую казну">💰 Продать</button>
+                        <button type="button" class="btn del bst-tr-del-btn" data-loot-id="${it.id}" style="padding: 2px 6px; font-size: 11px;" title="Убрать из сундука">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
 
         box.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
@@ -563,18 +808,34 @@ const BestiaryManager = {
                         <input type="text" id="bstLootAddNote" class="k-inp" placeholder="За что добыча (гекс, босс)..." style="width: 170px; padding: 4px 6px; font-size: 12px;">
                         <button type="button" id="bstBtnAddLoot" class="btn ok" style="padding: 4px 10px; font-size: 12px;">➕ В казну</button>
                     </div>
+                    <div style="font-size: 11px; color: #a4b0be; line-height: 1.3; max-width: 380px;">
+                        ${tr.log.length > 0 ? `📜 Последние операции: <span style="color:#ebd291;">${tr.log.slice(0, 3).join(' • ')}</span>` : '📜 История операций казны пока пуста.'}
+                    </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <input type="text" id="bstTrNotes" class="k-inp" placeholder="💎 Неразделённые трофеи, самоцветы, слитки, товары на продажу..." value="${String(tr.notes || '').replace(/"/g, '&quot;')}" style="width: 100%; font-size: 12px; padding: 5px 8px;">
-                    <div style="font-size: 11px; color: #a4b0be; line-height: 1.3;">
-                        ${tr.log.length > 0 ? `📜 Последние операции: <span style="color:#ebd291;">${tr.log.slice(0, 3).join(' • ')}</span>` : '📜 История операций казны пока пуста.'}
+                    <input type="text" id="bstTrNotes" class="k-inp" placeholder="💎 Заметки по казне, доли, долги..." value="${String(tr.notes || '').replace(/"/g, '&quot;')}" style="width: 100%; font-size: 12px; padding: 5px 8px;">
+                    <div style="margin-top: 4px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.25);">
+                        <div style="font-size: 12px; color: #dfbc6f; font-weight: bold; margin-bottom: 4px;">📦 Сундук нераспределённой добычи отряда (${lootBag.length} поз.):</div>
+                        
+                        <div style="display: flex; gap: 4px; align-items: center; margin-bottom: 6px;">
+                            <div class="init-name-autocomplete-wrap" style="position: relative; flex: 1; display: flex;">
+                                <input type="text" id="bstTrLootNameInp" class="k-inp" autocomplete="off" placeholder="🔍 Найти вещь из каталога или вписать трофей..." style="width: 100%; font-size: 12px; padding: 4px 8px;">
+                                <div id="bstTrLootSuggestions" class="init-name-suggestions" style="display: none; z-index: 10000180; max-height: 240px; overflow-y: auto;"></div>
+                            </div>
+                            <input type="number" id="bstTrLootQtyInp" class="k-inp" min="1" value="1" style="width: 54px; text-align: center; font-size: 12px; padding: 4px;">
+                            <button type="button" id="bstBtnAddTreasuryItem" class="btn ok" style="padding: 4px 10px; font-size: 12px; white-space: nowrap;">➕ В сундук</button>
+                        </div>
+
+                        
+                        <div style="display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto;">
+                            ${lootRowsHtml}
+                        </div>
                     </div>
                 </div>
             </div>
         `;
 
-        box.querySelector('#bstBtnCollectFromParty')?.addEventListener('click', () => this.openCollectPartyCoinsModal());
         box.querySelector('#bstTrGold')?.addEventListener('change', (e) => { tr.gold = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrSilver')?.addEventListener('change', (e) => { tr.silver = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrCopper')?.addEventListener('change', (e) => { tr.copper = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
@@ -594,8 +855,106 @@ const BestiaryManager = {
         });
 
         box.querySelector('#bstBtnConvertCoins')?.addEventListener('click', () => this.convertTreasuryCoins());
+        box.querySelector('#bstBtnCollectFromParty')?.addEventListener('click', () => this.openCollectPartyCoinsModal());
         box.querySelector('#bstBtnSplitTreasury')?.addEventListener('click', () => this.openSplitTreasuryModal());
+
+        const lootInp = box.querySelector('#bstTrLootNameInp');
+        const lootSuggest = box.querySelector('#bstTrLootSuggestions');
+        let lootActiveIdx = -1;
+
+        const hideLootSuggest = () => {
+            if (!lootSuggest) return;
+            lootSuggest.style.display = 'none';
+            lootSuggest.innerHTML = '';
+            lootActiveIdx = -1;
+        };
+
+        const renderLootSuggest = (query) => {
+            if (!lootSuggest) return;
+            const matches = searchItemsCatalog(query).slice(0, 30);
+            if (!matches.length) {
+                hideLootSuggest();
+                return;
+            }
+            lootActiveIdx = -1;
+            lootSuggest.innerHTML = matches.map((it, idx) => `
+                <div class="init-suggest-item" data-loot-idx="${idx}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 6px 10px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; gap: 8px;">
+                        <span class="init-suggest-label" style="font-weight: bold; color: #ffd875;">${it.name}</span>
+                        <span style="font-size: 11px; color: #a4b0be; white-space: nowrap;">${it.category || ''}</span>
+                    </div>
+                    ${it.notes ? `<div style="font-size: 11px; color: #ebd291; opacity: 0.85; white-space: normal; line-height: 1.25;">${it.notes}</div>` : ''}
+                </div>
+            `).join('');
+            lootSuggest.style.display = 'block';
+
+            lootSuggest.querySelectorAll('.init-suggest-item').forEach((el, idx) => {
+                el.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    if (lootInp && matches[idx]) {
+                        lootInp.value = matches[idx].name;
+                    }
+                    hideLootSuggest();
+                    lootInp?.focus();
+                });
+            });
+        };
+
+        if (lootInp) {
+            lootInp.addEventListener('focus', () => renderLootSuggest(lootInp.value));
+            lootInp.addEventListener('input', () => renderLootSuggest(lootInp.value));
+            lootInp.addEventListener('keydown', (e) => {
+                const items = lootSuggest?.querySelectorAll('.init-suggest-item') || [];
+                if (!lootSuggest || lootSuggest.style.display === 'none' || !items.length) {
+                    if (e.key === 'Enter') box.querySelector('#bstBtnAddTreasuryItem')?.click();
+                    return;
+                }
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    lootActiveIdx = (lootActiveIdx + 1) % items.length;
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    lootActiveIdx = (lootActiveIdx - 1 + items.length) % items.length;
+                } else if (e.key === 'Enter' && lootActiveIdx >= 0) {
+                    e.preventDefault();
+                    items[lootActiveIdx].dispatchEvent(new MouseEvent('mousedown'));
+                    return;
+                } else if (e.key === 'Escape') {
+                    hideLootSuggest();
+                    return;
+                }
+                items.forEach((el, i) => el.classList.toggle('active', i === lootActiveIdx));
+                if (lootActiveIdx >= 0) items[lootActiveIdx].scrollIntoView({ block: 'nearest' });
+            });
+            lootInp.addEventListener('blur', () => setTimeout(hideLootSuggest, 150));
+        }
+
+
+        box.querySelector('#bstBtnAddTreasuryItem')?.addEventListener('click', () => {
+            const nameEl = box.querySelector('#bstTrLootNameInp');
+            const qtyEl = box.querySelector('#bstTrLootQtyInp');
+            if (!nameEl?.value.trim()) return;
+            this.addItemToTreasuryLoot(nameEl.value, qtyEl?.value || 1);
+        });
+
+        box.querySelectorAll('.bst-tr-claim-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.openClaimTreasuryItemModal(btn.dataset.lootId));
+        });
+
+        box.querySelectorAll('.bst-tr-sell-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.openSellTreasuryItemModal(btn.dataset.lootId));
+        });
+
+        box.querySelectorAll('.bst-tr-del-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                tr.lootItems = this._ensureTreasuryLootBag().filter(x => x.id !== btn.dataset.lootId);
+                this._save();
+            });
+        });
     },
+
+
+
 
 
     _bindSearchControls() {
