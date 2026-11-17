@@ -46,10 +46,164 @@ const profBoxes = (prof) => {
     return `<span class="prof-wrap"><span class="pbox ${p >= 2 ? 'on' : ''}">И</span><span class="pbox ${p >= 4 ? 'on' : ''}">Э</span></span>`;
 };
 
-const sidebarHtml = (pageNum) => `
+let cachedPfLogoUrl = null;
+
+function generatePathfinderLogoDataUrl() {
+    if (cachedPfLogoUrl) return cachedPfLogoUrl;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 480;
+    canvas.height = 136;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. Заранее вычисляем точные координаты букв, чтобы плашка облегала их по контуру
+    const pX = 36;
+    const pBaseY = 104;
+    const word = 'ATHFINDER';
+    const wordStartX = 96;
+    const wordBaseY = 85;
+
+    ctx.font = '900 44px Georgia, "Times New Roman", serif';
+    const letterBoxes = [];
+    let curX = wordStartX;
+    for (let i = 0; i < word.length; i++) {
+        const ch = word[i];
+        const w = ctx.measureText(ch).width;
+        letterBoxes.push({ ch, x: curX, w });
+        curX += w + 1.5;
+    }
+
+    const iBox = letterBoxes.find(b => b.ch === 'I') || { x: 245, w: 18 };
+    const iMidX = iBox.x + iBox.w / 2;
+    const rightEndX = curX + 14;
+
+    // 2. Точный контур ленты с выступающим навершием P, пиком над I и удлинённым хвостом P
+    const traceRibbon = () => {
+        ctx.beginPath();
+        // Левый верхний остроконечный выступ буквы P
+        ctx.moveTo(22, 46);
+        ctx.lineTo(44, 22);
+        ctx.lineTo(54, 30);
+        ctx.lineTo(76, 30);
+        ctx.quadraticCurveTo(98, 30, 102, 46);
+        // Верхняя планка до выступа над буквой I
+        ctx.lineTo(iMidX - 13, 46);
+        ctx.lineTo(iMidX, 34);
+        ctx.lineTo(iMidX + 13, 46);
+        // Продолжение верхней планки до правого края
+        ctx.lineTo(rightEndX - 18, 46);
+        ctx.quadraticCurveTo(rightEndX, 46, rightEndX, 66);
+        ctx.lineTo(rightEndX, 82);
+        ctx.quadraticCurveTo(rightEndX, 98, rightEndX - 18, 98);
+        // Нижняя граница до ножки буквы P
+        ctx.lineTo(74, 98);
+        ctx.lineTo(74, 114);
+        ctx.quadraticCurveTo(74, 122, 64, 122);
+        ctx.lineTo(44, 122);
+        ctx.quadraticCurveTo(36, 122, 36, 112);
+        ctx.lineTo(36, 86);
+        ctx.quadraticCurveTo(22, 82, 22, 64);
+        ctx.closePath();
+    };
+
+    // Мягкая тень под эмблемой
+    ctx.save();
+    ctx.translate(3, 5);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    traceRibbon();
+    ctx.fill();
+    ctx.restore();
+
+    // Внешняя золотисто-кремовая кайма
+    traceRibbon();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 11;
+    ctx.strokeStyle = '#e8d399';
+    ctx.stroke();
+
+    // Тёмный внешний контур
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#1f1008';
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Внутренняя тёмно-бордовая заливка
+    const bgGrad = ctx.createLinearGradient(0, 26, 0, 118);
+    bgGrad.addColorStop(0, '#3d150c');
+    bgGrad.addColorStop(0.5, '#260b06');
+    bgGrad.addColorStop(1, '#170603');
+    ctx.fillStyle = bgGrad;
+    traceRibbon();
+    ctx.fill();
+
+    // Тонкая внутренняя золотая обводка
+    ctx.lineWidth = 2.0;
+    ctx.strokeStyle = '#c8a456';
+    traceRibbon();
+    ctx.stroke();
+
+    // Декоративная золотая полоса под словом ATHFINDER
+    const barGrad = ctx.createLinearGradient(78, 0, rightEndX - 10, 0);
+    barGrad.addColorStop(0, '#c8a456');
+    barGrad.addColorStop(0.5, '#f5e4b3');
+    barGrad.addColorStop(1, '#b89242');
+    ctx.fillStyle = barGrad;
+    ctx.fillRect(78, 90, rightEndX - 88, 3.8);
+
+    // 3. Золотистый градиент для букв
+    const textGrad = ctx.createLinearGradient(0, 28, 0, 112);
+    textGrad.addColorStop(0, '#fff4cf');
+    textGrad.addColorStop(0.45, '#e8cd82');
+    textGrad.addColorStop(1, '#b58d3d');
+
+    ctx.fillStyle = textGrad;
+    ctx.strokeStyle = '#140703';
+    ctx.lineJoin = 'round';
+    ctx.textBaseline = 'alphabetic';
+
+    // Заглавная буква P
+    ctx.font = '900 84px Georgia, "Times New Roman", serif';
+    ctx.lineWidth = 4.5;
+    ctx.strokeText('P', pX, pBaseY);
+    ctx.fillText('P', pX, pBaseY);
+
+    // Буквы ATHFINDER
+    ctx.font = '900 44px Georgia, "Times New Roman", serif';
+    letterBoxes.forEach(({ ch, x }) => {
+        ctx.lineWidth = 3.8;
+        ctx.strokeText(ch, x, wordBaseY);
+        ctx.fillText(ch, x, wordBaseY);
+    });
+
+    // Ромб-звёздочка над буквой I в выступе рамки
+    ctx.fillStyle = '#f5e4b3';
+    ctx.beginPath();
+    ctx.moveTo(iMidX, 40);
+    ctx.lineTo(iMidX + 4, 44);
+    ctx.lineTo(iMidX, 48);
+    ctx.lineTo(iMidX - 4, 44);
+    ctx.closePath();
+    ctx.fill();
+
+    cachedPfLogoUrl = canvas.toDataURL('image/png');
+    return cachedPfLogoUrl;
+}
+
+
+
+const sidebarHtml = (pageNum) => {
+    const logoUrl = generatePathfinderLogoDataUrl();
+    return `
     <aside class="pf-sidebar">
         <div class="sb-logo">
-            <div class="sb-pf">PATHFINDER</div>
+            ${logoUrl
+        ? `<img src="${logoUrl}" alt="Pathfinder" style="width: 100%; height: auto; display: block; margin: 0 auto 2px auto;">`
+        : `<div class="sb-pf">PATHFINDER</div>`
+    }
             <div class="sb-sub">СТАРТОВЫЙ НАБОР</div>
         </div>
         <div class="sb-hdr">КОСТИ</div>
@@ -77,6 +231,9 @@ const sidebarHtml = (pageNum) => `
         <div class="sb-foot">Разрешено копирование для личного использования<br>© Paizo Inc. • Стр. ${pageNum}/3</div>
     </aside>
 `;
+};
+
+
 export function exportCharacterToPdf(hero) {
 
     if (!hero) return;
@@ -345,6 +502,70 @@ export function exportCharacterToPdf(hero) {
             </div>
         `;
     }).join('');
+
+    const allDollSlots = [
+        ['head', '👑 Голова'], ['cloak', '🧥 Плечи'], ['neck', '📿 Шея'],
+        ['armor', '🦺 Торс'], ['hands', '🧤 Кисти'], ['eyes', '🥽 Глаза'],
+        ['belt', '🥋 Талия'], ['feet', '👢 Ноги'], ['mainHand', '🗡️ Ведущая рука'],
+        ['offHand', '🛡️ Левая рука'], ['ring_1', '💍 Слот 1'], ['ring_2', '💍 Слот 2'],
+        ['ring_3', '💍 Слот 3'], ['ring_4', '💍 Слот 4'], ['ring_5', '💍 Слот 5']
+    ];
+
+    const equippedPropsList = [];
+    const seenPropNames = new Set();
+
+    allDollSlots.forEach(([slotKey, slotLabel]) => {
+        const rawName = String(s[`eq_${slotKey}_Name`] || '').trim();
+        if (!rawName || rawName.startsWith('🔒')) return;
+        const cleanKey = norm(rawName);
+        if (seenPropNames.has(cleanKey)) return;
+        seenPropNames.add(cleanKey);
+
+        const found = findInCat(PF2E_ITEMS_CATALOG, rawName)
+            || findInCat(PF2E_ARMOR_CATALOG, rawName)
+            || findInCat(PF2E_MELEE_WEAPONS, rawName)
+            || findInCat(PF2E_RANGED_WEAPONS, rawName);
+
+        const isInv = !!s[`eq_${slotKey}_Invested`];
+        const needsInv = /настроенность|вкладываем|invested/i.test(`${found?.notes || ''} ${found?.category || ''}`);
+        const inactiveNote = (needsInv && !isInv) ? ' [⚠️ Не вложено — пассивные бонусы отключены]' : '';
+        const desc = found?.notes || found?.traits || 'Экипированный предмет.';
+
+        equippedPropsList.push(`
+            <div class="rich-entry">
+                <div class="re-head">
+                    <b class="re-title">${esc(rawName)}</b>
+                    <span class="re-tag">${esc(slotLabel)}${isInv ? ' • ✨ Влож.' : ''}</span>
+                </div>
+                <div class="re-desc">${esc(desc)}${inactiveNote ? `<b style="color:#b91c1c;">${inactiveNote}</b>` : ''}</div>
+            </div>
+        `);
+    });
+
+    for (let b = 1; b <= 5; b++) {
+        const bName = String(s[`beltItem${b}Name`] || '').trim();
+        if (!bName) continue;
+        const cleanKey = norm(bName);
+        if (seenPropNames.has(cleanKey)) continue;
+        seenPropNames.add(cleanKey);
+
+        const found = findInCat(PF2E_ITEMS_CATALOG, bName);
+        const desc = found?.notes || 'Расходник или инструмент быстрого доступа (1 ◆).';
+        equippedPropsList.push(`
+            <div class="rich-entry">
+                <div class="re-head">
+                    <b class="re-title">${esc(bName)}</b>
+                    <span class="re-tag">⚡ Пояс #${b}</span>
+                </div>
+                <div class="re-desc">${esc(desc)}</div>
+            </div>
+        `);
+    }
+
+    const activeEquipmentSummaryHtml = equippedPropsList.length
+        ? `<div class="rich-list auto-fit-list" style="flex: 1;">${equippedPropsList.join('')}</div>`
+        : `<div class="empty-slot">Наденьте предметы на куклу, в кольца или на пояс, чтобы здесь автоматически отобразились их боевые и активируемые свойства.</div>`;
+
 
 
     const html = `<!DOCTYPE html>
@@ -734,10 +955,9 @@ export function exportCharacterToPdf(hero) {
 </div>
 
 
-
 <div class="page">
     ${sidebarHtml(3)}
-    <div class="main-area">
+    <div class="main-area" style="justify-content: flex-start; gap: 5px;">
         <div>
             <div class="top-banner">
                 <div class="name-ribbon">
@@ -767,7 +987,7 @@ export function exportCharacterToPdf(hero) {
                             ${renderPdfBodySlot('belt', '🥋', 'Талия (Пояс)')}
                         </div>
 
-                        <div style="height:56mm; border:2px solid #5e1914; border-radius:6px; background:#141920; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                        <div style="height:54mm; border:2px solid #5e1914; border-radius:6px; background:#141920; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                             ${portraitUrl
         ? `<img src="${portraitUrl}" alt="${esc(name)}" style="width:100%; height:100%; object-fit:cover;">`
         : `<span style="color:#888; font-size:7pt;">Нет портрета</span>`
@@ -790,7 +1010,7 @@ export function exportCharacterToPdf(hero) {
             </div>
         </div>
 
-        <div class="sec">
+        <div class="sec" style="margin-bottom: 0;">
             <div class="sec-hdr green"><span class="badge">Ф</span> Пояс и перевязи (Быстрый доступ за 1 ◆ — лимит 2.0 Массы)</div>
             <div class="sec-body">
                 <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:4px;">
@@ -799,12 +1019,12 @@ export function exportCharacterToPdf(hero) {
             </div>
         </div>
 
-        <div class="row" style="flex: 1; margin-bottom: 0;">
+        <div class="row" style="align-items: stretch; margin-bottom: 0;">
             <div class="sec" style="width: 54%; margin-bottom: 0;">
                 <div class="sec-hdr"><span class="badge">Х</span> Кольца, Эонские камни и Татуировки (Вкладываемые)</div>
-                <div class="sec-body" style="justify-content: space-between;">
+                <div class="sec-body" style="justify-content: flex-start; gap: 5px;">
                     <div>${ringsHtml}</div>
-                    <div style="font-size:6pt; color:#444; background:#f4efe6; padding:3px 5px; border-radius:3px; border:1px solid #cbbba0; line-height:1.25;">
+                    <div style="font-size:5.9pt; color:#444; background:#f4efe6; padding:3px 5px; border-radius:3px; border:1px solid #cbbba0; line-height:1.22;">
                         <b>Правило вложения (Invested):</b> максимум <b>10</b> магических предметов в день. При снятии вложенного предмета его магия отключается, но потраченный дневной лимит возвращается только после утренней <b>Ежедневной подготовки</b>.
                     </div>
                 </div>
@@ -812,18 +1032,26 @@ export function exportCharacterToPdf(hero) {
 
             <div class="sec" style="width: 46%; margin-bottom: 0;">
                 <div class="sec-hdr green"><span class="badge">Ц</span> Памятка по ношению и нагрузке PF2e</div>
-                <div class="sec-body" style="font-size:6.4pt; line-height:1.3; color:#222; justify-content: space-between;">
+                <div class="sec-body" style="font-size:6.2pt; line-height:1.25; color:#222; justify-content: flex-start; gap: 4px;">
                     <div><b>• Две руки (Held):</b> можно держать либо двуручное оружие, либо одноручное и щит/жезл. Взять предмет с пояса — <b>1 ◆ Взаимодействие</b>.</div>
                     <div><b>• Пояс и перевязи:</b> вмещают до <b>2.0 Массы</b> зелий, свитков, бомб или наборов инструментов для быстрого доступа в бою.</div>
                     <div><b>• Походный рюкзак:</b> вмещает до <b>4.0 Массы</b>, причём первые <b>2.0 Массы</b> не учитываются в общей перегрузке героя (достать вещь в бою — ◆◆).</div>
-                    <div style="border-top:1px dashed #cbbba0; padding-top:3px; font-weight:800; color:#5e1914;">
+                    <div style="margin-top: auto; border-top:1px dashed #cbbba0; padding-top:3px; font-weight:800; color:#5e1914;">
                         Итоговая нагрузка: ${esc(bulkStr)} / ${bulkInfo.encumberedLimit} (Макс. ${bulkInfo.maxLimit})
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="sec" style="flex: 1; margin-bottom: 0; overflow: hidden;">
+            <div class="sec-hdr red"><span class="badge">Ч</span> Активные свойства надетой экипировки и пояса</div>
+            <div class="sec-body" style="justify-content: flex-start; overflow: hidden;">
+                ${activeEquipmentSummaryHtml}
+            </div>
+        </div>
     </div>
 </div>
+
 
 
 <script>

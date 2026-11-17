@@ -1564,6 +1564,75 @@ export function initPage3Pickers(overlay, hero) {
         }
     };
 
+
+
+    const renderActivePropsSummary = () => {
+        const host = overlay.querySelector('#bstPage3ActivePropsSummary');
+        if (!host) return;
+
+        const allSlots = [
+            ['head', '👑 Голова'], ['cloak', '🧥 Плечи'], ['neck', '📿 Шея'],
+            ['armor', '🦺 Торс'], ['hands', '🧤 Кисти'], ['eyes', '🥽 Глаза'],
+            ['belt', '🥋 Талия'], ['feet', '👢 Ноги'], ['mainHand', '🗡️ Ведущая рука'],
+            ['offHand', '🛡️ Левая рука'], ['ring_1', '💍 Кольцо 1'], ['ring_2', '💍 Кольцо 2'],
+            ['ring_3', '💍 Кольцо 3'], ['ring_4', '💍 Кольцо 4'], ['ring_5', '💍 Кольцо 5']
+        ];
+
+        const entries = [];
+        const seen = new Set();
+        const fullGearPool = [...PF2E_ITEMS_CATALOG, ...PF2E_ARMOR_CATALOG, ...PF2E_MELEE_WEAPONS, ...PF2E_RANGED_WEAPONS];
+
+        allSlots.forEach(([slotKey, slotLabel]) => {
+            const rawName = String(hero.stats[`eq_${slotKey}_Name`] || '').trim();
+            if (!rawName || rawName.startsWith('🔒')) return;
+            const norm = normalizeStr(rawName);
+            if (seen.has(norm)) return;
+            seen.add(norm);
+
+            const found = fullGearPool.find(x => normalizeStr(x.name) === norm);
+            const isInv = !!hero.stats[`eq_${slotKey}_Invested`];
+            const needsInv = isInvestedItem(found);
+            const warnTag = (needsInv && !isInv)
+                ? `<span style="color:#ff7675; font-size:10px; font-weight:bold;"> [⚠️ Не вложено]</span>`
+                : (isInv ? `<span style="color:#a29bfe; font-size:10px;"> [✨ Влож.]</span>` : '');
+
+            const desc = found?.notes || found?.traits || 'Экипированный предмет.';
+            entries.push(`
+                <div style="padding:5px 0; border-bottom:1px dashed rgba(235,210,145,0.2);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
+                        <b style="color:#ffd875;">${rawName}${warnTag}</b>
+                        <span style="font-size:10px; color:#a4b0be; flex-shrink:0;">${slotLabel}</span>
+                    </div>
+                    <div style="font-size:11px; color:#ebd291; margin-top:2px; line-height:1.35;">${desc}</div>
+                </div>
+            `);
+        });
+
+        for (let b = 1; b <= 5; b++) {
+            const bName = String(hero.stats[`beltItem${b}Name`] || '').trim();
+            if (!bName) continue;
+            const norm = normalizeStr(bName);
+            if (seen.has(norm)) continue;
+            seen.add(norm);
+
+            const found = (PF2E_ITEMS_CATALOG || []).find(x => normalizeStr(x.name) === norm);
+            const desc = found?.notes || 'Расходник быстрого доступа (1 ◆).';
+            entries.push(`
+                <div style="padding:5px 0; border-bottom:1px dashed rgba(235,210,145,0.2);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
+                        <b style="color:#2ecc71;">${bName}</b>
+                        <span style="font-size:10px; color:#a4b0be; flex-shrink:0;">⚡ Пояс #${b}</span>
+                    </div>
+                    <div style="font-size:11px; color:#ebd291; margin-top:2px; line-height:1.35;">${desc}</div>
+                </div>
+            `);
+        }
+
+        host.innerHTML = entries.length
+            ? entries.join('')
+            : `<span style="color:#7f8c8d;">Наденьте предметы на куклу, в кольца или на пояс, чтобы увидеть их свойства.</span>`;
+    };
+
     const updateInvestedCounterUi = () => {
         const badge = overlay.querySelector('#bstInvestedCounterBadge');
         const used = Math.min(10, Math.max(0, Number(hero.stats.investedUsedToday) || 0));
@@ -1573,7 +1642,10 @@ export function initPage3Pickers(overlay, hero) {
             badge.style.borderColor = used >= 10 ? '#ff7675' : '#a29bfe';
         }
         syncEquippedSkillBonuses();
+        renderActivePropsSummary();
     };
+
+
     const renderPage3BackpackList = () => {
         const host = overlay.querySelector('#bstPage3BackpackSummary');
         if (!host) return;
@@ -1746,20 +1818,24 @@ export function initPage3Pickers(overlay, hero) {
                 return `<div class="bst-cantrip-opt-top"><b>${it.name}</b></div>
                         <div class="bst-cantrip-opt-trad" style="font-size:11px;">${bpTag}${it.category || ''}</div>`;
             },
+
             onSelect: (found) => {
                 inp.value = found.name;
                 hero.stats[`beltItem${idx}Name`] = found.name;
                 updateBeltBulkBadge();
+                renderActivePropsSummary();
             }
         });
 
         inp.addEventListener('change', () => {
             hero.stats[`beltItem${idx}Name`] = inp.value;
             updateBeltBulkBadge();
+            renderActivePropsSummary();
         });
     });
 
     renderPage3BackpackList();
     updateInvestedCounterUi();
     updateBeltBulkBadge();
+    renderActivePropsSummary();
 }

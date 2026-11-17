@@ -106,6 +106,7 @@ export function buildPage3Html(hero) {
                     ${extraInvestedRows}
                 </div>
 
+
                 <div class="k-panel" style="padding:12px 14px; border:1px solid #8a6421;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <span style="font-size:14px; font-weight:bold; color:#ffd875;">🎒 Походный рюкзак (4.0 Массы)</span>
@@ -116,6 +117,14 @@ export function buildPage3Html(hero) {
                     </div>
                     <div id="bstPage3BackpackSummary" style="font-size:12px; color:#ebd291; background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:5px; padding:8px;"></div>
                 </div>
+
+                <div class="k-panel" style="padding:12px 14px; border:1px solid #8a6421;">
+                    <div style="font-size:14px; font-weight:bold; color:#ffd875; margin-bottom:6px;">✨ Активные свойства экипировки</div>
+                    <div id="bstPage3ActivePropsSummary" style="font-size:12px; color:#ebd291; background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:5px; padding:8px; max-height:220px; overflow-y:auto;"></div>
+                </div>
+
+                
+
             </div>
         </div>
     `;
