@@ -366,6 +366,10 @@ const CampingManager = {
         return ` (${leader}, помощник: ${helper})`;
     },
 
+
+
+
+
     getPartySuppliesSummary() {
         const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
             ? window.InitiativeManager.state.combatants
@@ -514,56 +518,107 @@ const CampingManager = {
             return linked;
         };
 
+
         const adjustHeroItem = (hero, matchRegex, defaultName, defaultNotes, deltaQty) => {
             const targets = getLinkedHeroObjects(hero);
-            // Ищем ту копию героя, у которой реально есть stats с предметами
-            const primary = targets.find(t => t && t.stats && Object.keys(t.stats).some(k => k.startsWith('item'))) || targets.at(0);
+            // Выбираем именно ту копию героя, у которой РЕАЛЬНО заполнены предметы в рюкзаке (не пустые строки)
+            const primary = targets.find(t => {
+                if (!t || !t.stats) return false;
+                for (let k = 1; k <= 15; k++) {
+                    if (String(t.stats[`item${k}Name`] || '').trim() !== '') return true;
+                }
+                return false;
+            }) || targets.at(0);
+
             if (!primary) return 0;
             if (!primary.stats) primary.stats = {};
 
-            let targetSlot = -1;
+            // Нормализуем строку (убираем эмодзи, селекторы и приводим к нижнему регистру)
+            const cleanText = (str) => String(str || '')
+                .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
+                .trim()
+                .toLowerCase()
+                .replace(/ё/g, 'е');
+
+            let firstSlot = -1;
             let emptySlot = -1;
+            let totalExistingQty = 0;
 
             for (let i = 1; i <= 15; i++) {
-                const name = String(primary.stats[`item${i}Name`] || '').trim();
-                const qty = Number(primary.stats[`item${i}Qty`]) || 0;
-                if (!name && emptySlot === -1) emptySlot = i;
-                if (name && matchRegex.test(name) && (deltaQty > 0 || qty > 0)) {
-                    targetSlot = i;
-                    break;
+                const rawName = String(primary.stats[`item${i}Name`] || '').trim();
+                const cleaned = cleanText(rawName);
+                const qty = Math.max(0, Number(primary.stats[`item${i}Qty`]) || 0);
+
+                if (!rawName && emptySlot === -1) {
+                    emptySlot = i;
+                } else if (cleaned && matchRegex.test(cleaned)) {
+                    if (firstSlot === -1) {
+                        firstSlot = i;
+                        totalExistingQty = qty;
+                    } else {
+                        totalExistingQty += qty;
+                        // Очищаем дублирующий слот во всех копиях героя
+                        for (let j = 0; j < targets.length; j++) {
+                            const t = targets.at(j);
+                            if (!t.stats) t.stats = {};
+                            t.stats[`item${i}Name`] = '';
+                            t.stats[`item${i}Qty`] = 0;
+                            t.stats[`item${i}Notes`] = '';
+                        }
+                    }
                 }
             }
 
-            if (targetSlot !== -1) {
-                const curQty = Math.max(0, Number(primary.stats[`item${targetSlot}Qty`]) || 0);
-                let nextQty = curQty;
+            if (firstSlot !== -1) {
+                let nextQty = totalExistingQty;
                 let applied = 0;
 
                 if (deltaQty < 0) {
-                    applied = Math.min(curQty, Math.abs(deltaQty));
-                    nextQty = curQty - applied;
+                    applied = Math.min(totalExistingQty, Math.abs(deltaQty));
+                    nextQty = totalExistingQty - applied;
                 } else {
                     applied = deltaQty;
-                    nextQty = curQty + deltaQty;
+                    nextQty = totalExistingQty + deltaQty;
                 }
 
-                targets.forEach(t => {
+                // Синхронизируем ВСЕ 15 слотов рюкзака между копиями героя (Бестиарий <-> Инициатива)
+                primary.stats[`item${firstSlot}Name`] = primary.stats[`item${firstSlot}Name`] || defaultName;
+                primary.stats[`item${firstSlot}Qty`] = nextQty;
+                if (!primary.stats[`item${firstSlot}Notes`]) {
+                    primary.stats[`item${firstSlot}Notes`] = defaultNotes;
+                }
+
+                for (let j = 0; j < targets.length; j++) {
+                    const t = targets.at(j);
+                    if (t === primary) continue;
                     if (!t.stats) t.stats = {};
-                    t.stats[`item${targetSlot}Name`] = primary.stats[`item${targetSlot}Name`];
-                    t.stats[`item${targetSlot}Qty`] = nextQty;
-                });
+                    for (let sIdx = 1; sIdx <= 15; sIdx++) {
+                        t.stats[`item${sIdx}Name`] = primary.stats[`item${sIdx}Name`] || '';
+                        t.stats[`item${sIdx}Qty`] = primary.stats[`item${sIdx}Qty`] ?? 0;
+                        t.stats[`item${sIdx}Notes`] = primary.stats[`item${sIdx}Notes`] || '';
+                    }
+                }
                 return applied;
             } else if (deltaQty > 0 && emptySlot !== -1) {
-                targets.forEach(t => {
+                primary.stats[`item${emptySlot}Name`] = defaultName;
+                primary.stats[`item${emptySlot}Qty`] = deltaQty;
+                primary.stats[`item${emptySlot}Notes`] = defaultNotes;
+
+                for (let j = 0; j < targets.length; j++) {
+                    const t = targets.at(j);
+                    if (t === primary) continue;
                     if (!t.stats) t.stats = {};
-                    t.stats[`item${emptySlot}Name`] = defaultName;
-                    t.stats[`item${emptySlot}Qty`] = deltaQty;
-                    t.stats[`item${emptySlot}Notes`] = defaultNotes;
-                });
+                    for (let sIdx = 1; sIdx <= 15; sIdx++) {
+                        t.stats[`item${sIdx}Name`] = primary.stats[`item${sIdx}Name`] || '';
+                        t.stats[`item${sIdx}Qty`] = primary.stats[`item${sIdx}Qty`] ?? 0;
+                        t.stats[`item${sIdx}Notes`] = primary.stats[`item${sIdx}Notes`] || '';
+                    }
+                }
                 return deltaQty;
             }
             return 0;
         };
+
 
         const rationRegex = /па[её]к|рацион|rations|провиз|еда|food/i;
         const hungryHeroes = [];
@@ -599,7 +654,7 @@ const CampingManager = {
         if (normGain > 0 && recipient) {
             const added = adjustHeroItem(
                 recipient,
-                /обычн\w*\s*ингредиент/i,
+                /обычн.*ингредиент/i,
                 '🏕️ Обычные ингредиенты',
                 'Базовые припасы для приготовления сытной пищи в лагере.',
                 normGain
@@ -610,7 +665,7 @@ const CampingManager = {
         if (specGain > 0 && recipient) {
             const addedSpec = adjustHeroItem(
                 recipient,
-                /особ\w*\s*ингредиент/i,
+                /особ.*ингредиент/i,
                 '🌿 Особые ингредиенты',
                 'Редкие травы, дичь или специи для приготовления особых блюд на привале.',
                 specGain

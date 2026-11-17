@@ -441,6 +441,8 @@ export function initPage2Pickers(overlay, hero) {
                 <div class="bst-cantrip-opt-top"><b>${f.name}</b> <span>${f.actions}</span></div>
                 <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">${f.source}<br>${f.notes}</div>`,
             onSelect: (found) => {
+
+
                 inp.value = found.name;
                 hero.stats[`focusSpell${row}Name`] = found.name;
                 const actInp = overlay.querySelector(`[data-sheet-txt="focusSpell${row}Actions"]`);
@@ -556,6 +558,7 @@ export function initPage2Pickers(overlay, hero) {
 
     // 3. Предметы, щиты и степперы количества
     overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
+
         const row = inp.dataset.itemRow;
         bindAutocomplete(inp, overlay.querySelector(`[data-item-drop="${row}"]`), {
             width: 360,
@@ -578,6 +581,38 @@ export function initPage2Pickers(overlay, hero) {
                     noteInp.value = found.notes;
                     hero.stats[`item${row}Notes`] = found.notes;
                 }
+
+                // Проверяем, есть ли уже такой же предмет в другой ячейке рюкзака — если да, стакаем в него
+                const normFoundName = normalizeStr(found.name);
+                let existingRow = null;
+                for (let r = 1; r <= 15; r++) {
+                    if (String(r) === String(row)) continue;
+                    const otherName = normalizeStr(hero.stats[`item${r}Name`]);
+                    if (otherName && otherName === normFoundName) {
+                        existingRow = r;
+                        break;
+                    }
+                }
+
+                if (existingRow !== null) {
+                    const prevQty = Math.max(0, Number(hero.stats[`item${existingRow}Qty`]) || 0);
+                    const nextQty = prevQty + 1;
+                    hero.stats[`item${existingRow}Qty`] = nextQty;
+
+                    const targetQtyInp = overlay.querySelector(`[data-sheet-num="item${existingRow}Qty"]`);
+                    if (targetQtyInp) {
+                        targetQtyInp.value = nextQty;
+                        targetQtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+
+                    // Очищаем текущую ячейку, куда кликнул пользователь
+                    inp.value = '';
+                    hero.stats[`item${row}Name`] = '';
+                    if (qtyInp) { qtyInp.value = 0; hero.stats[`item${row}Qty`] = 0; }
+                    if (noteInp) { noteInp.value = ''; hero.stats[`item${row}Notes`] = ''; }
+                    return;
+                }
+
 
                 const heroLvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
                 const itemLvl = getItemLevel(found);
