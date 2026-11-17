@@ -431,7 +431,8 @@ function buildPage2Html(stats) {
             </td>
             <td>
                 <div style="display: flex; align-items: center; gap: 4px;">
-                    <input type="text" data-sheet-txt="item${idx}Notes" class="k-inp bst-txt-inp" placeholder="Эффект, вес..." value="${esc(stats[`item${idx}Notes`])}" readonly style="opacity: 0.9; cursor: default;">
+                    <input type="text" data-sheet-txt="item${idx}Name" class="k-inp bst-txt-inp" placeholder="Эффект, вес..." value="${esc(stats[`item${idx}Notes`])}" readonly style="opacity: 0.9; cursor: default;">
+                    <button type="button" class="bst-item-give-btn" data-item-give="${idx}" title="Передать предмет другому герою отряда" style="width: 26px; height: 26px; flex-shrink: 0; background: #14283b; border: 1px solid #74b9ff; color: #74b9ff; border-radius: 4px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;">🎁</button>
                     <button type="button" class="bst-item-sell-btn" data-item-sell="${idx}" title="Продать предмет за монеты" style="width: 26px; height: 26px; flex-shrink: 0; background: #1e3c27; border: 1px solid #ffd875; color: #ffd875; border-radius: 4px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;">💰</button>
                     <button type="button" class="bst-item-clear-btn" data-item-clear="${idx}" title="Удалить позицию из рюкзака" style="width: 26px; height: 26px; flex-shrink: 0; background: #3b1717; border: 1px solid #9b2c2c; color: #ff7675; border-radius: 4px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;">🗑️</button>
                 </div>

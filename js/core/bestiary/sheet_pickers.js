@@ -1084,6 +1084,147 @@ export function initPage2Pickers(overlay, hero) {
         });
     });
 
+    // Кнопка передачи предмета (🎁) другому герою отряда
+    overlay.querySelectorAll('.bst-item-give-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const row = btn.dataset.itemGive;
+
+            const nameInp = overlay.querySelector(`[data-sheet-txt="item${row}Name"]`);
+            const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
+            const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
+
+            const itemName = String(nameInp?.value || hero.stats[`item${row}Name`] || '').trim();
+            const itemQty = Math.max(0, Number(qtyInp?.value ?? hero.stats[`item${row}Qty`]) || 0);
+            const itemNotes = String(noteInp?.value || hero.stats[`item${row}Notes`] || '').trim();
+
+            if (!itemName || itemQty <= 0) return;
+
+            const partyPool = [
+                ...(window.BestiaryManager?.state?.party || []),
+                ...(window.BestiaryManager?.state?.inactive || [])
+            ].filter(p => p && p.id !== hero.id);
+
+            if (!partyPool.length) {
+                const noTargetModal = ModalManager.open({
+                    id: 'bstNoRecipientModal',
+                    title: '🎁 Передача предмета',
+                    width: '400px',
+                    borderColor: '#74b9ff',
+                    bodyHtml: `<div style="font-size: 14px; color: #ebd291;">В отряде нет других персонажей, которым можно передать предмет.</div>`,
+                    footerButtons: [{ label: 'Понятно', variant: 'ok' }]
+                });
+                if (noTargetModal?.overlay) noTargetModal.overlay.style.zIndex = '10000250';
+                return;
+            }
+
+            const giveModal = ModalManager.open({
+                id: 'bstGiveItemModal',
+                title: '🎁 Передать предмет союзнику',
+                width: '440px',
+                borderColor: '#74b9ff',
+                bodyHtml: `
+                    <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                        <div>Предмет: <b style="color:#fff;">${itemName}</b> <span style="color:#a4b0be;">(у вас: ${itemQty} шт.)</span></div>
+                        <div style="display: grid; grid-template-columns: 1fr 110px; gap: 8px; margin-top: 10px;">
+                            <div>
+                                <label style="font-size: 12px; color: #74b9ff; font-weight: bold;">Кому передать:</label>
+                                <select id="bstGiveTargetSel" class="k-inp" style="width: 100%; margin-top: 3px; padding: 6px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
+                                    ${partyPool.map(p => `<option value="${p.id}">🛡️ ${p.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #74b9ff; font-weight: bold;">Количество:</label>
+                                <input type="number" id="bstGiveQtyInp" class="k-inp" min="1" max="${itemQty}" value="${itemQty > 1 ? 1 : 1}" style="width: 100%; text-align: center; margin-top: 3px;">
+                            </div>
+                        </div>
+                        <div id="bstGiveErrBox" style="color: #ff7675; font-size: 12px; margin-top: 6px;"></div>
+                    </div>
+                `,
+                footerButtons: [
+                    { label: '✖ Отмена', variant: 'cc', onClick: () => giveModal.close() },
+                    {
+                        label: '🎁 Передать',
+                        variant: 'ok',
+                        onClick: () => {
+                            const targetId = document.getElementById('bstGiveTargetSel')?.value;
+                            const giveCount = Math.max(1, Math.min(itemQty, parseInt(document.getElementById('bstGiveQtyInp')?.value, 10) || 1));
+                            const recipient = partyPool.find(p => p.id === targetId);
+                            const errBox = document.getElementById('bstGiveErrBox');
+
+                            if (!recipient) return;
+                            if (!recipient.stats) recipient.stats = {};
+
+                            // 1. Ищем у получателя такой же предмет для стаканья или первый пустой слот
+                            const normName = normalizeStr(itemName);
+                            let targetSlot = -1;
+                            let emptySlot = -1;
+
+                            for (let sIdx = 1; sIdx <= 15; sIdx++) {
+                                const rName = String(recipient.stats[`item${sIdx}Name`] || '').trim();
+                                if (!rName && emptySlot === -1) {
+                                    emptySlot = sIdx;
+                                } else if (rName && normalizeStr(rName) === normName) {
+                                    targetSlot = sIdx;
+                                    break;
+                                }
+                            }
+
+                            if (targetSlot === -1 && emptySlot === -1) {
+                                if (errBox) errBox.textContent = `⚠️ У героя ${recipient.name} заполнен весь рюкзак (15/15 слотов)!`;
+                                return;
+                            }
+
+                            const destSlot = targetSlot !== -1 ? targetSlot : emptySlot;
+                            const prevDestQty = targetSlot !== -1 ? (Math.max(0, Number(recipient.stats[`item${destSlot}Qty`]) || 0)) : 0;
+
+                            recipient.stats[`item${destSlot}Name`] = recipient.stats[`item${destSlot}Name`] || itemName;
+                            recipient.stats[`item${destSlot}Qty`] = prevDestQty + giveCount;
+                            if (!recipient.stats[`item${destSlot}Notes`]) {
+                                recipient.stats[`item${destSlot}Notes`] = itemNotes;
+                            }
+
+                            // Синхронизируем рюкзак получателя с трекером инициативы, если он в бою
+                            const normRecName = normalizeStr(recipient.name);
+                            (window.InitiativeManager?.state?.combatants || []).forEach(u => {
+                                if (u && u.faction === 'friend' && normalizeStr(u.name) === normRecName && u.stats && u.stats !== recipient.stats) {
+                                    u.stats[`item${destSlot}Name`] = recipient.stats[`item${destSlot}Name`];
+                                    u.stats[`item${destSlot}Qty`] = recipient.stats[`item${destSlot}Qty`];
+                                    u.stats[`item${destSlot}Notes`] = recipient.stats[`item${destSlot}Notes`];
+                                }
+                            });
+
+                            // 2. Списываем переданное количество у текущего героя
+                            const remQty = itemQty - giveCount;
+                            if (remQty <= 0) {
+                                hero.stats[`item${row}Name`] = '';
+                                hero.stats[`item${row}Qty`] = 0;
+                                hero.stats[`item${row}Notes`] = '';
+                                if (nameInp) { nameInp.value = ''; nameInp.dataset.validItem = ''; }
+                                if (noteInp) noteInp.value = '';
+                                if (qtyInp) {
+                                    qtyInp.value = 0;
+                                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            } else {
+                                hero.stats[`item${row}Qty`] = remQty;
+                                if (qtyInp) {
+                                    qtyInp.value = remQty;
+                                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            }
+
+                            if (window.BestiaryManager?._save) window.BestiaryManager._save();
+                            giveModal.close();
+                        }
+                    }
+                ]
+            });
+
+            if (giveModal?.overlay) giveModal.overlay.style.zIndex = '10000250';
+        });
+    });
 
 
     // 4. Способности и виды спутников (единое поведение для зверей и фамильяров)
