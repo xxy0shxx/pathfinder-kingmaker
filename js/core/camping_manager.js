@@ -843,51 +843,50 @@ const CampingManager = {
         const hasEnoughRations = sup.totalRations >= reqRations;
         const canCook = hasEnoughNorm && hasEnoughSpec && hasEnoughRations;
 
+
         const spendPartyResources = (normToSpend, specToSpend, rationsToSpend) => {
             const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
                 ? window.InitiativeManager.state.combatants
                 : (this.mapDataRef?.initiative?.combatants || []);
-            const bestiaryPresets = (window.BestiaryManager?.state?.party && Array.isArray(window.BestiaryManager.state.party))
+            const bestiaryParty = (window.BestiaryManager?.state?.party && Array.isArray(window.BestiaryManager.state.party))
                 ? window.BestiaryManager.state.party
                 : (this.mapDataRef?.bestiary?.party || []);
-
-            const allHeroes = [...initUnits, ...bestiaryPresets].filter(u => u && u.faction === 'friend' && !u.inactive);
 
             const cleanText = (str) => String(str || '')
                 .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
                 .trim().toLowerCase().replace(/ё/g, 'е');
 
+            const heroes = this._getActivePartyHeroes();
+
             const deductFromParty = (regex, amount) => {
                 let rem = amount;
-                const seenNames = new Set();
-                for (const h of allHeroes) {
+                for (const h of heroes) {
                     if (rem <= 0) break;
                     const key = cleanText(h.name);
-                    if (!key || seenNames.has(key)) continue;
-                    seenNames.add(key);
 
-                    const copies = allHeroes.filter(x => cleanText(x.name) === key);
-                    const primary = copies.find(c => {
-                        if (!c.stats) return false;
-                        for (let i = 1; i <= 15; i++) {
-                            if (String(c.stats[`item${i}Name`] || '').trim() !== '') return true;
+                    // Собираем только уникальные объекты stats для этого героя (без дублирования ссылок)
+                    const uniqueStatsObjs = new Set();
+                    if (h.stats) uniqueStatsObjs.add(h.stats);
+                    [...bestiaryParty, ...initUnits].forEach(u => {
+                        if (u && u.faction === 'friend' && cleanText(u.name) === key && u.stats) {
+                            uniqueStatsObjs.add(u.stats);
                         }
-                        return false;
-                    }) || copies.at(0);
+                    });
 
-                    if (!primary?.stats) continue;
+                    const primaryStats = h.stats;
+                    if (!primaryStats) continue;
 
                     for (let i = 1; i <= 15; i++) {
                         if (rem <= 0) break;
-                        const cleaned = cleanText(primary.stats[`item${i}Name`]);
-                        const qty = Math.max(0, Number(primary.stats[`item${i}Qty`]) || 0);
+                        const cleaned = cleanText(primaryStats[`item${i}Name`]);
+                        const qty = Math.max(0, Number(primaryStats[`item${i}Qty`]) || 0);
                         if (cleaned && regex.test(cleaned) && qty > 0) {
                             const take = Math.min(qty, rem);
                             const nextQty = qty - take;
                             rem -= take;
-                            copies.forEach(c => {
-                                if (!c.stats) c.stats = {};
-                                c.stats[`item${i}Qty`] = nextQty;
+
+                            uniqueStatsObjs.forEach(stObj => {
+                                stObj[`item${i}Qty`] = nextQty;
                             });
                         }
                     }
@@ -899,11 +898,12 @@ const CampingManager = {
             if (rationsToSpend > 0) deductFromParty(/паек|рацион|rations|провиз|еда|food/i, rationsToSpend);
 
             if (window.BestiaryManager?._save) window.BestiaryManager._save();
-            if (window.InitiativeManager?._save) window.InitiativeManager._save();
-            EventBus.emit('data:save');
+            else EventBus.emit('data:save');
             if (window.InitiativeManager?.renderUi) window.InitiativeManager.renderUi();
-            if (window.BestiaryManager?.renderUi) window.BestiaryManager.renderUi();
         };
+
+
+
 
         const costSummaryHtml = [
             reqNorm > 0 ? `${reqNorm} 🏕️ обычных (в наличии: <b style="color:${hasEnoughNorm ? '#2ecc71' : '#ff7675'}">${sup.totalNormIng}</b>)` : '',
