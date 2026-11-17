@@ -15,6 +15,7 @@ import {
 import { openCharacterSheetModal } from './bestiary/character_sheet_modal.js';
 import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../config/items_catalog.js';
 import { bindSheetTooltip } from './bestiary/bestiary_tooltip_builder.js';
+import CloudSyncService from '../services/cloud_sync_service.js';
 
 
 
@@ -57,6 +58,13 @@ const BestiaryManager = {
 
         window.BestiaryManager = this;
         this.renderUi();
+    },
+
+    toggleHeroReadOnly(groupKey, id) {
+        const hero = this._getGroupList(groupKey).find(x => x.id === id);
+        if (!hero) return;
+        hero.isReadOnly = !hero.isReadOnly;
+        this._save();
     },
 
     moveHeroReserve(fromGroup, toGroup, id) {
@@ -1139,6 +1147,12 @@ const BestiaryManager = {
 
             const avatarContent = item.avatar ? '<img src="' + item.avatar + '">' : (idx + 1);
 
+            const lockBtnHtml = isHeroGroup
+                ? `<button type="button" class="bst-lock-hero-btn" title="${item.isReadOnly ? 'Режим Read-Only ВКЛ (игрок не может менять лист). Нажмите, чтобы разрешить' : 'Редактирование разрешено. Нажмите, чтобы сделать Read-Only'}" style="background:${item.isReadOnly ? '#5e1914' : '#1b3324'}; border:1px solid ${item.isReadOnly ? '#ff7675' : '#2ecc71'}; color:#fff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">${item.isReadOnly ? '🔒' : '🔓'}</button>
+       <button type="button" class="bst-copy-link-btn" title="Скопировать персональную ссылку для игрока" style="background:#14283b; border:1px solid #74b9ff; color:#74b9ff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔗</button>`
+                : '';
+
+
             card.innerHTML = [
                 reserveBtn,
                 '<button type="button" class="init-btn-delete-card" title="Удалить навсегда">×</button>',
@@ -1147,6 +1161,7 @@ const BestiaryManager = {
                 '<div class="init-avatar-shield-circle active">' + avatarContent + '</div>',
                 '</div>',
                 '<div class="init-card-right">',
+                lockBtnHtml,
                 '<button type="button" class="bst-quick-send-btn" title="Добавить в трекер инициативы">⚔️</button>',
                 '<div class="init-score-massive-block">',
                 '<input type="number" class="init-inline-score-input" value="' + item.defaultScore + '" title="Базовая инициатива">',
@@ -1168,6 +1183,23 @@ const BestiaryManager = {
             card.querySelector('.init-btn-delete-card').addEventListener('click', (e) => {
                 e.stopPropagation();
                 isHeroGroup ? this.confirmRemoveHero(groupKey, item.id) : this.removePreset(groupKey, item.id);
+            });
+
+            card.querySelector('.bst-lock-hero-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleHeroReadOnly(groupKey, item.id);
+            });
+
+            card.querySelector('.bst-copy-link-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const btn = e.currentTarget;
+                const link = CloudSyncService.getPlayerInviteUrl(item.id);
+                navigator.clipboard.writeText(link).then(() => {
+                    if (btn) {
+                        btn.textContent = '✅';
+                        setTimeout(() => { btn.textContent = '🔗'; }, 1200);
+                    }
+                });
             });
 
             const nameEl = card.querySelector('.init-card-name-text');

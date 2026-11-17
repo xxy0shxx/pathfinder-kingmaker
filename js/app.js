@@ -36,12 +36,13 @@ import WeatherManager from './core/weather_manager.js';
 import HudWindowManager from './ui/hud_window_manager.js';
 import EventBus from './services/event_bus.js';
 import BestiaryManager from './core/bestiary_manager.js';
+import CloudSyncService from './services/cloud_sync_service.js';
 
 let hasMoved = false;
 let mapData = { hexes: {}, kingdom: null, paths: [] };
 window.FLIGHT_FROM_CAPITAL_MODE = true;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Первичный запуск и реактивное применение сохраненных настроек интерфейса
     SettingsManager.init();
 
@@ -176,6 +177,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     BestiaryManager.init(mapData);
+
+    await CloudSyncService.init();
+
+    if (CloudSyncService.isPlayerMode) {
+        const mapEl = document.getElementById('mapCanvas');
+        if (mapEl) mapEl.style.display = 'none';
+        document.querySelectorAll('.top-panel, .hud-bar, #uiControls').forEach(el => el.style.display = 'none');
+        BestiaryManager.openCharacterSheetModal(CloudSyncService.playerHeroId, 1);
+    }
+
     InitiativeManager.init(mapData);
     if (SettingsManager?.state?.roundAudioMode) {
         InitiativeManager.state.audioPreset = SettingsManager.state.roundAudioMode;
