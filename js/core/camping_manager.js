@@ -3,66 +3,98 @@ import { MAP_CONFIG } from '../config/app_config.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 
-// ============================================================================
-// МОДУЛЬ: МЕНЕДЖЕР ПРИВАЛА (CAMPING MANAGER) — ЧАСТЬ 1 ИЗ 3
-// ============================================================================
-
 const CAMP_MEALS_CATALOG = [
     {
-        id: 'hearty_stew',
-        name: '🍲 Сытная похлёбка (Hearty Meal)',
-        dc: 14,
+        id: 'basic_meal',
+        name: '🥣 Простая трапеза (Basic Meal)',
+        perPerson: true, // Стоимость умножается на количество членов отряда
+        dcText: 'СЛ 18 Кулинария / СЛ 22 Выживание',
         normCost: 2,
         specCost: 0,
-        buff: '+1 бонус предмета к испытаниям Стойкости на 24 часа (при КУ: +2).',
-        critFailure: 'Несварение: состояние тошнота 1 на 1 час.'
+        rationCost: 1,
+        buff: 'Бонус состояния +1 ко всем испытаниям до конца следующей ежедневной подготовки (при КУ: также удвоенное восстановление ПЗ при отдыхе = ВЫН × 2 × Уровень).',
+        critFailure: 'Крутит живот: состояние тошнота 1 до завершения отдыха и ежедневной подготовки.'
     },
     {
-        id: 'hunters_roast',
-        name: '🍖 Охотничье жаркое (Hunter’s Roast)',
-        dc: 16,
-        normCost: 3,
-        specCost: 1,
-        buff: '+5 фт. бонус предмета к Скорости и +1 к Выживанию на 24 часа (при КУ: +10 фт. к Скорости).',
-        critFailure: 'Несварение: штраф −5 фт. к Скорости на 4 часа.'
+        id: 'hearty_dinner_0',
+        name: '🍲 Добротный ужин (Блюдо 0 — базовый рецепт)',
+        perPerson: false,
+        dcText: 'СЛ 14 Кулинария / СЛ 16 Выживание',
+        normCost: 4,
+        specCost: 0,
+        rationCost: 0,
+        buff: 'Бонус состояния +1 к следующему испытанию на 24 часа (при КУ: к следующим 3 испытаниям). Любимое блюдо: +Уровень ПЗ при отдыхе.',
+        critFailure: 'Переедание: штраф состояния −1 к проверкам инициативы до завершения отдыха.'
     },
     {
-        id: 'sweet_pancakes',
-        name: '🥞 Сладкие оладьи с ягодами (Sweet Pancakes)',
-        dc: 15,
+        id: 'gemstone_rice_0',
+        name: '🍚 Самоцветный рис (Блюдо 0)',
+        perPerson: false,
+        dcText: 'СЛ 14 Кулинария / СЛ 16 Выживание',
+        normCost: 1,
+        specCost: 0,
+        rationCost: 0,
+        buff: '1 раз за 24 часа при совершении действия Шаг (Step) едок перемещается на 10 футов вместо 5 (при КУ: дважды за 24 часа).',
+        critFailure: 'Слишком лёгкое блюдо: нужно съесть ещё одну порцию, чтобы не оголодать.'
+    },
+    {
+        id: 'fish_on_a_stick_1',
+        name: '🐟 Рыба на палке (Блюдо 1)',
+        perPerson: false,
+        dcText: 'СЛ 17 Кулинария / СЛ 19 Выживание',
+        normCost: 2,
+        specCost: 0,
+        rationCost: 0,
+        buff: 'В течение 24 часов едок может не спать до 17 часов без утомления (при КУ: в течение 2 дней до 18 часов).',
+        critFailure: 'Тяжесть в желудке: для ночного отдыха потребуется 9 часов сна вместо 8.'
+    },
+    {
+        id: 'haggis_1',
+        name: '🥩 Хаггис (Блюдо 1)',
+        perPerson: false,
+        dcText: 'СЛ 15 Кулинария / СЛ 17 Выживание',
+        normCost: 2,
+        specCost: 0,
+        rationCost: 0,
+        buff: 'Бонус состояния +1 к испытаниям против эффектов тошноты на 24 часа (при КУ: также против болезней).',
+        critFailure: 'Тошнота 1 до получения преимуществ от полноценного отдыха (яд).'
+    },
+    {
+        id: 'nut_rice_pudding_2',
+        name: '🍮 Орехово-рисовый пуддинг (Блюдо 2)',
+        perPerson: false,
+        dcText: 'СЛ 16 Кулинария / СЛ 18 Выживание',
         normCost: 2,
         specCost: 1,
-        buff: '+1 бонус предмета к испытаниям Реакции и Акробатике на 24 часа (при КУ: +2 к Реакции).',
-        critFailure: 'Несварение: неуклюжесть 1 на 1 час.'
+        rationCost: 0,
+        buff: 'Бонус состояния +1 к проверкам Мистицизма (Изучение заклинания и Опознание магии) до конца стоянки (при КУ: на 24 часа).',
+        critFailure: 'Штраф состояния −1 к испытаниям Реакции против заклинаний на 24 часа (проклятие).'
     },
     {
-        id: 'herbal_broth',
-        name: '🍵 Эльфийский травяной отвар (Elven Herb Broth)',
-        dc: 17,
-        normCost: 2,
-        specCost: 2,
-        buff: '+1 бонус предмета к испытаниям Воли и Вниманию на 24 часа (при КУ: +2 к Воле).',
-        critFailure: 'Несварение: ошеломление 1 на 1 час.'
+        id: 'shepherds_pie_2',
+        name: '🥧 Пастуший пирог (Блюдо 2)',
+        perPerson: false,
+        dcText: 'СЛ 18 Кулинария / СЛ 20 Выживание',
+        normCost: 4,
+        specCost: 0,
+        rationCost: 0,
+        buff: 'Восстанавливает дополнительно 2d6 ПЗ после отдыха во время этой стоянки (при КУ: +4d6 ПЗ и уменьшение истощения на 2).',
+        critFailure: 'При отдыхе во время этой стоянки восстанавливается только половина обычных ПЗ.'
     },
     {
-        id: 'fishermans_pie',
-        name: '🥧 Рыбный пирог первопроходца (Fisherman’s Pie)',
-        dc: 18,
+        id: 'hunters_roast_6',
+        name: '🍖 Охотничье жаркое (Блюдо 6)',
+        perPerson: false,
+        dcText: 'СЛ 22 Кулинария / СЛ 24 Выживание',
         normCost: 4,
         specCost: 1,
-        buff: '+1 бонус предмета ко всем проверкам навыков на основе Интеллекта и Мудрости на 24 часа.',
-        critFailure: 'Несварение: состояние тошнота 1 на 2 часа.'
-    },
-    {
-        id: 'monsters_feast',
-        name: '🍗 Пир охотников на чудовищ (Monster Casserole)',
-        dc: 20,
-        normCost: 5,
-        specCost: 3,
-        buff: '+1 бонус предмета ко всем испытаниям (Стойкость, Реакция, Воля) и +5 временных ПЗ на 24 часа.',
-        critFailure: 'Сильное несварение: тошнота 2 на 1 час.'
+        buff: 'Даёт временные ПЗ в количестве, равном уровню едока, до ежедневной подготовки (при КУ: на 24 часа).',
+        critFailure: 'Ядовитое жаркое: 2d6 урона ядом и тошнота 1 до длительного отдыха.'
     }
 ];
+
+
+
 
 const CampingManager = {
     state: {
@@ -795,11 +827,19 @@ const CampingManager = {
 
     openCookMealModal(meal) {
         const sup = this.getPartySuppliesSummary();
-        const hasEnoughNorm = sup.totalNormIng >= meal.normCost;
-        const hasEnoughSpec = sup.totalSpecIng >= meal.specCost;
-        const canCook = hasEnoughNorm && hasEnoughSpec;
+        const partyCount = Math.max(1, sup.heroesCount || 1);
+        const mult = meal.perPerson ? partyCount : 1;
 
-        const spendIngredients = (normToSpend, specToSpend) => {
+        const reqNorm = (meal.normCost || 0) * mult;
+        const reqSpec = (meal.specCost || 0) * mult;
+        const reqRations = (meal.rationCost || 0) * mult;
+
+        const hasEnoughNorm = sup.totalNormIng >= reqNorm;
+        const hasEnoughSpec = sup.totalSpecIng >= reqSpec;
+        const hasEnoughRations = sup.totalRations >= reqRations;
+        const canCook = hasEnoughNorm && hasEnoughSpec && hasEnoughRations;
+
+        const spendPartyResources = (normToSpend, specToSpend, rationsToSpend) => {
             const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
                 ? window.InitiativeManager.state.combatants
                 : (this.mapDataRef?.initiative?.combatants || []);
@@ -822,7 +862,6 @@ const CampingManager = {
                     if (!key || seenNames.has(key)) continue;
                     seenNames.add(key);
 
-                    // Находим все копии героя (Бестиарий + Инициатива)
                     const copies = allHeroes.filter(x => cleanText(x.name) === key);
                     const primary = copies.find(c => {
                         if (!c.stats) return false;
@@ -853,6 +892,7 @@ const CampingManager = {
 
             if (normToSpend > 0) deductFromParty(/обычн.*ингредиент/i, normToSpend);
             if (specToSpend > 0) deductFromParty(/особ.*ингредиент/i, specToSpend);
+            if (rationsToSpend > 0) deductFromParty(/паек|рацион|rations|провиз|еда|food/i, rationsToSpend);
 
             if (window.BestiaryManager?._save) window.BestiaryManager._save();
             if (window.InitiativeManager?._save) window.InitiativeManager._save();
@@ -861,15 +901,21 @@ const CampingManager = {
             if (window.BestiaryManager?.renderUi) window.BestiaryManager.renderUi();
         };
 
+        const costSummaryHtml = [
+            reqNorm > 0 ? `${reqNorm} 🏕️ обычных (в наличии: <b style="color:${hasEnoughNorm ? '#2ecc71' : '#ff7675'}">${sup.totalNormIng}</b>)` : '',
+            reqSpec > 0 ? `${reqSpec} 🌿 особых (в наличии: <b style="color:${hasEnoughSpec ? '#2ecc71' : '#ff7675'}">${sup.totalSpecIng}</b>)` : '',
+            reqRations > 0 ? `${reqRations} 🍞 пайков (в наличии: <b style="color:${hasEnoughRations ? '#2ecc71' : '#ff7675'}">${sup.totalRations}</b>)` : ''
+        ].filter(Boolean).join(', ');
+
         const cookModal = ModalManager.open({
             id: 'campCookMealModal',
             title: `🍳 Приготовление: ${meal.name}`,
-            width: '450px',
+            width: '460px',
             borderColor: canCook ? '#dfbc6f' : '#e74c3c',
             bodyHtml: `
                 <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
-                    <div>🎯 <b>Сложность проверки (Кулинария / Выживание):</b> <span style="color:#ffd875; font-weight:bold;">СЛ ${meal.dc}</span></div>
-                    <div style="margin-top: 4px;">📦 <b>Требуется ингредиентов:</b> ${meal.normCost} 🏕️ обычных (в наличии: <b style="color:${hasEnoughNorm ? '#2ecc71' : '#ff7675'}">${sup.totalNormIng}</b>), ${meal.specCost} 🌿 особых (в наличии: <b style="color:${hasEnoughSpec ? '#2ecc71' : '#ff7675'}">${sup.totalSpecIng}</b>)</div>
+                    <div>🎯 <b>Проверка (2 часа):</b> <span style="color:#ffd875; font-weight:bold;">${meal.dcText}</span></div>
+                    <div style="margin-top: 4px;">📦 <b>Требуется${meal.perPerson ? ` (на ${partyCount} чел.)` : ''}:</b> ${costSummaryHtml}</div>
                     <div style="margin-top: 8px; padding: 8px; background: rgba(4,9,5,0.75); border: 1px solid #543e0d; border-radius: 5px; font-size: 13px;">
                         <div style="color:#2ecc71;">✨ <b>Успех / Крит. успех:</b> ${meal.buff}</div>
                         <div style="color:#ff7675; margin-top: 4px;">💥 <b>Крит. провал:</b> ${meal.critFailure}</div>
@@ -878,13 +924,13 @@ const CampingManager = {
                         <div style="margin-top: 10px;">
                             <label style="font-size: 13px; color: #ffd875; font-weight: bold;">🎲 Результат броска повара за столом:</label>
                             <select id="campCookOutcomeSel" class="k-inp" style="width: 100%; margin-top: 4px; background: #040905; border: 1px solid #543e0d; color: #ebd291; padding: 5px;">
-                                <option value="crit_success">🌟 Критический успех (ингредиенты списаны, усиленный эффект)</option>
-                                <option value="success" selected>✅ Успех (ингредиенты списаны, блюдо готово)</option>
-                                <option value="failure">❌ Провал (ингредиенты испорчены, без эффекта)</option>
-                                <option value="crit_failure">💀 Критический провал (ингредиенты испорчены, несварение!)</option>
+                                <option value="crit_success">🌟 Критический успех (припасы списаны, усиленный эффект)</option>
+                                <option value="success" selected>✅ Успех (припасы списаны, трапеза готова)</option>
+                                <option value="failure">❌ Провал (голод утолён, но без бонусов)</option>
+                                <option value="crit_failure">💀 Критический провал (припасы испорчены, несварение!)</option>
                             </select>
                         </div>
-                    ` : `<div style="margin-top: 10px; color: #ff7675; font-weight: bold;">⚠️ Недостаточно ингредиентов в рюкзаках отряда!</div>`}
+                    ` : `<div style="margin-top: 10px; color: #ff7675; font-weight: bold;">⚠️ Недостаточно припасов в рюкзаках отряда!</div>`}
                 </div>
             `,
             footerButtons: canCook ? [
@@ -894,7 +940,7 @@ const CampingManager = {
                     variant: 'ok',
                     onClick: () => {
                         const outcome = document.getElementById('campCookOutcomeSel')?.value || 'success';
-                        spendIngredients(meal.normCost, meal.specCost);
+                        spendPartyResources(reqNorm, reqSpec, reqRations);
 
                         if (outcome === 'crit_success' || outcome === 'success') {
                             const tag = outcome === 'crit_success' ? ' [КРИТ. УСПЕХ]' : '';
@@ -917,7 +963,6 @@ const CampingManager = {
 
         if (cookModal?.overlay) cookModal.overlay.style.zIndex = '10000250';
     },
-
 
     renderCalculatedUi(camoRes, prepareRes, huntRes, watchRes, isCampHorrible, lvl, specialYieldText) {
         watchRes = watchRes || this.getSelectedRadio('res_watch');
@@ -1018,7 +1063,7 @@ const CampingManager = {
                     <div style="font-size: 12px; color: #dfbc6f; font-weight: bold;">🍲 Полевая кухня (Кулинария / Выживание):</div>
                     <div style="display: flex; gap: 4px; align-items: center;">
                         <select id="campMealSelect" class="k-inp" style="flex: 1; font-size: 12px; padding: 4px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
-                            ${CAMP_MEALS_CATALOG.map(m => `<option value="${m.id}">${m.name} (СЛ ${m.dc} | ${m.normCost} 🏕️${m.specCost > 0 ? `, ${m.specCost} 🌿` : ''})</option>`).join('')}
+                            ${CAMP_MEALS_CATALOG.map(m => `<option value="${m.id}">${m.name} (${m.perPerson ? `${m.normCost} 🏕️ + ${m.rationCost} 🍞 / чел.` : `${m.normCost} 🏕️${m.specCost > 0 ? `, ${m.specCost} 🌿` : ''}`})</option>`).join('')}
                         </select>
                         <button type="button" id="btnCampCookMeal" class="btn cc" style="padding: 4px 8px; font-size: 12px; flex-shrink: 0;">🍳 Готовить</button>
                     </div>
@@ -1029,12 +1074,24 @@ const CampingManager = {
 
                 const sel = cookBox.querySelector('#campMealSelect');
                 const prevEl = cookBox.querySelector('#campMealPreviewDesc');
+
                 const updateMealPreview = () => {
                     const m = CAMP_MEALS_CATALOG.find(x => x.id === sel.value) || CAMP_MEALS_CATALOG.at(0);
                     if (m && prevEl) {
-                        prevEl.innerHTML = `СЛ <b>${m.dc}</b> • Стоимость: <b>${m.normCost}</b> 🏕️, <b>${m.specCost}</b> 🌿<br><span style="color:#ebd291;">Эффект: ${m.buff}</span>`;
+                        const partyCount = Math.max(1, this.getPartySuppliesSummary().heroesCount || 1);
+                        const mult = m.perPerson ? partyCount : 1;
+                        const totalNorm = m.normCost * mult;
+                        const totalSpec = (m.specCost || 0) * mult;
+                        const totalRat = (m.rationCost || 0) * mult;
+
+                        const costParts = [`<b>${totalNorm}</b> 🏕️`];
+                        if (totalSpec > 0) costParts.push(`<b>${totalSpec}</b> 🌿`);
+                        if (totalRat > 0) costParts.push(`<b>${totalRat}</b> 🍞`);
+
+                        prevEl.innerHTML = `${m.dcText} • Стоимость${m.perPerson ? ` (на ${partyCount} чел.)` : ''}: ${costParts.join(', ')}<br><span style="color:#ebd291;">Эффект: ${m.buff}</span>`;
                     }
                 };
+
                 sel.addEventListener('change', updateMealPreview);
                 updateMealPreview();
 
