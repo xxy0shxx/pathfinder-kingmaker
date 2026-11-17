@@ -455,11 +455,155 @@ function generatePathfinderSidebarIcons() {
     return cachedPfIcons;
 }
 
+let cachedPfCombatBadges = null;
+
+function generatePathfinderCombatBadges() {
+    if (cachedPfCombatBadges) return cachedPfCombatBadges;
+
+    const makeBadge = (w, h, drawFn) => {
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        if (!ctx) return '';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        drawFn(ctx, w, h);
+        return c.toDataURL('image/png');
+    };
+
+    // 1. Сердце «МАКСИМУМ» (блок Пункты здоровья)
+    const hpHeart = makeBadge(120, 108, (ctx) => {
+        const traceHeart = () => {
+            ctx.beginPath();
+            ctx.moveTo(60, 99);
+            ctx.bezierCurveTo(18, 72, 6, 46, 6, 29);
+            ctx.bezierCurveTo(6, 12, 20, 5, 34, 5);
+            ctx.bezierCurveTo(46, 5, 55, 12, 60, 21);
+            ctx.bezierCurveTo(65, 12, 74, 5, 86, 5);
+            ctx.bezierCurveTo(100, 5, 114, 12, 114, 29);
+            ctx.bezierCurveTo(114, 46, 102, 72, 60, 99);
+            ctx.closePath();
+        };
+
+        const grad = ctx.createLinearGradient(0, 6, 0, 98);
+        grad.addColorStop(0, '#b8392e');
+        grad.addColorStop(0.55, '#9c2920');
+        grad.addColorStop(1, '#7a1c15');
+
+        traceHeart();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#3d100c';
+        ctx.stroke();
+
+        // Белая надпись «МАКСИМУМ» в верхней части сердца
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 12.5px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('МАКСИМУМ', 60, 31);
+    });
+
+    // 2. Лупа для блока «Внимание» (линза по центру + ручка ↙)
+    const perceptionGlass = makeBadge(100, 100, (ctx) => {
+        const cx = 56, cy = 42, r = 32;
+
+        // Ручка лупы влево-вниз (↙)
+        ctx.save();
+        ctx.translate(33, 65);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillStyle = '#2b1e16';
+        ctx.beginPath();
+        ctx.roundRect(-5.5, 0, 11, 28, 4);
+        ctx.fill();
+        ctx.fillStyle = '#5e4637';
+        ctx.fillRect(-2, 3, 3, 21);
+        ctx.restore();
+
+        // Внешний тёмный ободок лупы
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#2b1e16';
+        ctx.fill();
+
+        // Внутренняя светлая линза
+        const lensGrad = ctx.createRadialGradient(cx - 8, cy - 8, 4, cx, cy, r);
+        lensGrad.addColorStop(0, '#ffffff');
+        lensGrad.addColorStop(0.85, '#f6f1e7');
+        lensGrad.addColorStop(1, '#dfd5c3');
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = lensGrad;
+        ctx.fill();
+
+        // Тонкий внутренний кант линзы
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#8c7a65';
+        ctx.stroke();
+    });
+
+
+    // 3. Геральдический щит «КБ» с верхним мыском как в оригинале
+    const acShield = makeBadge(104, 114, (ctx) => {
+        const traceShield = () => {
+            ctx.beginPath();
+            ctx.moveTo(52, 5);
+            ctx.lineTo(94, 16);
+            ctx.lineTo(94, 54);
+            ctx.quadraticCurveTo(94, 88, 52, 108);
+            ctx.quadraticCurveTo(10, 88, 10, 54);
+            ctx.lineTo(10, 16);
+            ctx.closePath();
+        };
+
+        const grad = ctx.createLinearGradient(0, 6, 0, 108);
+        grad.addColorStop(0, '#b3382c');
+        grad.addColorStop(0.55, '#96271d');
+        grad.addColorStop(1, '#751911');
+
+        traceShield();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.lineWidth = 3.2;
+        ctx.strokeStyle = '#3b100b';
+        ctx.stroke();
+
+        // Тонкая светлая внутренняя кайма
+        ctx.save();
+        ctx.translate(52, 56);
+        ctx.scale(0.88, 0.89);
+        ctx.translate(-52, -56);
+        traceShield();
+        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = 'rgba(255, 236, 204, 0.55)';
+        ctx.stroke();
+        ctx.restore();
+
+        // Белая надпись «КБ» сверху
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 16px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('КБ', 52, 28);
+    });
+
+
+
+    cachedPfCombatBadges = { hpHeart, perceptionGlass, acShield };
+    return cachedPfCombatBadges;
+}
+
 
 
 const sidebarHtml = (pageNum) => {
     const logoUrl = generatePathfinderLogoDataUrl();
     const { dice, actions } = generatePathfinderSidebarIcons();
+
 
     const dieRow = (imgUrl, label) => `
         <div class="die-row" style="position:relative; display:flex; justify-content:center; align-items:center; width:100%; margin:2px 0;">
@@ -517,6 +661,8 @@ export function exportCharacterToPdf(hero) {
     if (!hero) return;
     const s = ensureCharacterStats(hero);
     const name = hero.name || 'Безымянный герой';
+    const { hpHeart, perceptionGlass, acShield } = generatePathfinderCombatBadges();
+
 
     const feat1 = [s.classFeatLvl1Name, s.classFeatLvl1Desc].filter(Boolean).join(' — ');
     const feat2 = [s.classFeatLvl2Name, s.classFeatLvl2Desc].filter(Boolean).join(' — ');
@@ -1012,16 +1158,32 @@ export function exportCharacterToPdf(hero) {
                     </div>
                 </div>
             </div>
+            
+            
+            
             <div style="width: 56%; display: flex; flex-direction: column;">
                 <div class="row">
+                
                     <div class="sec" style="width: 56%;">
                         <div class="sec-hdr red"><span class="badge">Д</span> Пункты здоровья</div>
-                        <div class="sec-body" style="display:flex; flex-direction:row; justify-content:space-around; align-items:center;">
-                            <div class="box-sub"><div class="box box-lg">${s.hpMax ?? 10}</div><span>МАКСИМУМ</span></div>
-                            <div class="box-sub"><div class="box box-lg">${s.hpCurrent ?? 10}</div><span>ТЕКУЩИЕ</span></div>
-                            <div class="box-sub"><div class="box box-sm">${s.hpTemp ?? 0}</div><span>ВРЕМ. ПЗ</span></div>
+                        <div class="sec-body" style="padding: 3px 5px; gap: 3px;">
+                            <div style="display:flex; align-items:center; gap:0;">
+                                <div style="position:relative; width:56px; height:50px; flex-shrink:0; z-index:2; display:flex; align-items:center; justify-content:center;">
+                                    <img src="${hpHeart}" alt="Максимум ПЗ" style="width:100%; height:100%; object-fit:contain;">
+                                    <span style="position:absolute; top:20px; left:0; right:0; text-align:center; font-size:11.5pt; font-weight:900; color:#fff; text-shadow:0 1px 2px #000;">${s.hpMax ?? 10}</span>
+                                </div>
+                                <div style="flex:1; margin-left:-12px; padding:3px 6px 3px 16px; border:1.5px solid #5e1914; border-left:none; border-radius:0 5px 5px 0; background:#faf6ef; text-align:center; position:relative;">
+                                    <div style="font-size:5.5pt; font-weight:800; color:#5e1914; letter-spacing:0.3px;">ТЕКУЩИЕ</div>
+                                    <div style="font-size:12pt; font-weight:900; color:#1a1a1a; line-height:1.15;">${s.hpCurrent ?? 10}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; justify-content:space-between; border:1px solid #8c7b65; border-radius:3px; padding:1px 5px; background:#fff; font-size:6pt;">
+                                <span style="font-weight:800; color:#5e1914;">ВРЕМ. ПЗ / ПРОЧЕЕ:</span>
+                                <b>${Number(s.hpTemp) > 0 ? `+${s.hpTemp} Врем. ПЗ` : '—'}</b>
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="sec" style="width: 44%;">
                         <div class="sec-hdr green"><span class="badge">Е</span> Скорость</div>
                         <div class="sec-body" style="display:flex; flex-direction:row; align-items:center; gap:5px;">
@@ -1031,10 +1193,14 @@ export function exportCharacterToPdf(hero) {
                     </div>
                 </div>
 
+
                 <div class="sec">
                     <div class="sec-hdr"><span class="badge">З</span> Внимание</div>
                     <div class="sec-body" style="display:flex; flex-direction:row; align-items:center; gap:4px;">
-                        <div class="box box-lg">${fmtMod(s.perception)}</div>
+                        <div style="position:relative; width:42px; height:42px; flex-shrink:0;">
+                            <img src="${perceptionGlass}" alt="Внимание" style="width:100%; height:100%; object-fit:contain; display:block;">
+                            <span style="position:absolute; top:7px; left:11px; width:26px; text-align:center; font-size:9.5pt; font-weight:900; color:#111;">${fmtMod(s.perception)}</span>
+                        </div>
                         <span class="eq">=</span>
                         <div class="box-sub"><div class="box box-xs">${fmtMod(s.wis)}</div><span>МДР</span></div>
                         <span class="op">+</span>
@@ -1043,6 +1209,7 @@ export function exportCharacterToPdf(hero) {
                         <div class="fit-box" style="height: 28px; margin-left: 3px;"><b>Восприятие:</b> ${esc(s.perceptionNotes || '—')}</div>
                     </div>
                 </div>
+                
 
                 <div class="sec">
                     <div class="sec-hdr"><span class="badge">И</span> Испытания (Спасброски)</div>
@@ -1083,7 +1250,10 @@ export function exportCharacterToPdf(hero) {
                     <div class="sec-hdr red"><span class="badge">К</span> Защита и Класс брони</div>
                     <div class="sec-body">
                         <div style="display:flex; align-items:center; gap:4px; margin-bottom:3px;">
-                            <div class="box-sub"><div class="box box-lg">${s.ac ?? 10}</div><span>КБ</span></div>
+                            <div style="position:relative; width:46px; height:50px; flex-shrink:0;">
+                                <img src="${acShield}" alt="КБ" style="width:100%; height:100%; object-fit:contain; display:block;">
+                                <span style="position:absolute; top:21px; left:0; right:0; text-align:center; font-size:12pt; font-weight:900; color:#fff; text-shadow:0 1px 2px #000;">${s.ac ?? 10}</span>
+                            </div>
                             <span class="eq">= 10 +</span>
                             <div class="box-sub"><div class="box box-xs">${s.acDex ?? 0}</div><span>ЛВК</span></div>
                             <span class="op">+</span>
@@ -1105,6 +1275,10 @@ export function exportCharacterToPdf(hero) {
                         </div>
                     </div>
                 </div>
+
+
+                
+                
 
                 <div class="sec" style="flex: 1; margin-bottom: 0;">
                     <div class="sec-hdr"><span class="badge">Л</span> Оружие и Атаки</div>
