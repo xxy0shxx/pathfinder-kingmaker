@@ -11,7 +11,7 @@ import { exportCharacterToPdf } from './sheet_pdf_exporter.js';
 import { PF2E_MELEE_WEAPONS, PF2E_RANGED_WEAPONS, getWeaponCritEffect, getWeaponTraitsDetails } from '../../config/weapons_catalog.js';
 import { PF2E_ARMOR_CATALOG, getArmorGroupEffect, getArmorTraitsDetails } from '../../config/armor_catalog.js';
 import { PF2E_ITEMS_CATALOG, calculateCharacterBulk, getItemLevel } from '../../config/items_catalog.js';
-
+import StorageManager from '../storage_manager.js';
 
 const esc = (v) => String(v ?? '').replace(/"/g, '&quot;');
 const numInp = (stats, key, cls = 'bst-stat-inp') =>
@@ -1247,10 +1247,8 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
 
                             if (target === 'treasury' && window.BestiaryManager?.addTreasuryLoot) {
                                 window.BestiaryManager.addTreasuryLoot(g, s, c, `${hero.name}${note ? ': ' + note : ''}`);
-                            } else if (target.startsWith('hero:')) {
-                                const coinParts = [g > 0 ? `${g} ЗМ` : '', s > 0 ? `${s} СМ` : '', c > 0 ? `${c} ММ` : ''].filter(Boolean).join(' ');
-                                StorageManager.appendTreasuryLog(`💸 ${hero.name} → ${recipient.name}: ${coinParts}${note ? ` (${note})` : ''}`, 'transfer');
 
+                            } else if (target.startsWith('hero:')) {
                                 const recipientId = target.slice(5);
                                 const recipient = (window.BestiaryManager?.state?.party || []).find(p => p.id === recipientId);
                                 if (recipient) {
@@ -1258,8 +1256,12 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                                     recipient.stats.coinsGold = (Number(recipient.stats.coinsGold) || 0) + g;
                                     recipient.stats.coinsSilver = (Number(recipient.stats.coinsSilver) || 0) + s;
                                     recipient.stats.coinsCopper = (Number(recipient.stats.coinsCopper) || 0) + c;
+
+                                    const coinParts = [g > 0 ? `${g} ЗМ` : '', s > 0 ? `${s} СМ` : '', c > 0 ? `${c} ММ` : ''].filter(Boolean).join(' ');
+                                    StorageManager.appendTreasuryLog(`💸 ${hero.name} → ${recipient.name}: ${coinParts}${note ? ` (${note})` : ''}`, 'transfer');
                                 }
                             }
+
 
                             syncCoinsInputs();
                             if (window.BestiaryManager?._save) window.BestiaryManager._save();

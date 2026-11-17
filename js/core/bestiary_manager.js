@@ -1317,10 +1317,10 @@ const BestiaryManager = {
                 return `<div style="padding: 20px; text-align: center; color: #95a5a6; font-size: 14px;">Журнал операций казны и обмена предметами пока пуст.</div>`;
             }
             return `
-                <div style="display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto;">
+                <div style="display: flex; flex-direction: column; gap: 6px; max-height: 70vh; overflow-y: auto; padding-right: 4px;">
                     ${entries.map(item => `
-                        <div style="padding: 7px 10px; background: rgba(4,9,5,0.8); border: 1px solid #543e0d; border-left: 3px solid ${item.category === 'transfer' ? '#74b9ff' : '#ffd875'}; border-radius: 5px; font-size: 13px; color: #ebd291;">
-                            <span style="color: #a4b0be; font-size: 11px; margin-right: 6px;">[${item.time}]</span>
+                        <div style="padding: 8px 12px; background: rgba(4,9,5,0.85); border: 1px solid #543e0d; border-left: 3px solid ${item.category === 'transfer' ? '#74b9ff' : '#ffd875'}; border-radius: 5px; font-size: 14px; color: #ebd291; line-height: 1.4;">
+                            <span style="color: #a4b0be; font-size: 12px; margin-right: 8px;">[${item.time}]</span>
                             <span>${item.text}</span>
                         </div>
                     `).join('')}
@@ -1331,7 +1331,7 @@ const BestiaryManager = {
         const modal = ModalManager.open({
             id: 'bstFullTreasuryLogModal',
             title: '📜 Полный журнал казны и передачи вещей',
-            width: '560px',
+            width: '680px',
             borderColor: '#ffd875',
             bodyHtml: `<div id="bstAuditLogBodyHost">${renderModalBody()}</div>`,
             footerButtons: [

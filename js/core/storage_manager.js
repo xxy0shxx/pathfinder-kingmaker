@@ -120,11 +120,10 @@ const StorageManager = {
 
     getTreasuryLog() {
         try {
-            const raw = localStorage.getItem(this.TREASURY_LOG_KEY);
+            const raw = localStorage.getItem(this.TREASURY_LOG_KEY || 'hexMapSystemTreasuryAuditLog');
             const list = raw ? JSON.parse(raw) : [];
             return Array.isArray(list) ? list : [];
         } catch (e) {
-            console.error("Ошибка чтения журнала казны из localStorage:", e);
             return [];
         }
     },
@@ -133,6 +132,7 @@ const StorageManager = {
         const cleanText = String(actionText || '').trim();
         if (!cleanText) return;
         try {
+            const key = this.TREASURY_LOG_KEY || 'hexMapSystemTreasuryAuditLog';
             const list = this.getTreasuryLog();
             const now = new Date();
             const pad = (n) => String(n).padStart(2, '0');
@@ -146,17 +146,17 @@ const StorageManager = {
             });
 
             if (list.length > 250) list.length = 250;
-            localStorage.setItem(this.TREASURY_LOG_KEY, JSON.stringify(list));
+            localStorage.setItem(key, JSON.stringify(list));
         } catch (e) {
-            console.error("Ошибка записи журнала казны в localStorage:", e);
+            console.error('Ошибка записи журнала казны:', e);
         }
     },
 
     clearTreasuryLog() {
         try {
-            localStorage.removeItem(this.TREASURY_LOG_KEY);
+            localStorage.removeItem(this.TREASURY_LOG_KEY || 'hexMapSystemTreasuryAuditLog');
         } catch (e) {
-            console.error("Ошибка очистки журнала казны:", e);
+            console.error('Ошибка очистки журнала казны:', e);
         }
     }
 
