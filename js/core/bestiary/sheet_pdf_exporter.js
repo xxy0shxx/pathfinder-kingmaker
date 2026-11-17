@@ -372,7 +372,7 @@ function generatePathfinderSidebarIcons() {
     };
 
     // 2. Пять фирменных значков действий Pathfinder 2e (малый ромб строго СЛЕВА + шеврон-стрелка справа)
-    const drawActionGlyph = (ctx, x, y, s, hollow = false) => {
+    const drawActionGlyph = (ctx, x, y, s, hollow = false, chevronOnly = false) => {
         ctx.save();
         ctx.translate(x, y);
         // При повороте на +45° угол (-s, +s) уходит строго ВЛЕВО (9 часов), а (+s, -s) — ВПРАВО (3 часа)
@@ -382,12 +382,11 @@ function generatePathfinderSidebarIcons() {
         const c = d + s * 0.24; // отступ до внутренней грани шеврона
 
         if (hollow) {
-            // Свободное действие: полый контур малого ромба слева + шеврона справа
             ctx.lineWidth = 2.2;
             ctx.strokeStyle = '#111111';
-            // Малый ромб в левом углу
-            ctx.strokeRect(-s, s - d, d, d);
-            // Шеврон справа
+            if (!chevronOnly) {
+                ctx.strokeRect(-s, s - d, d, d);
+            }
             ctx.beginPath();
             ctx.moveTo(-s, -s);
             ctx.lineTo(s, -s);
@@ -399,8 +398,10 @@ function generatePathfinderSidebarIcons() {
             ctx.stroke();
         } else {
             ctx.fillStyle = '#111111';
-            // 1. Отдельный маленький ромб строго слева
-            ctx.fillRect(-s, s - d, d, d);
+            // 1. Отдельный маленький ромб строго слева (только у первого символа)
+            if (!chevronOnly) {
+                ctx.fillRect(-s, s - d, d, d);
+            }
 
             // 2. Широкий шеврон-стрелка справа
             ctx.beginPath();
@@ -416,19 +417,19 @@ function generatePathfinderSidebarIcons() {
         ctx.restore();
     };
 
-
     const actions = {
-        act1: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, false)),
-        act2: makeIcon(108, 36, (ctx) => {
-            drawActionGlyph(ctx, 39, 18, 10.2, false);
-            drawActionGlyph(ctx, 69, 18, 10.2, false);
+        act1: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, false, false)),
+        act2: makeIcon(96, 36, (ctx) => {
+            drawActionGlyph(ctx, 39, 18, 10.2, false, false);
+            drawActionGlyph(ctx, 56, 18, 10.2, false, true);
         }),
-        act3: makeIcon(136, 36, (ctx) => {
-            drawActionGlyph(ctx, 36, 18, 9.8, false);
-            drawActionGlyph(ctx, 66, 18, 9.8, false);
-            drawActionGlyph(ctx, 96, 18, 9.8, false);
+        act3: makeIcon(114, 36, (ctx) => {
+            drawActionGlyph(ctx, 39, 18, 10.0, false, false);
+            drawActionGlyph(ctx, 56, 18, 10.0, false, true);
+            drawActionGlyph(ctx, 73, 18, 10.0, false, true);
         }),
-        free: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, true)),
+        free: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, true, false)),
+
         react: makeIcon(80, 38, (ctx) => {
             // Толстая изогнутая стрелка ответного действия как на фото
             ctx.fillStyle = '#111111';
@@ -449,7 +450,6 @@ function generatePathfinderSidebarIcons() {
             ctx.fill();
         })
     };
-
 
     cachedPfIcons = { dice, actions };
     return cachedPfIcons;
