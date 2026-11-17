@@ -264,6 +264,105 @@ export function recalculateLevelProgression(overlay, hero) {
         if (dcInp) dcInp.value = newSpellDc;
     }
 
+    // 4. Определение рангов мастерства класса на текущем уровне (2 = Изуч., 4 = Эксп., 6 = Маст., 8 = Легенд.)
+    const isEliteWeapon = /воин|fighter|стрелок|gunslinger/i.test(clsName);
+    const isMartial = /поборник|паладин|champion|варвар|barbarian|следопыт|рейнджер|ranger|монах|monk|плут|rogue|сорвиголова|swashbuckler|следователь|investigator/i.test(clsName);
+    const isHybrid = /колдун|магус|magus|изобретатель|inventor|тауматург|thaumaturge|призыватель|summoner/i.test(clsName);
+
+    // Оружие: Воин/Стрелок (Эксперт с 1, Мастер с 5, Легенда с 13); Воины/Гибриды (Эксперт с 5, Мастер с 13); Кастеры (Эксперт с 11)
+    let wpnRank = 2;
+    if (isEliteWeapon) {
+        wpnRank = level >= 13 ? 8 : (level >= 5 ? 4 : 4);
+    } else if (isMartial || isHybrid) {
+        wpnRank = level >= 13 ? 6 : (level >= 5 ? 4 : 2);
+    } else {
+        wpnRank = level >= 11 ? 4 : 2;
+    }
+
+    // Броня: Монах (Эксперт с 1, Мастер с 13, Легенда с 17); Поборник (Эксперт с 7, Мастер с 13, Легенда с 17);
+    // Воин/Варвар/Следопыт/Плут/Колдун (Эксперт с 11/13, Мастер с 17/19); Кастеры (Эксперт с 13)
+    let armorRank = 2;
+    if (/монах|monk/i.test(clsName)) {
+        armorRank = level >= 17 ? 8 : (level >= 13 ? 6 : 4);
+    } else if (/поборник|паладин|champion/i.test(clsName)) {
+        armorRank = level >= 17 ? 8 : (level >= 13 ? 6 : (level >= 7 ? 4 : 2));
+    } else if (isEliteWeapon || isMartial || isHybrid) {
+        armorRank = level >= 17 ? 6 : (level >= 11 ? 4 : 2);
+    } else {
+        armorRank = level >= 13 ? 4 : 2;
+    }
+
+    // Обновление атаки оружия (Уровень + Ранг оружия + характеристика + руна могущества)
+    const strMod = getNum('str', 0);
+    const dexMod = getNum('dex', 0);
+    const updateWeaponAtk = (slot, isRanged) => {
+        const wName = getTxt(`${slot}Name`);
+        if (!wName) return;
+        const traits = getTxt(`${slot}Traits`).toLowerCase();
+        const isFinesse = !isRanged && traits.includes('фехтовальн');
+        const statBonus = isRanged ? dexMod : (isFinesse ? Math.max(strMod, dexMod) : strMod);
+
+        const potencyMatch = wName.match(/^\+(\d)/);
+        const potencyBonus = potencyMatch ? (parseInt(potencyMatch[1], 10) || 0) : 0;
+
+        const totalAtk = level + wpnRank + statBonus + potencyBonus;
+        const atkStr = totalAtk >= 0 ? `+${totalAtk}` : `${totalAtk}`;
+        hero.stats[`${slot}Atk`] = atkStr;
+        if (overlay) {
+            const inp = overlay.querySelector(`[data-sheet-txt="${slot}Atk"]`);
+            if (inp) inp.value = atkStr;
+        }
+    };
+
+    updateWeaponAtk('melee1', false);
+    updateWeaponAtk('melee2', false);
+    updateWeaponAtk('ranged', true);
+
+    // 5. Обновление умений Брони, Внимания, Спасбросков и Навыков
+    const prevLvl = Math.max(1, Number(hero.stats._lastCalcLevel) || 1);
+    const lvlDelta = level - prevLvl;
+    hero.stats._lastCalcLevel = level;
+
+    const setProfField = (key, val) => {
+        hero.stats[key] = val;
+        if (overlay) {
+            const inp = overlay.querySelector(`[data-sheet-num="${key}"]`);
+            if (inp) inp.value = val;
+        }
+    };
+
+    // Броня получает максимум из (сдвинутого текущего значения) и (базового классового ранга + уровень)
+    const curAcProf = getNum('acProf', 2);
+    const shiftedAcProf = curAcProf > 0 ? Math.max(2, curAcProf + lvlDelta) : (level + armorRank);
+    setProfField('acProf', Math.max(shiftedAcProf, level + armorRank));
+
+    // Испытания и Внимание: базовый порог (Эксперт с 5/7/9 ур., Мастер с 11/15 ур.), не ниже уже выставленного игроком ранга
+    const minSaveRank = level >= 15 ? 6 : (level >= 7 ? 4 : 2);
+    const minPercRank = level >= 11 ? 6 : (level >= 5 ? 4 : 2);
+
+    ['saveProf_fort', 'saveProf_ref', 'saveProf_will'].forEach(key => {
+        const cur = getNum(key, 2);
+        const shifted = cur > 0 ? Math.max(2, cur + lvlDelta) : (level + 2);
+        setProfField(key, Math.max(shifted, level + minSaveRank));
+    });
+
+    const curPerc = getNum('saveProf_perc', 2);
+    const shiftedPerc = curPerc > 0 ? Math.max(2, curPerc + lvlDelta) : (level + 2);
+    setProfField('saveProf_perc', Math.max(shiftedPerc, level + minPercRank));
+
+    // Навыки сдвигаются на разницу уровней (если изучены)
+    if (lvlDelta !== 0) {
+        Object.keys(hero.stats).forEach(k => {
+            if (k.startsWith('prof_')) {
+                const curVal = getNum(k, 0);
+                if (curVal > 0) {
+                    setProfField(k, Math.max(2, curVal + lvlDelta));
+                }
+            }
+        });
+    }
+
+
     return {
         newHpMax,
         newSpellAtk,
