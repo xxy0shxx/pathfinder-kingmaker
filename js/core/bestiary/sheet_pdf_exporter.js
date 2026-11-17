@@ -371,74 +371,85 @@ function generatePathfinderSidebarIcons() {
         })
     };
 
-    // 2. Пять фирменных значков действий Pathfinder 2e (ромб с вырезом слева и точка-центр)
+    // 2. Пять фирменных значков действий Pathfinder 2e (малый ромб строго СЛЕВА + шеврон-стрелка справа)
     const drawActionGlyph = (ctx, x, y, s, hollow = false) => {
         ctx.save();
         ctx.translate(x, y);
-        // Поворот на -45°, чтобы вырез по отрицательной оси X оказался строго СЛЕВА!
-        ctx.rotate(-Math.PI / 4);
+        // При повороте на +45° угол (-s, +s) уходит строго ВЛЕВО (9 часов), а (+s, -s) — ВПРАВО (3 часа)
+        ctx.rotate(Math.PI / 4);
+
+        const d = s * 0.84; // размер стороны малого ромба
+        const c = d + s * 0.24; // отступ до внутренней грани шеврона
 
         if (hollow) {
-            // Свободное действие: полый ромб с открытой левой гранью и чёрным ядром по центру
-            ctx.lineWidth = 2.6;
+            // Свободное действие: полый контур малого ромба слева + шеврона справа
+            ctx.lineWidth = 2.2;
             ctx.strokeStyle = '#111111';
+            // Малый ромб в левом углу
+            ctx.strokeRect(-s, s - d, d, d);
+            // Шеврон справа
             ctx.beginPath();
-            ctx.moveTo(-s, -s * 0.48);
-            ctx.lineTo(-s, -s);
+            ctx.moveTo(-s, -s);
             ctx.lineTo(s, -s);
             ctx.lineTo(s, s);
-            ctx.lineTo(-s, s);
-            ctx.lineTo(-s, s * 0.48);
+            ctx.lineTo(-s + c, s);
+            ctx.lineTo(-s + c, s - c);
+            ctx.lineTo(-s, s - c);
+            ctx.closePath();
             ctx.stroke();
-
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(-s * 0.34, -s * 0.34, s * 0.68, s * 0.68);
         } else {
-            // Заполненный ромб со ступенчатым вырезом-стрелкой строго слева
             ctx.fillStyle = '#111111';
+            // 1. Отдельный маленький ромб строго слева
+            ctx.fillRect(-s, s - d, d, d);
+
+            // 2. Широкий шеврон-стрелка справа
             ctx.beginPath();
-            ctx.moveTo(-s, -s * 0.42);
-            ctx.lineTo(-s, -s);
+            ctx.moveTo(-s, -s);
             ctx.lineTo(s, -s);
             ctx.lineTo(s, s);
-            ctx.lineTo(-s, s);
-            ctx.lineTo(-s, s * 0.42);
-            ctx.lineTo(-s * 0.32, s * 0.42);
-            ctx.lineTo(-s * 0.32, -s * 0.42);
+            ctx.lineTo(-s + c, s);
+            ctx.lineTo(-s + c, s - c);
+            ctx.lineTo(-s, s - c);
             ctx.closePath();
             ctx.fill();
         }
         ctx.restore();
     };
 
+
     const actions = {
         act1: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, false)),
-        act2: makeIcon(104, 36, (ctx) => {
-            drawActionGlyph(ctx, 38, 18, 10, false);
-            drawActionGlyph(ctx, 66, 18, 10, false);
+        act2: makeIcon(108, 36, (ctx) => {
+            drawActionGlyph(ctx, 39, 18, 10.2, false);
+            drawActionGlyph(ctx, 69, 18, 10.2, false);
         }),
-        act3: makeIcon(130, 36, (ctx) => {
-            drawActionGlyph(ctx, 35, 18, 9.5, false);
-            drawActionGlyph(ctx, 63, 18, 9.5, false);
-            drawActionGlyph(ctx, 91, 18, 9.5, false);
+        act3: makeIcon(136, 36, (ctx) => {
+            drawActionGlyph(ctx, 36, 18, 9.8, false);
+            drawActionGlyph(ctx, 66, 18, 9.8, false);
+            drawActionGlyph(ctx, 96, 18, 9.8, false);
         }),
         free: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, true)),
         react: makeIcon(80, 38, (ctx) => {
-            ctx.strokeStyle = '#111111';
-            ctx.lineWidth = 3.8;
-            ctx.beginPath();
-            ctx.arc(40, 19, 11.5, -Math.PI * 0.72, Math.PI * 0.62, false);
-            ctx.stroke();
-
+            // Толстая изогнутая стрелка ответного действия как на фото
             ctx.fillStyle = '#111111';
             ctx.beginPath();
-            ctx.moveTo(30, 27);
-            ctx.lineTo(41, 22);
-            ctx.lineTo(39, 34);
+            // Внешняя дуга от левого верхнего хвоста до правого изгиба и вниз к основанию наконечника
+            ctx.moveTo(26, 13);
+            ctx.bezierCurveTo(33, 6, 53, 7, 53, 20);
+            ctx.bezierCurveTo(53, 29, 43, 31, 37, 30);
+            // Нижнее крыло наконечника стрелки
+            ctx.lineTo(39, 35);
+            ctx.lineTo(27, 27);
+            ctx.lineTo(38, 20);
+            ctx.lineTo(37, 25);
+            // Внутренняя дуга обратно к сужающемуся хвосту
+            ctx.bezierCurveTo(42, 26, 47, 24, 47, 19);
+            ctx.bezierCurveTo(47, 13, 34, 12, 26, 13);
             ctx.closePath();
             ctx.fill();
         })
     };
+
 
     cachedPfIcons = { dice, actions };
     return cachedPfIcons;
@@ -451,9 +462,9 @@ const sidebarHtml = (pageNum) => {
     const { dice, actions } = generatePathfinderSidebarIcons();
 
     const dieRow = (imgUrl, label) => `
-        <div class="die-row" style="justify-content:center; align-items:flex-end; gap:3px; margin:2px 0;">
+        <div class="die-row" style="position:relative; display:flex; justify-content:center; align-items:center; width:100%; margin:2px 0;">
             <img src="${imgUrl}" alt="${label}" style="width:46px; height:46px; display:block;">
-            <b style="font-size:7.5pt; color:#111; line-height:1.1; min-width:22px; text-align:left;">${label}</b>
+            <b style="position:absolute; left:calc(50% + 18px); bottom:2px; font-size:7.5pt; color:#111; line-height:1;">${label}</b>
         </div>
     `;
     const actRow = (imgUrl, text, isLast = false) => `
