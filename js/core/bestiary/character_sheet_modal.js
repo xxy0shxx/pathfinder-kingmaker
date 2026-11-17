@@ -1248,6 +1248,9 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                             if (target === 'treasury' && window.BestiaryManager?.addTreasuryLoot) {
                                 window.BestiaryManager.addTreasuryLoot(g, s, c, `${hero.name}${note ? ': ' + note : ''}`);
                             } else if (target.startsWith('hero:')) {
+                                const coinParts = [g > 0 ? `${g} ЗМ` : '', s > 0 ? `${s} СМ` : '', c > 0 ? `${c} ММ` : ''].filter(Boolean).join(' ');
+                                StorageManager.appendTreasuryLog(`💸 ${hero.name} → ${recipient.name}: ${coinParts}${note ? ` (${note})` : ''}`, 'transfer');
+
                                 const recipientId = target.slice(5);
                                 const recipient = (window.BestiaryManager?.state?.party || []).find(p => p.id === recipientId);
                                 if (recipient) {

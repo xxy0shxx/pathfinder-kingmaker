@@ -3,6 +3,7 @@ import EventBus from '../services/event_bus.js';
 
 const StorageManager = {
     STORAGE_KEY: 'hexMapSystemData',
+    TREASURY_LOG_KEY: 'hexMapSystemTreasuryAuditLog',
     mapDataRef: null,
     _isInitialized: false,
 
@@ -115,7 +116,52 @@ const StorageManager = {
                 delete HexCanvasRender.colorCache[hexId];
             }
         }
+    },
+
+    getTreasuryLog() {
+        try {
+            const raw = localStorage.getItem(this.TREASURY_LOG_KEY);
+            const list = raw ? JSON.parse(raw) : [];
+            return Array.isArray(list) ? list : [];
+        } catch (e) {
+            console.error("Ошибка чтения журнала казны из localStorage:", e);
+            return [];
+        }
+    },
+
+    appendTreasuryLog(actionText, category = 'treasury') {
+        const cleanText = String(actionText || '').trim();
+        if (!cleanText) return;
+        try {
+            const list = this.getTreasuryLog();
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const timestamp = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+            list.unshift({
+                id: 'tlog_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                time: timestamp,
+                category,
+                text: cleanText
+            });
+
+            if (list.length > 250) list.length = 250;
+            localStorage.setItem(this.TREASURY_LOG_KEY, JSON.stringify(list));
+        } catch (e) {
+            console.error("Ошибка записи журнала казны в localStorage:", e);
+        }
+    },
+
+    clearTreasuryLog() {
+        try {
+            localStorage.removeItem(this.TREASURY_LOG_KEY);
+        } catch (e) {
+            console.error("Ошибка очистки журнала казны:", e);
+        }
     }
+
+
+
 };
 
 export default StorageManager;

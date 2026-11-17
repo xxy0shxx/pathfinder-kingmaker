@@ -14,6 +14,7 @@ import { PF2E_HERITAGES } from '../../config/heritages_catalog.js';
 import { PF2E_GENERAL_FEATS } from '../../config/general_feats_catalog.js';
 import { PF2E_SKILL_FEATS } from '../../config/skill_feats_catalog.js';
 import ModalManager from '../../ui/modal_manager.js';
+import StorageManager from '../storage_manager.js';
 import {
     PF2E_RANGER_FEATS, PF2E_CHAMPION_FEATS, PF2E_MONK_FEATS, PF2E_BARD_FEATS,
     PF2E_BARBARIAN_FEATS, PF2E_CLERIC_FEATS, PF2E_SORCERER_FEATS, PF2E_WIZARD_FEATS,
@@ -1101,6 +1102,7 @@ export function initPage2Pickers(overlay, hero) {
 
             if (!itemName || itemQty <= 0) return;
 
+
             const partyPool = [
                 ...(window.BestiaryManager?.state?.party || []),
                 ...(window.BestiaryManager?.state?.inactive || [])
@@ -1214,6 +1216,8 @@ export function initPage2Pickers(overlay, hero) {
                                     qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
                                 }
                             }
+
+                            StorageManager.appendTreasuryLog(`🎁 ${hero.name} → ${recipient.name}: ${itemName} (×${giveCount})`, 'transfer');
 
                             if (window.BestiaryManager?._save) window.BestiaryManager._save();
                             giveModal.close();

@@ -1,6 +1,7 @@
 import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
+import StorageManager from './storage_manager.js';
 import {
     STAT_CATEGORIES,
     createDefaultStats,
@@ -225,8 +226,19 @@ const BestiaryManager = {
             this.state.treasury = { gold: 0, silver: 0, copper: 0, notes: '', log: [] };
         }
         if (!Array.isArray(this.state.treasury.log)) this.state.treasury.log = [];
+
+        if (!this.state.treasury.log._auditWrapped) {
+            const origUnshift = this.state.treasury.log.unshift.bind(this.state.treasury.log);
+            this.state.treasury.log.unshift = (...items) => {
+                items.forEach(txt => StorageManager.appendTreasuryLog(txt, 'treasury'));
+                return origUnshift(...items);
+            };
+            this.state.treasury.log._auditWrapped = true;
+        }
+
         return this.state.treasury;
     },
+
 
     _getTreasuryRecipients() {
         const companionNames = new Set();
@@ -819,9 +831,11 @@ const BestiaryManager = {
                         <input type="text" id="bstLootAddNote" class="k-inp" placeholder="За что добыча..." style="flex: 1; min-width: 0; padding: 4px 6px; font-size: 12px;">
                         <button type="button" id="bstBtnAddLoot" class="btn ok" style="padding: 4px 8px; font-size: 12px; white-space: nowrap;">➕ В казну</button>
                     </div>
-                    <div style="font-size: 11px; color: #a4b0be; line-height: 1.3;">
-                        ${tr.log.length > 0 ? `📜 Последние операции: <span style="color:#ebd291;">${tr.log.slice(0, 3).join(' • ')}</span>` : '📜 История операций казны пока пуста.'}
-                    </div>
+        <div style="font-size: 11px; color: #a4b0be; line-height: 1.3; display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+            <span>${tr.log.length > 0 ? `📜 Последние: <span style="color:#ebd291;">${tr.log.slice(0, 2).join(' • ')}</span>` : '📜 История операций пуста.'}</span>
+            <button type="button" id="bstBtnOpenFullAuditLog" class="btn cc" style="padding: 2px 8px; font-size: 11px; white-space: nowrap;">📜 Весь журнал</button>
+        </div>
+
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
@@ -851,6 +865,7 @@ const BestiaryManager = {
         box.querySelector('#bstTrSilver')?.addEventListener('change', (e) => { tr.silver = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrCopper')?.addEventListener('change', (e) => { tr.copper = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrNotes')?.addEventListener('change', (e) => { tr.notes = e.target.value; this._save(); });
+        box.querySelector('#bstBtnOpenFullAuditLog')?.addEventListener('click', () => this.openFullTreasuryLogModal());
 
         box.querySelector('#bstBtnAddLoot')?.addEventListener('click', () => {
             const amt = parseInt(box.querySelector('#bstLootAddAmt')?.value, 10) || 0;
@@ -868,6 +883,10 @@ const BestiaryManager = {
         box.querySelector('#bstBtnConvertCoins')?.addEventListener('click', () => this.convertTreasuryCoins());
         box.querySelector('#bstBtnCollectFromParty')?.addEventListener('click', () => this.openCollectPartyCoinsModal());
         box.querySelector('#bstBtnSplitTreasury')?.addEventListener('click', () => this.openSplitTreasuryModal());
+
+        box.querySelector('#bstBtnOpenFullAuditLog')?.addEventListener('click', () => {
+            this.openFullTreasuryLogModal();
+        });
 
         const lootInp = box.querySelector('#bstTrLootNameInp');
         const lootSuggest = box.querySelector('#bstTrLootSuggestions');
@@ -1024,10 +1043,6 @@ const BestiaryManager = {
 
     },
 
-
-
-
-
     _bindSearchControls() {
         const nameInp = document.getElementById('bstInputName');
         const scoreInp = document.getElementById('bstInputScore');
@@ -1085,7 +1100,6 @@ const BestiaryManager = {
         });
         if (sidebarFilter) sidebarFilter.addEventListener('input', () => this._renderCatalogSidebar(sidebarFilter.value));
     },
-
 
     _renderZone(elId, title, groupKey, items, isParty) {
         const zone = document.getElementById(elId);
@@ -1206,7 +1220,6 @@ const BestiaryManager = {
         });
     },
 
-
     _renderCatalogSidebar(filterQuery = '') {
         const listEl = document.getElementById('bstFullCatalogList');
         const countEl = document.getElementById('bstCatalogTotalCount');
@@ -1288,7 +1301,56 @@ const BestiaryManager = {
 
     buildUnitTooltipHtml(item, options = {}) {
             return buildUnitTooltipHtml(item, options);
-    }
+    },
+
+    _pushTreasuryLog(text, category = 'treasury') {
+        const tr = this._ensureTreasury();
+        tr.log.unshift(text);
+        if (tr.log.length > 8) tr.log.length = 8;
+        StorageManager.appendTreasuryLog(text, category);
+    },
+
+    openFullTreasuryLogModal() {
+        const renderModalBody = () => {
+            const entries = StorageManager.getTreasuryLog();
+            if (!entries.length) {
+                return `<div style="padding: 20px; text-align: center; color: #95a5a6; font-size: 14px;">Журнал операций казны и обмена предметами пока пуст.</div>`;
+            }
+            return `
+                <div style="display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto;">
+                    ${entries.map(item => `
+                        <div style="padding: 7px 10px; background: rgba(4,9,5,0.8); border: 1px solid #543e0d; border-left: 3px solid ${item.category === 'transfer' ? '#74b9ff' : '#ffd875'}; border-radius: 5px; font-size: 13px; color: #ebd291;">
+                            <span style="color: #a4b0be; font-size: 11px; margin-right: 6px;">[${item.time}]</span>
+                            <span>${item.text}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        };
+
+        const modal = ModalManager.open({
+            id: 'bstFullTreasuryLogModal',
+            title: '📜 Полный журнал казны и передачи вещей',
+            width: '560px',
+            borderColor: '#ffd875',
+            bodyHtml: `<div id="bstAuditLogBodyHost">${renderModalBody()}</div>`,
+            footerButtons: [
+                {
+                    label: '🗑️ Очистить журнал',
+                    variant: 'del',
+                    onClick: () => {
+                        StorageManager.clearTreasuryLog();
+                        const host = document.getElementById('bstAuditLogBodyHost');
+                        if (host) host.innerHTML = renderModalBody();
+                    }
+                },
+                { label: 'Закрыть', variant: 'ok', onClick: () => modal.close() }
+            ]
+        });
+
+        if (modal?.overlay) modal.overlay.style.zIndex = '10000350';
+    },
+
 
 
 };
