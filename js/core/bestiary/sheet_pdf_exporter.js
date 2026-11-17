@@ -472,131 +472,149 @@ function generatePathfinderCombatBadges() {
         return c.toDataURL('image/png');
     };
 
-    // 1. Сердце «МАКСИМУМ» (блок Пункты здоровья)
+    const crimson = '#8a1c14';
+
+    // 1. Жирное красное контурное сердце «МАКСИМУМ»
     const hpHeart = makeBadge(120, 108, (ctx) => {
-        const traceHeart = () => {
-            ctx.beginPath();
-            ctx.moveTo(60, 99);
-            ctx.bezierCurveTo(18, 72, 6, 46, 6, 29);
-            ctx.bezierCurveTo(6, 12, 20, 5, 34, 5);
-            ctx.bezierCurveTo(46, 5, 55, 12, 60, 21);
-            ctx.bezierCurveTo(65, 12, 74, 5, 86, 5);
-            ctx.bezierCurveTo(100, 5, 114, 12, 114, 29);
-            ctx.bezierCurveTo(114, 46, 102, 72, 60, 99);
-            ctx.closePath();
-        };
+        ctx.beginPath();
+        ctx.moveTo(60, 98);
+        ctx.bezierCurveTo(18, 71, 7, 46, 7, 29);
+        ctx.bezierCurveTo(7, 13, 20, 6, 34, 6);
+        ctx.bezierCurveTo(46, 6, 55, 13, 60, 22);
+        ctx.bezierCurveTo(65, 13, 74, 6, 86, 6);
+        ctx.bezierCurveTo(100, 6, 113, 13, 113, 29);
+        ctx.bezierCurveTo(113, 46, 102, 71, 60, 98);
+        ctx.closePath();
 
-        const grad = ctx.createLinearGradient(0, 6, 0, 98);
-        grad.addColorStop(0, '#b8392e');
-        grad.addColorStop(0.55, '#9c2920');
-        grad.addColorStop(1, '#7a1c15');
-
-        traceHeart();
-        ctx.fillStyle = grad;
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
-
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#3d100c';
+        ctx.lineWidth = 5.6;
+        ctx.strokeStyle = crimson;
         ctx.stroke();
 
-        // Белая надпись «МАКСИМУМ» в верхней части сердца
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = crimson;
         ctx.font = '900 12.5px Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('МАКСИМУМ', 60, 31);
+        ctx.fillText('МАКСИМУМ', 60, 32);
     });
 
-    // 2. Лупа для блока «Внимание» (линза по центру + ручка ↙)
-    const perceptionGlass = makeBadge(100, 100, (ctx) => {
-        const cx = 56, cy = 42, r = 32;
-
-        // Ручка лупы влево-вниз (↙)
-        ctx.save();
-        ctx.translate(33, 65);
-        ctx.rotate(Math.PI / 4);
-        ctx.fillStyle = '#2b1e16';
+    // 2. Жирная красная фигурная рамка «СКОРОСТЬ / ФУТОВ»
+    const speedBox = makeBadge(156, 72, (ctx) => {
         ctx.beginPath();
-        ctx.roundRect(-5.5, 0, 11, 28, 4);
+        ctx.moveTo(14, 7);
+        ctx.lineTo(142, 7);
+        ctx.lineTo(149, 16);
+        ctx.lineTo(149, 56);
+        ctx.lineTo(142, 65);
+        ctx.lineTo(14, 65);
+        ctx.lineTo(7, 56);
+        ctx.lineTo(7, 16);
+        ctx.closePath();
+
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
-        ctx.fillStyle = '#5e4637';
-        ctx.fillRect(-2, 3, 3, 21);
+        ctx.lineWidth = 5.0;
+        ctx.strokeStyle = crimson;
+        ctx.stroke();
+
+        // Внутренняя красная рамка
+        ctx.lineWidth = 2.0;
+        ctx.strokeRect(13, 12, 130, 48);
+
+        // Надпись «ФУТОВ» справа снизу
+        ctx.fillStyle = crimson;
+        ctx.font = '900 12px Arial, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('ФУТОВ', 137, 55);
+    });
+
+    // 3. Жирная красная контурная лупа для «Внимания»
+    const perceptionGlass = makeBadge(100, 100, (ctx) => {
+        const cx = 56, cy = 42, r = 31;
+
+        // Ручка лупы влево-вниз (↙) с жирным красным контуром
+        ctx.save();
+        ctx.translate(33, 64);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = crimson;
+        ctx.lineWidth = 4.8;
+        ctx.beginPath();
+        ctx.roundRect(-5.5, 0, 11, 27, 4);
+        ctx.fill();
+        ctx.stroke();
         ctx.restore();
 
-        // Внешний тёмный ободок лупы
+        // Внешний жирный красный ободок линзы
         ctx.beginPath();
-        ctx.arc(cx, cy, r + 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#2b1e16';
+        ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
+        ctx.lineWidth = 5.2;
+        ctx.strokeStyle = crimson;
+        ctx.stroke();
 
-        // Внутренняя светлая линза
-        const lensGrad = ctx.createRadialGradient(cx - 8, cy - 8, 4, cx, cy, r);
-        lensGrad.addColorStop(0, '#ffffff');
-        lensGrad.addColorStop(0.85, '#f6f1e7');
-        lensGrad.addColorStop(1, '#dfd5c3');
-
+        // Внутренний тонкий красный кант линзы
         ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fillStyle = lensGrad;
-        ctx.fill();
-
-        // Тонкий внутренний кант линзы
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = '#8c7a65';
+        ctx.arc(cx, cy, r - 1.5, 0, Math.PI * 2);
+        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = crimson;
         ctx.stroke();
     });
 
-
-    // 3. Геральдический щит «КБ» с верхним мыском как в оригинале
-    const acShield = makeBadge(104, 114, (ctx) => {
+    // 4. Жирный красный геральдический щит «КБ»
+    const acShield = makeBadge(108, 118, (ctx) => {
         const traceShield = () => {
             ctx.beginPath();
-            ctx.moveTo(52, 5);
-            ctx.lineTo(94, 16);
-            ctx.lineTo(94, 54);
-            ctx.quadraticCurveTo(94, 88, 52, 108);
-            ctx.quadraticCurveTo(10, 88, 10, 54);
-            ctx.lineTo(10, 16);
+            ctx.moveTo(54, 6);
+            ctx.quadraticCurveTo(78, 16, 97, 15);
+            ctx.lineTo(93, 54);
+            ctx.quadraticCurveTo(89, 89, 54, 111);
+            ctx.quadraticCurveTo(19, 89, 15, 54);
+            ctx.lineTo(11, 15);
+            ctx.quadraticCurveTo(30, 16, 54, 6);
             ctx.closePath();
         };
 
-        const grad = ctx.createLinearGradient(0, 6, 0, 108);
-        grad.addColorStop(0, '#b3382c');
-        grad.addColorStop(0.55, '#96271d');
-        grad.addColorStop(1, '#751911');
-
+        // Белый фон щита
         traceShield();
-        ctx.fillStyle = grad;
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
 
-        ctx.lineWidth = 3.2;
-        ctx.strokeStyle = '#3b100b';
-        ctx.stroke();
-
-        // Тонкая светлая внутренняя кайма
+        // Верхняя плашка под «КБ» с красной отбивкой
         ctx.save();
-        ctx.translate(52, 56);
-        ctx.scale(0.88, 0.89);
-        ctx.translate(-52, -56);
         traceShield();
-        ctx.lineWidth = 1.4;
-        ctx.strokeStyle = 'rgba(255, 236, 204, 0.55)';
+        ctx.clip();
+        ctx.fillStyle = '#f9f1ed';
+        ctx.fillRect(0, 0, 108, 36);
+        ctx.beginPath();
+        ctx.moveTo(8, 36);
+        ctx.lineTo(100, 36);
+        ctx.lineWidth = 3.2;
+        ctx.strokeStyle = crimson;
         ctx.stroke();
         ctx.restore();
 
-        // Белая надпись «КБ» сверху
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 16px Arial, sans-serif';
+        // Внешний жирный красный контур щита
+        traceShield();
+        ctx.lineWidth = 5.6;
+        ctx.strokeStyle = crimson;
+        ctx.stroke();
+
+        // Надпись «КБ» в верхней шапке щита
+        ctx.fillStyle = crimson;
+        ctx.font = '900 17px Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('КБ', 52, 28);
+        ctx.fillText('КБ', 54, 24);
     });
 
-
-
-    cachedPfCombatBadges = { hpHeart, perceptionGlass, acShield };
+    cachedPfCombatBadges = { hpHeart, speedBox, perceptionGlass, acShield };
     return cachedPfCombatBadges;
 }
+
 
 
 
@@ -661,7 +679,7 @@ export function exportCharacterToPdf(hero) {
     if (!hero) return;
     const s = ensureCharacterStats(hero);
     const name = hero.name || 'Безымянный герой';
-    const { hpHeart, perceptionGlass, acShield } = generatePathfinderCombatBadges();
+    const { hpHeart, speedBox, perceptionGlass, acShield } = generatePathfinderCombatBadges();
 
 
     const feat1 = [s.classFeatLvl1Name, s.classFeatLvl1Desc].filter(Boolean).join(' — ');
@@ -1162,17 +1180,17 @@ export function exportCharacterToPdf(hero) {
             
             
             <div style="width: 56%; display: flex; flex-direction: column;">
+            
                 <div class="row">
-                
                     <div class="sec" style="width: 56%;">
                         <div class="sec-hdr red"><span class="badge">Д</span> Пункты здоровья</div>
                         <div class="sec-body" style="padding: 3px 5px; gap: 3px;">
                             <div style="display:flex; align-items:center; gap:0;">
                                 <div style="position:relative; width:56px; height:50px; flex-shrink:0; z-index:2; display:flex; align-items:center; justify-content:center;">
                                     <img src="${hpHeart}" alt="Максимум ПЗ" style="width:100%; height:100%; object-fit:contain;">
-                                    <span style="position:absolute; top:20px; left:0; right:0; text-align:center; font-size:11.5pt; font-weight:900; color:#fff; text-shadow:0 1px 2px #000;">${s.hpMax ?? 10}</span>
+                                    <span style="position:absolute; top:20px; left:0; right:0; text-align:center; font-size:11.5pt; font-weight:900; color:#1a1a1a;">${s.hpMax ?? 10}</span>
                                 </div>
-                                <div style="flex:1; margin-left:-12px; padding:3px 6px 3px 16px; border:1.5px solid #5e1914; border-left:none; border-radius:0 5px 5px 0; background:#faf6ef; text-align:center; position:relative;">
+                                <div style="flex:1; margin-left:-12px; padding:3px 6px 3px 16px; border:2.4px solid #8a1c14; border-left:none; border-radius:0 5px 5px 0; background:#ffffff; text-align:center;">
                                     <div style="font-size:5.5pt; font-weight:800; color:#5e1914; letter-spacing:0.3px;">ТЕКУЩИЕ</div>
                                     <div style="font-size:12pt; font-weight:900; color:#1a1a1a; line-height:1.15;">${s.hpCurrent ?? 10}</div>
                                 </div>
@@ -1183,15 +1201,18 @@ export function exportCharacterToPdf(hero) {
                             </div>
                         </div>
                     </div>
-                    
                     <div class="sec" style="width: 44%;">
                         <div class="sec-hdr green"><span class="badge">Е</span> Скорость</div>
-                        <div class="sec-body" style="display:flex; flex-direction:row; align-items:center; gap:5px;">
-                            <div class="box box-lg">${s.speed ?? 25}</div>
-                            <div style="font-size:6.2pt; line-height:1.1;"><b>ФУТОВ</b><br>Переместитесь ◆ на значение скорости.</div>
+                        <div class="sec-body" style="display:flex; flex-direction:column; justify-content:center; gap:2px;">
+                            <div style="position:relative; width:100%; height:34px; display:flex; align-items:center; justify-content:center;">
+                                <img src="${speedBox}" alt="Скорость" style="width:100%; height:100%; object-fit:contain;">
+                                <span style="position:absolute; left:14px; right:42px; text-align:center; font-size:12pt; font-weight:900; color:#1a1a1a;">${s.speed ?? 25}</span>
+                            </div>
+                            <div style="font-size:5.6pt; line-height:1.1; color:#222;"><b>ПЕРЕМЕЩЕНИЕ ◆:</b> переместитесь на значение скорости.</div>
                         </div>
                     </div>
                 </div>
+
 
 
                 <div class="sec">
@@ -1250,10 +1271,13 @@ export function exportCharacterToPdf(hero) {
                     <div class="sec-hdr red"><span class="badge">К</span> Защита и Класс брони</div>
                     <div class="sec-body">
                         <div style="display:flex; align-items:center; gap:4px; margin-bottom:3px;">
-                            <div style="position:relative; width:46px; height:50px; flex-shrink:0;">
+                        
+                            <div style="position:relative; width:48px; height:52px; flex-shrink:0;">
                                 <img src="${acShield}" alt="КБ" style="width:100%; height:100%; object-fit:contain; display:block;">
-                                <span style="position:absolute; top:21px; left:0; right:0; text-align:center; font-size:12pt; font-weight:900; color:#fff; text-shadow:0 1px 2px #000;">${s.ac ?? 10}</span>
+                                <span style="position:absolute; top:22px; left:0; right:0; text-align:center; font-size:12.5pt; font-weight:900; color:#1a1a1a;">${s.ac ?? 10}</span>
                             </div>
+
+                            
                             <span class="eq">= 10 +</span>
                             <div class="box-sub"><div class="box box-xs">${s.acDex ?? 0}</div><span>ЛВК</span></div>
                             <span class="op">+</span>
