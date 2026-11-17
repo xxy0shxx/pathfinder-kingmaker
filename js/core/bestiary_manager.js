@@ -1339,10 +1339,36 @@ const BestiaryManager = {
                     label: '🗑️ Очистить журнал',
                     variant: 'del',
                     onClick: () => {
-                        StorageManager.clearTreasuryLog();
-                        const host = document.getElementById('bstAuditLogBodyHost');
-                        if (host) host.innerHTML = renderModalBody();
+                        if (!StorageManager.getTreasuryLog().length) return;
+
+                        const confirmModal = ModalManager.open({
+                            id: 'bstConfirmClearAuditLogModal',
+                            title: '⚠️ Очистка журнала операций',
+                            width: '420px',
+                            borderColor: '#e74c3c',
+                            bodyHtml: `
+                                <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                                    Вы действительно хотите безвозвратно удалить всю историю операций казны и передачи предметов?
+                                </div>
+                            `,
+                            footerButtons: [
+                                { label: '✖ Отмена', variant: 'cc', onClick: () => confirmModal.close() },
+                                {
+                                    label: '🗑️ Да, очистить',
+                                    variant: 'del',
+                                    onClick: () => {
+                                        StorageManager.clearTreasuryLog();
+                                        const host = document.getElementById('bstAuditLogBodyHost');
+                                        if (host) host.innerHTML = renderModalBody();
+                                        confirmModal.close();
+                                    }
+                                }
+                            ]
+                        });
+
+                        if (confirmModal?.overlay) confirmModal.overlay.style.zIndex = '10000450';
                     }
+
                 },
                 { label: 'Закрыть', variant: 'ok', onClick: () => modal.close() }
             ]
