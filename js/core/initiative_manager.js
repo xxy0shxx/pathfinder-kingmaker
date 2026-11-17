@@ -108,6 +108,9 @@ const InitiativeManager = {
             return;
         }
 
+        const heroId = this._pendingHeroId || null;
+        this._pendingHeroId = null;
+
         const autoAvatarType = this._pendingAvatarType || AvatarRegistry.guessAvatarByName(cleanName);
         const autoAvatarUrl = autoAvatarType ? AvatarRegistry.getAvatarDataUrl(autoAvatarType) : null;
         this._pendingAvatarType = null;
@@ -119,6 +122,7 @@ const InitiativeManager = {
 
         const newUnit = {
             id: 'unit_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            heroId,
             name: cleanName,
             score: parsedScore,
             faction: unitFaction,

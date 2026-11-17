@@ -4,6 +4,8 @@
 import { MAP_CONFIG } from './config/app_config.js';
 import UiSelectManager from './controller/ui_select_manager.js';
 import FogManager from './controller/fog_manager.js';
+import './services/hero_sync_service.js';
+import './services/catalog_service.js';
 
 // ============================================================================
 // ИМПОРТЫ: ЯДРО СИСТЕМЫ (CORE)

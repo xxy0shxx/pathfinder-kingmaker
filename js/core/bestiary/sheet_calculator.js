@@ -1,189 +1,125 @@
 import { SHORT_TO_FULL_SKILL_MAP } from './bestiary_config.js';
 import { PF2E_ITEMS_CATALOG, getItemLevel } from '../../config/items_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../../config/meta_catalog.js';
-
+import CatalogService from '../../services/catalog_service.js';
 
 
 const FULL_TO_SHORT_SKILL_MAP = Object.fromEntries(
     Object.entries(SHORT_TO_FULL_SKILL_MAP).map(([shortK, fullK]) => [fullK, shortK])
 );
 
-export function recalculateSheetStats(overlay, hero) {
-    const armorType = overlay.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
-    const dexInp = overlay.querySelector('[data-sheet-num="acDex"]');
-    const profInp = overlay.querySelector('[data-sheet-num="acProf"]');
-    const itemInp = overlay.querySelector('[data-sheet-num="acItem"]');
-    const otherInp = overlay.querySelector('[data-sheet-num="acOther"]');
-    const penaltyInp = overlay.querySelector('[data-sheet-num="acArmorPenalty"]');
-    const totalAcInp = overlay.querySelector('[data-sheet-num="ac"]');
 
-    if (!totalAcInp) return;
+export function recalculateSheetStats(overlayEl, hero) {
+    if (!overlayEl || !hero) return;
 
-    let rawDex = parseInt(dexInp?.value, 10) || 0;
-    const prof = parseInt(profInp?.value, 10) || 0;
-    const item = parseInt(itemInp?.value, 10) || 0;
-    const other = parseInt(otherInp?.value, 10) || 0;
+    const getNum = (key) => parseInt(overlayEl.querySelector(`[data-sheet-num="${key}"]`)?.value, 10) || 0;
+    const setNum = (key, val) => {
+        const el = overlayEl.querySelector(`[data-sheet-num="${key}"]`);
+        if (el) el.value = val;
+        hero.stats[key] = val;
+    };
 
-    const charStr = parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0;
-    const armorStrReq = parseInt(totalAcInp.dataset.currentStrReq, 10) || 0;
+    const str = getNum('str');
+    const dex = getNum('dex');
+    const con = getNum('con');
+    const int = getNum('int');
+    const wis = getNum('wis');
+    const cha = getNum('cha');
 
-    let dexCap = 5;
-    if (armorType === 'light') dexCap = 3;
-    else if (armorType === 'medium') dexCap = 2;
-    else if (armorType === 'heavy') dexCap = 1;
+    // --- 1. Умный расчет КБ с учетом типа брони и лимита Ловкости ---
+    const armorType = overlayEl.querySelector('[data-sheet-txt="armorType"]')?.value || 'unarmored';
+    const dexCapMap = { unarmored: 5, light: 3, medium: 2, heavy: 1 };
+    let maxDex = dexCapMap[armorType] ?? 5;
 
-    if (rawDex > dexCap) rawDex = dexCap;
-
-    const basePenalty = parseInt(penaltyInp?.value, 10) || 0;
-    const activePenalty = (armorType !== 'unarmored' && charStr < armorStrReq)
-        ? Math.abs(basePenalty)
-        : 0;
-
-    hero.stats.acArmorPenalty = basePenalty;
-
-    if (penaltyInp) {
-        if (armorType === 'unarmored') {
-            penaltyInp.title = 'Нет брони — штрафы отсутствуют.';
-        } else if (charStr < armorStrReq) {
-            penaltyInp.title = `Штраф активен! Сила (${charStr}) меньше требуемой (${armorStrReq}).`;
-            penaltyInp.style.borderColor = '#e74c3c';
-        } else {
-            penaltyInp.title = `Штраф аннулирован! Сила (${charStr}) соответствует требованиям (${armorStrReq}).`;
-            penaltyInp.style.borderColor = '#2ecc71';
-        }
+    // Берем точные лимит Ловкости и требование Силы из кэша CatalogService
+    const armorNameRaw = overlayEl.querySelector('[data-sheet-txt="armorName"]')?.value || '';
+    const armorObj = CatalogService.findArmor(armorNameRaw);
+    if (armorObj) {
+        maxDex = armorObj.dexCap;
     }
 
-    // Итоговый КБ
-    const totalAc = 10 + rawDex + prof + item + other;
-    totalAcInp.value = totalAc;
-    hero.stats.ac = totalAc;
+    const effDex = Math.min(dex, maxDex);
+    const acProf = getNum('acProf');
+    const acItem = getNum('acItem');
+    const acOther = getNum('acOther');
+    const totalAc = 10 + effDex + acProf + acItem + acOther;
+    setNum('ac', totalAc);
 
-    // Синхронизация бонусов от предметов в рюкзаке с проверкой уровня персонажа
-    const currentHeroLvl = Math.max(1, parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || Number(hero.stats.level) || 1);
+    // Проверка требования Силы для штрафа брони к навыкам (Check Penalty)
+    const strReq = armorObj ? (armorObj.strReq || 0) : 0;
+    const acInpEl = overlayEl.querySelector('[data-sheet-num="ac"]');
+    if (acInpEl) acInpEl.dataset.currentStrReq = String(strReq);
+
+    const baseArmorPenalty = Math.abs(getNum('acArmorPenalty'));
+    const effectiveSkillPenalty = (armorType !== 'unarmored' && str < strReq) ? baseArmorPenalty : 0;
+
+    // --- 2. Поиск активных бонусов к навыкам и испытаниям от предметов и рун ---
     const activeSkillBonuses = {};
     let activeSaveBonus = 0;
+    const currentHeroLvl = Math.max(1, getNum('level') || 1);
 
+    // 2.1. Предметы и руны из рюкзака (Стр. 2)
     for (let i = 1; i <= 15; i++) {
-        const dollSlots = ['head', 'cloak', 'hands', 'belt', 'neck', 'armor', 'eyes', 'feet', 'mainHand', 'offHand', 'ring_1', 'ring_2', 'ring_3', 'ring_4', 'ring_5'];
-        dollSlots.forEach(sk => {
-            const eqName = String(hero.stats[`eq_${sk}_Name`] || '').trim();
-            if (!eqName) return;
-            const cleanEq = eqName.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
-            const found = PF2E_ITEMS_CATALOG.find(it => it.name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е') === cleanEq);
-            if (!found || getItemLevel(found) > currentHeroLvl) return;
+        const itemName = String(hero.stats[`item${i}Name`] || '').trim();
+        const qty = Math.max(0, Number(hero.stats[`item${i}Qty`]) || 0);
+        if (!itemName || qty <= 0) continue;
 
-            const isInv = /настроенность|вкладываем|invested/i.test(`${found.notes || ''} ${found.category || ''}`);
-            if (isInv && !hero.stats[`eq_${sk}_Invested`]) return;
+        const found = CatalogService.findItem(itemName);
+        if (!CatalogService.isItemActiveForHero(found, currentHeroLvl, true)) continue;
 
-            if (found.skillBonus?.skill) {
-                const targetSk = found.skillBonus.skill;
-                activeSkillBonuses[targetSk] = Math.max(activeSkillBonuses[targetSk] || 0, Number(found.skillBonus.bonus) || 0);
-            }
-            if (found.runeEffect?.target === 'save' && found.runeEffect.bonus) {
-                activeSaveBonus = Math.max(activeSaveBonus, Number(found.runeEffect.bonus) || 0);
-            }
-        });
-
-        const rawName = String(hero.stats[`item${i}Name`] || '').trim();
-        const qty = Number(hero.stats[`item${i}Qty`]) || 0;
-        if (!rawName || qty <= 0) continue;
-
-        const cleanName = rawName.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
-        const found = PF2E_ITEMS_CATALOG.find(it => {
-            const target = it.name.replace(/^[^\p{L}\p{N}]+/u, '').trim().toLowerCase().replace(/ё/g, 'е');
-            return target === cleanName || (cleanName.length > 3 && target.includes(cleanName));
-        });
-
-        if (!found) continue;
-        const reqLvl = getItemLevel(found);
-        if (reqLvl > currentHeroLvl) continue; // Предмет не по уровню — пропускаем бонус
-
-        if (found.skillBonus && found.skillBonus.skill) {
-            const sk = found.skillBonus.skill;
-            activeSkillBonuses[sk] = Math.max(activeSkillBonuses[sk] || 0, Number(found.skillBonus.bonus) || 0);
+        if (found.skillBonus?.skill) {
+            const targetSk = found.skillBonus.skill;
+            activeSkillBonuses[targetSk] = Math.max(activeSkillBonuses[targetSk] || 0, Number(found.skillBonus.bonus) || 0);
         }
-        if (found.runeEffect && found.runeEffect.target === 'save' && found.runeEffect.bonus) {
+        if (found.runeEffect?.target === 'save' && found.runeEffect.bonus) {
             activeSaveBonus = Math.max(activeSaveBonus, Number(found.runeEffect.bonus) || 0);
         }
     }
 
-    hero.stats.skillItemBonuses = activeSkillBonuses;
-    if (activeSaveBonus > 0 || hero.stats.saveItemBonus) {
-        hero.stats.saveItemBonus = activeSaveBonus;
-    }
+    // 2.2. Вложенные предметы, надетые на куклу персонажа (Стр. 3)
+    const dollSlots = ['head', 'cloak', 'hands', 'belt', 'neck', 'armor', 'eyes', 'feet', 'mainHand', 'offHand', 'ring_1', 'ring_2', 'ring_3', 'ring_4', 'ring_5'];
+    dollSlots.forEach(sk => {
+        const eqName = String(hero.stats[`eq_${sk}_Name`] || '').trim();
+        if (!eqName) return;
 
+        const found = CatalogService.findItem(eqName);
+        const isInv = !!hero.stats[`eq_${sk}_Invested`];
+        if (!CatalogService.isItemActiveForHero(found, currentHeroLvl, isInv)) return;
 
-    // Внимание и спасброски
-    const charWis = parseInt(overlay.querySelector('[data-sheet-num="wis"]')?.value, 10) || 0;
-    const charCon = parseInt(overlay.querySelector('[data-sheet-num="con"]')?.value, 10) || 0;
-    const charDex = parseInt(overlay.querySelector('[data-sheet-num="dex"]')?.value, 10) || 0;
-    const charInt = parseInt(overlay.querySelector('[data-sheet-num="int"]')?.value, 10) || 0;
-    const charCha = parseInt(overlay.querySelector('[data-sheet-num="cha"]')?.value, 10) || 0;
-
-    const profPerc = parseInt(overlay.querySelector('[data-sheet-num="saveProf_perc"]')?.value, 10) || 0;
-    const profFort = parseInt(overlay.querySelector('[data-sheet-num="saveProf_fort"]')?.value, 10) || 0;
-    const profRef = parseInt(overlay.querySelector('[data-sheet-num="saveProf_ref"]')?.value, 10) || 0;
-    const profWill = parseInt(overlay.querySelector('[data-sheet-num="saveProf_will"]')?.value, 10) || 0;
-
-    const saveItem = Number(hero.stats.saveItemBonus) || 0;
-
-    const saves = [
-        ['perception', 'perc', charWis + profPerc],
-        ['fortitude', 'fort', charCon + profFort + saveItem],
-        ['reflex', 'ref', charDex + profRef + saveItem],
-        ['will', null, charWis + profWill + saveItem]
-    ];
-
-    saves.forEach(([fullKey, shortKey, val]) => {
-        const el = overlay.querySelector(`[data-sheet-num="${fullKey}"]`);
-        if (el) el.value = val;
-        hero.stats[fullKey] = val;
-        if (shortKey) hero.stats[shortKey] = val;
-    });
-
-    // Авторасчет всех 17 навыков
-    const skillToAttrMap = {
-        acrobatics: charDex, athletics: charStr, thievery: charDex, stealth: charDex,
-        survival: charWis, medicine: charWis, nature: charWis, religion: charWis,
-        diplomacy: charCha, intimidation: charCha, deception: charCha,
-        arcana: charInt, occultism: charInt, society: charInt, crafting: charInt,
-        lore: charInt, performance: charCha
-    };
-
-    const penaltySkills = ['acrobatics', 'athletics', 'stealth', 'thievery'];
-
-    Object.entries(skillToAttrMap).forEach(([skillKey, attrModifier]) => {
-        const totalInp = overlay.querySelector(`[data-sheet-num="${skillKey}"]`);
-        const profInp = overlay.querySelector(`[data-sheet-num="prof_${skillKey}"]`);
-        if (!totalInp || !profInp) return;
-
-        const profValue = parseInt(profInp.value, 10) || 0;
-        const itemBonus = Number(hero.stats.skillItemBonuses?.[skillKey]) || 0;
-        let finalSkillVal = attrModifier + profValue + itemBonus;
-        const hasActivePenalty = penaltySkills.includes(skillKey) && activePenalty > 0;
-
-        if (hasActivePenalty) finalSkillVal -= activePenalty;
-
-        totalInp.value = finalSkillVal;
-        hero.stats[skillKey] = finalSkillVal;
-
-        const shortKey = FULL_TO_SHORT_SKILL_MAP[skillKey];
-        if (shortKey) hero.stats[shortKey] = finalSkillVal;
-
-        const itemStr = itemBonus > 0 ? `, Предмет: +${itemBonus}` : '';
-
-        if (hasActivePenalty) {
-            totalInp.style.color = '#ff7675';
-            totalInp.title = `Штраф брони активен! (База: ${attrModifier + profValue}${itemStr}, Штраф: -${activePenalty})`;
-        } else if (profValue > 0 || itemBonus > 0) {
-            totalInp.style.color = '#2ecc71';
-            totalInp.title = `Бонус активен! (Характеристика: ${attrModifier}, Умение: +${profValue}${itemStr})`;
-        } else {
-            totalInp.style.color = '';
-            totalInp.title = `Не изучен (Только модификатор характеристики: ${attrModifier})`;
+        if (found.skillBonus?.skill) {
+            const targetSk = found.skillBonus.skill;
+            activeSkillBonuses[targetSk] = Math.max(activeSkillBonuses[targetSk] || 0, Number(found.skillBonus.bonus) || 0);
+        }
+        if (found.runeEffect?.target === 'save' && found.runeEffect.bonus) {
+            activeSaveBonus = Math.max(activeSaveBonus, Number(found.runeEffect.bonus) || 0);
         }
     });
+
+    hero.stats.skillItemBonuses = activeSkillBonuses;
+
+    // --- 3. Авторасчет Внимания и Испытаний (Спасбросков) + Руна стойкости ---
+    setNum('perception', wis + getNum('saveProf_perc'));
+    setNum('fortitude', con + getNum('saveProf_fort') + activeSaveBonus);
+    setNum('reflex', dex + getNum('saveProf_ref') + activeSaveBonus);
+    setNum('will', wis + getNum('saveProf_will') + activeSaveBonus);
+
+    // --- 4. Авторасчет всех 17 навыков Pathfinder 2e (с учетом предметов и штрафа брони) ---
+    const skillMap = {
+        acrobatics: dex, athletics: str, thievery: dex, stealth: dex,
+        survival: wis, medicine: wis, nature: wis, religion: wis,
+        diplomacy: cha, intimidation: cha, deception: cha, performance: cha,
+        arcana: int, occultism: int, society: int, crafting: int, lore: int
+    };
+    const penaltySkills = ['acrobatics', 'athletics', 'stealth', 'thievery'];
+
+    Object.entries(skillMap).forEach(([sk, attrVal]) => {
+        const prof = getNum(`prof_${sk}`);
+        const itemBonus = activeSkillBonuses[sk] || 0;
+        const pen = penaltySkills.includes(sk) ? effectiveSkillPenalty : 0;
+        setNum(sk, attrVal + prof + itemBonus - pen);
+    });
 }
+
 
 /**
  * Пересчитывает Макс. ПЗ, Атаку заклинанием и СЛ заклинаний под текущий уровень, народ и класс героя
@@ -214,8 +150,8 @@ export function recalculateLevelProgression(overlay, hero) {
     const ancName = norm(getTxt('ancestry'));
     const clsName = norm(getTxt('charClass'));
 
-    const ancObj = (PF2E_ANCESTRIES || []).find(a => ancName && (norm(a.name) === ancName || norm(a.name).includes(ancName) || ancName.includes(norm(a.name))));
-    const clsObj = (PF2E_CLASSES || []).find(c => clsName && (norm(c.name) === clsName || norm(c.name).includes(clsName) || clsName.includes(norm(c.name))));
+    const ancObj = CatalogService.findAncestry(hero.stats.ancestry);
+    const clsObj = CatalogService.findClass(hero.stats.charClass);
 
     const ancHp = ancObj ? (Number(ancObj.hp) || 8) : 8;
     const clsHp = clsObj ? (Number(clsObj.hp) || 8) : 8;
