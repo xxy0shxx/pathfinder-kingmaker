@@ -741,7 +741,6 @@ const sidebarHtml = (pageNum) => {
         ? `<img src="${logoUrl}" alt="Pathfinder" style="max-width: 100%; height: auto; display: block; margin: 0 auto 3px auto;">`
         : `<div class="sb-pf">PATHFINDER</div>`
     }
-            <div class="sb-sub">СТАРТОВЫЙ НАБОР</div>
         </div>
         <div class="sb-hdr">КОСТИ</div>
         <div class="sb-dice" style="display:flex; flex-direction:column; align-items:center; padding:3px 0;">
@@ -988,43 +987,109 @@ export function exportCharacterToPdf(hero) {
 
 
 
+
+    const renderMiniEntry = (tag, tagBg, title, desc) => `
+        <div class="mini-feat-row">
+            <div class="mfr-head">
+                ${tag ? `<span class="mfr-tag" style="background:${tagBg};">${esc(tag)}</span>` : ''}
+                <b class="mfr-title">${esc(title)}</b>
+            </div>
+            ${desc ? `<div class="mfr-desc">${esc(desc)}</div>` : ''}
+        </div>
+    `;
+
     // А. Народ, Наследие и Черты народа (1, 5, 9, 13, 17 ур.)
     const ancestryObj = findInCat(PF2E_ANCESTRIES, s.ancestry);
     const heritageObj = findInCat(PF2E_HERITAGES, s.heritage);
     const ancLevels = new Array(1, 5, 9, 13, 17);
-    const ancFeatsLines = ancLevels.map(lvl => {
+    const ancEntries = new Array();
+
+    if (ancestryObj?.traits) {
+        ancEntries.push(renderMiniEntry('НАРОД', '#eee6d8', 'Дескрипторы и черты', ancestryObj.traits));
+    }
+    if (s.heritage) {
+        ancEntries.push(renderMiniEntry('НАСЛЕДИЕ', '#e8f5e9', s.heritage, heritageObj?.desc || ''));
+    }
+    ancLevels.forEach(lvl => {
         const fName = String(s[`ancFeatLvl${lvl}Name`] || '').trim();
         const fDesc = String(s[`ancFeatLvl${lvl}Desc`] || '').trim();
-        return (fName || fDesc) ? `🧬 ${lvl} ур.: ${fName}${fDesc ? ' — ' + fDesc : ''}` : '';
-    }).filter(Boolean);
+        if (fName || fDesc) {
+            ancEntries.push(renderMiniEntry(`${lvl} УР.`, '#ede7f6', fName || 'Черта народа', fDesc));
+        }
+    });
 
-    const ancestryFullText = new Array(
-        ancestryObj ? `Народ: ${ancestryObj.traits}` : '',
-        s.heritage ? `Наследие: ${s.heritage}${heritageObj?.desc ? ' — ' + heritageObj.desc : ''}` : '',
-        ...ancFeatsLines
-    ).filter(Boolean).join('\n');
+    const ancestryHtml = ancEntries.length
+        ? ancEntries.join('')
+        : `<div class="empty-slot">Особенности народа не указаны</div>`;
 
     // Б. Происхождение и Черта происхождения
     const bgObj = findInCat(PF2E_BACKGROUNDS, s.background);
     const bgFeatText = s.backgroundFeat || bgObj?.feat || '';
-    const bgFullText = new Array(
-        bgFeatText ? `Черта: ${bgFeatText}` : '',
-        bgObj ? `${bgObj.desc} (Навык: ${bgObj.skillName}, Знание: ${bgObj.lore})` : ''
-    ).filter(Boolean).join('\n');
+    const bgEntries = [];
+
+    if (bgFeatText) {
+        bgEntries.push(renderMiniEntry('ЧЕРТА', '#e3f2fd', bgFeatText, bgObj?.desc || ''));
+    } else if (bgObj?.desc) {
+        bgEntries.push(renderMiniEntry('ОПИСАНИЕ', '#eee6d8', s.background || 'Происхождение', bgObj.desc));
+    }
+    if (bgObj?.skillName || bgObj?.lore) {
+        const skillsLine = [bgObj.skillName ? `Навык: ${bgObj.skillName}` : '', bgObj.lore ? `Знание: ${bgObj.lore}` : ''].filter(Boolean).join(' • ');
+        bgEntries.push(renderMiniEntry('ПОДГОТОВКА', '#f3e5f5', 'Обучение', skillsLine));
+    }
+
+    const bgHtml = bgEntries.length
+        ? bgEntries.join('')
+        : `<div class="empty-slot">Описание происхождения не указано</div>`;
 
     // В. Класс, Действия, Классовые, Общие и Навыковые черты
     const classObj = findInCat(PF2E_CLASSES, s.charClass);
-    const allLevels = new Array(1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20);
-    const classFeatsLines = allLevels.map(lvl => {
+    const classEntries = [];
+
+    if (classObj) {
+        classEntries.push(renderMiniEntry('КЛАСС', '#fff3e0', `${classObj.hp} ПЗ/ур. • Ключевая: ${classObj.keyStat}`, classObj.desc || ''));
+    }
+
+    [1, 2, 3].forEach(i => {
+        const aName = String(s[`actionSlot${i}Name`] || '').trim();
+        const aDesc = String(s[`actionSlot${i}Desc`] || '').trim();
+        if (aName) {
+            classEntries.push(renderMiniEntry('⚡ ДЕЙСТВИЕ', '#e8f5e9', aName, aDesc));
+        }
+    });
+
+    [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20].forEach(lvl => {
         const fName = String(s[`classFeatLvl${lvl}Name`] || '').trim();
         let fDesc = String(s[`classFeatLvl${lvl}Desc`] || '').trim();
-        if (!fName && !fDesc) return '';
+        if (!fName && !fDesc) return;
         if (!fDesc && fName) {
             const catFeat = findInCat(allFeatsPool, fName);
             if (catFeat?.desc) fDesc = catFeat.desc;
         }
-        return `${lvl} ур.: ${fName}${fDesc ? ' — ' + fDesc : ''}`;
-    }).filter(Boolean);
+        classEntries.push(renderMiniEntry(`КЛАСС ${lvl}`, '#e8f5e9', fName || `Черта ${lvl} ур.`, fDesc));
+    });
+
+    [3, 7, 11, 15, 19].forEach(lvl => {
+        const fName = String(s[`genFeatLvl${lvl}Name`] || '').trim();
+        const fDesc = String(s[`genFeatLvl${lvl}Desc`] || '').trim();
+        if (fName || fDesc) {
+            classEntries.push(renderMiniEntry(`ОБЩАЯ ${lvl}`, '#fff8e1', fName || `Общая черта ${lvl} ур.`, fDesc));
+        }
+    });
+
+    [2, 4, 6, 8, 10, 12, 14, 16, 18, 20].forEach(lvl => {
+        const fName = String(s[`skillFeatLvl${lvl}Name`] || '').trim();
+        const fDesc = String(s[`skillFeatLvl${lvl}Desc`] || '').trim();
+        if (fName || fDesc) {
+            classEntries.push(renderMiniEntry(`НАВЫК ${lvl}`, '#e3f2fd', fName || `Черта навыка ${lvl} ур.`, fDesc));
+        }
+    });
+
+    const classHtml = classEntries.length
+        ? classEntries.join('')
+        : `<div class="empty-slot">Классовые способности не указаны</div>`;
+
+
+
 
     const genLevels = new Array(3, 7, 11, 15, 19);
     const genFeatsLines = genLevels.map(lvl => {
@@ -1045,14 +1110,6 @@ export function exportCharacterToPdf(hero) {
         const aDesc = String(s[`actionSlot${i}Desc`] || '').trim();
         return aName ? `⚡ ${aName}${aDesc ? ' — ' + aDesc : ''}` : '';
     }).filter(Boolean);
-
-    const classFullText = new Array(
-        classObj ? `Класс (${classObj.hp} ПЗ/ур., ${classObj.keyStat}): ${classObj.desc}` : '',
-        ...actionLines,
-        ...classFeatsLines,
-        ...genFeatsLines,
-        ...skillFeatsLines
-    ).filter(Boolean).join('\n');
 
     const avatarId = hero.avatarType || AvatarRegistry.guessAvatarByName(name) || AvatarRegistry.guessAvatarByName(s.charClass);
     const portraitUrl = hero.avatarUrl || hero.img || (avatarId ? AvatarRegistry.getAvatarDataUrl(avatarId) : '');
@@ -1191,7 +1248,6 @@ export function exportCharacterToPdf(hero) {
     .page:last-child { page-break-after: auto; }
     .pf-sidebar { width: 23mm; background: #f4efe6; border: 1.5px solid #5e1914; border-radius: 4px; display: flex; flex-direction: column; justify-content: space-between; padding: 3px; text-align: center; flex-shrink: 0; }
     .sb-pf { font-size: 8.5pt; font-weight: 900; color: #5e1914; letter-spacing: 0.2px; }
-    .sb-sub { font-size: 5.5pt; font-weight: 800; background: #2d4739; color: #fff; padding: 1px 2px; border-radius: 2px; margin-top: 1px; }
     .sb-hdr { background: #5e1914; color: #fff; font-size: 6.5pt; font-weight: 800; padding: 1.5px 0; border-radius: 2px; margin: 2px 0; letter-spacing: 0.3px; }
     .die-row { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 7.5pt; margin: 1.5px 0; }
     .die-shape { font-size: 11pt; line-height: 1; }
@@ -1226,6 +1282,12 @@ export function exportCharacterToPdf(hero) {
     .field-line { border-bottom: 1.2px solid #444; min-height: 14px; font-weight: 800; font-size: 7.8pt; padding: 0 2px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sub-lbl { font-size: 5.5pt; font-weight: 800; color: #5e1914; text-transform: uppercase; }
     .fit-box { border: 1px solid #cbbba0; border-radius: 3px; padding: 2px 4px; font-size: 6.8pt; line-height: 1.2; background: #fcfaf6; overflow: hidden; flex: 1; }
+    .mini-feat-row { border-bottom: 1px dashed #d6cbb8; padding: 1.5px 0; line-height: 1.15; }
+.mini-feat-row:last-child { border-bottom: none; padding-bottom: 0; }
+.mfr-head { display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap; }
+.mfr-tag { font-size: 5pt; font-weight: 800; color: #3b100b; border: 0.8px solid #cbbba0; border-radius: 2px; padding: 0 2.5px; white-space: nowrap; flex-shrink: 0; }
+.mfr-title { font-size: 6.3pt; color: #1e242b; }
+.mfr-desc { font-size: 5.8pt; color: #333; margin-top: 0.5px; word-break: break-word; }
     .box { border: 1.5px solid #2b2b2b; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; background: #fff; font-weight: 800; }
     .box-lg { width: 34px; height: 24px; font-size: 10.5pt; border-color: #5e1914; }
     .box-sm { width: 24px; height: 16px; font-size: 8pt; }
@@ -1287,32 +1349,35 @@ export function exportCharacterToPdf(hero) {
 
 
 
-            <div class="grid-3">
-                <div class="sec">
-                    <div class="sec-hdr red"><span class="badge">А</span> Народ</div>
-                    <div class="sec-body">
-                        <div class="field-line">${esc(s.ancestry)}</div>
-                        <div class="sub-lbl">Родословная и особенности народа</div>
-                        <div class="fit-box" style="height: 58px; white-space: pre-line;">${esc(ancestryFullText || '—')}</div>
-                    </div>
-                </div>
-                <div class="sec">
-                    <div class="sec-hdr red"><span class="badge">Б</span> Происхождение</div>
-                    <div class="sec-body">
-                        <div class="field-line">${esc(s.background)}</div>
-                        <div class="sub-lbl">Способность и описание происхождения</div>
-                        <div class="fit-box" style="height: 58px; white-space: pre-line;">${esc(bgFullText || '—')}</div>
-                    </div>
-                </div>
-                <div class="sec">
-                    <div class="sec-hdr red"><span class="badge">В</span> Класс</div>
-                    <div class="sec-body">
-                        <div class="field-line">${esc(s.charClass)}</div>
-                        <div class="sub-lbl">Классовые способности и черты</div>
-                        <div class="fit-box" style="height: 58px; white-space: pre-line;">${esc(classFullText || '—')}</div>
-                    </div>
-                </div>
-            </div>
+
+         <div class="grid-3">
+             <div class="sec">
+                 <div class="sec-hdr red"><span class="badge">А</span> Народ</div>
+                 <div class="sec-body">
+                     <div class="field-line">${esc(s.ancestry)}</div>
+                     <div class="sub-lbl">Родословная и особенности народа</div>
+                     <div class="fit-box auto-fit-list" style="height: 62px;">${ancestryHtml}</div>
+                 </div>
+             </div>
+             <div class="sec">
+                 <div class="sec-hdr red"><span class="badge">Б</span> Происхождение</div>
+                 <div class="sec-body">
+                     <div class="field-line">${esc(s.background)}</div>
+                     <div class="sub-lbl">Способность и описание происхождения</div>
+                     <div class="fit-box auto-fit-list" style="height: 62px;">${bgHtml}</div>
+                 </div>
+             </div>
+             <div class="sec">
+                 <div class="sec-hdr red"><span class="badge">В</span> Класс</div>
+                 <div class="sec-body">
+                     <div class="field-line">${esc(s.charClass)}</div>
+                     <div class="sub-lbl">Классовые способности и черты</div>
+                     <div class="fit-box auto-fit-list" style="height: 62px;">${classHtml}</div>
+                 </div>
+             </div>
+         </div>
+
+
 
             
             
@@ -1755,7 +1820,7 @@ export function exportCharacterToPdf(hero) {
             while (box.scrollHeight > box.clientHeight + 1 && size > 3.6) {
                 size -= 0.2;
                 box.style.fontSize = size + 'pt';
-                box.querySelectorAll('.re-title, .re-desc, .re-tag, .re-qty').forEach(function(el) {
+                box.querySelectorAll('.re-title, .re-desc, .re-tag, .re-qty, .mfr-title, .mfr-desc, .mfr-tag').forEach(function(el) {
                     el.style.fontSize = size + 'pt';
                 });
             }
