@@ -249,39 +249,245 @@ function generatePathfinderLogoDataUrl() {
     ctx.closePath();
     ctx.fill();
 
-    cachedPfLogoUrl = canvas.toDataURL('image/png');
+    // Обрезаем пустое прозрачное поле справа, чтобы логотип центрировался строго по середине блока
+    const exactWidth = Math.min(canvas.width, Math.ceil(rightEndX + 14));
+    const trimmedCanvas = document.createElement('canvas');
+    trimmedCanvas.width = exactWidth;
+    trimmedCanvas.height = canvas.height;
+    const tCtx = trimmedCanvas.getContext('2d');
+    if (tCtx) {
+        tCtx.drawImage(canvas, 0, 0, exactWidth, canvas.height, 0, 0, exactWidth, canvas.height);
+        cachedPfLogoUrl = trimmedCanvas.toDataURL('image/png');
+    } else {
+        cachedPfLogoUrl = canvas.toDataURL('image/png');
+    }
     return cachedPfLogoUrl;
 }
 
+let cachedPfIcons = null;
+
+function generatePathfinderSidebarIcons() {
+    if (cachedPfIcons) return cachedPfIcons;
+
+    const makeIcon = (w, h, drawFn) => {
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        if (!ctx) return '';
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        drawFn(ctx, w, h);
+        return c.toDataURL('image/png');
+    };
+
+    const poly = (ctx, pts) => {
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+        ctx.closePath();
+    };
+
+    // 1. Шесть фирменных многогранников Pathfinder 2e
+    const dice = {
+        d4: makeIcon(64, 64, (ctx) => {
+            const pts = [[32, 8], [56, 54], [8, 54]];
+            poly(ctx, pts);
+            ctx.fillStyle = '#ede53b';
+            ctx.fill();
+            ctx.lineWidth = 4.2;
+            ctx.strokeStyle = '#111111';
+            ctx.stroke();
+        }),
+        d6: makeIcon(64, 64, (ctx) => {
+            const top = [[32, 8], [54, 20], [32, 32], [10, 20]];
+            const left = [[10, 20], [32, 32], [32, 56], [10, 44]];
+            const right = [[32, 32], [54, 20], [54, 44], [32, 56]];
+            ctx.fillStyle = '#aa6e9b'; poly(ctx, top); ctx.fill();
+            ctx.fillStyle = '#995c8a'; poly(ctx, left); ctx.fill();
+            ctx.fillStyle = '#874c79'; poly(ctx, right); ctx.fill();
+            ctx.lineWidth = 2.4; ctx.strokeStyle = '#111111';
+            [top, left, right].forEach(f => { poly(ctx, f); ctx.stroke(); });
+            poly(ctx, [[32, 8], [54, 20], [54, 44], [32, 56], [10, 44], [10, 20]]);
+            ctx.lineWidth = 4.0; ctx.stroke();
+        }),
+        d8: makeIcon(64, 64, (ctx) => {
+            const outer = [[32, 7], [53, 19], [53, 45], [32, 57], [11, 45], [11, 19]];
+            const inner = [[32, 7], [47, 38], [17, 38]];
+            poly(ctx, outer); ctx.fillStyle = '#c86026'; ctx.fill();
+            poly(ctx, inner); ctx.fillStyle = '#dc7234'; ctx.fill();
+            ctx.lineWidth = 2.2; ctx.strokeStyle = '#111111';
+            poly(ctx, inner); ctx.stroke();
+            [[53, 19, 47, 38], [11, 19, 17, 38], [53, 45, 47, 38], [11, 45, 17, 38], [32, 57, 47, 38], [32, 57, 17, 38]]
+                .forEach(([x1, y1, x2, y2]) => { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); });
+            poly(ctx, outer); ctx.lineWidth = 4.0; ctx.stroke();
+        }),
+        d10: makeIcon(64, 64, (ctx) => {
+            const outer = [[32, 7], [55, 32], [32, 57], [9, 32]];
+            poly(ctx, outer); ctx.fillStyle = '#159848'; ctx.fill();
+            ctx.fillStyle = '#24b05a';
+            poly(ctx, [[32, 7], [43, 30], [32, 39], [21, 30]]); ctx.fill();
+            ctx.lineWidth = 2.2; ctx.strokeStyle = '#111111';
+            [
+                [[32, 7], [43, 30]], [[32, 7], [21, 30]],
+                [[43, 30], [32, 39]], [[21, 30], [32, 39]],
+                [[43, 30], [55, 32]], [[21, 30], [9, 32]],
+                [[32, 39], [32, 57]]
+            ].forEach(([a, b]) => { ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); });
+            poly(ctx, outer); ctx.lineWidth = 4.0; ctx.stroke();
+        }),
+        d12: makeIcon(64, 64, (ctx) => {
+            const cx = 32, cy = 32, rOut = 25, rIn = 12.5;
+            const outPts = Array.from({ length: 10 }, (_, i) => {
+                const a = -Math.PI / 2 + (i * Math.PI) / 5;
+                return [cx + Math.cos(a) * rOut, cy + Math.sin(a) * rOut];
+            });
+            const inPts = Array.from({ length: 5 }, (_, i) => {
+                const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+                return [cx + Math.cos(a) * rIn, cy + Math.sin(a) * rIn];
+            });
+            poly(ctx, outPts); ctx.fillStyle = '#195492'; ctx.fill();
+            poly(ctx, inPts); ctx.fillStyle = '#2466ab'; ctx.fill();
+            ctx.lineWidth = 2.2; ctx.strokeStyle = '#111111';
+            poly(ctx, inPts); ctx.stroke();
+            inPts.forEach((p, i) => {
+                const target = outPts[i * 2];
+                ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(target[0], target[1]); ctx.stroke();
+            });
+            poly(ctx, outPts); ctx.lineWidth = 4.0; ctx.stroke();
+        }),
+        d20: makeIcon(64, 64, (ctx) => {
+            const outer = [[32, 7], [54, 19], [54, 45], [32, 57], [10, 45], [10, 19]];
+            const inner = [[32, 18], [46, 41], [18, 41]];
+            poly(ctx, outer); ctx.fillStyle = '#a81e24'; ctx.fill();
+            poly(ctx, inner); ctx.fillStyle = '#c42930'; ctx.fill();
+            ctx.lineWidth = 2.2; ctx.strokeStyle = '#111111';
+            poly(ctx, inner); ctx.stroke();
+            [
+                [[32, 7], [32, 18]], [[54, 19], [32, 18]], [[10, 19], [32, 18]],
+                [[54, 19], [46, 41]], [[54, 45], [46, 41]], [[32, 57], [46, 41]],
+                [[10, 19], [18, 41]], [[10, 45], [18, 41]], [[32, 57], [18, 41]]
+            ].forEach(([a, b]) => { ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); });
+            poly(ctx, outer); ctx.lineWidth = 4.0; ctx.stroke();
+        })
+    };
+
+    // 2. Пять фирменных значков действий Pathfinder 2e (ромб с вырезом слева и точка-центр)
+    const drawActionGlyph = (ctx, x, y, s, hollow = false) => {
+        ctx.save();
+        ctx.translate(x, y);
+        // Поворот на -45°, чтобы вырез по отрицательной оси X оказался строго СЛЕВА!
+        ctx.rotate(-Math.PI / 4);
+
+        if (hollow) {
+            // Свободное действие: полый ромб с открытой левой гранью и чёрным ядром по центру
+            ctx.lineWidth = 2.6;
+            ctx.strokeStyle = '#111111';
+            ctx.beginPath();
+            ctx.moveTo(-s, -s * 0.48);
+            ctx.lineTo(-s, -s);
+            ctx.lineTo(s, -s);
+            ctx.lineTo(s, s);
+            ctx.lineTo(-s, s);
+            ctx.lineTo(-s, s * 0.48);
+            ctx.stroke();
+
+            ctx.fillStyle = '#111111';
+            ctx.fillRect(-s * 0.34, -s * 0.34, s * 0.68, s * 0.68);
+        } else {
+            // Заполненный ромб со ступенчатым вырезом-стрелкой строго слева
+            ctx.fillStyle = '#111111';
+            ctx.beginPath();
+            ctx.moveTo(-s, -s * 0.42);
+            ctx.lineTo(-s, -s);
+            ctx.lineTo(s, -s);
+            ctx.lineTo(s, s);
+            ctx.lineTo(-s, s);
+            ctx.lineTo(-s, s * 0.42);
+            ctx.lineTo(-s * 0.32, s * 0.42);
+            ctx.lineTo(-s * 0.32, -s * 0.42);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+    };
+
+    const actions = {
+        act1: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, false)),
+        act2: makeIcon(104, 36, (ctx) => {
+            drawActionGlyph(ctx, 38, 18, 10, false);
+            drawActionGlyph(ctx, 66, 18, 10, false);
+        }),
+        act3: makeIcon(130, 36, (ctx) => {
+            drawActionGlyph(ctx, 35, 18, 9.5, false);
+            drawActionGlyph(ctx, 63, 18, 9.5, false);
+            drawActionGlyph(ctx, 91, 18, 9.5, false);
+        }),
+        free: makeIcon(80, 36, (ctx) => drawActionGlyph(ctx, 40, 18, 10.5, true)),
+        react: makeIcon(80, 38, (ctx) => {
+            ctx.strokeStyle = '#111111';
+            ctx.lineWidth = 3.8;
+            ctx.beginPath();
+            ctx.arc(40, 19, 11.5, -Math.PI * 0.72, Math.PI * 0.62, false);
+            ctx.stroke();
+
+            ctx.fillStyle = '#111111';
+            ctx.beginPath();
+            ctx.moveTo(30, 27);
+            ctx.lineTo(41, 22);
+            ctx.lineTo(39, 34);
+            ctx.closePath();
+            ctx.fill();
+        })
+    };
+
+    cachedPfIcons = { dice, actions };
+    return cachedPfIcons;
+}
 
 
 
 const sidebarHtml = (pageNum) => {
     const logoUrl = generatePathfinderLogoDataUrl();
+    const { dice, actions } = generatePathfinderSidebarIcons();
+
+    const dieRow = (imgUrl, label) => `
+        <div class="die-row" style="justify-content:center; align-items:flex-end; gap:3px; margin:2px 0;">
+            <img src="${imgUrl}" alt="${label}" style="width:46px; height:46px; display:block;">
+            <b style="font-size:7.5pt; color:#111; line-height:1.1; min-width:22px; text-align:left;">${label}</b>
+        </div>
+    `;
+    const actRow = (imgUrl, text, isLast = false) => `
+        <div class="act-item" style="flex-direction:column; align-items:center; text-align:center; padding:3px 0; ${isLast ? '' : 'border-bottom:1px solid #d46b27;'}">
+            <img src="${imgUrl}" alt="${text}" style="height:17px; width:auto; display:block; margin:0 auto 2px auto;">
+            <span style="font-size:6.3pt; font-weight:700; line-height:1.1; color:#111;">${text}</span>
+        </div>
+    `;
+
     return `
     <aside class="pf-sidebar">
         <div class="sb-logo">
             ${logoUrl
-        ? `<img src="${logoUrl}" alt="Pathfinder" style="width: 100%; height: auto; display: block; margin: 0 auto 2px auto;">`
+        ? `<img src="${logoUrl}" alt="Pathfinder" style="max-width: 100%; height: auto; display: block; margin: 0 auto 3px auto;">`
         : `<div class="sb-pf">PATHFINDER</div>`
     }
             <div class="sb-sub">СТАРТОВЫЙ НАБОР</div>
         </div>
         <div class="sb-hdr">КОСТИ</div>
-        <div class="sb-dice">
-            <div class="die-row"><span class="die-shape d4">▲</span><b>d4</b></div>
-            <div class="die-row"><span class="die-shape d6">■</span><b>d6</b></div>
-            <div class="die-row"><span class="die-shape d8">◆</span><b>d8</b></div>
-            <div class="die-row"><span class="die-shape d10">⬟</span><b>d10</b></div>
-            <div class="die-row"><span class="die-shape d12">⬢</span><b>d12</b></div>
-            <div class="die-row"><span class="die-shape d20">⬣</span><b>d20</b></div>
+        <div class="sb-dice" style="display:flex; flex-direction:column; align-items:center; padding:3px 0;">
+            ${dieRow(dice.d4, 'D4')}
+            ${dieRow(dice.d6, 'D6')}
+            ${dieRow(dice.d8, 'D8')}
+            ${dieRow(dice.d10, 'D10')}
+            ${dieRow(dice.d12, 'D12')}
+            ${dieRow(dice.d20, 'D20')}
         </div>
         <div class="sb-hdr">ДЕЙСТВИЯ</div>
-        <div class="sb-acts">
-            <div class="act-item"><span class="act-sym">◆</span><span>Одно действие</span></div>
-            <div class="act-item"><span class="act-sym">◆◆</span><span>Два действия</span></div>
-            <div class="act-item"><span class="act-sym">◆◆◆</span><span>Три действия</span></div>
-            <div class="act-item"><span class="act-sym">↺</span><span>Ответное действие</span></div>
+        <div class="sb-acts" style="display:flex; flex-direction:column; padding:2px 0;">
+            ${actRow(actions.act1, 'Одно действие')}
+            ${actRow(actions.act2, 'Два действия')}
+            ${actRow(actions.act3, 'Три действия')}
+            ${actRow(actions.free, 'Свободное действие')}
+            ${actRow(actions.react, 'Ответное действие', true)}
         </div>
         <div class="sb-hdr">УМЕНИЕ</div>
         <div class="sb-prof">
