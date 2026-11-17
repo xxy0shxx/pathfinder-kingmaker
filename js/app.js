@@ -175,6 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     BestiaryManager.init(mapData);
     InitiativeManager.init(mapData);
+    if (SettingsManager?.state?.roundAudioMode) {
+        InitiativeManager.state.audioPreset = SettingsManager.state.roundAudioMode;
+    }
 
     HudWindowManager.registerTab('bestiary', {
         tabBtnId: 'tabBestiary',

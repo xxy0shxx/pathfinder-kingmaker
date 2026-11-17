@@ -212,7 +212,7 @@ const BestiaryManager = {
         if (!window.InitiativeManager) return;
         const score = customScore !== null ? customScore : (item.defaultScore || 10);
         window.InitiativeManager._pendingAvatarType = item.avatarType || null;
-        window.InitiativeManager._pendingStats = item.stats ? { ...item.stats } : createDefaultStats();
+        window.InitiativeManager._pendingStats = item.stats ? JSON.parse(JSON.stringify(item.stats)) : createDefaultStats();
         window.InitiativeManager.addCombatant(item.name, score, item.faction, false, false);
     },
 

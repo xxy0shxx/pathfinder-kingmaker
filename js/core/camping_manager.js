@@ -362,8 +362,8 @@ const CampingManager = {
 
             const calInfo = window.WeatherManager?.getCalendarInfo?.() || window.KingdomManager?.getCalendarInfo?.() || {};
             const calWeather = calInfo.weather || { huntDcMod: 0, encDcMod: 0 };
-            const weatherHuntMod = parseInt(calWeather.huntDcMod, 10) || 0;
-            const weatherEncMod = parseInt(calWeather.encDcMod, 10) || 0;
+            const weatherHuntMod = (calInfo.precip ? 1 : 0) + (calInfo.cold ? 1 : 0) + (calInfo.hazard ? 2 : 0);
+            const weatherEncMod = calInfo.hazard?.id === 'fog' ? -1 : (calInfo.precip ? 1 : 0);
             const weatherWatchMod = calInfo.precip ? 1 : 0; // Осадки дают -1 к Вниманию (+1 к СЛ дозора)
 
             const finalPrepareDc = Math.max(1, baseRegionDc - getHelperBonus(0));
@@ -1531,7 +1531,7 @@ const CampingManager = {
             this.state.assignments = {};
             this.state.hazardRemainingMin = null;
             this.state.activeMeal = null;
-            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+            document.querySelectorAll('#campingTabletContainer input[type="radio"]').forEach(radio => radio.checked = false);
             this.syncCountersUi();
             this.recalculateCamp();
             const resetBtn = document.querySelector('.kingdom-save-wrapper .btn.del');

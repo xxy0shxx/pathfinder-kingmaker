@@ -118,6 +118,7 @@ const KingdomModals = {
         const dieSides = km.getResourceDieSides();
         const tradeIncome = km.getActiveTradeAgreementsCount();
 
+
         const { overlay, close } = ModalManager.open({
             id: 'kUpkeepModalOverlay',
             title: '⚜ Фаза содержания',
@@ -126,9 +127,10 @@ const KingdomModals = {
                 <div style="background:rgba(0,0,0,0.35); border:1px solid #543e0d; border-radius:6px; padding:12px; margin-bottom:14px; font-size:15px; line-height:1.45;">
                     <div>• Добыча: <b>+${s.workSites.farmlands} Еды</b>, <b>+${s.workSites.lumberCamps} Древесины</b>, <b>+${s.workSites.mines} Руды</b>, <b>+${s.workSites.quarries} Камня</b></div>
                     ${tradeIncome > 0 ? `<div>• Торговые договоры: <b style="color:#2ecc71;">+${tradeIncome} RP</b> пошлин за ход</div>` : ''}
-                    ${km.getActiveTradeAgreementsCount() > 0 ? `<div>• Торговые договоры: <b style="color:#2ecc71;">+${km.getActiveTradeAgreementsCount()} RP</b> пошлин за ход</div>` : ''}
                     <div>• Расход провизии: <b style="color:#ff7675;">-${s.consumption} Еды</b></div>
                 </div>
+                
+                
                 <label style="display:block; font-size:15px; font-weight:bold; color:#ffd875; margin-bottom:6px;">
                     🎲 Бросьте <span style="color:#2ecc71; font-size:18px; font-family:monospace;">${diceCount}d${dieSides}</span> и введите сумму RP:
                 </label>

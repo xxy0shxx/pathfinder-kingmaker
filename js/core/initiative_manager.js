@@ -597,7 +597,7 @@ const InitiativeManager = {
             }
 
             if (audioSel) {
-                audioSel.value = this.state.audioPreset || 'gong';
+                audioSel.value = this.state.audioPreset || 'horn';
                 audioSel.addEventListener('change', (e) => this.setAudioPreset(e.target.value));
             }
 
@@ -1192,17 +1192,22 @@ const InitiativeManager = {
             return;
         }
 
+
+
         drawer.style.display = 'flex';
         const party = window.BestiaryManager?.state?.party || [];
         const monsters = window.BestiaryManager?.state?.monsters || [];
 
+        const allPresets = [...party, ...monsters];
         const renderMiniGroup = (title, items, badgeColor) => `
             <div class="init-drawer-section">
                 <div class="init-drawer-sec-title" style="color:${badgeColor};">${title} (${items.length})</div>
                 <div class="init-drawer-cards-grid">
                     ${items.length === 0 ? `<div class="init-drawer-empty">Пусто (настройте во вкладке 🐉)</div>` : ''}
                     ${items.map(item => `
-                        <div class="init-drawer-card faction-${item.faction}" draggable="true" data-preset='${JSON.stringify(item).replace(/'/g, "&apos;")}' title="Перетащите на ленту инициативы или нажмите +">
+                        <!--div class="init-drawer-card faction-${item.faction}" draggable="true" data-preset='${JSON.stringify(item).replace(/'/g, "&apos;")}' title="Перетащите на ленту инициативы или нажмите +"-->
+                        <div class="init-drawer-card faction-${item.faction}" draggable="true" data-preset-id="${item.id}" title="Перетащите на ленту инициативы или нажмите +">
+
                             <div class="init-drawer-card-top">${item.name}</div>
                             <div class="init-drawer-card-img">
                                 ${item.avatar ? `<img src="${item.avatar}">` : `<span>⚔️</span>`}
@@ -1232,11 +1237,13 @@ const InitiativeManager = {
             if (window.HudWindowManager) window.HudWindowManager.open('bestiary');
         });
 
+
         drawer.querySelectorAll('.init-drawer-card').forEach(cardEl => {
-            const preset = JSON.parse(cardEl.dataset.preset);
+            const preset = allPresets.find(p => p.id === cardEl.dataset.presetId);
+            if (!preset) return;
 
             cardEl.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('application/x-bestiary-item', cardEl.dataset.preset);
+                e.dataTransfer.setData('application/x-bestiary-item', JSON.stringify(preset));
                 cardEl.classList.add('dragging');
             });
             cardEl.addEventListener('dragend', () => cardEl.classList.remove('dragging'));
@@ -1248,6 +1255,7 @@ const InitiativeManager = {
                 }
             });
         });
+
     },
 
 

@@ -335,8 +335,8 @@ const HexModal = {
     save() {
         if (!this.currentHexId) return;
 
-        const terrainVal = document.getElementById('hexTerrain')?.value || '';
-        const workSiteVal = document.getElementById('hexWorkSite')?.value || 'none';
+        const terrainVal = document.getElementById('inpTerrain')?.value || '';
+        const workSiteVal = document.getElementById('hexWorkSiteType')?.value || 'none';
         const isClaimedVal = !!document.getElementById('hexKingdomClaimed')?.checked;
         const compatCheck = this.isWorkSiteCompatible(workSiteVal, terrainVal, isClaimedVal);
 
