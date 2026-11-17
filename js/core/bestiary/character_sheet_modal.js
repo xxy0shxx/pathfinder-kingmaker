@@ -414,11 +414,12 @@ function buildPage2Html(stats) {
                 <td>${txtInp(stats, `${prefix}${idx}Notes`, 'Эффект...')}</td>
             </tr>`).join('');
 
+
     const itemsRows = Array.from({ length: 15 }, (_, i) => i + 1).map(idx => `
         <tr>
             <td class="bst-cantrip-num">${idx}</td>
             <td style="position: relative;">
-                <input type="text" data-sheet-txt="item${idx}Name" data-item-row="${idx}" class="k-inp bst-txt-inp bst-item-picker-inp" autocomplete="off" placeholder="Выберите предмет..." value="${esc(stats[`item${idx}Name`])}">
+                <input type="text" data-sheet-txt="item${idx}Name" data-item-row="${idx}" class="k-inp bst-txt-inp bst-item-picker-inp" autocomplete="off" placeholder="🔍 Нажмите для выбора..." value="${esc(stats[`item${idx}Name`])}" style="cursor: pointer;">
                 <div class="bst-cantrip-dropdown" data-item-drop="${idx}" style="display: none;"></div>
             </td>
             <td style="text-align: center;">
@@ -428,8 +429,15 @@ function buildPage2Html(stats) {
                     <button type="button" class="bst-qty-btn" data-qty-delta="1" style="width:26px; height:26px; background:#292011; border:1px solid #543e0d; color:#ebd291;">+</button>
                 </div>
             </td>
-            <td>${txtInp(stats, `item${idx}Notes`, 'Эффект, вес...')}</td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="text" data-sheet-txt="item${idx}Notes" class="k-inp bst-txt-inp" placeholder="Эффект, вес..." value="${esc(stats[`item${idx}Notes`])}" readonly style="opacity: 0.9; cursor: default;">
+                    <button type="button" class="bst-item-clear-btn" data-item-clear="${idx}" title="Удалить позицию из рюкзака" style="width: 26px; height: 26px; flex-shrink: 0; background: #3b1717; border: 1px solid #8a2be2; border-color: #9b2c2c; color: #ff7675; border-radius: 4px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;">🗑️</button>
+                </div>
+            </td>
         </tr>`).join('');
+
+
 
     const magicInfo = getMagicTierVisibility(stats);
 

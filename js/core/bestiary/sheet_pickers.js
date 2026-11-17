@@ -25,7 +25,7 @@ import {
 } from '../../config/weapons_catalog.js';
 
 export const normalizeStr = (str) => String(str || '')
-    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}]/gu, '')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu, '')
     .trim()
     .toLowerCase()
     .replace(/ё/g, 'е');
@@ -65,13 +65,17 @@ function bindAutocomplete(inp, dropEl, { getItems, renderOption, onSelect, width
             : `${rect.bottom + 2}px`;
 
         dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-            optEl.addEventListener('mousedown', (e) => {
+            const pickItem = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                if (optEl.dataset.pickedDone) return;
+                optEl.dataset.pickedDone = '1';
                 const picked = list[Number(optEl.dataset.optIdx)];
                 if (picked) onSelect(picked);
                 dropEl.style.display = 'none';
-            });
+            };
+            optEl.addEventListener('mousedown', pickItem);
+            optEl.addEventListener('click', pickItem);
         });
     };
 
@@ -556,31 +560,21 @@ export function initPage2Pickers(overlay, hero) {
 
 
 
-    // 3. Предметы, щиты и степперы количества
-    overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
 
+
+    // 3. Предметы, щиты и степперы количества (выбор строго из каталога)
+    overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
         const row = inp.dataset.itemRow;
+        inp.dataset.validItem = inp.value || '';
+
         bindAutocomplete(inp, overlay.querySelector(`[data-item-drop="${row}"]`), {
             width: 360,
+            zIndex: '10000180',
             getItems: (q) => searchItemsCatalog(q),
             renderOption: (it) => `<div class="bst-cantrip-opt-top"><b>${it.name}</b> <span>${it.category}</span></div>`,
             onSelect: (found) => {
-
-
-
-                inp.value = found.name;
-                hero.stats[`item${row}Name`] = found.name;
-
                 const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
                 const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
-                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) {
-                    qtyInp.value = 1;
-                    hero.stats[`item${row}Qty`] = 1;
-                }
-                if (noteInp) {
-                    noteInp.value = found.notes;
-                    hero.stats[`item${row}Notes`] = found.notes;
-                }
 
                 // Проверяем, есть ли уже такой же предмет в другой ячейке рюкзака — если да, стакаем в него
                 const normFoundName = normalizeStr(found.name);
@@ -605,14 +599,23 @@ export function initPage2Pickers(overlay, hero) {
                         targetQtyInp.dispatchEvent(new Event('input', { bubbles: true }));
                     }
 
-                    // Очищаем текущую ячейку, куда кликнул пользователь
                     inp.value = '';
+                    inp.dataset.validItem = '';
                     hero.stats[`item${row}Name`] = '';
                     if (qtyInp) { qtyInp.value = 0; hero.stats[`item${row}Qty`] = 0; }
                     if (noteInp) { noteInp.value = ''; hero.stats[`item${row}Notes`] = ''; }
                     return;
                 }
 
+                // Записываем выбранный предмет в текущую строку
+                inp.value = found.name;
+                inp.dataset.validItem = found.name;
+                hero.stats[`item${row}Name`] = found.name;
+
+                if (qtyInp && (!qtyInp.value || Number(qtyInp.value) <= 0)) {
+                    qtyInp.value = 1;
+                    hero.stats[`item${row}Qty`] = 1;
+                }
 
                 const heroLvl = Math.max(1, parseInt(hero.stats.level, 10) || 1);
                 const itemLvl = getItemLevel(found);
@@ -626,27 +629,21 @@ export function initPage2Pickers(overlay, hero) {
                     hero.stats[`item${row}Notes`] = finalNote;
                 }
 
-                // Если уровень предмета выше уровня персонажа — не применяем бонусы рун, щита и навыков
                 if (isLevelLocked) {
                     if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
                     return;
                 }
 
-                // Если выбран щит — автоматически заполняем его параметры на 1-й странице
                 if (found.shieldStats) {
                     hero.stats.acShieldBonus = found.shieldStats.bonus;
                     hero.stats.acShieldHardness = found.shieldStats.hardness;
                     hero.stats.acShieldHp = found.shieldStats.hp;
                 }
 
-                // Автоматическое применение фундаментальных и атрибутивных рун
                 if (found.runeEffect) {
                     const eff = found.runeEffect;
-
                     if (eff.target === 'weapon') {
-                        // Применяем к первому заполненному слоту оружия (melee1, melee2 или ranged)
                         const slot = ['melee1', 'melee2', 'ranged'].find(s => String(hero.stats[`${s}Name`] || '').trim()) || 'melee1';
-
                         if (eff.potency) {
                             const curAtk = parseInt(String(hero.stats[`${slot}Atk`] || '0').replace(/[^\d+-]/g, ''), 10) || 0;
                             const nextAtk = curAtk + eff.potency;
@@ -711,7 +708,24 @@ export function initPage2Pickers(overlay, hero) {
                 if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
+
+        // При выходе из поля с невалидным (произвольным) текстом возвращаем последнее выбранное значение
+        inp.addEventListener('change', () => {
+            const cur = String(inp.value || '').trim();
+            if (!cur) {
+                inp.dataset.validItem = '';
+                return;
+            }
+            const isValid = (PF2E_ITEMS_CATALOG || []).some(it => normalizeStr(it.name) === normalizeStr(cur));
+            if (isValid) {
+                inp.dataset.validItem = cur;
+            } else {
+                inp.value = inp.dataset.validItem || '';
+            }
+        });
     });
+
+
 
     overlay.querySelectorAll('.bst-qty-stepper').forEach(stepper => {
         const qtyInp = stepper.querySelector('.bst-qty-inp');
@@ -722,6 +736,33 @@ export function initPage2Pickers(overlay, hero) {
                 const delta = parseInt(btn.dataset.qtyDelta, 10) || 0;
                 qtyInp.value = Math.max(0, (parseInt(qtyInp.value, 10) || 0) + delta);
             });
+        });
+    });
+
+    // Кнопка удаления позиции (🗑️) в каждой строке рюкзака
+    overlay.querySelectorAll('.bst-item-clear-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const row = btn.dataset.itemClear;
+
+            const nameInp = overlay.querySelector(`[data-sheet-txt="item${row}Name"]`);
+            const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
+            const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
+
+            hero.stats[`item${row}Name`] = '';
+            hero.stats[`item${row}Qty`] = 0;
+            hero.stats[`item${row}Notes`] = '';
+
+            if (nameInp) {
+                nameInp.value = '';
+                nameInp.dataset.validItem = '';
+            }
+            if (noteInp) noteInp.value = '';
+            if (qtyInp) {
+                qtyInp.value = 0;
+                qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         });
     });
 
