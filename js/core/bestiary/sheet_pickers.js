@@ -1085,6 +1085,7 @@ export function initPage2Pickers(overlay, hero) {
         });
     });
 
+
     // Кнопка передачи предмета (🎁) другому герою отряда
     overlay.querySelectorAll('.bst-item-give-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1102,11 +1103,13 @@ export function initPage2Pickers(overlay, hero) {
 
             if (!itemName || itemQty <= 0) return;
 
-
-            const partyPool = [
+            const allBestiaryHeroes = [
                 ...(window.BestiaryManager?.state?.party || []),
                 ...(window.BestiaryManager?.state?.inactive || [])
-            ].filter(p => p && p.id !== hero.id);
+            ];
+
+            const normSender = normalizeStr(hero.name);
+            const partyPool = allBestiaryHeroes.filter(p => p && p.id !== hero.id && normalizeStr(p.name) !== normSender);
 
             if (!partyPool.length) {
                 const noTargetModal = ModalManager.open({
@@ -1138,7 +1141,7 @@ export function initPage2Pickers(overlay, hero) {
                             </div>
                             <div>
                                 <label style="font-size: 12px; color: #74b9ff; font-weight: bold;">Количество:</label>
-                                <input type="number" id="bstGiveQtyInp" class="k-inp" min="1" max="${itemQty}" value="${itemQty > 1 ? 1 : 1}" style="width: 100%; text-align: center; margin-top: 3px;">
+                                <input type="number" id="bstGiveQtyInp" class="k-inp" min="1" max="${itemQty}" value="1" style="width: 100%; text-align: center; margin-top: 3px;">
                             </div>
                         </div>
                         <div id="bstGiveErrBox" style="color: #ff7675; font-size: 12px; margin-top: 6px;"></div>
@@ -1187,7 +1190,7 @@ export function initPage2Pickers(overlay, hero) {
                                 recipient.stats[`item${destSlot}Notes`] = itemNotes;
                             }
 
-                            // Синхронизируем рюкзак получателя с трекером инициативы, если он в бою
+                            // Синхронизируем рюкзак получателя с трекером инициативы
                             const normRecName = normalizeStr(recipient.name);
                             (window.InitiativeManager?.state?.combatants || []).forEach(u => {
                                 if (u && u.faction === 'friend' && normalizeStr(u.name) === normRecName && u.stats && u.stats !== recipient.stats) {
@@ -1197,24 +1200,45 @@ export function initPage2Pickers(overlay, hero) {
                                 }
                             });
 
-                            // 2. Списываем переданное количество у текущего героя
+                            // 2. Списываем переданное количество у отправителя и синхронизируем все его копии
                             const remQty = itemQty - giveCount;
-                            if (remQty <= 0) {
-                                hero.stats[`item${row}Name`] = '';
-                                hero.stats[`item${row}Qty`] = 0;
-                                hero.stats[`item${row}Notes`] = '';
-                                if (nameInp) { nameInp.value = ''; nameInp.dataset.validItem = ''; }
-                                if (noteInp) noteInp.value = '';
-                                if (qtyInp) {
-                                    qtyInp.value = 0;
-                                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                            const nextSenderName = remQty <= 0 ? '' : itemName;
+                            const nextSenderQty = remQty <= 0 ? 0 : remQty;
+                            const nextSenderNotes = remQty <= 0 ? '' : itemNotes;
+
+                            const applySenderSlot = (targetObj) => {
+                                if (!targetObj) return;
+                                if (!targetObj.stats) targetObj.stats = {};
+                                targetObj.stats[`item${row}Name`] = nextSenderName;
+                                targetObj.stats[`item${row}Qty`] = nextSenderQty;
+                                targetObj.stats[`item${row}Notes`] = nextSenderNotes;
+                            };
+
+                            applySenderSlot(hero);
+
+                            allBestiaryHeroes.forEach(p => {
+                                if (p && p !== hero && (p.id === hero.id || normalizeStr(p.name) === normSender)) {
+                                    applySenderSlot(p);
                                 }
-                            } else {
-                                hero.stats[`item${row}Qty`] = remQty;
-                                if (qtyInp) {
-                                    qtyInp.value = remQty;
-                                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                            });
+
+                            (window.InitiativeManager?.state?.combatants || []).forEach(u => {
+                                if (u && u.faction === 'friend' && normalizeStr(u.name) === normSender && u !== hero) {
+                                    applySenderSlot(u);
                                 }
+                            });
+
+                            // 3. Обновляем поля ввода в открытом бланке отправителя
+                            if (nameInp) {
+                                nameInp.value = nextSenderName;
+                                nameInp.dataset.validItem = nextSenderName;
+                            }
+                            if (noteInp) {
+                                noteInp.value = nextSenderNotes;
+                            }
+                            if (qtyInp) {
+                                qtyInp.value = nextSenderQty;
+                                qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
                             }
 
                             StorageManager.appendTreasuryLog(`🎁 ${hero.name} → ${recipient.name}: ${itemName} (×${giveCount})`, 'transfer');
@@ -1229,6 +1253,9 @@ export function initPage2Pickers(overlay, hero) {
             if (giveModal?.overlay) giveModal.overlay.style.zIndex = '10000250';
         });
     });
+
+
+
 
 
     // 4. Способности и виды спутников (единое поведение для зверей и фамильяров)

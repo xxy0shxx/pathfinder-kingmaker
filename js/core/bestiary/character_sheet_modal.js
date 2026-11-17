@@ -1215,12 +1215,12 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                         <div id="bstTxErr" style="color: #ff7675; font-size: 12px; margin-top: 6px; min-height: 16px;"></div>
                     </div>
                 `,
+
                 footerButtons: [
-                    { label: '✖ Отмена', variant: 'cc', onClick: () => txModal.close() },
+
                     {
                         label: '✅ Выполнить',
                         variant: 'ok',
-
                         onClick: () => {
                             const g = Math.max(0, parseInt(document.getElementById('bstTxGold')?.value, 10) || 0);
                             const s = Math.max(0, parseInt(document.getElementById('bstTxSilver')?.value, 10) || 0);
@@ -1237,47 +1237,48 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                                 return;
                             }
 
-                            // 1. Вычисляем остаток у отправителя
+                            // 1. Вычисляем остаток у отправителя с автоматическим разменом
                             const remCp = totalAvailableCp - sendCp;
-                            const newGold = Math.floor(remCp / 100);
-                            const newSilver = Math.floor((remCp % 100) / 10);
-                            const newCopper = remCp % 10;
+                            const nextG = Math.floor(remCp / 100);
+                            const nextS = Math.floor((remCp % 100) / 10);
+                            const nextC = remCp % 10;
 
-                            hero.stats.coinsGold = newGold;
-                            hero.stats.coinsSilver = newSilver;
-                            hero.stats.coinsCopper = newCopper;
+                            hero.stats.coinsGold = nextG;
+                            hero.stats.coinsSilver = nextS;
+                            hero.stats.coinsCopper = nextC;
 
-                            // 2. Синхронизируем с записью отправителя в BestiaryManager и трекере инициативы
-                            const syncSenderCoins = (targetObj) => {
-                                if (!targetObj) return;
-                                if (!targetObj.stats) targetObj.stats = {};
-                                targetObj.stats.coinsGold = newGold;
-                                targetObj.stats.coinsSilver = newSilver;
-                                targetObj.stats.coinsCopper = newCopper;
-                            };
-
-                            const allBestiaryUnits = [
+                            // 2. Синхронизируем кошелёк отправителя в Бестиарии (отряд/резерв) и трекере инициативы
+                            const allBestiaryHeroes = [
                                 ...(window.BestiaryManager?.state?.party || []),
                                 ...(window.BestiaryManager?.state?.inactive || [])
                             ];
-                            const senderInParty = allBestiaryUnits.find(p => p && (p.id === hero.id || p.name === hero.name));
-                            if (senderInParty && senderInParty !== hero) {
-                                syncSenderCoins(senderInParty);
-                            }
+                            const normSenderName = String(hero.name || '').trim().toLowerCase();
 
-                            (window.InitiativeManager?.state?.combatants || []).forEach(u => {
-                                if (u && u.faction === 'friend' && u.name === hero.name) {
-                                    syncSenderCoins(u);
+                            allBestiaryHeroes.forEach(p => {
+                                if (p && (p.id === hero.id || String(p.name || '').trim().toLowerCase() === normSenderName)) {
+                                    if (!p.stats) p.stats = {};
+                                    p.stats.coinsGold = nextG;
+                                    p.stats.coinsSilver = nextS;
+                                    p.stats.coinsCopper = nextC;
                                 }
                             });
 
-                            // 3. Обновляем поля ввода в открытом бланке отправителя ДО вызова refreshBulkBadge
+                            (window.InitiativeManager?.state?.combatants || []).forEach(u => {
+                                if (u && u.faction === 'friend' && String(u.name || '').trim().toLowerCase() === normSenderName) {
+                                    if (!u.stats) u.stats = {};
+                                    u.stats.coinsGold = nextG;
+                                    u.stats.coinsSilver = nextS;
+                                    u.stats.coinsCopper = nextC;
+                                }
+                            });
+
+                            // 3. Обновляем поля ввода в текущем бланке ДО вызова refreshBulkBadge
                             const gEl = overlay.querySelector('[data-sheet-num="coinsGold"]');
                             const sEl = overlay.querySelector('[data-sheet-num="coinsSilver"]');
                             const cEl = overlay.querySelector('[data-sheet-num="coinsCopper"]');
-                            if (gEl) gEl.value = String(newGold);
-                            if (sEl) sEl.value = String(newSilver);
-                            if (cEl) cEl.value = String(newCopper);
+                            if (gEl) { gEl.value = String(nextG); gEl.setAttribute('value', String(nextG)); }
+                            if (sEl) { sEl.value = String(nextS); sEl.setAttribute('value', String(nextS)); }
+                            if (cEl) { cEl.value = String(nextC); cEl.setAttribute('value', String(nextC)); }
 
                             const target = document.getElementById('bstTxTargetSel')?.value || 'spend';
                             const note = String(document.getElementById('bstTxNote')?.value || '').trim();
@@ -1286,7 +1287,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                                 window.BestiaryManager.addTreasuryLoot(g, s, c, `${hero.name}${note ? ': ' + note : ''}`);
                             } else if (target.startsWith('hero:')) {
                                 const recipientId = target.slice(5);
-                                const recipient = allBestiaryUnits.find(p => p && p.id === recipientId);
+                                const recipient = allBestiaryHeroes.find(p => p && p.id === recipientId);
                                 if (recipient) {
                                     if (!recipient.stats) recipient.stats = {};
                                     recipient.stats.coinsGold = (Number(recipient.stats.coinsGold) || 0) + g;
@@ -1294,8 +1295,9 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                                     recipient.stats.coinsCopper = (Number(recipient.stats.coinsCopper) || 0) + c;
 
                                     // Синхронизируем кошелёк получателя с трекером инициативы
+                                    const normRecName = String(recipient.name || '').trim().toLowerCase();
                                     (window.InitiativeManager?.state?.combatants || []).forEach(u => {
-                                        if (u && u.faction === 'friend' && u.name === recipient.name && u.stats && u.stats !== recipient.stats) {
+                                        if (u && u.faction === 'friend' && String(u.name || '').trim().toLowerCase() === normRecName && u.stats && u.stats !== recipient.stats) {
                                             u.stats.coinsGold = recipient.stats.coinsGold;
                                             u.stats.coinsSilver = recipient.stats.coinsSilver;
                                             u.stats.coinsCopper = recipient.stats.coinsCopper;
@@ -1311,11 +1313,14 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
                             if (window.BestiaryManager?._save) window.BestiaryManager._save();
                             txModal.close();
                         }
-
-
-
                     }
+
+
+
+
                 ]
+
+
             });
 
             if (txModal?.overlay) txModal.overlay.style.zIndex = '10000250';
