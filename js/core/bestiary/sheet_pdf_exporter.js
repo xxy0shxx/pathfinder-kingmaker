@@ -74,7 +74,7 @@ const sidebarHtml = (pageNum) => `
             <div class="prof-tier"><b>ИЗУЧЕННЫЙ</b><span>2 + уровень</span></div>
             <div class="prof-tier"><b>ЭКСПЕРТНЫЙ</b><span>4 + уровень</span></div>
         </div>
-        <div class="sb-foot">Разрешено копирование для личного использования<br>© Paizo Inc. • Стр. ${pageNum}/2</div>
+        <div class="sb-foot">Разрешено копирование для личного использования<br>© Paizo Inc. • Стр. ${pageNum}/3</div>
     </aside>
 `;
 export function exportCharacterToPdf(hero) {
@@ -298,6 +298,45 @@ export function exportCharacterToPdf(hero) {
         .filter(Boolean)
         .join('\n\n');
 
+
+    const investedUsed = Math.min(10, Math.max(0, Number(s.investedUsedToday) || 0));
+
+    const renderPdfBodySlot = (slotKey, icon, label) => {
+        const val = String(s[`eq_${slotKey}_Name`] || '').trim();
+        const isInv = !!s[`eq_${slotKey}_Invested`];
+        return `
+            <div style="border: 1.2px solid ${isInv ? '#5e1914' : '#8c7b65'}; border-radius: 3px; padding: 3px 5px; background: ${isInv ? '#fdf6f0' : '#fcfaf6'}; margin-bottom: 3px;">
+                <div style="display:flex; justify-content:space-between; font-size:5.5pt; font-weight:800; color:#5e1914; text-transform:uppercase;">
+                    <span>${icon} ${label}</span>
+                    ${isInv ? `<span style="color:#5e1914;">✨ ВЛОЖ.</span>` : ''}
+                </div>
+                <div style="font-size:7.2pt; font-weight:800; color:${val ? '#1e242b' : '#999'}; min-height:12px; border-bottom:1px solid #cbbba0;">
+                    ${esc(val || '— Пусто —')}
+                </div>
+            </div>
+        `;
+    };
+
+    const ringsHtml = [1, 2, 3, 4, 5].map(idx => {
+        const val = String(s[`eq_ring_${idx}_Name`] || '').trim();
+        const isInv = !!s[`eq_ring_${idx}_Invested`];
+        return `
+            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px dashed #cbbba0; padding:2px 0; font-size:7pt;">
+                <span><b>💍 Слот ${idx}:</b> ${esc(val || '—')}</span>
+                ${isInv ? `<span style="font-size:5.8pt; font-weight:800; color:#5e1914; background:#eee6d8; padding:0 3px; border-radius:2px;">✨ ВЛОЖ.</span>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    const beltPdfHtml = [1, 2, 3, 4, 5].map(idx => {
+        const bVal = String(s[`beltItem${idx}Name`] || '').trim();
+        return `
+            <div style="border:1px solid #8c7b65; border-radius:3px; padding:3px 4px; background:#fcfaf6;">
+                <div style="font-size:5.5pt; font-weight:800; color:#2d4739;">⚡ ПОЯС #${idx} (1 ◆)</div>
+                <div style="font-size:6.8pt; font-weight:800; color:${bVal ? '#1a1a1a' : '#999'}; min-height:11px;">${esc(bVal || 'Пусто')}</div>
+            </div>
+        `;
+    }).join('');
 
 
     const html = `<!DOCTYPE html>
@@ -685,6 +724,99 @@ export function exportCharacterToPdf(hero) {
         </div>
     </div>
 </div>
+
+
+
+<div class="page">
+    ${sidebarHtml(3)}
+    <div class="main-area">
+        <div>
+            <div class="top-banner">
+                <div class="name-ribbon">
+                    <div class="lbl">Экипировка и Кукла персонажа</div>
+                    <div class="val">${esc(name)}</div>
+                </div>
+                <div class="lvl-row">
+                    <div class="lvl-box">
+                        <div class="lbl">ВЛОЖЕНО СЕГОДНЯ</div>
+                        <div class="val">${investedUsed} / 10</div>
+                    </div>
+                    <div class="lvl-box">
+                        <div class="lbl">ПОЯС (МАССА)</div>
+                        <div class="val">до 2.0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sec">
+                <div class="sec-hdr red"><span class="badge">У</span> Экипировка на теле (Кукла героя)</div>
+                <div class="sec-body">
+                    <div style="display:grid; grid-template-columns: 1fr 44mm 1fr; gap:6px; align-items:center;">
+                        <div>
+                            ${renderPdfBodySlot('head', '👑', 'Голова (Шлем/Диадема)')}
+                            ${renderPdfBodySlot('cloak', '🧥', 'Плечи (Плащ)')}
+                            ${renderPdfBodySlot('hands', '🧤', 'Кисти (Перчатки/Наручи)')}
+                            ${renderPdfBodySlot('belt', '🥋', 'Талия (Пояс)')}
+                        </div>
+
+                        <div style="height:56mm; border:2px solid #5e1914; border-radius:6px; background:#141920; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                            ${portraitUrl
+        ? `<img src="${portraitUrl}" alt="${esc(name)}" style="width:100%; height:100%; object-fit:cover;">`
+        : `<span style="color:#888; font-size:7pt;">Нет портрета</span>`
+    }
+                        </div>
+
+                        <div>
+                            ${renderPdfBodySlot('neck', '📿', 'Шея (Амулет/Кулон)')}
+                            ${renderPdfBodySlot('armor', '🦺', 'Торс (Доспех/Роба)')}
+                            ${renderPdfBodySlot('eyes', '🥽', 'Глаза (Очки/Маска)')}
+                            ${renderPdfBodySlot('feet', '👢', 'Ноги (Сапоги)')}
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-top:4px; padding-top:4px; border-top:1px dashed #cbbba0;">
+                        ${renderPdfBodySlot('mainHand', '🗡️', 'Правая / Ведущая рука')}
+                        ${renderPdfBodySlot('offHand', '🛡️', 'Левая рука (Щит / Второе / Жезл)')}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sec">
+            <div class="sec-hdr green"><span class="badge">Ф</span> Пояс и перевязи (Быстрый доступ за 1 ◆ — лимит 2.0 Массы)</div>
+            <div class="sec-body">
+                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:4px;">
+                    ${beltPdfHtml}
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="flex: 1; margin-bottom: 0;">
+            <div class="sec" style="width: 54%; margin-bottom: 0;">
+                <div class="sec-hdr"><span class="badge">Х</span> Кольца, Эонские камни и Татуировки (Вкладываемые)</div>
+                <div class="sec-body" style="justify-content: space-between;">
+                    <div>${ringsHtml}</div>
+                    <div style="font-size:6pt; color:#444; background:#f4efe6; padding:3px 5px; border-radius:3px; border:1px solid #cbbba0; line-height:1.25;">
+                        <b>Правило вложения (Invested):</b> максимум <b>10</b> магических предметов в день. При снятии вложенного предмета его магия отключается, но потраченный дневной лимит возвращается только после утренней <b>Ежедневной подготовки</b>.
+                    </div>
+                </div>
+            </div>
+
+            <div class="sec" style="width: 46%; margin-bottom: 0;">
+                <div class="sec-hdr green"><span class="badge">Ц</span> Памятка по ношению и нагрузке PF2e</div>
+                <div class="sec-body" style="font-size:6.4pt; line-height:1.3; color:#222; justify-content: space-between;">
+                    <div><b>• Две руки (Held):</b> можно держать либо двуручное оружие, либо одноручное и щит/жезл. Взять предмет с пояса — <b>1 ◆ Взаимодействие</b>.</div>
+                    <div><b>• Пояс и перевязи:</b> вмещают до <b>2.0 Массы</b> зелий, свитков, бомб или наборов инструментов для быстрого доступа в бою.</div>
+                    <div><b>• Походный рюкзак:</b> вмещает до <b>4.0 Массы</b>, причём первые <b>2.0 Массы</b> не учитываются в общей перегрузке героя (достать вещь в бою — ◆◆).</div>
+                    <div style="border-top:1px dashed #cbbba0; padding-top:3px; font-weight:800; color:#5e1914;">
+                        Итоговая нагрузка: ${esc(bulkStr)} / ${bulkInfo.encumberedLimit} (Макс. ${bulkInfo.maxLimit})
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     window.onload = function() {
