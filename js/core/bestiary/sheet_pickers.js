@@ -940,6 +940,150 @@ export function initPage2Pickers(overlay, hero) {
         });
     });
 
+    // Хелпер начисления монет в кошелёк героя (с автоукрупнением 10 ММ -> 1 СМ -> 1 ЗМ)
+    const addHeroCoinsCp = (gainCp) => {
+        if (gainCp <= 0) return;
+        const root = overlay || document;
+        const gInp = root.querySelector('[data-sheet-num="coinsGold"]') || document.querySelector('[data-sheet-num="coinsGold"]');
+        const sInp = root.querySelector('[data-sheet-num="coinsSilver"]') || document.querySelector('[data-sheet-num="coinsSilver"]');
+        const cInp = root.querySelector('[data-sheet-num="coinsCopper"]') || document.querySelector('[data-sheet-num="coinsCopper"]');
+
+        const curG = Math.max(0, parseInt(gInp ? gInp.value : hero.stats.coinsGold, 10) || 0);
+        const curS = Math.max(0, parseInt(sInp ? sInp.value : hero.stats.coinsSilver, 10) || 0);
+        const curC = Math.max(0, parseInt(cInp ? cInp.value : hero.stats.coinsCopper, 10) || 0);
+        const nextTotalCp = (curG * 100 + curS * 10 + curC) + gainCp;
+
+        const nextG = Math.floor(nextTotalCp / 100);
+        const nextS = Math.floor((nextTotalCp % 100) / 10);
+        const nextC = nextTotalCp % 10;
+
+        hero.stats.coinsGold = nextG;
+        hero.stats.coinsSilver = nextS;
+        hero.stats.coinsCopper = nextC;
+
+        if (gInp) { gInp.value = String(nextG); gInp.setAttribute('value', String(nextG)); }
+        if (sInp) { sInp.value = String(nextS); sInp.setAttribute('value', String(nextS)); }
+        if (cInp) {
+            cInp.value = String(nextC);
+            cInp.setAttribute('value', String(nextC));
+            cInp.dispatchEvent(new Event('input', { bubbles: true }));
+            cInp.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+
+    const formatCpLabel = (cp) => {
+        if (cp <= 0) return '0 ММ';
+        const g = Math.floor(cp / 100);
+        const s = Math.floor((cp % 100) / 10);
+        const c = cp % 10;
+        return [
+            g > 0 ? `${g} ЗМ` : '',
+            s > 0 ? `${s} СМ` : '',
+            c > 0 ? `${c} ММ` : ''
+        ].filter(Boolean).join(', ');
+    };
+
+    // Кнопка продажи позиции (💰) в каждой строке рюкзака
+    overlay.querySelectorAll('.bst-item-sell-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const row = btn.dataset.itemSell;
+
+            const nameInp = overlay.querySelector(`[data-sheet-txt="item${row}Name"]`);
+            const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
+            const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
+
+            const itemName = String(nameInp?.value || hero.stats[`item${row}Name`] || '').trim();
+            const itemQty = Math.max(0, Number(qtyInp?.value ?? hero.stats[`item${row}Qty`]) || 0);
+
+            if (!itemName || itemQty <= 0) return;
+
+            const catObj = (PF2E_ITEMS_CATALOG || []).find(it => normalizeStr(it.name) === normalizeStr(itemName));
+            const priceInfo = catObj ? parseItemPriceCp(catObj) : parseItemPriceCp({ price: '', notes: noteInp?.value || '' });
+            const baseUnitCp = priceInfo ? priceInfo.totalCp : 0;
+
+            const sellModal = ModalManager.open({
+                id: 'bstSellItemModal',
+                title: '💰 Продажа предмета из рюкзака',
+                width: '440px',
+                borderColor: '#ffd875',
+                bodyHtml: `
+                    <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                        <div>Предмет: <b style="color:#fff;">${itemName}</b> <span style="color:#a4b0be;">(в наличии: ${itemQty} шт.)</span></div>
+                        <div>Базовая цена (1 шт.): <b style="color:#ffd875;">${baseUnitCp > 0 ? formatCpLabel(baseUnitCp) : 'не указана в каталоге'}</b></div>
+
+                        <div style="display: grid; grid-template-columns: 110px 1fr; gap: 8px; margin-top: 10px; align-items: end;">
+                            <div>
+                                <label style="font-size: 12px; color: #a4b0be;">Продать (шт.):</label>
+                                <input type="number" id="bstSellQtyInp" class="k-inp" min="1" max="${itemQty}" value="1" style="width: 100%; text-align: center; margin-top: 3px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #a4b0be;">Условия сделки:</label>
+                                <select id="bstSellRateSel" class="k-inp" style="width: 100%; margin-top: 3px; padding: 6px; background: #040905; border: 1px solid #543e0d; color: #ebd291;">
+                                    <option value="0.5" selected>⚖️ Стандарт PF2e (50% цены)</option>
+                                    <option value="1">💎 Драгоценности / Торговля (100% цены)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="bstSellPreviewBox" style="margin-top: 10px; padding: 8px 10px; background: rgba(30, 60, 39, 0.45); border: 1px solid #2ecc71; border-radius: 5px; color: #2ecc71; font-weight: bold;"></div>
+                    </div>
+                `,
+                footerButtons: [
+                    { label: '✖ Отмена', variant: 'cc', onClick: () => sellModal.close() },
+                    {
+                        label: '💰 Продать и зачислить',
+                        variant: 'ok',
+                        onClick: () => {
+                            const sellCount = Math.max(1, Math.min(itemQty, parseInt(document.getElementById('bstSellQtyInp')?.value, 10) || 1));
+                            const rate = parseFloat(document.getElementById('bstSellRateSel')?.value) || 0.5;
+                            const totalGainCp = Math.floor(baseUnitCp * sellCount * rate);
+
+                            addHeroCoinsCp(totalGainCp);
+
+                            const remQty = itemQty - sellCount;
+                            if (remQty <= 0) {
+                                hero.stats[`item${row}Name`] = '';
+                                hero.stats[`item${row}Qty`] = 0;
+                                hero.stats[`item${row}Notes`] = '';
+                                if (nameInp) { nameInp.value = ''; nameInp.dataset.validItem = ''; }
+                                if (noteInp) noteInp.value = '';
+                                if (qtyInp) {
+                                    qtyInp.value = 0;
+                                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            } else {
+                                hero.stats[`item${row}Qty`] = remQty;
+                                if (qtyInp) {
+                                    qtyInp.value = remQty;
+                                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                                }
+                            }
+
+                            sellModal.close();
+                        }
+                    }
+                ]
+            });
+
+            if (sellModal?.overlay) sellModal.overlay.style.zIndex = '10000250';
+
+            const qEl = document.getElementById('bstSellQtyInp');
+            const rEl = document.getElementById('bstSellRateSel');
+            const pEl = document.getElementById('bstSellPreviewBox');
+            const updateSellPreview = () => {
+                const cnt = Math.max(1, Math.min(itemQty, parseInt(qEl?.value, 10) || 1));
+                const rt = parseFloat(rEl?.value) || 0.5;
+                const gain = Math.floor(baseUnitCp * cnt * rt);
+                if (pEl) pEl.textContent = `Выручка в кошелёк: +${formatCpLabel(gain)}`;
+            };
+            qEl?.addEventListener('input', updateSellPreview);
+            rEl?.addEventListener('change', updateSellPreview);
+            updateSellPreview();
+        });
+    });
+
 
 
     // 4. Способности и виды спутников (единое поведение для зверей и фамильяров)
