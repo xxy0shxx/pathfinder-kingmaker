@@ -65,19 +65,25 @@ function bindAutocomplete(inp, dropEl, { getItems, renderOption, onSelect, width
             ? `${Math.max(8, rect.top - dropHeight - 2)}px`
             : `${rect.bottom + 2}px`;
 
+
+
         dropEl.querySelectorAll('.bst-cantrip-opt').forEach(optEl => {
-            const pickItem = (e) => {
+            optEl.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (optEl.dataset.pickedDone) return;
-                optEl.dataset.pickedDone = '1';
+                const targetEl = e.target?.nodeType === 3 ? e.target.parentElement : e.target;
+                const isBuyClick = !!(targetEl && typeof targetEl.closest === 'function' && targetEl.closest('.bst-item-buy-btn'));
                 const picked = list[Number(optEl.dataset.optIdx)];
-                if (picked) onSelect(picked);
+                if (picked) onSelect(picked, isBuyClick);
                 dropEl.style.display = 'none';
-            };
-            optEl.addEventListener('mousedown', pickItem);
-            optEl.addEventListener('click', pickItem);
+            });
         });
+
+
+
+
+
+
     };
 
     inp.addEventListener('focus', () => render(inp.value));
@@ -561,6 +567,66 @@ export function initPage2Pickers(overlay, hero) {
 
 
 
+    // Извлекает цену предмета в медных монетах (1 ЗМ = 100 ММ, 1 СМ = 10 ММ)
+    const parseItemPriceCp = (it) => {
+        if (!it) return null;
+        const raw = `${it.price || ''} ${it.notes || ''}`;
+        const m = raw.match(/(\d+(?:[.,]\d+)?)\s*(зм|см|мм|gp|sp|cp)(?![а-яёa-z])/i);
+        if (!m) return null;
+
+        const numStr = String(m.at(1) || '').replace(',', '.');
+        const unitRaw = String(m.at(2) || '').toLowerCase();
+        const val = parseFloat(numStr) || 0;
+        if (val <= 0) return null;
+
+        const mult = (unitRaw === 'зм' || unitRaw === 'gp') ? 100 : ((unitRaw === 'см' || unitRaw === 'sp') ? 10 : 1);
+        const totalCp = Math.round(val * mult);
+        return {
+            totalCp,
+            label: `${m.at(1)} ${unitRaw.toUpperCase()}`
+        };
+    };
+
+    // Списывает сумму в медных монетах из кошелька героя (с авторазменом) и обновляет поля на странице
+    const spendHeroCoinsCp = (costCp) => {
+        const root = overlay || document;
+        const gInp = root.querySelector('[data-sheet-num="coinsGold"]') || document.querySelector('[data-sheet-num="coinsGold"]');
+        const sInp = root.querySelector('[data-sheet-num="coinsSilver"]') || document.querySelector('[data-sheet-num="coinsSilver"]');
+        const cInp = root.querySelector('[data-sheet-num="coinsCopper"]') || document.querySelector('[data-sheet-num="coinsCopper"]');
+
+        const curG = Math.max(0, parseInt(gInp ? gInp.value : hero.stats.coinsGold, 10) || 0);
+        const curS = Math.max(0, parseInt(sInp ? sInp.value : hero.stats.coinsSilver, 10) || 0);
+        const curC = Math.max(0, parseInt(cInp ? cInp.value : hero.stats.coinsCopper, 10) || 0);
+        const totalCp = curG * 100 + curS * 10 + curC;
+
+        if (totalCp < costCp) return false;
+
+        const remCp = totalCp - costCp;
+        const nextG = Math.floor(remCp / 100);
+        const nextS = Math.floor((remCp % 100) / 10);
+        const nextC = remCp % 10;
+
+        hero.stats.coinsGold = nextG;
+        hero.stats.coinsSilver = nextS;
+        hero.stats.coinsCopper = nextC;
+
+        if (gInp) {
+            gInp.value = String(nextG);
+            gInp.setAttribute('value', String(nextG));
+        }
+        if (sInp) {
+            sInp.value = String(nextS);
+            sInp.setAttribute('value', String(nextS));
+        }
+        if (cInp) {
+            cInp.value = String(nextC);
+            cInp.setAttribute('value', String(nextC));
+            cInp.dispatchEvent(new Event('input', { bubbles: true }));
+            cInp.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        return true;
+    };
+
 
 
     // 3. Предметы, щиты и степперы количества (выбор строго из каталога)
@@ -569,11 +635,43 @@ export function initPage2Pickers(overlay, hero) {
         inp.dataset.validItem = inp.value || '';
 
         bindAutocomplete(inp, overlay.querySelector(`[data-item-drop="${row}"]`), {
-            width: 360,
+            width: 390,
             zIndex: '10000180',
             getItems: (q) => searchItemsCatalog(q),
-            renderOption: (it) => `<div class="bst-cantrip-opt-top"><b>${it.name}</b> <span>${it.category}</span></div>`,
-            onSelect: (found) => {
+
+
+            renderOption: (it) => {
+                const priceInfo = parseItemPriceCp(it);
+                const buyBtnHtml = priceInfo
+                    ? `<span class="bst-item-buy-btn" data-buy-cp="${priceInfo.totalCp}" data-buy-lbl="${priceInfo.label}" title="Купить и списать ${priceInfo.label} из кошелька героя" style="margin-left: 6px; padding: 2px 7px; font-size: 11px; font-weight: bold; background: #1e3c27; border: 1px solid #ffd875; color: #ffd875; border-radius: 4px; cursor: pointer; white-space: nowrap;">🛒 ${priceInfo.label}</span>`
+                    : '';
+                return `<div class="bst-cantrip-opt-top" style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                    <div style="flex:1; min-width:0;"><b>${it.name}</b> <span style="display:block; font-size:11px; color:#a4b0be;">${it.category}</span></div>
+                    ${buyBtnHtml}
+                </div>`;
+            },
+
+            onSelect: (found, isBuyClick = false) => {
+
+                if (isBuyClick) {
+                    const priceInfo = parseItemPriceCp(found);
+                    if (priceInfo && priceInfo.totalCp > 0) {
+                        const ok = spendHeroCoinsCp(priceInfo.totalCp);
+                        if (!ok) {
+                            const errModal = ModalManager.open({
+                                id: 'bstNotEnoughCoinsModal',
+                                title: '⚠️ Недостаточно монет',
+                                width: '400px',
+                                borderColor: '#e74c3c',
+                                bodyHtml: `<div style="font-size: 14px; color: #ebd291; line-height: 1.5;">Для покупки предмета <b>${found.name}</b> требуется <b style="color:#ffd875;">${priceInfo.label}</b>, но в кошельке героя не хватает средств.</div>`,
+                                footerButtons: [{ label: 'Понятно', variant: 'ok' }]
+                            });
+                            if (errModal?.overlay) errModal.overlay.style.zIndex = '10000250';
+                            return;
+                        }
+                    }
+                }
+
                 const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
                 const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
 
