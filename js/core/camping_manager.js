@@ -944,9 +944,9 @@ const CampingManager = {
 
                         if (outcome === 'crit_success' || outcome === 'success') {
                             const tag = outcome === 'crit_success' ? ' [КРИТ. УСПЕХ]' : '';
-                            this.state.activeMeal = { name: `${meal.name}${tag}`, effect: meal.buff };
+                            this.state.activeMeal = { id: meal.id, name: `${meal.name}${tag}`, effect: meal.buff };
                         } else if (outcome === 'crit_failure') {
-                            this.state.activeMeal = { name: `${meal.name} [НЕСВАРЕНИЕ]`, effect: meal.critFailure };
+                            this.state.activeMeal = { id: meal.id, name: `${meal.name} [НЕСВАРЕНИЕ]`, effect: meal.critFailure };
                         } else {
                             this.state.activeMeal = null;
                         }
@@ -979,6 +979,7 @@ const CampingManager = {
         if (totEl) totEl.textContent = this.state.totalChecks;
         if (modEl) modEl.textContent = this.state.checkMod;
 
+
         const summaryCard = normEl?.closest('.camp-summary-box, .camp-results-panel') || normEl?.parentElement?.parentElement;
         if (summaryCard) {
             let syncBar = summaryCard.querySelector('#campSyncBarBox');
@@ -991,6 +992,9 @@ const CampingManager = {
                     <button type="button" id="btnCampSyncSupplies" class="btn ok" style="width: 100%; padding: 5px 8px; font-size: 13px;">
                         🎒 Списать пайки (−1/чел) и выдать добычу в рюкзак
                     </button>
+                    <div style="font-size: 11px; color: #a4b0be; line-height: 1.25;">
+                        💡 Если вы готовите <b>Простую трапезу</b> в полевой кухне ниже, пайки спишутся автоматически при готовке — повторно нажимать не нужно.
+                    </div>
                     <div id="campSuppliesSyncStatus" style="font-size: 12px; color: #a4b0be; line-height: 1.3;"></div>
                 `;
                 summaryCard.appendChild(syncBar);
@@ -1011,6 +1015,11 @@ const CampingManager = {
                     if (normGain > 0) lootLines.push(`🏕️ Обычные ингредиенты: <b>+${normGain} шт.</b>`);
                     if (specGain > 0) lootLines.push(`🌿 Особые ингредиенты: <b>+${specGain} шт.</b>`);
 
+                    const basicMealAlreadyCooked = this.state.activeMeal?.id === 'basic_meal';
+                    const mealWarningHtml = basicMealAlreadyCooked
+                        ? `<div style="margin-top: 6px; padding: 6px 8px; background: rgba(243, 156, 18, 0.18); border: 1px solid #f39c12; border-radius: 4px; color: #fdcb6e; font-size: 12px;">⚠️ <b>Внимание:</b> вы уже приготовили <b>Простую трапезу</b> на этой стоянке, и пайки за ужин были списаны при готовке. Подтверждайте, только если хотите списать пайки за ещё один день!</div>`
+                        : '';
+
                     const confirmModal = ModalManager.open({
                         id: 'campConfirmSyncSuppliesModal',
                         title: '🎒 Подтверждение расхода припасов привала',
@@ -1022,6 +1031,7 @@ const CampingManager = {
                                 <div style="margin-top: 8px; padding: 8px 10px; background: rgba(4, 9, 5, 0.75); border: 1px solid #543e0d; border-radius: 5px;">
                                     <div>🍞 <b>Списание пайков:</b> −${rationsToSpend} из ${sup.totalRations} шт. (на ${heroesCount} чел.)</div>
                                     ${sup.totalRations < heroesCount ? `<div style="color: #ff7675; font-size: 12px; margin-top: 2px;">⚠️ Пайков хватит не на всех (не хватает ${heroesCount - sup.totalRations} шт.)</div>` : ''}
+                                    ${mealWarningHtml}
                                     ${lootLines.length > 0 ? `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(223,188,111,0.25); color: #2ecc71;">📦 <b>Выдача добычи (${hunterName}):</b><br>${lootLines.join('<br>')}</div>` : ''}
                                 </div>
                             </div>
@@ -1051,6 +1061,9 @@ const CampingManager = {
             const totalBox = syncBar.querySelector('#campPartySuppliesTotal');
             if (totalBox) totalBox.innerHTML = this.getPartySuppliesSummary().html;
         }
+
+
+
 
         // Панель приготовления блюд на привале (Camp Meals)
         if (summaryCard) {
