@@ -23,13 +23,11 @@ const UiPanelManager = {
     },
 
     _initPlayerMinimalHud() {
-        // Скрываем все панели ГМа: шестерёнку, меню 3х4, плеер Winamp, окно квестов/журнала и туман/пути
         const hideSelectors = [
             '.master-toggle-btn',
             '.right-controls-panel',
             '.music-player-monolith-wrapper',
-            '#questLogContainer',
-            '#mapPathsSvg'
+            '#questLogContainer'
         ];
         hideSelectors.forEach(sel => {
             document.querySelectorAll(sel).forEach(el => {
@@ -37,7 +35,6 @@ const UiPanelManager = {
             });
         });
 
-        // Создаём единственную кнопку открытия листа персонажа на месте шестерёнки
         if (!document.getElementById('btnPlayerOpenSheet')) {
             const btn = document.createElement('button');
             btn.type = 'button';

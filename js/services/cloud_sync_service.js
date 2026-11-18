@@ -96,7 +96,6 @@ const CloudSyncService = {
 
         const pulledAnything = await this.pullFromCloud();
 
-        // Выгружаем локальные данные в облако при старте, если они есть (в том числе карту, если ранее в базе были только герои)
         if (!this.isPlayerMode && window.BestiaryManager) {
             const mapRef = window.BestiaryManager.mapDataRef || {};
             const hasLocalData =
@@ -193,11 +192,21 @@ const CloudSyncService = {
         }
 
         const heroesPromise = query;
-        const statePromise = this.supabaseClient
-            .from('campaign_state')
-            .select('map_data')
-            .eq('room_code', this.roomCode)
-            .maybeSingle();
+        const statePromise = !this.isPlayerMode
+            ? this.supabaseClient
+                .from('campaign_state')
+                .select('map_data')
+                .eq('room_code', this.roomCode)
+                .maybeSingle()
+            : this.supabaseClient
+                .rpc('get_player_map', {
+                    p_room_code: this.roomCode,
+                    p_hero_id: this.playerHeroId
+                })
+                .then(({ data, error }) => ({
+                    data: data ? { map_data: data } : null,
+                    error
+                }));
 
         const [{ data: heroesData, error: heroesErr }, { data: stateRow, error: stateErr }] = await Promise.all([
             heroesPromise,
@@ -208,10 +217,15 @@ const CloudSyncService = {
         if (stateErr) console.error('Ошибка загрузки карты из Supabase:', stateErr.message);
 
         if (this.isPlayerMode) {
-            if (!heroesData?.length || !window.BestiaryManager) return false;
-            const heroData = heroesData[0]?.hero_data;
-            await this._verifyPlayerAccess(heroData);
+            if (!window.BestiaryManager) return false;
+            const heroRow = Array.isArray(heroesData) ? heroesData[0] : null;
+            if (!heroRow) {
+                console.warn('Supabase не вернул данные героя. Проверьте RLS-политику player_read_own_hero и заголовки x-room-code / x-hero-id.');
+                return false;
+            }
+            await this._verifyPlayerAccess(heroRow.hero_data);
         }
+
 
         const hasHeroes = Array.isArray(heroesData) && heroesData.length > 0;
         const hasMapState = Boolean(stateRow?.map_data && Object.keys(stateRow.map_data).length > 0);
@@ -219,12 +233,10 @@ const CloudSyncService = {
 
         this._isRemoteApplying = true;
         try {
-            // 1. Применяем состояние карты (теперь и для ГМа, и для игрока в режиме просмотра)
             if (hasMapState) {
                 this._applyRemoteMapState(stateRow.map_data);
             }
 
-            // 2. Применяем героев
             if (hasHeroes && window.BestiaryManager) {
                 const remoteIds = new Set(heroesData.map(r => r.id));
                 window.BestiaryManager.state.party = (window.BestiaryManager.state.party || []).filter(h => remoteIds.has(h.id));
@@ -239,7 +251,6 @@ const CloudSyncService = {
         }
 
         return true;
-
     },
 
     _buildSanitizedMapPayload() {
@@ -247,14 +258,12 @@ const CloudSyncService = {
         if (!rawRef || typeof rawRef !== 'object') return null;
 
         const clone = JSON.parse(JSON.stringify(rawRef));
-        // Герои отряда и резерва хранятся отдельно в campaign_heroes — не дублируем их в map_data
         if (clone.bestiary && typeof clone.bestiary === 'object') {
             delete clone.bestiary.party;
             delete clone.bestiary.inactive;
         }
         return clone;
     },
-
 
     _applyRemoteMapState(remoteMapData) {
         if (!remoteMapData || typeof remoteMapData !== 'object') return;
@@ -263,30 +272,17 @@ const CloudSyncService = {
 
         const mapClone = JSON.parse(JSON.stringify(remoteMapData));
 
+        // Для игрока вырезаем только неразведанные гексы, сохраняя квесты, слухи и пройденный путь
         if (this.isPlayerMode) {
-            // 1. Удаляем пройденные пути отряда
-            mapClone.paths = [];
-            mapClone.squadPath = [];
-
-            // 2. Очищаем неразведанные гексы, а у разведанных убираем квесты и слухи
             if (mapClone.hexes) {
                 Object.keys(mapClone.hexes).forEach(k => {
                     const h = mapClone.hexes[k];
                     if (!h || (!h.explored && !h.hasVisited && !h.squadHere)) {
                         delete mapClone.hexes[k];
-                    } else {
-                        delete h.rumorText;
-                        delete h.questData;
                     }
                 });
             }
-
-            // 3. Принудительно включаем туман войны и скрываем квестовые маркеры
             MAP_CONFIG.isGlobalFogEnabled = true;
-            window.MAP_HIDE_QUEST_MARKERS = true;
-            if (window.HexCanvasRender) {
-                window.HexCanvasRender.showQuestTooltips = false;
-            }
         }
 
         const preservedParty = window.BestiaryManager.state.party || [];
@@ -308,14 +304,7 @@ const CloudSyncService = {
         EventBus.emit('data:imported', targetRef);
         EventBus.emit('map:hexesChanged', targetRef.hexes || {});
 
-        if (this.isPlayerMode) {
-            // Очищаем SVG-слой путей на карте
-            const svgPaths = document.getElementById('mapPathsSvg');
-            if (svgPaths) {
-                svgPaths.innerHTML = '';
-                svgPaths.classList.add('hide-paths');
-            }
-        } else {
+        if (!this.isPlayerMode) {
             if (window.KingdomManager?.init) {
                 window.KingdomManager.state = targetRef.kingdom || window.KingdomManager.state;
                 window.KingdomManager.renderUi?.();
@@ -325,8 +314,6 @@ const CloudSyncService = {
             }
         }
     },
-
-
 
     async pushToCloud() {
         if (!window.BestiaryManager) return;
@@ -351,7 +338,6 @@ const CloudSyncService = {
             return;
         }
 
-        // 1. Синхронизируем удалённых героев
         const currentIds = new Set(allHeroes.map(h => h.id));
         for (const oldId of this._knownHeroIds) {
             if (!currentIds.has(oldId)) {
@@ -360,7 +346,6 @@ const CloudSyncService = {
         }
         this._knownHeroIds = currentIds;
 
-        // 2. Сохраняем героев
         for (const hero of allHeroes) {
             await this.supabaseClient.from('campaign_heroes').upsert({
                 id: hero.id,
@@ -372,7 +357,6 @@ const CloudSyncService = {
             });
         }
 
-        // 3. Сохраняем всю карту гексов, королевство, погоду, монстров и казну
         const mapPayload = this._buildSanitizedMapPayload();
         if (mapPayload) {
             const { error: mapErr } = await this.supabaseClient.from('campaign_state').upsert({
@@ -386,7 +370,6 @@ const CloudSyncService = {
             }
         }
 
-        // 4. Мгновенно уведомляем параллельные сессии ГМа
         if (this._channel) {
             this._channel.send({
                 type: 'broadcast',
@@ -412,7 +395,7 @@ const CloudSyncService = {
         if (!row?.hero_data) return;
         if (this.isPlayerMode && row.id !== this.playerHeroId) return;
 
-        if (this.isPlayerMode && row.hero_data?.playerPasswordHash) {
+        if (this.isPlayerMode && row.hero_data.playerPasswordHash) {
             const storageKey = `pf_player_auth_${this.roomCode}_${row.id}`;
             if (localStorage.getItem(storageKey) !== row.hero_data.playerPasswordHash) {
                 await this._verifyPlayerAccess(row.hero_data);

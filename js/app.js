@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             HexCanvasRender.startAnimationLoop();
         }
 
-
         // Обработка клика по Canvas (заменяет старые HTML-слушатели)
         canvasElement.addEventListener('click', () => {
             if (CloudSyncService.isPlayerMode) return;
