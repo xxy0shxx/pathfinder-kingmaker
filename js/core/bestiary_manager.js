@@ -1416,8 +1416,7 @@ const BestiaryManager = {
         if (modal?.overlay) modal.overlay.style.zIndex = '10000350';
     },
 
-
-    openSetHeroPasswordModal(groupKey, id) {
+    async openSetHeroPasswordModal(groupKey, id) {
         const hero = this._getGroupList(groupKey).find(x => x.id === id);
         if (!hero) return;
 
@@ -1425,10 +1424,24 @@ const BestiaryManager = {
         const inviteUrl = CloudSyncService.getPlayerInviteUrl(hero.id);
         const botUsername = (MAP_CONFIG?.telegram?.botUsername || '').replace(/^@/, '');
 
+        // Запрашиваем актуальный статус привязки Telegram из Supabase
+        let linkedTgId = null;
+        if (CloudSyncService?.supabaseClient) {
+            const { data } = await CloudSyncService.supabaseClient
+                .from('campaign_heroes')
+                .select('telegram_user_id')
+                .eq('id', hero.id)
+                .eq('room_code', CloudSyncService.roomCode)
+                .maybeSingle();
+            if (data?.telegram_user_id) {
+                linkedTgId = data.telegram_user_id;
+            }
+        }
+
         const modal = ModalManager.open({
             id: 'bstHeroPasswordModal',
             title: `🔑 Доступ и пароль игрока: ${hero.name}`,
-            width: '450px',
+            width: '460px',
             borderColor: '#74b9ff',
             bodyHtml: `
             <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
@@ -1441,10 +1454,16 @@ const BestiaryManager = {
                 </div>
 
                 <div style="margin-bottom: 12px; padding: 8px; background: rgba(4,9,5,0.8); border: 1px solid #1e4b6e; border-radius: 5px;">
-                    <div style="font-size: 12px; color: #55efc4; font-weight: bold; margin-bottom: 4px;">🤖 Привязка Telegram-бота (одноразовая ссылка):</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 12px; color: #55efc4; font-weight: bold;">🤖 Привязка Telegram-бота:</span>
+                        <span id="bstTgBadge" style="font-size: 11px; font-weight: bold; color: ${linkedTgId ? '#2ecc71' : '#a4b0be'};">
+                            ${linkedTgId ? `✅ Привязан (ID: ${linkedTgId})` : '⚪ Не привязан'}
+                        </span>
+                    </div>
                     <div style="display: flex; gap: 6px;">
-                        <input type="text" id="bstTgLinkInp" readonly placeholder="Нажмите «Создать» для генерации..." class="k-inp" style="flex: 1; font-size: 12px; padding: 5px 8px; color: #a4b0be;">
+                        <input type="text" id="bstTgLinkInp" readonly placeholder="Нажмите «Создать» для ссылки..." class="k-inp" style="flex: 1; font-size: 12px; padding: 5px 8px; color: #a4b0be;">
                         <button type="button" id="bstModalGenTgBtn" class="btn ok" style="padding: 5px 10px; font-size: 12px; white-space: nowrap;">⚡ Создать</button>
+                        <button type="button" id="bstModalUnlinkTgBtn" class="btn del" style="padding: 5px 9px; font-size: 12px; white-space: nowrap; display: ${linkedTgId ? 'inline-block' : 'none'};" title="Отвязать текущий аккаунт Telegram от этого героя">🔌 Отвязать</button>
                     </div>
                     <div id="bstTgLinkStatus" style="font-size: 11px; color: #a4b0be; margin-top: 4px;">
                         ${botUsername ? `Бот: @${botUsername}` : '⚠️ Укажите botUsername в app_config.js'}
@@ -1492,7 +1511,7 @@ const BestiaryManager = {
             });
         });
 
-        // Генерация одноразовой ссылки привязки Telegram и сохранение кода в Supabase
+        // Генерация одноразовой ссылки привязки Telegram
         document.getElementById('bstModalGenTgBtn')?.addEventListener('click', async (e) => {
             const btn = e.currentTarget;
             const inp = document.getElementById('bstTgLinkInp');
@@ -1502,7 +1521,6 @@ const BestiaryManager = {
                 statusEl.innerHTML = '<span style="color:#ff7675;">❌ Сначала укажите telegram.botUsername в app_config.js</span>';
                 return;
             }
-
             if (!CloudSyncService?.supabaseClient) {
                 statusEl.innerHTML = '<span style="color:#ff7675;">❌ Нет подключения к облаку Supabase</span>';
                 return;
@@ -1511,12 +1529,10 @@ const BestiaryManager = {
             btn.disabled = true;
             btn.textContent = '⏳...';
 
-            // Генерируем криптостойкий одноразовый код link_...
             const bytes = new Uint8Array(8);
             crypto.getRandomValues(bytes);
             const linkCode = 'link_' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 
-            // Записываем код в Supabase (доступно только ГМу по RLS)
             const { error } = await CloudSyncService.supabaseClient
                 .from('campaign_heroes')
                 .update({ tg_link_code: linkCode, updated_at: new Date().toISOString() })
@@ -1531,13 +1547,50 @@ const BestiaryManager = {
                 return;
             }
 
-            const tgDeepLink = `https://t.me/${botUsername}?start=${linkCode}`;
+            const tgDeepLink = `https://t.me{botUsername}?start=${linkCode}`;
             if (inp) inp.value = tgDeepLink;
 
             await navigator.clipboard.writeText(tgDeepLink);
             btn.textContent = '✅ Скопировано!';
             statusEl.innerHTML = '<span style="color:#2ecc71;">✅ Ссылка скопирована! Отправьте её игроку в Telegram.</span>';
             setTimeout(() => { btn.textContent = '⚡ Создать'; }, 2000);
+        });
+
+        // Отвязка аккаунта Telegram от героя
+        document.getElementById('bstModalUnlinkTgBtn')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const statusEl = document.getElementById('bstTgLinkStatus');
+            const badgeEl = document.getElementById('bstTgBadge');
+
+            if (!CloudSyncService?.supabaseClient) return;
+
+            btn.disabled = true;
+            btn.textContent = '⏳...';
+
+            const { error } = await CloudSyncService.supabaseClient
+                .from('campaign_heroes')
+                .update({
+                    telegram_user_id: null,
+                    tg_link_code: null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', hero.id)
+                .eq('room_code', CloudSyncService.roomCode);
+
+            btn.disabled = false;
+
+            if (error) {
+                btn.textContent = '🔌 Отвязать';
+                statusEl.innerHTML = `<span style="color:#ff7675;">❌ Ошибка при отвязке: ${error.message}</span>`;
+                return;
+            }
+
+            btn.style.display = 'none';
+            if (badgeEl) {
+                badgeEl.style.color = '#a4b0be';
+                badgeEl.textContent = '⚪ Не привязан';
+            }
+            statusEl.innerHTML = '<span style="color:#ffd875;">🔌 Аккаунт Telegram отвязан от этого героя.</span>';
         });
     }
 
