@@ -1547,7 +1547,7 @@ const BestiaryManager = {
                 return;
             }
 
-            const tgDeepLink = `https://t.me{botUsername}?start=${linkCode}`;
+            const tgDeepLink = `https://t.me/${botUsername}?start=${linkCode}`;
             if (inp) inp.value = tgDeepLink;
 
             await navigator.clipboard.writeText(tgDeepLink);
