@@ -16,7 +16,7 @@ import { openCharacterSheetModal } from './bestiary/character_sheet_modal.js';
 import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../config/items_catalog.js';
 import { bindSheetTooltip } from './bestiary/bestiary_tooltip_builder.js';
 import CloudSyncService from '../services/cloud_sync_service.js';
-
+import { derivePlayerHash } from '../services/cloud_auth_modal.js';
 
 
 export { STAT_CATEGORIES, createDefaultStats };
