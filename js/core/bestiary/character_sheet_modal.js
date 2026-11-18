@@ -63,17 +63,19 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         }
     ];
 
-    if (!CloudSyncService.isPlayerMode) {
-        actionButtons.push({
-            label: '✖ Отмена',
-            variant: 'cc',
-            onClick: () => {
-                hideSheetItemTooltip();
-                close();
-            }
-        });
-    }
 
+    // 1. Кнопка закрытия окна теперь доступна всем:
+    // для ГМа это «✖ Отмена», для игрока — «🗺️ К карте»
+    actionButtons.push({
+        label: CloudSyncService.isPlayerMode ? '🗺️ К карте' : '✖ Отмена',
+        variant: 'cc',
+        onClick: () => {
+            hideSheetItemTooltip();
+            close();
+        }
+    });
+
+    // 2. Кнопка сохранения (если лист не заблокирован режимом Read-Only)
     if (!isReadOnlyForPlayer) {
         actionButtons.push({
             label: '⚜ Сохранить бланк',
@@ -86,9 +88,10 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         });
     }
 
+    // 3. Открытие модального окна (ModalManager сам разрешает закрытие по Esc и клику мимо окна)
     const { overlay, close } = ModalManager.open({
         id: 'bstHeroSheetModal',
-        title: pageTitles[pageNum] || pageTitles,
+        title: pageTitles[pageNum] || pageTitles[1],
         width: '1420px',
         borderColor: isReadOnlyForPlayer ? '#ff7675' : '#dfbc6f',
         bodyHtml: pageBodyHtml,
@@ -101,19 +104,13 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
 
     overlay.dataset.pageNum = String(pageNum);
 
-    if (CloudSyncService.isPlayerMode) {
-        // Не даём игроку закрыть окно бланка кликом по фону или крестиком
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) e.stopPropagation();
-        }, true);
-        overlay.querySelectorAll('button').forEach(b => {
-            if (b.textContent.trim() === '×' || b.textContent.trim() === '✖') b.remove();
-        });
-    } else {
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) hideSheetItemTooltip();
-        });
-    }
+    // 4. Убрали блокировку клика по фону для игрока — оставляем только скрытие тултипов
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) hideSheetItemTooltip();
+    });
+
+
+
 
     if (isReadOnlyForPlayer) {
         // 1. Блокируем все поля ввода
@@ -123,7 +120,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
         });
 
         // 2. Блокируем все кнопки внутри тела бланка, кроме вкладок черт и нижних кнопок навигации/PDF
-        const allowedLabels = ['Стр. 1', 'Стр. 2', 'Стр. 3', 'Экспорт в PDF', 'Классовые', 'Общие', 'Навыков', 'Народа'];
+        const allowedLabels = ['Стр. 1', 'Стр. 2', 'Стр. 3', 'Экспорт в PDF', 'К карте', 'Классовые', 'Общие', 'Навыков', 'Народа'];
         overlay.querySelectorAll('button').forEach(btn => {
             const txt = btn.textContent || '';
             const isAllowed = allowedLabels.some(lbl => txt.includes(lbl));

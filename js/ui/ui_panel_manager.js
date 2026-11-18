@@ -7,13 +7,78 @@ const UiPanelManager = {
     masterToggleBtn: null,
     rightPanel: null,
 
+
     init() {
+        const isPlayerMode = new URLSearchParams(window.location.search).has('playerHeroId');
+        if (isPlayerMode) {
+            this._initPlayerMinimalHud();
+            return;
+        }
+
         this.playerWrapper = document.querySelector('.music-player-monolith-wrapper');
         this.btnMinimize = document.querySelector('.wa-minimize');
         this.masterToggleBtn = document.querySelector('.master-toggle-btn');
         this.rightPanel = document.querySelector('.right-controls-panel');
         this.attachEvents();
     },
+
+    _initPlayerMinimalHud() {
+        // Скрываем все панели ГМа: шестерёнку, меню 3х4, плеер Winamp, окно квестов/журнала и туман/пути
+        const hideSelectors = [
+            '.master-toggle-btn',
+            '.right-controls-panel',
+            '.music-player-monolith-wrapper',
+            '#questLogContainer',
+            '#mapPathsSvg'
+        ];
+        hideSelectors.forEach(sel => {
+            document.querySelectorAll(sel).forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        });
+
+        // Создаём единственную кнопку открытия листа персонажа на месте шестерёнки
+        if (!document.getElementById('btnPlayerOpenSheet')) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = 'btnPlayerOpenSheet';
+            btn.title = 'Открыть лист персонажа';
+            btn.innerHTML = '🛡️';
+            Object.assign(btn.style, {
+                position: 'fixed',
+                top: '18px',
+                right: '18px',
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)',
+                border: '2px solid #ffd875',
+                color: '#ffd875',
+                fontSize: '22px',
+                cursor: 'pointer',
+                zIndex: '999990',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.85)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            });
+
+            btn.addEventListener('click', () => {
+                const heroId = new URLSearchParams(window.location.search).get('playerHeroId');
+                if (heroId && window.BestiaryManager) {
+                    const existingModal = document.getElementById('bstHeroSheetModal');
+                    if (existingModal) {
+                        existingModal.remove();
+                    } else {
+                        window.BestiaryManager.openCharacterSheetModal(heroId, 1);
+                    }
+                }
+            });
+
+            document.body.appendChild(btn);
+        }
+    },
+
 
     attachEvents() {
         // 1. Клик по кнопке "_" в шапке плеера Winamp

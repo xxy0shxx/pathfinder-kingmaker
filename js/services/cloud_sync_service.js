@@ -254,6 +254,7 @@ const CloudSyncService = {
         return clone;
     },
 
+
     _applyRemoteMapState(remoteMapData) {
         if (!remoteMapData || typeof remoteMapData !== 'object') return;
         const targetRef = window.BestiaryManager?.mapDataRef;
@@ -261,15 +262,30 @@ const CloudSyncService = {
 
         const mapClone = JSON.parse(JSON.stringify(remoteMapData));
 
-        // Защита от подглядывания для игроков: удаляем данные неразведанных гексов
-        if (this.isPlayerMode && mapClone.hexes) {
-            Object.keys(mapClone.hexes).forEach(k => {
-                const h = mapClone.hexes[k];
-                if (h && !h.explored && !h.hasVisited && !h.squadHere) {
-                    delete mapClone.hexes[k];
-                }
-            });
+        if (this.isPlayerMode) {
+            // 1. Удаляем пройденные пути отряда
+            mapClone.paths = [];
+            mapClone.squadPath = [];
+
+            // 2. Очищаем неразведанные гексы, а у разведанных убираем квесты и слухи
+            if (mapClone.hexes) {
+                Object.keys(mapClone.hexes).forEach(k => {
+                    const h = mapClone.hexes[k];
+                    if (!h || (!h.explored && !h.hasVisited && !h.squadHere)) {
+                        delete mapClone.hexes[k];
+                    } else {
+                        delete h.rumorText;
+                        delete h.questData;
+                    }
+                });
+            }
+
+            // 3. Принудительно включаем туман войны и скрываем квестовые маркеры
             MAP_CONFIG.isGlobalFogEnabled = true;
+            window.MAP_HIDE_QUEST_MARKERS = true;
+            if (window.HexCanvasRender) {
+                window.HexCanvasRender.showQuestTooltips = false;
+            }
         }
 
         const preservedParty = window.BestiaryManager.state.party || [];
@@ -290,7 +306,15 @@ const CloudSyncService = {
 
         EventBus.emit('data:imported', targetRef);
         EventBus.emit('map:hexesChanged', targetRef.hexes || {});
-        if (!this.isPlayerMode) {
+
+        if (this.isPlayerMode) {
+            // Очищаем SVG-слой путей на карте
+            const svgPaths = document.getElementById('mapPathsSvg');
+            if (svgPaths) {
+                svgPaths.innerHTML = '';
+                svgPaths.classList.add('hide-paths');
+            }
+        } else {
             if (window.KingdomManager?.init) {
                 window.KingdomManager.state = targetRef.kingdom || window.KingdomManager.state;
                 window.KingdomManager.renderUi?.();
@@ -300,6 +324,8 @@ const CloudSyncService = {
             }
         }
     },
+
+
 
     async pushToCloud() {
         if (!window.BestiaryManager) return;

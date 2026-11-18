@@ -134,8 +134,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             HexCanvasRender.startAnimationLoop();
         }
 
+
         // Обработка клика по Canvas (заменяет старые HTML-слушатели)
         canvasElement.addEventListener('click', () => {
+            if (CloudSyncService.isPlayerMode) return;
             if (!ViewportManager.getHasMoved() && HexCanvasRender.hoveredHexKey) {
                 const hexId = HexCanvasRender.hoveredHexKey;
                 const hexData = mapData.hexes[hexId] || null;
@@ -147,6 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 HexModal.open(hexId, hexData);
             }
         });
+
     }
 
     // Первичный рендер путей
@@ -181,9 +184,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await CloudSyncService.init();
 
     if (CloudSyncService.isPlayerMode) {
-        const mapEl = document.getElementById('mapCanvas');
-        if (mapEl) mapEl.style.display = 'none';
-        document.querySelectorAll('.top-panel, .hud-bar, #uiControls').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.top-panel, .hud-bar, #uiControls, .legend-container').forEach(el => {
+            el.style.setProperty('display', 'none', 'important');
+        });
         BestiaryManager.openCharacterSheetModal(CloudSyncService.playerHeroId, 1);
     }
 
