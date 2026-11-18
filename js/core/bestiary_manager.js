@@ -377,6 +377,18 @@ const BestiaryManager = {
                             if (tr.log.length > 8) tr.log.length = 8;
 
                             this._save();
+                            const shareParts = [
+                                shareG > 0 ? `${shareG} ЗМ` : '',
+                                shareS > 0 ? `${shareS} СМ` : '',
+                                shareC > 0 ? `${shareC} ММ` : ''
+                            ].filter(Boolean).join(' ');
+
+                            recipients.forEach(hero => {
+                                CloudSyncService.sendHeroTgNotification(
+                                    hero.id,
+                                    `⚖️ Общая казна отряда разделена! Ваша доля: *${shareParts}*`
+                                );
+                            });
                         }
                         modal.close();
                     }

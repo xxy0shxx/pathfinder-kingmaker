@@ -297,6 +297,10 @@ export function initPage2(overlay, hero) {
                             );
                             const coinParts = [g > 0 ? `${g} ЗМ` : '', s > 0 ? `${s} СМ` : '', c > 0 ? `${c} ММ` : ''].filter(Boolean).join(' ');
                             StorageManager.appendTreasuryLog(`💸 ${hero.name} → ${recipient.name}: ${coinParts}${note ? ` (${note})` : ''}`, 'transfer');
+                            CloudSyncService.sendHeroTgNotification(
+                                recipient.id,
+                                `💰 *${hero.name}* перевёл(а) вам *${coinParts}*${note ? ` _(${note})_` : ''}!`
+                            );
                         }
                     }
 
