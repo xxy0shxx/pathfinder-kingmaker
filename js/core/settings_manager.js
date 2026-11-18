@@ -217,7 +217,6 @@ const SettingsManager = {
         window.CURRENT_SQUAD_ANIMATION_MODE = this.state.squadAnimMode;
         const isPlayerMode = new URLSearchParams(window.location.search).has('playerHeroId');
         window.CURRENT_SQUAD_TOKEN_SKIN = isPlayerMode ? 'dice' : this.state.squadTokenSkin;
-        window.CURRENT_SQUAD_TOKEN_COLOR = isPlayerMode ? 'emerald' : this.state.squadTokenColor;
         window.CURRENT_SQUAD_TOKEN_COLOR = this.state.squadTokenColor;
         window.GLOBAL_FOG_OPACITY = this.state.fogOpacity / 100;
         MAP_CONFIG.ENABLE_FPS_MONITOR = this.state.enableFpsMonitor;

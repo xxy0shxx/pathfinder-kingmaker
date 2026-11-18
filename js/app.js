@@ -183,9 +183,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await CloudSyncService.init();
 
     if (CloudSyncService.isPlayerMode) {
+        /*
         document.querySelectorAll('.top-panel, .hud-bar, #uiControls, .legend-container').forEach(el => {
             el.style.setProperty('display', 'none', 'important');
         });
+         */
         BestiaryManager.openCharacterSheetModal(CloudSyncService.playerHeroId, 1);
     }
 

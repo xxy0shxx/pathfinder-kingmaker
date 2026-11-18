@@ -10,57 +10,49 @@ const UiPanelManager = {
 
     init() {
         const isPlayerMode = new URLSearchParams(window.location.search).has('playerHeroId');
-        if (isPlayerMode) {
-            this._initPlayerMinimalHud();
-            return;
-        }
 
         this.playerWrapper = document.querySelector('.music-player-monolith-wrapper');
         this.btnMinimize = document.querySelector('.wa-minimize');
         this.masterToggleBtn = document.querySelector('.master-toggle-btn');
         this.rightPanel = document.querySelector('.right-controls-panel');
         this.attachEvents();
+
+        if (isPlayerMode) {
+            this._initPlayerMinimalHud();
+        }
     },
 
     _initPlayerMinimalHud() {
-        const hideSelectors = [
-            '.master-toggle-btn',
-            '.right-controls-panel',
-            '.music-player-monolith-wrapper',
-            '#questLogContainer'
-        ];
-        hideSelectors.forEach(sel => {
-            document.querySelectorAll(sel).forEach(el => {
-                el.style.setProperty('display', 'none', 'important');
-            });
-        });
+        // 1. Внедряем жёсткий CSS-фильтр для режима игрока, чтобы стили раскрытия меню
+        // не возвращали скрытые кнопки (лагерь, туман, плеер, настройки)
 
-        if (!document.getElementById('btnPlayerOpenSheet')) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.id = 'btnPlayerOpenSheet';
-            btn.title = 'Открыть лист персонажа';
-            btn.innerHTML = '🛡️';
-            Object.assign(btn.style, {
-                position: 'fixed',
-                top: '18px',
-                right: '18px',
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                background: 'linear-gradient(180deg, #1e3c27 0%, #112417 100%)',
-                border: '2px solid #ffd875',
-                color: '#ffd875',
-                fontSize: '22px',
-                cursor: 'pointer',
-                zIndex: '999990',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.85)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            });
+        if (!document.getElementById('playerMinimalHudStyle')) {
+            const style = document.createElement('style');
+            style.id = 'playerMinimalHudStyle';
+            style.textContent = `
+                .music-player-monolith-wrapper,
+                .right-controls-panel > *:not(#btnMasterToggle):not(#btnPlayerOpenSheet):not(#btnToggleQuests):not(#btnTogglePaths) {
+                    display: none !important;
+                }
+                .right-controls-panel #btnMasterToggle {
+                    grid-column: 3 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
-            btn.addEventListener('click', () => {
+        // 2. Добавляем кнопку открытия листа персонажа первой в меню
+        if (this.rightPanel && !document.getElementById('btnPlayerOpenSheet')) {
+            const sheetBtn = document.createElement('button');
+            sheetBtn.type = 'button';
+            sheetBtn.id = 'btnPlayerOpenSheet';
+            sheetBtn.className = 'btn-ui-toggle';
+            sheetBtn.title = 'Открыть лист персонажа';
+            sheetBtn.innerHTML = '🛡️';
+
+            sheetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const heroId = new URLSearchParams(window.location.search).get('playerHeroId');
                 if (heroId && window.BestiaryManager) {
                     const existingModal = document.getElementById('bstHeroSheetModal');
@@ -72,10 +64,9 @@ const UiPanelManager = {
                 }
             });
 
-            document.body.appendChild(btn);
+            this.rightPanel.insertBefore(sheetBtn, this.rightPanel.firstChild);
         }
     },
-
 
     attachEvents() {
         // 1. Клик по кнопке "_" в шапке плеера Winamp

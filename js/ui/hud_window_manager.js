@@ -78,6 +78,18 @@ const HudWindowManager = {
             initTablet.insertAdjacentElement('afterend', bestiaryTablet);
         }
 
+        // В режиме игрока скрываем все вкладки в шапке окна, кроме квестов, слухов и кнопки закрытия
+        const isPlayerMode = new URLSearchParams(window.location.search).has('playerHeroId');
+        if (isPlayerMode) {
+            const allowedTabs = new Set(['tabActiveQuests', 'tabCompletedQuests', 'tabRumors', 'tabCloseJournal']);
+            container.querySelectorAll('.quest-tab-btn').forEach(btn => {
+                if (!allowedTabs.has(btn.id)) {
+                    btn.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+
     },
 
     _bindCloseControls() {
