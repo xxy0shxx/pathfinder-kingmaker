@@ -25,6 +25,7 @@ import {
     PF2E_MELEE_WEAPONS, searchMeleeWeapons, calcMeleeWeaponRoll,
     PF2E_RANGED_WEAPONS, searchRangedWeapons, calcRangedWeaponRoll
 } from '../../config/weapons_catalog.js';
+import CloudSyncService from '../../services/cloud_sync_service.js';
 
 export const normalizeStr = (str) => String(str || '')
     .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu, '')
@@ -756,9 +757,10 @@ export function initPage2Pickers(overlay, hero) {
                 const totalCp = curG * 100 + curS * 10 + curC;
                 const canAfford = totalCp >= priceInfo.totalCp;
 
+
                 const choiceModal = ModalManager.open({
                     id: 'bstAcquireItemChoiceModal',
-                    title: '🎒 Получение предмета',
+                    title: '🛒 Покупка предмета',
                     width: '440px',
                     borderColor: '#ffd875',
                     bodyHtml: `
@@ -767,7 +769,7 @@ export function initPage2Pickers(overlay, hero) {
                             Стоимость по каталогу: <b style="color:#ffd875;">${priceInfo.label}</b><br>
                             <div style="margin-top: 8px; padding: 6px 10px; background: rgba(4,9,5,0.75); border: 1px solid #543e0d; border-radius: 5px; font-size: 13px;">
                                 В кошельке героя: <b>${curG} ЗМ, ${curS} СМ, ${curC} ММ</b>
-                                ${!canAfford ? `<div style="color:#ff7675; margin-top:3px;">⚠️ Монет недостаточно для покупки — можно взять только как трофей.</div>` : ''}
+                                ${!canAfford ? `<div style="color:#ff7675; margin-top:3px;">⚠️ Недостаточно монет для покупки.</div>` : ''}
                             </div>
                         </div>
                     `,
@@ -777,14 +779,6 @@ export function initPage2Pickers(overlay, hero) {
                             variant: 'cc',
                             onClick: () => {
                                 inp.value = inp.dataset.validItem || '';
-                                choiceModal.close();
-                            }
-                        },
-                        {
-                            label: '🎁 Взять бесплатно',
-                            variant: 'cc',
-                            onClick: () => {
-                                applySelectedItemToRow(inp, row, found);
                                 choiceModal.close();
                             }
                         },
@@ -800,6 +794,8 @@ export function initPage2Pickers(overlay, hero) {
                         }] : [])
                     ]
                 });
+
+
 
                 if (choiceModal?.overlay) {
                     choiceModal.overlay.style.zIndex = '10000250';
@@ -835,10 +831,18 @@ export function initPage2Pickers(overlay, hero) {
         const qtyInp = stepper.querySelector('.bst-qty-inp');
         if (!qtyInp) return;
         stepper.querySelectorAll('.bst-qty-btn').forEach(btn => {
+            const delta = parseInt(btn.dataset.qtyDelta, 10) || 0;
+            if (CloudSyncService.isPlayerMode && delta > 0) {
+                btn.disabled = true;
+                btn.style.opacity = '0.35';
+                btn.style.cursor = 'not-allowed';
+                btn.title = 'Добавление предметов доступно только при покупке или из сундука отряда';
+                return;
+            }
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const delta = parseInt(btn.dataset.qtyDelta, 10) || 0;
                 qtyInp.value = Math.max(0, (parseInt(qtyInp.value, 10) || 0) + delta);
+                qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
             });
         });
     });
@@ -1219,6 +1223,10 @@ export function initPage2Pickers(overlay, hero) {
                             StorageManager.appendTreasuryLog(`🎁 ${hero.name} → ${recipient.name}: ${itemName} (×${giveCount})`, 'transfer');
 
                             if (window.BestiaryManager?._save) window.BestiaryManager._save();
+                            CloudSyncService.sendHeroTgNotification(
+                                recipient.id,
+                                `🎁 *${hero.name}* передал(а) вам предмет: *${itemName}* (\`×${giveCount}\`)!`
+                            );
                             giveModal.close();
                         }
                     }

@@ -102,6 +102,7 @@ export function openCharacterSheetModal(hero, onSaveCallback, pageNum = 1) {
     else if (isPage2) initPage2(overlay, hero);
     else if (isPage3) initPage3(overlay, hero);
 
+    overlay.dataset.heroId = String(hero.id);
     overlay.dataset.pageNum = String(pageNum);
 
     // 4. Убрали блокировку клика по фону для игрока — оставляем только скрытие тултипов

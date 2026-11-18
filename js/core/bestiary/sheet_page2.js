@@ -6,6 +6,7 @@ import { calculateCharacterBulk, getItemLevel } from '../../config/items_catalog
 import { esc, numInp, txtInp, txtArea, collectFormData, getMagicTierVisibility } from './sheet_helpers.js';
 import { initPage2Pickers } from './sheet_pickers.js';
 import { bindSheetTooltip } from './bestiary_tooltip_builder.js';
+import CloudSyncService from '../../services/cloud_sync_service.js';
 
 export function buildPage2Html(stats) {
     if (stats.cantripsPrepared && !stats.cantrip1Name) { stats.cantrip1Name = stats.cantripsPrepared; stats.cantripsPrepared = ''; }
@@ -141,6 +142,12 @@ export function buildPage2Html(stats) {
 }
 
 export function initPage2(overlay, hero) {
+    if (CloudSyncService.isPlayerMode) {
+        overlay.querySelectorAll('.bst-qty-inp').forEach(inp => {
+            inp.readOnly = true;
+            inp.title = 'Пополнение предметов доступно через покупку или общий сундук отряда';
+        });
+    }
     initPage2Pickers(overlay, hero);
 
     const bulkBadgeEl = overlay.querySelector('#bstBulkCounterBadge');

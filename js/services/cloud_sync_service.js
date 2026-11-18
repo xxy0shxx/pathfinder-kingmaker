@@ -25,6 +25,7 @@ const CloudSyncService = {
     isPlayerMode: IS_PLAYER_MODE,
     _isRemoteApplying: false,
     _saveTimer: null,
+    _pollTimer: null,
     _knownHeroIds: new Set(),
     _channel: null,
 
@@ -141,6 +142,7 @@ const CloudSyncService = {
                 })
                 .subscribe();
         }
+        this._startHeroPolling();
     },
 
     async init() {
@@ -207,6 +209,7 @@ const CloudSyncService = {
                 }
             })
             .subscribe();
+        this._startHeroPolling();
     },
 
     async _authenticateGmFlow(isExistingRoom) {
@@ -533,6 +536,7 @@ const CloudSyncService = {
         this._isRemoteApplying = false;
     },
 
+
     _applyHeroRow(row) {
         const incoming = { ...row.hero_data, isReadOnly: !!row.is_readonly };
         this._knownHeroIds.add(incoming.id);
@@ -552,11 +556,90 @@ const CloudSyncService = {
         }
 
         const openModal = document.getElementById('bstHeroSheetModal');
-        if (openModal && this.isPlayerMode && incoming.id === this.playerHeroId) {
+        if (openModal && openModal.dataset.heroId === String(incoming.id)) {
             const activePage = Number(openModal.dataset.pageNum) || 1;
             window.BestiaryManager.openCharacterSheetModal(incoming.id, activePage);
         }
-    }
+
+        // Синхронизируем статы в трекере инициативы, если герой сейчас в бою
+        if (window.InitiativeManager?.state?.combatants) {
+            let initUpdated = false;
+            window.InitiativeManager.state.combatants.forEach(c => {
+                if (c && c.heroId === incoming.id && incoming.stats) {
+                    c.stats = JSON.parse(JSON.stringify(incoming.stats));
+                    initUpdated = true;
+                }
+            });
+            if (initUpdated) {
+                window.InitiativeManager.renderUi();
+            }
+        }
+    },
+
+    _startHeroPolling() {
+        if (this._pollTimer) return;
+        this._pollTimer = setInterval(async () => {
+            if (this._isRemoteApplying || !this.supabaseClient || !this.roomCode) return;
+
+            // Если пользователь прямо сейчас вводит текст в открытом листе — не мешаем вводу
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.closest('#bstHeroSheetModal') && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName)) {
+                return;
+            }
+
+            let query = this.supabaseClient
+                .from('campaign_heroes')
+                .select('*')
+                .eq('room_code', this.roomCode);
+
+            if (this.isPlayerMode && this.playerHeroId) {
+                query = query.eq('id', this.playerHeroId);
+            }
+
+            const { data: heroesData, error } = await query;
+            if (error || !Array.isArray(heroesData) || !window.BestiaryManager) return;
+
+            let hasChanges = false;
+            for (const row of heroesData) {
+                if (!row?.hero_data) continue;
+                const localHero = (window.BestiaryManager.state.party || []).find(h => h.id === row.id)
+                    || (window.BestiaryManager.state.inactive || []).find(h => h.id === row.id);
+
+                // Сравниваем JSON, чтобы перерисовывать только при реальном изменении извне (например, из Telegram)
+                const localSnap = localHero ? JSON.stringify({ ...localHero, isReadOnly: !!localHero.isReadOnly }) : '';
+                const remoteSnap = JSON.stringify({ ...row.hero_data, isReadOnly: !!row.is_readonly });
+
+                if (localSnap !== remoteSnap) {
+                    hasChanges = true;
+                    this._isRemoteApplying = true;
+                    try {
+                        this._applyHeroRow(row);
+                    } finally {
+                        this._isRemoteApplying = false;
+                    }
+                }
+            }
+
+            if (hasChanges) {
+                window.BestiaryManager.renderUi();
+                if (window.InitiativeManager) window.InitiativeManager.renderUi();
+            }
+        }, 3000);
+    },
+
+    async sendHeroTgNotification(targetHeroId, message) {
+        if (!this.supabaseClient || !this.roomCode || !targetHeroId) return;
+        try {
+            await this.supabaseClient.from('tg_notifications').insert({
+                room_code: this.roomCode,
+                target_hero_id: String(targetHeroId),
+                message: String(message)
+            });
+        } catch (e) {
+            console.warn('Не удалось поставить TG-уведомление в очередь:', e);
+        }
+    },
+
 };
 
 export default CloudSyncService;

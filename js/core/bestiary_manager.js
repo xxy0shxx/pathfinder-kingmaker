@@ -613,6 +613,10 @@ const BestiaryManager = {
                         if (tr.log.length > 8) tr.log.length = 8;
 
                         this._save();
+                        CloudSyncService.sendHeroTgNotification(
+                            targetHero.id,
+                            `📦 Из общего сундука отряда вам передан предмет: *${item.name}* (\`×${takeQty}\`)!`
+                        );
                         modal.close();
                     }
                 }
