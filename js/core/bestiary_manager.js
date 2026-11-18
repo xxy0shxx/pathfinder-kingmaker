@@ -1165,8 +1165,7 @@ const BestiaryManager = {
             const hasPass = Boolean(item.playerPasswordHash);
             const lockBtnHtml = isHeroGroup
                 ? `<button type="button" class="bst-lock-hero-btn" title="${item.isReadOnly ? 'Режим Read-Only ВКЛ' : 'Редактирование разрешено'}" style="background:${item.isReadOnly ? '#5e1914' : '#1b3324'}; border:1px solid ${item.isReadOnly ? '#ff7675' : '#2ecc71'}; color:#fff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">${item.isReadOnly ? '🔒' : '🔓'}</button>
-                   <button type="button" class="bst-pass-hero-btn" title="${hasPass ? 'Пароль игрока установлен (нажмите, чтобы изменить)' : 'Задать пароль для входа игрока'}" style="background:${hasPass ? '#3b2e14' : '#1a1a1a'}; border:1px solid ${hasPass ? '#ffd875' : '#7f8c8d'}; color:#ffd875; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔑</button>
-                   <button type="button" class="bst-copy-link-btn" title="Скопировать персональную ссылку для игрока" style="background:#14283b; border:1px solid #74b9ff; color:#74b9ff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔗</button>`
+                   <button type="button" class="bst-pass-hero-btn" title="${hasPass ? 'Ссылка и пароль игрока (нажмите для настройки)' : 'Ссылка и пароль игрока'}" style="background:${hasPass ? '#3b2e14' : '#1a1a1a'}; border:1px solid ${hasPass ? '#ffd875' : '#7f8c8d'}; color:#ffd875; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔑</button>`
                 : '';
 
 
@@ -1210,18 +1209,6 @@ const BestiaryManager = {
             card.querySelector('.bst-lock-hero-btn')?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.toggleHeroReadOnly(groupKey, item.id);
-            });
-
-            card.querySelector('.bst-copy-link-btn')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const btn = e.currentTarget;
-                const link = CloudSyncService.getPlayerInviteUrl(item.id);
-                navigator.clipboard.writeText(link).then(() => {
-                    if (btn) {
-                        btn.textContent = '✅';
-                        setTimeout(() => { btn.textContent = '🔗'; }, 1200);
-                    }
-                });
             });
 
             const nameEl = card.querySelector('.init-card-name-text');
@@ -1428,25 +1415,35 @@ const BestiaryManager = {
         if (modal?.overlay) modal.overlay.style.zIndex = '10000350';
     },
 
+
     openSetHeroPasswordModal(groupKey, id) {
         const hero = this._getGroupList(groupKey).find(x => x.id === id);
         if (!hero) return;
 
         const hasPass = Boolean(hero.playerPasswordHash);
+        const inviteUrl = CloudSyncService.getPlayerInviteUrl(hero.id);
+
         const modal = ModalManager.open({
             id: 'bstHeroPasswordModal',
-            title: `🔑 Пароль игрока: ${hero.name}`,
-            width: '410px',
+            title: `🔑 Доступ и пароль игрока: ${hero.name}`,
+            width: '430px',
             borderColor: '#74b9ff',
             bodyHtml: `
-                <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
-                    <div>Статус защиты: ${hasPass ? '<b style="color:#2ecc71;">🔒 Пароль установлен</b>' : '<b style="color:#a4b0be;">🔓 Вход по ссылке без пароля</b>'}</div>
-                    <div style="margin-top: 10px;">
-                        <label style="font-size: 12px; color: #74b9ff; font-weight: bold;">Новый пароль для игрока:</label>
-                        <input type="text" id="bstNewHeroPassInp" class="k-inp" autocomplete="off" placeholder="Введите пароль..." style="width: 100%; margin-top: 4px; padding: 7px 10px;">
+            <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                <div style="margin-bottom: 10px; padding: 8px; background: rgba(4,9,5,0.8); border: 1px solid #543e0d; border-radius: 5px;">
+                    <div style="font-size: 12px; color: #74b9ff; font-weight: bold; margin-bottom: 4px;">🔗 Персональная ссылка игрока:</div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" readonly value="${inviteUrl}" class="k-inp" style="flex: 1; font-size: 12px; padding: 5px 8px; color: #a4b0be;">
+                        <button type="button" id="bstModalCopyLinkBtn" class="btn ok" style="padding: 5px 10px; font-size: 12px; white-space: nowrap;">📋 Копировать</button>
                     </div>
                 </div>
-            `,
+                <div>Статус защиты: ${hasPass ? '<b style="color:#2ecc71;">🔒 Пароль установлен</b>' : '<b style="color:#a4b0be;">🔓 Вход по ссылке без пароля</b>'}</div>
+                <div style="margin-top: 10px;">
+                    <label style="font-size: 12px; color: #74b9ff; font-weight: bold;">Новый пароль для игрока:</label>
+                    <input type="text" id="bstNewHeroPassInp" class="k-inp" autocomplete="off" placeholder="Введите пароль..." style="width: 100%; margin-top: 4px; padding: 7px 10px;">
+                </div>
+            </div>
+        `,
             footerButtons: [
                 { label: '✖ Отмена', variant: 'cc', onClick: () => modal.close() },
                 ...(hasPass ? [{
@@ -1471,8 +1468,15 @@ const BestiaryManager = {
                 }
             ]
         });
-    },
 
+        document.getElementById('bstModalCopyLinkBtn')?.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                btn.textContent = '✅ Скопировано!';
+                setTimeout(() => { btn.textContent = '📋 Копировать'; }, 1500);
+            });
+        });
+    }
 
 };
 export default BestiaryManager;
