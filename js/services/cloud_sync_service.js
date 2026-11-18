@@ -209,7 +209,8 @@ const CloudSyncService = {
 
         if (this.isPlayerMode) {
             if (!heroesData?.length || !window.BestiaryManager) return false;
-            await this._verifyPlayerAccess(heroesData?.hero_data);
+            const heroData = heroesData[0]?.hero_data;
+            await this._verifyPlayerAccess(heroData);
         }
 
         const hasHeroes = Array.isArray(heroesData) && heroesData.length > 0;
@@ -411,7 +412,7 @@ const CloudSyncService = {
         if (!row?.hero_data) return;
         if (this.isPlayerMode && row.id !== this.playerHeroId) return;
 
-        if (this.isPlayerMode && row.hero_data.playerPasswordHash) {
+        if (this.isPlayerMode && row.hero_data?.playerPasswordHash) {
             const storageKey = `pf_player_auth_${this.roomCode}_${row.id}`;
             if (localStorage.getItem(storageKey) !== row.hero_data.playerPasswordHash) {
                 await this._verifyPlayerAccess(row.hero_data);
