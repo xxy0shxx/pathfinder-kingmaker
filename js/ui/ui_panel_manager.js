@@ -19,6 +19,44 @@ const UiPanelManager = {
 
         if (isPlayerMode) {
             this._initPlayerMinimalHud();
+        } else {
+            this._initGmCloudButton();
+        }
+    },
+
+    _initGmCloudButton() {
+        if (!this.rightPanel || document.getElementById('btnCloudLogin')) return;
+
+        const urlRoom = new URLSearchParams(window.location.search).get('room')
+            || localStorage.getItem('pf_online_room_code');
+        const isLogged = Boolean(urlRoom && localStorage.getItem(`pf_online_gm_secret_${urlRoom}`));
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'btnCloudLogin';
+        btn.className = 'btn-ui-toggle';
+        btn.title = isLogged
+            ? `Облако подключено (${urlRoom}). Нажмите, чтобы выйти в локальный режим`
+            : 'Войти в облачную кампанию по паролю Мастера';
+        btn.innerHTML = isLogged ? '🟢' : '☁️';
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.CloudSyncService) {
+                if (window.CloudSyncService.gmSecret) {
+                    window.CloudSyncService.logoutGm();
+                } else {
+                    window.CloudSyncService.openManualGmLogin();
+                }
+            }
+        });
+
+        // Вставляем перед шестерёнкой, чтобы шестерёнка оставалась в углу
+        if (this.masterToggleBtn && this.masterToggleBtn.parentElement === this.rightPanel) {
+            this.rightPanel.insertBefore(btn, this.masterToggleBtn);
+        } else {
+            this.rightPanel.appendChild(btn);
         }
     },
 

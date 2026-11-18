@@ -6,6 +6,7 @@ import {
     promptGmPasswordModal,
     promptPlayerPasswordModal
 } from './cloud_auth_modal.js';
+import ModalManager from '../ui/modal_manager.js';
 
 const { createClient } = window.supabase;
 
@@ -65,8 +66,81 @@ const CloudSyncService = {
 
     logoutGm() {
         if (!this.roomCode) return;
-        localStorage.removeItem(`pf_online_gm_secret_${this.roomCode}`);
-        window.location.reload();
+
+        const modal = ModalManager.open({
+            id: 'bstGmLogoutConfirmModal',
+            title: '🔌 Выход из облачной сессии',
+            width: '420px',
+            borderColor: '#ffd875',
+            bodyHtml: `
+                <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                    Выйти из облачной комнаты <b style="color:#ffd875;">${this.roomCode}</b> в локальный режим?
+                    <div style="margin-top: 6px; font-size: 12px; color: #a4b0be;">
+                        Синхронизация с игроками и Telegram-ботом будет приостановлена до повторного входа по паролю.
+                    </div>
+                </div>
+            `,
+            footerButtons: [
+                {
+                    label: '✖ Отмена',
+                    variant: 'cc',
+                    onClick: () => modal.close()
+                },
+                {
+                    label: '🚪 Выйти в локальный режим',
+                    variant: 'del',
+                    onClick: () => {
+                        localStorage.removeItem(`pf_online_gm_secret_${this.roomCode}`);
+                        window.location.reload();
+                    }
+                }
+            ]
+        });
+    },
+
+    async openManualGmLogin() {
+        const isExisting = Boolean(new URLSearchParams(window.location.search).get('room'));
+        const success = await this._authenticateGmFlow(isExisting);
+        if (!success) return; // Если нажали «Отмена», остаёмся в локальном режиме
+
+        // Обновляем статус кнопки в правом нижнем углу
+        const btn = document.getElementById('btnCloudLogin');
+        if (btn) {
+            btn.innerHTML = '🟢';
+            btn.title = `Облако подключено (${this.roomCode}). Нажмите, чтобы выйти в локальный режим`;
+        }
+
+        // Загружаем данные из облака и запускаем синхронизацию
+        const pulledAnything = await this.pullFromCloud();
+        if (!pulledAnything && window.BestiaryManager) {
+            await this.pushToCloud();
+        }
+
+        const schedulePush = () => {
+            if (this._isRemoteApplying) return;
+            clearTimeout(this._saveTimer);
+            this._saveTimer = setTimeout(() => this.pushToCloud(), 450);
+        };
+
+        EventBus.on('data:save', schedulePush);
+        EventBus.on('data:imported', schedulePush);
+
+        if (!this._channel) {
+            this._channel = this.supabaseClient
+                .channel(`heroes_${this.roomCode}`)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'campaign_heroes',
+                    filter: `room_code=eq.${this.roomCode}`
+                }, (payload) => this.handleRemotePayload(payload))
+                .on('broadcast', { event: 'sync_refresh' }, () => {
+                    if (!this._isRemoteApplying) {
+                        this.pullFromCloud();
+                    }
+                })
+                .subscribe();
+        }
     },
 
     async init() {
@@ -76,6 +150,8 @@ const CloudSyncService = {
         }
         this.roomCode = urlRoom || this.getRoomCode();
 
+        window.CloudSyncService = this;
+
         if (!this.isPlayerMode) {
             const url = new URL(window.location.href);
             url.searchParams.set('room', this.roomCode);
@@ -84,11 +160,11 @@ const CloudSyncService = {
 
             const storageKey = `pf_online_gm_secret_${this.roomCode}`;
             this.gmSecret = localStorage.getItem(storageKey);
+            this._createClientWithHeaders();
 
+            // Если пароль не введён — остаёмся в локальном режиме (localStorage) и не трогаем облако
             if (!this.gmSecret) {
-                await this._authenticateGmFlow(Boolean(urlRoom));
-            } else {
-                this._createClientWithHeaders();
+                return;
             }
         } else {
             this._createClientWithHeaders();
@@ -139,6 +215,10 @@ const CloudSyncService = {
 
         while (true) {
             const password = await promptGmPasswordModal(this.roomCode, isExistingRoom, errorMsg);
+            if (!password) {
+                return false; // Пользователь нажал «Отмена»
+            }
+
             const candidateSecret = await deriveGmSecret(this.roomCode, password);
             this.gmSecret = candidateSecret;
             this._createClientWithHeaders();
@@ -158,7 +238,7 @@ const CloudSyncService = {
             }
 
             localStorage.setItem(storageKey, candidateSecret);
-            break;
+            return true;
         }
     },
 
@@ -181,6 +261,7 @@ const CloudSyncService = {
             errorMsg = '❌ Неверный пароль! Уточните пароль у Мастера.';
         }
     },
+
     async pullFromCloud() {
         let query = this.supabaseClient
             .from('campaign_heroes')
@@ -220,7 +301,7 @@ const CloudSyncService = {
             if (!window.BestiaryManager) return false;
             const heroRow = Array.isArray(heroesData) ? heroesData[0] : null;
             if (!heroRow) {
-                console.warn('Supabase не вернул данные героя. Проверьте RLS-политику player_read_own_hero и заголовки x-room-code / x-hero-id.');
+                console.warn('Supabase не вернул данные героя.');
                 return false;
             }
             await this._verifyPlayerAccess(heroRow.hero_data);
