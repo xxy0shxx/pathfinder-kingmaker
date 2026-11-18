@@ -96,24 +96,27 @@ const CloudSyncService = {
 
         const pulledAnything = await this.pullFromCloud();
 
-        // Если это новая комната (в облаке пусто), а локально у ГМа уже есть данные — выгружаем их в облако
-        if (!this.isPlayerMode && !pulledAnything && window.BestiaryManager) {
+        // Выгружаем локальные данные в облако при старте, если они есть (в том числе карту, если ранее в базе были только герои)
+        if (!this.isPlayerMode && window.BestiaryManager) {
             const mapRef = window.BestiaryManager.mapDataRef || {};
             const hasLocalData =
                 (window.BestiaryManager.state.party?.length > 0) ||
                 (window.BestiaryManager.state.inactive?.length > 0) ||
                 (Object.keys(mapRef.hexes || {}).length > 0);
 
-            if (hasLocalData) {
+            if (!pulledAnything || hasLocalData) {
                 await this.pushToCloud();
             }
         }
 
-        EventBus.on('data:save', () => {
+        const schedulePush = () => {
             if (this._isRemoteApplying) return;
             clearTimeout(this._saveTimer);
             this._saveTimer = setTimeout(() => this.pushToCloud(), 450);
-        });
+        };
+
+        EventBus.on('data:save', schedulePush);
+        EventBus.on('data:imported', schedulePush);
 
         this._channel = this.supabaseClient
             .channel(`heroes_${this.roomCode}`)
