@@ -25,13 +25,12 @@ const UiPanelManager = {
     _initPlayerMinimalHud() {
         // 1. Внедряем жёсткий CSS-фильтр для режима игрока, чтобы стили раскрытия меню
         // не возвращали скрытые кнопки (лагерь, туман, плеер, настройки)
-
         if (!document.getElementById('playerMinimalHudStyle')) {
             const style = document.createElement('style');
             style.id = 'playerMinimalHudStyle';
             style.textContent = `
                 .music-player-monolith-wrapper,
-                .right-controls-panel > *:not(#btnMasterToggle):not(#btnPlayerOpenSheet):not(#btnToggleQuests):not(#btnTogglePaths) {
+                .right-controls-panel > *:not(#btnMasterToggle):not(#btnPlayerOpenSheet):not(#btnToggleQuests):not(#btnTogglePaths):not(#btnToggleSettings) {
                     display: none !important;
                 }
                 .right-controls-panel #btnMasterToggle {

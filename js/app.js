@@ -91,6 +91,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     SoundPlayer.init();
     UiSelectManager.init();
     ViewportManager.init();
+    window.ViewportManager = ViewportManager;
+    window.AnimationManager = AnimationManager;
 
     // 3. Чистый математический расчет координат БЕЗ создания HTML-нод
     const hexCoordinatesMap = {};
@@ -111,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 4. Инициализация путей на основе рассчитанных координат
     PathManager.init(mapData);
+    window.PathManager = PathManager;
     const svgPathsLayer = document.getElementById('mapPathsSvg');
     const btnTogglePaths = document.getElementById('btnTogglePaths');
     if (svgPathsLayer) {

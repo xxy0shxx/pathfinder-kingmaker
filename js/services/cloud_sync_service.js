@@ -270,9 +270,15 @@ const CloudSyncService = {
         const targetRef = window.BestiaryManager?.mapDataRef;
         if (!targetRef) return;
 
+        // 1. Запоминаем предыдущий гекс отряда до обновления
+        const findSquadHex = (hexesObj) => {
+            if (!hexesObj) return null;
+            return Object.keys(hexesObj).find(k => hexesObj[k]?.squadHere) || null;
+        };
+        const prevSquadHexId = findSquadHex(targetRef.hexes);
+
         const mapClone = JSON.parse(JSON.stringify(remoteMapData));
 
-        // Для игрока вырезаем только неразведанные гексы, сохраняя квесты, слухи и пройденный путь
         if (this.isPlayerMode) {
             if (mapClone.hexes) {
                 Object.keys(mapClone.hexes).forEach(k => {
@@ -301,8 +307,20 @@ const CloudSyncService = {
         targetRef.bestiary.inactive = preservedInactive;
         window.BestiaryManager.state = targetRef.bestiary;
 
+        const nextSquadHexId = findSquadHex(targetRef.hexes);
+        const squadMoved = Boolean(nextSquadHexId && prevSquadHexId && prevSquadHexId !== nextSquadHexId);
+
+        // Если отряд перешёл в новый гекс, временно прячем статичный токен на время полёта
+        if (squadMoved && window.HexCanvasRender) {
+            window.HexCanvasRender.hiddenSquadHexId = nextSquadHexId;
+        }
+
         EventBus.emit('data:imported', targetRef);
         EventBus.emit('map:hexesChanged', targetRef.hexes || {});
+
+        if (squadMoved) {
+            this._animateSquadMoveOnClient(prevSquadHexId, nextSquadHexId, targetRef);
+        }
 
         if (!this.isPlayerMode) {
             if (window.KingdomManager?.init) {
@@ -312,6 +330,31 @@ const CloudSyncService = {
             if (window.WeatherManager?.renderUi) {
                 window.WeatherManager.renderUi();
             }
+        }
+    },
+
+    _animateSquadMoveOnClient(fromHexId, toHexId, targetRef) {
+        if (window.PathManager?.render) {
+            window.PathManager.render();
+        }
+
+        const startHexId = window.FLIGHT_FROM_CAPITAL_MODE ? 'hex_0_0' : fromHexId;
+
+        if (window.AnimationManager?.playFlagFlight) {
+            window.AnimationManager.playFlagFlight(startHexId, toHexId, () => {
+                if (window.HexCanvasRender) {
+                    window.HexCanvasRender.hiddenSquadHexId = null;
+                    window.HexCanvasRender.updateData(targetRef.hexes, toHexId);
+                }
+            });
+        } else if (window.HexCanvasRender) {
+            window.HexCanvasRender.hiddenSquadHexId = null;
+            window.HexCanvasRender.updateData(targetRef.hexes, toHexId);
+        }
+
+        // Плавно центрируем камеру, если игрок не включил фиксацию камеры в настройках
+        if (!window.DISABLE_CAMERA_AUTOCENTER && window.AnimationManager?.focusOnHex) {
+            window.AnimationManager.focusOnHex(toHexId);
         }
     },
 

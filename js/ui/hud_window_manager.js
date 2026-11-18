@@ -78,16 +78,51 @@ const HudWindowManager = {
             initTablet.insertAdjacentElement('afterend', bestiaryTablet);
         }
 
+
         // В режиме игрока скрываем все вкладки в шапке окна, кроме квестов, слухов и кнопки закрытия
         const isPlayerMode = new URLSearchParams(window.location.search).has('playerHeroId');
         if (isPlayerMode) {
-            const allowedTabs = new Set(['tabActiveQuests', 'tabCompletedQuests', 'tabRumors', 'tabCloseJournal']);
+            // Находим вкладку настроек по id или по тексту '⚙'
+            const settingsTab = Array.from(container.querySelectorAll('.quest-tab-btn'))
+                .find(b => b.id === 'tabSettings' || b.textContent.trim() === '⚙');
+            if (settingsTab && !settingsTab.id) settingsTab.id = 'tabSettings';
+
+            const allowedTabs = new Set([
+                'tabActiveQuests',
+                'tabCompletedQuests',
+                'tabRumors',
+                'tabSettings',
+                'tabCloseJournal'
+            ]);
+
             container.querySelectorAll('.quest-tab-btn').forEach(btn => {
                 if (!allowedTabs.has(btn.id)) {
                     btn.style.setProperty('display', 'none', 'important');
                 }
             });
+
+            // Внутри панели настроек оставляем только первый блок («Настройки токена и перемещения отряда»)
+            const settingsPanel = document.getElementById('settingsTabletContainer') || document.getElementById('settingsContainer');
+            if (settingsPanel) {
+                const sections = settingsPanel.querySelectorAll('.settings-section, .settings-group, .settings-block');
+                if (sections.length > 1) {
+                    sections.forEach((sec, idx) => {
+                        if (idx > 0) sec.style.setProperty('display', 'none', 'important');
+                    });
+                } else {
+                    // Запасной вариант, если блоки не обёрнуты в классы: скрываем элементы по ID настроек ГМа
+                    ['settingFogOpacity', 'settingHideDc', 'settingHideLevel', 'settingHideObjTitle',
+                        'settingHideObjIcon', 'settingHideTerrain', 'settingHideExplored', 'settingHideMapped',
+                        'settingHideQuestMarkers', 'settingHideKingdomBorders', 'settingShowEnemyTooltips',
+                        'customSelectRoundAudioMode', 'settingFpsMonitor'].forEach(gmSettingId => {
+                        const el = document.getElementById(gmSettingId);
+                        const group = el?.closest('.settings-section, .settings-group, .settings-card, fieldset') || el?.parentElement;
+                        if (group) group.style.setProperty('display', 'none', 'important');
+                    });
+                }
+            }
         }
+
 
 
     },
