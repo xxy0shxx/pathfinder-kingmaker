@@ -1162,9 +1162,11 @@ const BestiaryManager = {
 
             const avatarContent = item.avatar ? '<img src="' + item.avatar + '">' : (idx + 1);
 
+            const hasPass = Boolean(item.playerPasswordHash);
             const lockBtnHtml = isHeroGroup
-                ? `<button type="button" class="bst-lock-hero-btn" title="${item.isReadOnly ? 'Режим Read-Only ВКЛ (игрок не может менять лист). Нажмите, чтобы разрешить' : 'Редактирование разрешено. Нажмите, чтобы сделать Read-Only'}" style="background:${item.isReadOnly ? '#5e1914' : '#1b3324'}; border:1px solid ${item.isReadOnly ? '#ff7675' : '#2ecc71'}; color:#fff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">${item.isReadOnly ? '🔒' : '🔓'}</button>
-       <button type="button" class="bst-copy-link-btn" title="Скопировать персональную ссылку для игрока" style="background:#14283b; border:1px solid #74b9ff; color:#74b9ff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔗</button>`
+                ? `<button type="button" class="bst-lock-hero-btn" title="${item.isReadOnly ? 'Режим Read-Only ВКЛ' : 'Редактирование разрешено'}" style="background:${item.isReadOnly ? '#5e1914' : '#1b3324'}; border:1px solid ${item.isReadOnly ? '#ff7675' : '#2ecc71'}; color:#fff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">${item.isReadOnly ? '🔒' : '🔓'}</button>
+                   <button type="button" class="bst-pass-hero-btn" title="${hasPass ? 'Пароль игрока установлен (нажмите, чтобы изменить)' : 'Задать пароль для входа игрока'}" style="background:${hasPass ? '#3b2e14' : '#1a1a1a'}; border:1px solid ${hasPass ? '#ffd875' : '#7f8c8d'}; color:#ffd875; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔑</button>
+                   <button type="button" class="bst-copy-link-btn" title="Скопировать персональную ссылку для игрока" style="background:#14283b; border:1px solid #74b9ff; color:#74b9ff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔗</button>`
                 : '';
 
 
@@ -1183,6 +1185,11 @@ const BestiaryManager = {
                 '</div>',
                 '</div>'
             ].join('');
+
+            card.querySelector('.bst-pass-hero-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openSetHeroPasswordModal(groupKey, item.id);
+            });
 
             card.querySelector('.bst-reserve-move-btn')?.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1421,6 +1428,50 @@ const BestiaryManager = {
         if (modal?.overlay) modal.overlay.style.zIndex = '10000350';
     },
 
+    openSetHeroPasswordModal(groupKey, id) {
+        const hero = this._getGroupList(groupKey).find(x => x.id === id);
+        if (!hero) return;
+
+        const hasPass = Boolean(hero.playerPasswordHash);
+        const modal = ModalManager.open({
+            id: 'bstHeroPasswordModal',
+            title: `🔑 Пароль игрока: ${hero.name}`,
+            width: '410px',
+            borderColor: '#74b9ff',
+            bodyHtml: `
+                <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
+                    <div>Статус защиты: ${hasPass ? '<b style="color:#2ecc71;">🔒 Пароль установлен</b>' : '<b style="color:#a4b0be;">🔓 Вход по ссылке без пароля</b>'}</div>
+                    <div style="margin-top: 10px;">
+                        <label style="font-size: 12px; color: #74b9ff; font-weight: bold;">Новый пароль для игрока:</label>
+                        <input type="text" id="bstNewHeroPassInp" class="k-inp" autocomplete="off" placeholder="Введите пароль..." style="width: 100%; margin-top: 4px; padding: 7px 10px;">
+                    </div>
+                </div>
+            `,
+            footerButtons: [
+                { label: '✖ Отмена', variant: 'cc', onClick: () => modal.close() },
+                ...(hasPass ? [{
+                    label: '🗑️ Снять пароль',
+                    variant: 'del',
+                    onClick: () => {
+                        delete hero.playerPasswordHash;
+                        this._save();
+                        modal.close();
+                    }
+                }] : []),
+                {
+                    label: '✅ Сохранить',
+                    variant: 'ok',
+                    onClick: async () => {
+                        const val = document.getElementById('bstNewHeroPassInp')?.value.trim();
+                        if (!val) return;
+                        hero.playerPasswordHash = await derivePlayerHash(hero.id, val);
+                        this._save();
+                        modal.close();
+                    }
+                }
+            ]
+        });
+    },
 
 
 };

@@ -1,6 +1,5 @@
 // js/services/cloud_auth_modal.js
 
-// Превращает связку "код комнаты + пароль ГМа" в необратимый SHA-256 хеш
 export async function deriveGmSecret(roomCode, password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(`${roomCode}:${password.trim()}`);
@@ -9,7 +8,14 @@ export async function deriveGmSecret(roomCode, password) {
     return 'gm_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Модальное окно ввода или создания пароля Мастера
+export async function derivePlayerHash(heroId, password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`player:${heroId}:${password.trim()}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return 'pl_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export function promptGmPasswordModal(roomCode, isExistingRoom, errorText = '') {
     return new Promise((resolve) => {
         const overlay = document.createElement('div');
@@ -31,7 +37,7 @@ export function promptGmPasswordModal(roomCode, isExistingRoom, errorText = '') 
                 <p style="font-size: 14px; line-height: 1.45; margin-bottom: 14px; color: #dfe6e9;">
                     ${isExistingRoom
             ? `Комната: <b style="color:#ffd875;">${roomCode}</b>.<br>Введите пароль Мастера, чтобы открыть управление кампанией.`
-            : `Комната: <b style="color:#ffd875;">${roomCode}</b>.<br>Придумайте пароль ГМа. Ссылка комнаты не содержит секретов — без этого пароля никто не сможет зайти как Мастер.`}
+            : `Комната: <b style="color:#ffd875;">${roomCode}</b>.<br>Придумайте пароль ГМа. Без этого пароля никто не сможет зайти как Мастер.`}
                 </p>
                 <input type="password" id="gmPassInput" autocomplete="current-password" placeholder="Введите пароль Мастера..." style="width: 100%; padding: 9px 12px; background: #040905; border: 1px solid #8a6421; color: #fff; border-radius: 5px; font-size: 15px; box-sizing: border-box;">
                 ${errorText ? `<div style="color: #ff7675; font-size: 13px; margin-top: 8px;">${errorText}</div>` : ''}
@@ -67,6 +73,54 @@ export function promptGmPasswordModal(roomCode, isExistingRoom, errorText = '') 
             const cleanUrl = new URL(window.location.href);
             cleanUrl.search = '';
             window.location.href = cleanUrl.toString();
+        });
+    });
+}
+
+export function promptPlayerPasswordModal(heroName, errorText = '') {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        Object.assign(overlay.style, {
+            position: 'fixed',
+            inset: '0',
+            background: 'rgba(0, 0, 0, 0.94)',
+            zIndex: '10000999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        });
+
+        overlay.innerHTML = `
+            <div style="background: #0b140e; border: 2px solid #74b9ff; border-radius: 10px; padding: 24px; width: 390px; max-width: 92vw; color: #ebd291; font-family: 'Tinos', serif; box-shadow: 0 12px 35px #000;">
+                <h3 style="margin: 0 0 10px; color: #74b9ff; font-size: 19px;">
+                    🛡️ Доступ к листу персонажа
+                </h3>
+                <p style="font-size: 14px; line-height: 1.45; margin-bottom: 14px; color: #dfe6e9;">
+                    Персонаж: <b style="color:#ffd875;">${heroName}</b>.<br>Введите пароль, который выдал вам Мастер.
+                </p>
+                <input type="password" id="playerPassInput" autocomplete="current-password" placeholder="Пароль игрока..." style="width: 100%; padding: 9px 12px; background: #040905; border: 1px solid #3498db; color: #fff; border-radius: 5px; font-size: 15px; box-sizing: border-box;">
+                ${errorText ? `<div style="color: #ff7675; font-size: 13px; margin-top: 8px;">${errorText}</div>` : ''}
+                <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                    <button type="button" id="playerPassConfirmBtn" style="background: #14283b; border: 1px solid #74b9ff; color: #fff; padding: 8px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">Открыть бланк</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        const inp = overlay.querySelector('#playerPassInput');
+        const btn = overlay.querySelector('#playerPassConfirmBtn');
+        inp.focus();
+
+        const submit = () => {
+            const val = inp.value.trim();
+            if (!val) return;
+            overlay.remove();
+            resolve(val);
+        };
+
+        btn.addEventListener('click', submit);
+        inp.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submit();
         });
     });
 }

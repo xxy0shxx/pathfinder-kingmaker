@@ -1,11 +1,16 @@
-// js/services/cloud_sync_service.js
+import { MAP_CONFIG } from '../config/app_config.js';
 import EventBus from './event_bus.js';
-import { deriveGmSecret, promptGmPasswordModal } from './cloud_auth_modal.js';
+import {
+    deriveGmSecret,
+    derivePlayerHash,
+    promptGmPasswordModal,
+    promptPlayerPasswordModal
+} from './cloud_auth_modal.js';
 
 const { createClient } = window.supabase;
 
-const SUPABASE_URL = 'https://supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_vUhWveXr7Rm0wbpCBKEaPA_skmNbeek';
+const SUPABASE_URL = MAP_CONFIG.supabase.url;
+const SUPABASE_ANON_KEY = MAP_CONFIG.supabase.anonKey;
 
 const params = new URLSearchParams(window.location.search);
 const PLAYER_HERO_ID = params.get('playerHeroId');
@@ -35,11 +40,13 @@ const CloudSyncService = {
             global: {
                 headers: {
                     ...(this.gmSecret ? { 'x-gm-secret': this.gmSecret } : {}),
-                    ...(this.roomCode ? { 'x-room-code': this.roomCode } : {})
+                    ...(this.roomCode ? { 'x-room-code': this.roomCode } : {}),
+                    ...(this.isPlayerMode && this.playerHeroId ? { 'x-hero-id': this.playerHeroId } : {})
                 }
             }
         });
     },
+
 
     getPlayerInviteUrl(heroId) {
         const url = new URL(window.location.href);
@@ -143,6 +150,26 @@ const CloudSyncService = {
         }
     },
 
+    async _verifyPlayerAccess(hero) {
+        const requiredHash = hero?.playerPasswordHash;
+        if (!requiredHash) return true; // Если пароль не задан — пускаем свободно
+
+        const storageKey = `pf_player_auth_${this.roomCode}_${hero.id}`;
+        const savedHash = localStorage.getItem(storageKey);
+        if (savedHash === requiredHash) return true;
+
+        let errorMsg = '';
+        while (true) {
+            const pass = await promptPlayerPasswordModal(hero.name || 'Герой', errorMsg);
+            const candidateHash = await derivePlayerHash(hero.id, pass);
+            if (candidateHash === requiredHash) {
+                localStorage.setItem(storageKey, candidateHash);
+                return true;
+            }
+            errorMsg = '❌ Неверный пароль! Уточните пароль у Мастера.';
+        }
+    },
+
     async pullFromCloud() {
         let query = this.supabaseClient
             .from('campaign_heroes')
@@ -159,6 +186,12 @@ const CloudSyncService = {
             return;
         }
         if (!data?.length || !window.BestiaryManager) return;
+
+        // Проверяем пароль игрока перед тем, как открыть ему данные героя
+        if (this.isPlayerMode) {
+            const heroData = data[0]?.hero_data;
+            await this._verifyPlayerAccess(heroData);
+        }
 
         this._isRemoteApplying = true;
         data.forEach(row => this._applyHeroRow(row));
@@ -210,7 +243,7 @@ const CloudSyncService = {
         }
     },
 
-    handleRemotePayload(payload) {
+    async handleRemotePayload(payload) {
         if (!window.BestiaryManager) return;
         if (payload.eventType === 'DELETE') {
             const delId = payload.old?.id;
@@ -224,6 +257,14 @@ const CloudSyncService = {
         const row = payload.new;
         if (!row?.hero_data) return;
         if (this.isPlayerMode && row.id !== this.playerHeroId) return;
+
+        // Если ГМ сменил пароль героя прямо во время сессии — сразу требуем новый пароль у игрока
+        if (this.isPlayerMode && row.hero_data.playerPasswordHash) {
+            const storageKey = `pf_player_auth_${this.roomCode}_${row.id}`;
+            if (localStorage.getItem(storageKey) !== row.hero_data.playerPasswordHash) {
+                await this._verifyPlayerAccess(row.hero_data);
+            }
+        }
 
         this._isRemoteApplying = true;
         this._applyHeroRow(row);
@@ -240,7 +281,6 @@ const CloudSyncService = {
         const inactive = window.BestiaryManager.state.inactive || [];
         const pIdx = party.findIndex(h => h.id === incoming.id);
         const iIdx = inactive.findIndex(h => h.id === incoming.id);
-
         if (pIdx !== -1) {
             party[pIdx] = incoming;
         } else if (iIdx !== -1) {
@@ -250,13 +290,13 @@ const CloudSyncService = {
         } else {
             party.push(incoming);
         }
-
         const openModal = document.getElementById('bstHeroSheetModal');
         if (openModal && this.isPlayerMode && incoming.id === this.playerHeroId) {
             const activePage = Number(openModal.dataset.pageNum) || 1;
             window.BestiaryManager.openCharacterSheetModal(incoming.id, activePage);
         }
-    }
-};
+    },
 
+
+};
 export default CloudSyncService;

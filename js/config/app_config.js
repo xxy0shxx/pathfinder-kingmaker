@@ -13,7 +13,10 @@ export const MAP_CONFIG = {
         offsetY: 16,
         maxDcLevel: 41 // Максимальный уровень сложности и монстров в селекторах
     },
-
+    supabase: {
+        url: 'https://ozifsproqgzfmdmuaapb.supabase.co',
+        anonKey: 'sb_publishable_vUhWveXr7Rm0wbpCBKEaPA_skmNbeek'
+    },
     // Параметры вьюпорта: зум и жесткие лимиты перетаскивания canvas
     viewport: {
         minZoom: 0.5,
