@@ -127,7 +127,7 @@ const CloudSyncService = {
                 filter: `room_code=eq.${this.roomCode}`
             }, (payload) => this.handleRemotePayload(payload))
             .on('broadcast', { event: 'sync_refresh' }, () => {
-                if (!this.isPlayerMode && !this._isRemoteApplying) {
+                if (!this._isRemoteApplying) {
                     this.pullFromCloud();
                 }
             })
@@ -193,13 +193,11 @@ const CloudSyncService = {
         }
 
         const heroesPromise = query;
-        const statePromise = !this.isPlayerMode
-            ? this.supabaseClient
-                .from('campaign_state')
-                .select('map_data')
-                .eq('room_code', this.roomCode)
-                .maybeSingle()
-            : Promise.resolve({ data: null, error: null });
+        const statePromise = this.supabaseClient
+            .from('campaign_state')
+            .select('map_data')
+            .eq('room_code', this.roomCode)
+            .maybeSingle();
 
         const [{ data: heroesData, error: heroesErr }, { data: stateRow, error: stateErr }] = await Promise.all([
             heroesPromise,
@@ -211,7 +209,7 @@ const CloudSyncService = {
 
         if (this.isPlayerMode) {
             if (!heroesData?.length || !window.BestiaryManager) return false;
-            await this._verifyPlayerAccess(heroesData[0]?.hero_data);
+            await this._verifyPlayerAccess(heroesData?.hero_data);
         }
 
         const hasHeroes = Array.isArray(heroesData) && heroesData.length > 0;
@@ -220,12 +218,12 @@ const CloudSyncService = {
 
         this._isRemoteApplying = true;
         try {
-            // 1. Применяем состояние карты, королевства, погоды, монстров и казны
-            if (!this.isPlayerMode && hasMapState) {
+            // 1. Применяем состояние карты (теперь и для ГМа, и для игрока в режиме просмотра)
+            if (hasMapState) {
                 this._applyRemoteMapState(stateRow.map_data);
             }
 
-            // 2. Применяем актуальных героев отряда и резерва
+            // 2. Применяем героев
             if (hasHeroes && window.BestiaryManager) {
                 const remoteIds = new Set(heroesData.map(r => r.id));
                 window.BestiaryManager.state.party = (window.BestiaryManager.state.party || []).filter(h => remoteIds.has(h.id));
@@ -240,6 +238,7 @@ const CloudSyncService = {
         }
 
         return true;
+
     },
 
     _buildSanitizedMapPayload() {
@@ -260,33 +259,45 @@ const CloudSyncService = {
         const targetRef = window.BestiaryManager?.mapDataRef;
         if (!targetRef) return;
 
-        // Сохраняем текущих героев, чтобы не затереть их при обновлении объекта mapDataRef
+        const mapClone = JSON.parse(JSON.stringify(remoteMapData));
+
+        // Защита от подглядывания для игроков: удаляем данные неразведанных гексов
+        if (this.isPlayerMode && mapClone.hexes) {
+            Object.keys(mapClone.hexes).forEach(k => {
+                const h = mapClone.hexes[k];
+                if (h && !h.explored && !h.hasVisited && !h.squadHere) {
+                    delete mapClone.hexes[k];
+                }
+            });
+            MAP_CONFIG.isGlobalFogEnabled = true;
+        }
+
         const preservedParty = window.BestiaryManager.state.party || [];
         const preservedInactive = window.BestiaryManager.state.inactive || [];
 
-        // Очищаем старые ключи и переносим новые из облака
         Object.keys(targetRef).forEach(k => {
             if (k !== 'bestiary') delete targetRef[k];
         });
-        Object.assign(targetRef, remoteMapData);
+        Object.assign(targetRef, mapClone);
 
         if (!targetRef.bestiary || typeof targetRef.bestiary !== 'object') {
             targetRef.bestiary = {};
         }
-        Object.assign(targetRef.bestiary, remoteMapData.bestiary || {});
+        Object.assign(targetRef.bestiary, mapClone.bestiary || {});
         targetRef.bestiary.party = preservedParty;
         targetRef.bestiary.inactive = preservedInactive;
         window.BestiaryManager.state = targetRef.bestiary;
 
-        // Оповещаем карту (HexCanvasRender), королевство, календарь и квесты об обновлении данных
         EventBus.emit('data:imported', targetRef);
         EventBus.emit('map:hexesChanged', targetRef.hexes || {});
-        if (window.KingdomManager?.init) {
-            window.KingdomManager.state = targetRef.kingdom || window.KingdomManager.state;
-            window.KingdomManager.renderUi?.();
-        }
-        if (window.WeatherManager?.renderUi) {
-            window.WeatherManager.renderUi();
+        if (!this.isPlayerMode) {
+            if (window.KingdomManager?.init) {
+                window.KingdomManager.state = targetRef.kingdom || window.KingdomManager.state;
+                window.KingdomManager.renderUi?.();
+            }
+            if (window.WeatherManager?.renderUi) {
+                window.WeatherManager.renderUi();
+            }
         }
     },
 

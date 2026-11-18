@@ -222,6 +222,7 @@ const HexModal = {
      * @param {Object|null} hexData - Текущие сохраненные данные гекса
      */
     open(hexId, hexData) {
+        if (window.CloudSyncService?.isPlayerMode) return;
         this.currentHexId = hexId;
 
         const inpTitle = document.getElementById('inpTitle');
