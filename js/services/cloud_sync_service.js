@@ -25,6 +25,7 @@ const CloudSyncService = {
     _isRemoteApplying: false,
     _saveTimer: null,
     _knownHeroIds: new Set(),
+    _channel: null,
 
     getRoomCode() {
         let code = localStorage.getItem('pf_online_room_code');
@@ -46,7 +47,6 @@ const CloudSyncService = {
             }
         });
     },
-
 
     getPlayerInviteUrl(heroId) {
         const url = new URL(window.location.href);
@@ -94,12 +94,17 @@ const CloudSyncService = {
             this._createClientWithHeaders();
         }
 
-        await this.pullFromCloud();
+        const pulledAnything = await this.pullFromCloud();
 
-        if (!this.isPlayerMode && window.BestiaryManager) {
-            const hasLocalHeroes = (window.BestiaryManager.state.party?.length > 0) ||
-                (window.BestiaryManager.state.inactive?.length > 0);
-            if (hasLocalHeroes) {
+        // Если это новая комната (в облаке пусто), а локально у ГМа уже есть данные — выгружаем их в облако
+        if (!this.isPlayerMode && !pulledAnything && window.BestiaryManager) {
+            const mapRef = window.BestiaryManager.mapDataRef || {};
+            const hasLocalData =
+                (window.BestiaryManager.state.party?.length > 0) ||
+                (window.BestiaryManager.state.inactive?.length > 0) ||
+                (Object.keys(mapRef.hexes || {}).length > 0);
+
+            if (hasLocalData) {
                 await this.pushToCloud();
             }
         }
@@ -110,7 +115,7 @@ const CloudSyncService = {
             this._saveTimer = setTimeout(() => this.pushToCloud(), 450);
         });
 
-        this.supabaseClient
+        this._channel = this.supabaseClient
             .channel(`heroes_${this.roomCode}`)
             .on('postgres_changes', {
                 event: '*',
@@ -118,6 +123,11 @@ const CloudSyncService = {
                 table: 'campaign_heroes',
                 filter: `room_code=eq.${this.roomCode}`
             }, (payload) => this.handleRemotePayload(payload))
+            .on('broadcast', { event: 'sync_refresh' }, () => {
+                if (!this.isPlayerMode && !this._isRemoteApplying) {
+                    this.pullFromCloud();
+                }
+            })
             .subscribe();
     },
 
@@ -132,13 +142,13 @@ const CloudSyncService = {
             this._createClientWithHeaders();
 
             if (isExistingRoom) {
-                const { data, error } = await this.supabaseClient
-                    .from('campaign_heroes')
-                    .select('id')
-                    .eq('room_code', this.roomCode)
-                    .limit(1);
+                const [{ data: heroesData, error: hErr }, { data: stateData, error: sErr }] = await Promise.all([
+                    this.supabaseClient.from('campaign_heroes').select('id').eq('room_code', this.roomCode).limit(1),
+                    this.supabaseClient.from('campaign_state').select('room_code').eq('room_code', this.roomCode).limit(1)
+                ]);
 
-                if (error || !data || data.length === 0) {
+                const hasAccess = (!hErr && heroesData?.length > 0) || (!sErr && stateData?.length > 0);
+                if (!hasAccess) {
                     errorMsg = '❌ Неверный пароль Мастера (или комната пуста). Попробуйте ещё раз.';
                     this.gmSecret = null;
                     continue;
@@ -152,7 +162,7 @@ const CloudSyncService = {
 
     async _verifyPlayerAccess(hero) {
         const requiredHash = hero?.playerPasswordHash;
-        if (!requiredHash) return true; // Если пароль не задан — пускаем свободно
+        if (!requiredHash) return true;
 
         const storageKey = `pf_player_auth_${this.roomCode}_${hero.id}`;
         const savedHash = localStorage.getItem(storageKey);
@@ -169,7 +179,6 @@ const CloudSyncService = {
             errorMsg = '❌ Неверный пароль! Уточните пароль у Мастера.';
         }
     },
-
     async pullFromCloud() {
         let query = this.supabaseClient
             .from('campaign_heroes')
@@ -180,24 +189,102 @@ const CloudSyncService = {
             query = query.eq('id', this.playerHeroId);
         }
 
-        const { data, error } = await query;
-        if (error) {
-            console.error('Ошибка загрузки из Supabase:', error.message);
-            return;
-        }
-        if (!data?.length || !window.BestiaryManager) return;
+        const heroesPromise = query;
+        const statePromise = !this.isPlayerMode
+            ? this.supabaseClient
+                .from('campaign_state')
+                .select('map_data')
+                .eq('room_code', this.roomCode)
+                .maybeSingle()
+            : Promise.resolve({ data: null, error: null });
 
-        // Проверяем пароль игрока перед тем, как открыть ему данные героя
+        const [{ data: heroesData, error: heroesErr }, { data: stateRow, error: stateErr }] = await Promise.all([
+            heroesPromise,
+            statePromise
+        ]);
+
+        if (heroesErr) console.error('Ошибка загрузки героев из Supabase:', heroesErr.message);
+        if (stateErr) console.error('Ошибка загрузки карты из Supabase:', stateErr.message);
+
         if (this.isPlayerMode) {
-            const heroData = data[0]?.hero_data;
-            await this._verifyPlayerAccess(heroData);
+            if (!heroesData?.length || !window.BestiaryManager) return false;
+            await this._verifyPlayerAccess(heroesData[0]?.hero_data);
         }
+
+        const hasHeroes = Array.isArray(heroesData) && heroesData.length > 0;
+        const hasMapState = Boolean(stateRow?.map_data && Object.keys(stateRow.map_data).length > 0);
+        if (!hasHeroes && !hasMapState) return false;
 
         this._isRemoteApplying = true;
-        data.forEach(row => this._applyHeroRow(row));
-        window.BestiaryManager.renderUi();
-        if (window.InitiativeManager) window.InitiativeManager.renderUi();
-        this._isRemoteApplying = false;
+        try {
+            // 1. Применяем состояние карты, королевства, погоды, монстров и казны
+            if (!this.isPlayerMode && hasMapState) {
+                this._applyRemoteMapState(stateRow.map_data);
+            }
+
+            // 2. Применяем актуальных героев отряда и резерва
+            if (hasHeroes && window.BestiaryManager) {
+                const remoteIds = new Set(heroesData.map(r => r.id));
+                window.BestiaryManager.state.party = (window.BestiaryManager.state.party || []).filter(h => remoteIds.has(h.id));
+                window.BestiaryManager.state.inactive = (window.BestiaryManager.state.inactive || []).filter(h => remoteIds.has(h.id));
+
+                heroesData.forEach(row => this._applyHeroRow(row));
+                window.BestiaryManager.renderUi();
+                if (window.InitiativeManager) window.InitiativeManager.renderUi();
+            }
+        } finally {
+            this._isRemoteApplying = false;
+        }
+
+        return true;
+    },
+
+    _buildSanitizedMapPayload() {
+        const rawRef = window.BestiaryManager?.mapDataRef;
+        if (!rawRef || typeof rawRef !== 'object') return null;
+
+        const clone = JSON.parse(JSON.stringify(rawRef));
+        // Герои отряда и резерва хранятся отдельно в campaign_heroes — не дублируем их в map_data
+        if (clone.bestiary && typeof clone.bestiary === 'object') {
+            delete clone.bestiary.party;
+            delete clone.bestiary.inactive;
+        }
+        return clone;
+    },
+
+    _applyRemoteMapState(remoteMapData) {
+        if (!remoteMapData || typeof remoteMapData !== 'object') return;
+        const targetRef = window.BestiaryManager?.mapDataRef;
+        if (!targetRef) return;
+
+        // Сохраняем текущих героев, чтобы не затереть их при обновлении объекта mapDataRef
+        const preservedParty = window.BestiaryManager.state.party || [];
+        const preservedInactive = window.BestiaryManager.state.inactive || [];
+
+        // Очищаем старые ключи и переносим новые из облака
+        Object.keys(targetRef).forEach(k => {
+            if (k !== 'bestiary') delete targetRef[k];
+        });
+        Object.assign(targetRef, remoteMapData);
+
+        if (!targetRef.bestiary || typeof targetRef.bestiary !== 'object') {
+            targetRef.bestiary = {};
+        }
+        Object.assign(targetRef.bestiary, remoteMapData.bestiary || {});
+        targetRef.bestiary.party = preservedParty;
+        targetRef.bestiary.inactive = preservedInactive;
+        window.BestiaryManager.state = targetRef.bestiary;
+
+        // Оповещаем карту (HexCanvasRender), королевство, календарь и квесты об обновлении данных
+        EventBus.emit('data:imported', targetRef);
+        EventBus.emit('map:hexesChanged', targetRef.hexes || {});
+        if (window.KingdomManager?.init) {
+            window.KingdomManager.state = targetRef.kingdom || window.KingdomManager.state;
+            window.KingdomManager.renderUi?.();
+        }
+        if (window.WeatherManager?.renderUi) {
+            window.WeatherManager.renderUi();
+        }
     },
 
     async pushToCloud() {
@@ -223,6 +310,7 @@ const CloudSyncService = {
             return;
         }
 
+        // 1. Синхронизируем удалённых героев
         const currentIds = new Set(allHeroes.map(h => h.id));
         for (const oldId of this._knownHeroIds) {
             if (!currentIds.has(oldId)) {
@@ -231,6 +319,7 @@ const CloudSyncService = {
         }
         this._knownHeroIds = currentIds;
 
+        // 2. Сохраняем героев
         for (const hero of allHeroes) {
             await this.supabaseClient.from('campaign_heroes').upsert({
                 id: hero.id,
@@ -241,6 +330,29 @@ const CloudSyncService = {
                 updated_at: new Date().toISOString()
             });
         }
+
+        // 3. Сохраняем всю карту гексов, королевство, погоду, монстров и казну
+        const mapPayload = this._buildSanitizedMapPayload();
+        if (mapPayload) {
+            const { error: mapErr } = await this.supabaseClient.from('campaign_state').upsert({
+                room_code: this.roomCode,
+                gm_secret: this.gmSecret,
+                map_data: mapPayload,
+                updated_at: new Date().toISOString()
+            });
+            if (mapErr) {
+                console.error('Ошибка сохранения карты в Supabase:', mapErr.message);
+            }
+        }
+
+        // 4. Мгновенно уведомляем параллельные сессии ГМа
+        if (this._channel) {
+            this._channel.send({
+                type: 'broadcast',
+                event: 'sync_refresh',
+                payload: { ts: Date.now() }
+            });
+        }
     },
 
     async handleRemotePayload(payload) {
@@ -249,6 +361,7 @@ const CloudSyncService = {
             const delId = payload.old?.id;
             if (delId) {
                 window.BestiaryManager.state.party = window.BestiaryManager.state.party.filter(h => h.id !== delId);
+                window.BestiaryManager.state.inactive = (window.BestiaryManager.state.inactive || []).filter(h => h.id !== delId);
                 window.BestiaryManager.renderUi();
             }
             return;
@@ -258,7 +371,6 @@ const CloudSyncService = {
         if (!row?.hero_data) return;
         if (this.isPlayerMode && row.id !== this.playerHeroId) return;
 
-        // Если ГМ сменил пароль героя прямо во время сессии — сразу требуем новый пароль у игрока
         if (this.isPlayerMode && row.hero_data.playerPasswordHash) {
             const storageKey = `pf_player_auth_${this.roomCode}_${row.id}`;
             if (localStorage.getItem(storageKey) !== row.hero_data.playerPasswordHash) {
@@ -290,13 +402,13 @@ const CloudSyncService = {
         } else {
             party.push(incoming);
         }
+
         const openModal = document.getElementById('bstHeroSheetModal');
         if (openModal && this.isPlayerMode && incoming.id === this.playerHeroId) {
             const activePage = Number(openModal.dataset.pageNum) || 1;
             window.BestiaryManager.openCharacterSheetModal(incoming.id, activePage);
         }
-    },
-
-
+    }
 };
+
 export default CloudSyncService;
