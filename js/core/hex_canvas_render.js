@@ -524,12 +524,9 @@ const HexCanvasRender = {
             }
         }
 
-
-
-
-
         if (data && data.squadHere) {
-            const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || 'flag';
+            const isPlayerMode = Boolean(window.CloudSyncService?.isPlayerMode);
+            const currentSkin = window.CURRENT_SQUAD_TOKEN_SKIN || (isPlayerMode ? 'dice' : 'flag');
 
             // ГАРАНТИРОВАННЫЙ СТАТИЧНЫЙ РЕНДЕР ИЗ АВТОНОМНОГО ThreeDTokenEngine
             if (currentSkin === 'queen') {
