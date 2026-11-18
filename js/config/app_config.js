@@ -17,6 +17,9 @@ export const MAP_CONFIG = {
         url: 'https://ozifsproqgzfmdmuaapb.supabase.co',
         anonKey: 'sb_publishable_vUhWveXr7Rm0wbpCBKEaPA_skmNbeek'
     },
+    telegram: {
+        botUsername: 'pf2e_km_bot'
+    },
     // Параметры вьюпорта: зум и жесткие лимиты перетаскивания canvas
     viewport: {
         minZoom: 0.5,

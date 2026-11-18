@@ -2,6 +2,7 @@ import AvatarRegistry from '../services/avatars/avatar_registry.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
 import StorageManager from './storage_manager.js';
+import { MAP_CONFIG } from '../config/app_config.js';
 import {
     STAT_CATEGORIES,
     createDefaultStats,
@@ -1422,11 +1423,12 @@ const BestiaryManager = {
 
         const hasPass = Boolean(hero.playerPasswordHash);
         const inviteUrl = CloudSyncService.getPlayerInviteUrl(hero.id);
+        const botUsername = (MAP_CONFIG?.telegram?.botUsername || '').replace(/^@/, '');
 
         const modal = ModalManager.open({
             id: 'bstHeroPasswordModal',
             title: `🔑 Доступ и пароль игрока: ${hero.name}`,
-            width: '430px',
+            width: '450px',
             borderColor: '#74b9ff',
             bodyHtml: `
             <div style="font-size: 14px; color: #ebd291; line-height: 1.5;">
@@ -1437,6 +1439,18 @@ const BestiaryManager = {
                         <button type="button" id="bstModalCopyLinkBtn" class="btn ok" style="padding: 5px 10px; font-size: 12px; white-space: nowrap;">📋 Копировать</button>
                     </div>
                 </div>
+
+                <div style="margin-bottom: 12px; padding: 8px; background: rgba(4,9,5,0.8); border: 1px solid #1e4b6e; border-radius: 5px;">
+                    <div style="font-size: 12px; color: #55efc4; font-weight: bold; margin-bottom: 4px;">🤖 Привязка Telegram-бота (одноразовая ссылка):</div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="bstTgLinkInp" readonly placeholder="Нажмите «Создать» для генерации..." class="k-inp" style="flex: 1; font-size: 12px; padding: 5px 8px; color: #a4b0be;">
+                        <button type="button" id="bstModalGenTgBtn" class="btn ok" style="padding: 5px 10px; font-size: 12px; white-space: nowrap;">⚡ Создать</button>
+                    </div>
+                    <div id="bstTgLinkStatus" style="font-size: 11px; color: #a4b0be; margin-top: 4px;">
+                        ${botUsername ? `Бот: @${botUsername}` : '⚠️ Укажите botUsername в app_config.js'}
+                    </div>
+                </div>
+
                 <div>Статус защиты: ${hasPass ? '<b style="color:#2ecc71;">🔒 Пароль установлен</b>' : '<b style="color:#a4b0be;">🔓 Вход по ссылке без пароля</b>'}</div>
                 <div style="margin-top: 10px;">
                     <label style="font-size: 12px; color: #74b9ff; font-weight: bold;">Новый пароль для игрока:</label>
@@ -1469,12 +1483,61 @@ const BestiaryManager = {
             ]
         });
 
+        // Копирование ссылки на лист персонажа
         document.getElementById('bstModalCopyLinkBtn')?.addEventListener('click', (e) => {
             const btn = e.currentTarget;
             navigator.clipboard.writeText(inviteUrl).then(() => {
                 btn.textContent = '✅ Скопировано!';
                 setTimeout(() => { btn.textContent = '📋 Копировать'; }, 1500);
             });
+        });
+
+        // Генерация одноразовой ссылки привязки Telegram и сохранение кода в Supabase
+        document.getElementById('bstModalGenTgBtn')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const inp = document.getElementById('bstTgLinkInp');
+            const statusEl = document.getElementById('bstTgLinkStatus');
+
+            if (!botUsername) {
+                statusEl.innerHTML = '<span style="color:#ff7675;">❌ Сначала укажите telegram.botUsername в app_config.js</span>';
+                return;
+            }
+
+            if (!CloudSyncService?.supabaseClient) {
+                statusEl.innerHTML = '<span style="color:#ff7675;">❌ Нет подключения к облаку Supabase</span>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳...';
+
+            // Генерируем криптостойкий одноразовый код link_...
+            const bytes = new Uint8Array(8);
+            crypto.getRandomValues(bytes);
+            const linkCode = 'link_' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+
+            // Записываем код в Supabase (доступно только ГМу по RLS)
+            const { error } = await CloudSyncService.supabaseClient
+                .from('campaign_heroes')
+                .update({ tg_link_code: linkCode, updated_at: new Date().toISOString() })
+                .eq('id', hero.id)
+                .eq('room_code', CloudSyncService.roomCode);
+
+            btn.disabled = false;
+
+            if (error) {
+                btn.textContent = '⚡ Создать';
+                statusEl.innerHTML = `<span style="color:#ff7675;">❌ Ошибка базы: ${error.message}</span>`;
+                return;
+            }
+
+            const tgDeepLink = `https://t.me/${botUsername}?start=${linkCode}`;
+            if (inp) inp.value = tgDeepLink;
+
+            await navigator.clipboard.writeText(tgDeepLink);
+            btn.textContent = '✅ Скопировано!';
+            statusEl.innerHTML = '<span style="color:#2ecc71;">✅ Ссылка скопирована! Отправьте её игроку в Telegram.</span>';
+            setTimeout(() => { btn.textContent = '⚡ Создать'; }, 2000);
         });
     }
 
