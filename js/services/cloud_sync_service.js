@@ -1,50 +1,20 @@
+// js/services/cloud_sync_service.js
 import EventBus from './event_bus.js';
+import { deriveGmSecret, promptGmPasswordModal } from './cloud_auth_modal.js';
 
 const { createClient } = window.supabase;
 
-const SUPABASE_URL = 'https://ozifsproqgzfmdmuaapb.supabase.co';
+const SUPABASE_URL = 'https://supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_vUhWveXr7Rm0wbpCBKEaPA_skmNbeek';
 
 const params = new URLSearchParams(window.location.search);
 const PLAYER_HERO_ID = params.get('playerHeroId');
 const IS_PLAYER_MODE = Boolean(PLAYER_HERO_ID);
 
-function getOrCreateGmSecret() {
-    // 1. Сначала проверяем, не пришёл ли ключ ГМа в URL (вход с нового ПК)
-    const urlSecret = params.get('gmSecret');
-    if (urlSecret) {
-        localStorage.setItem('pf_online_gm_secret', urlSecret);
-        return urlSecret;
-    }
-
-    // 2. Иначе берём из localStorage или генерируем новый
-    let secret = localStorage.getItem('pf_online_gm_secret');
-    if (!secret) {
-        secret = 'gm_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
-        localStorage.setItem('pf_online_gm_secret', secret);
-    }
-    return secret;
-}
-
-const GM_SECRET = !IS_PLAYER_MODE ? getOrCreateGmSecret() : '';
-
-// Если в URL пришёл room — запоминаем его на новом устройстве
-if (params.get('room') && !IS_PLAYER_MODE) {
-    localStorage.setItem('pf_online_room_code', params.get('room'));
-}
-const initialRoomCode = params.get('room') || localStorage.getItem('pf_online_room_code') || '';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: {
-        headers: {
-            ...(GM_SECRET ? { 'x-gm-secret': GM_SECRET } : {}),
-            ...(initialRoomCode ? { 'x-room-code': initialRoomCode } : {})
-        }
-    }
-});
-
 const CloudSyncService = {
     roomCode: null,
+    gmSecret: null,
+    supabaseClient: null,
     playerHeroId: PLAYER_HERO_ID,
     isPlayerMode: IS_PLAYER_MODE,
     _isRemoteApplying: false,
@@ -60,6 +30,17 @@ const CloudSyncService = {
         return code;
     },
 
+    _createClientWithHeaders() {
+        this.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: {
+                headers: {
+                    ...(this.gmSecret ? { 'x-gm-secret': this.gmSecret } : {}),
+                    ...(this.roomCode ? { 'x-room-code': this.roomCode } : {})
+                }
+            }
+        });
+    },
+
     getPlayerInviteUrl(heroId) {
         const url = new URL(window.location.href);
         url.search = '';
@@ -72,26 +53,42 @@ const CloudSyncService = {
         const url = new URL(window.location.href);
         url.search = '';
         url.searchParams.set('room', this.roomCode || this.getRoomCode());
-        url.searchParams.set('gmSecret', GM_SECRET);
         return url.toString();
     },
 
-    async init() {
-        this.roomCode = params.get('room') || this.getRoomCode();
+    logoutGm() {
+        if (!this.roomCode) return;
+        localStorage.removeItem(`pf_online_gm_secret_${this.roomCode}`);
+        window.location.reload();
+    },
 
-        // Убираем gmSecret из адресной строки после сохранения в localStorage (для безопасности)
+    async init() {
+        const urlRoom = params.get('room');
+        if (urlRoom && !this.isPlayerMode) {
+            localStorage.setItem('pf_online_room_code', urlRoom);
+        }
+        this.roomCode = urlRoom || this.getRoomCode();
+
         if (!this.isPlayerMode) {
             const url = new URL(window.location.href);
             url.searchParams.set('room', this.roomCode);
             url.searchParams.delete('gmSecret');
             window.history.replaceState({}, '', url);
+
+            const storageKey = `pf_online_gm_secret_${this.roomCode}`;
+            this.gmSecret = localStorage.getItem(storageKey);
+
+            if (!this.gmSecret) {
+                await this._authenticateGmFlow(Boolean(urlRoom));
+            } else {
+                this._createClientWithHeaders();
+            }
+        } else {
+            this._createClientWithHeaders();
         }
 
-        // 1. Загружаем актуальные данные из облака при старте
         await this.pullFromCloud();
 
-        // ВАЖНО: отправляем локальный отряд в облако ТОЛЬКО если в облаке пусто
-        // или если это не пустой новый браузер!
         if (!this.isPlayerMode && window.BestiaryManager) {
             const hasLocalHeroes = (window.BestiaryManager.state.party?.length > 0) ||
                 (window.BestiaryManager.state.inactive?.length > 0);
@@ -100,16 +97,13 @@ const CloudSyncService = {
             }
         }
 
-
-        // 2. Автоматически отправляем изменения при сохранении в системе
         EventBus.on('data:save', () => {
             if (this._isRemoteApplying) return;
             clearTimeout(this._saveTimer);
             this._saveTimer = setTimeout(() => this.pushToCloud(), 450);
         });
 
-        // 3. Подписка на изменения от других участников в реальном времени
-        supabase
+        this.supabaseClient
             .channel(`heroes_${this.roomCode}`)
             .on('postgres_changes', {
                 event: '*',
@@ -120,8 +114,41 @@ const CloudSyncService = {
             .subscribe();
     },
 
+    async _authenticateGmFlow(isExistingRoom) {
+        const storageKey = `pf_online_gm_secret_${this.roomCode}`;
+        let errorMsg = '';
+
+        while (true) {
+            const password = await promptGmPasswordModal(this.roomCode, isExistingRoom, errorMsg);
+            const candidateSecret = await deriveGmSecret(this.roomCode, password);
+            this.gmSecret = candidateSecret;
+            this._createClientWithHeaders();
+
+            if (isExistingRoom) {
+                const { data, error } = await this.supabaseClient
+                    .from('campaign_heroes')
+                    .select('id')
+                    .eq('room_code', this.roomCode)
+                    .limit(1);
+
+                if (error || !data || data.length === 0) {
+                    errorMsg = '❌ Неверный пароль Мастера (или комната пуста). Попробуйте ещё раз.';
+                    this.gmSecret = null;
+                    continue;
+                }
+            }
+
+            localStorage.setItem(storageKey, candidateSecret);
+            break;
+        }
+    },
+
     async pullFromCloud() {
-        let query = supabase.from('campaign_heroes').select('*').eq('room_code', this.roomCode);
+        let query = this.supabaseClient
+            .from('campaign_heroes')
+            .select('*')
+            .eq('room_code', this.roomCode);
+
         if (this.isPlayerMode) {
             query = query.eq('id', this.playerHeroId);
         }
@@ -150,7 +177,7 @@ const CloudSyncService = {
             const myHero = allHeroes.find(h => h.id === this.playerHeroId);
             if (!myHero || myHero.isReadOnly) return;
 
-            const { error } = await supabase
+            const { error } = await this.supabaseClient
                 .from('campaign_heroes')
                 .update({
                     hero_data: myHero,
@@ -163,20 +190,19 @@ const CloudSyncService = {
             return;
         }
 
-        // Режим ГМа: синхронизируем весь отряд и удаляем удалённых героев
         const currentIds = new Set(allHeroes.map(h => h.id));
         for (const oldId of this._knownHeroIds) {
             if (!currentIds.has(oldId)) {
-                await supabase.from('campaign_heroes').delete().eq('id', oldId);
+                await this.supabaseClient.from('campaign_heroes').delete().eq('id', oldId);
             }
         }
         this._knownHeroIds = currentIds;
 
         for (const hero of allHeroes) {
-            await supabase.from('campaign_heroes').upsert({
+            await this.supabaseClient.from('campaign_heroes').upsert({
                 id: hero.id,
                 room_code: this.roomCode,
-                gm_secret: GM_SECRET,
+                gm_secret: this.gmSecret,
                 hero_data: hero,
                 is_readonly: !!hero.isReadOnly,
                 updated_at: new Date().toISOString()
@@ -219,16 +245,12 @@ const CloudSyncService = {
             party[pIdx] = incoming;
         } else if (iIdx !== -1) {
             inactive[iIdx] = incoming;
+        } else if (incoming.inactive) {
+            inactive.push(incoming);
         } else {
-            // Добавляем нового героя из облака и для игрока, и для ГМа на новом ПК
-            if (incoming.inactive) {
-                inactive.push(incoming);
-            } else {
-                party.push(incoming);
-            }
+            party.push(incoming);
         }
 
-        // Перерисовываем открытый бланк у игрока, если ГМ обновил статы или включил/выключил Read-Only
         const openModal = document.getElementById('bstHeroSheetModal');
         if (openModal && this.isPlayerMode && incoming.id === this.playerHeroId) {
             const activePage = Number(openModal.dataset.pageNum) || 1;
