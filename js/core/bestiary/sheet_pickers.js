@@ -35,6 +35,101 @@ export const normalizeStr = (str) => String(str || '')
     .toLowerCase()
     .replace(/ё/g, 'е');
 
+/**
+ * Возвращает снятый предмет обратно в свободный (или такой же) слот рюкзака (item1..item15)
+ */
+export function returnGearToBackpack(hero, itemName, overlay = null) {
+    const cleanName = String(itemName || '').trim();
+    if (!cleanName || cleanName.startsWith('🔒') || !hero?.stats) return true;
+
+    const norm = normalizeStr(cleanName);
+    if (norm.includes('без брони') || norm.includes('кулак')) return true;
+
+    let targetSlot = -1;
+    let emptySlot = -1;
+
+    for (let i = 1; i <= 15; i++) {
+        const sName = String(hero.stats[`item${i}Name`] || '').trim();
+        if (!sName && emptySlot === -1) {
+            emptySlot = i;
+        } else if (sName && normalizeStr(sName) === norm) {
+            targetSlot = i;
+            break;
+        }
+    }
+
+    const dest = targetSlot !== -1 ? targetSlot : emptySlot;
+    if (dest === -1) return false; // Рюкзак полностью забит (15/15)
+
+    const catGear = CatalogService.findAnyGear(cleanName);
+    const prevQty = targetSlot !== -1 ? (Math.max(0, Number(hero.stats[`item${dest}Qty`]) || 0)) : 0;
+    const nextQty = prevQty + 1;
+    const nextNotes = hero.stats[`item${dest}Notes`] || catGear?.notes || '';
+
+    hero.stats[`item${dest}Name`] = cleanName;
+    hero.stats[`item${dest}Qty`] = nextQty;
+    hero.stats[`item${dest}Notes`] = nextNotes;
+
+    if (overlay) {
+        const nameInp = overlay.querySelector(`[data-sheet-txt="item${dest}Name"]`);
+        const qtyInp = overlay.querySelector(`[data-sheet-num="item${dest}Qty"]`);
+        const noteInp = overlay.querySelector(`[data-sheet-txt="item${dest}Notes"]`);
+        if (nameInp) { nameInp.value = cleanName; nameInp.dataset.validItem = cleanName; }
+        if (noteInp) noteInp.value = nextNotes;
+        if (qtyInp) {
+            qtyInp.value = nextQty;
+            qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
+    if (window.BestiaryManager?._save) {
+        window.BestiaryManager._save();
+    }
+
+    return true;
+}
+
+/**
+ * Списывает 1 единицу надетого предмета из рюкзака (чтобы вещь не дублировалась)
+ */
+export function consumeGearFromBackpack(hero, itemName, overlay = null) {
+    const cleanName = String(itemName || '').trim();
+    if (!cleanName || !hero?.stats) return;
+
+    const norm = normalizeStr(cleanName);
+    for (let i = 1; i <= 15; i++) {
+        const sName = String(hero.stats[`item${i}Name`] || '').trim();
+        const qty = Math.max(0, Number(hero.stats[`item${i}Qty`]) || 0);
+        if (sName && normalizeStr(sName) === norm && qty > 0) {
+            const nextQty = qty - 1;
+            hero.stats[`item${i}Qty`] = nextQty;
+            if (nextQty <= 0) {
+                hero.stats[`item${i}Name`] = '';
+                hero.stats[`item${i}Notes`] = '';
+            }
+            if (overlay) {
+                const nameInp = overlay.querySelector(`[data-sheet-txt="item${i}Name"]`);
+                const qtyInp = overlay.querySelector(`[data-sheet-num="item${i}Qty"]`);
+                const noteInp = overlay.querySelector(`[data-sheet-txt="item${i}Notes"]`);
+                if (nextQty <= 0) {
+                    if (nameInp) { nameInp.value = ''; nameInp.dataset.validItem = ''; }
+                    if (noteInp) noteInp.value = '';
+                }
+                if (qtyInp) {
+                    qtyInp.value = nextQty;
+                    qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+            break;
+        }
+    }
+    if (window.BestiaryManager?._save) {
+        window.BestiaryManager._save();
+    }
+
+}
+
+
 function bindAutocomplete(inp, dropEl, { getItems, renderOption, onSelect, width = null, maxHeight = '250px', zIndex = '10000150' }) {
     if (!inp) return;
     if (!dropEl) {
@@ -207,25 +302,91 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
         }
     });
 
-    // 4. Броня
-    const armorInp = overlay.querySelector('.bst-armor-picker-inp');
-    bindAutocomplete(armorInp, overlay.querySelector('[data-armor-drop="1"]'), {
-        width: 280,
-        getItems: (q) => searchArmorCatalog(q),
-        renderOption: (a) => `
-            <div class="bst-cantrip-opt-top"><b>${a.name}</b> <span>КБ: +${a.acBonus}</span></div>
-            <div class="bst-cantrip-opt-trad" style="font-size:11px;">Группа: ${a.group} • Тр. Сила: ${a.strReq} • Штраф: ${a.penalty}</div>`,
-        onSelect: (found) => {
-            armorInp.value = found.name;
-            hero.stats.armorName = found.name;
-            hero.stats.armorType = found.category;
-            hero.stats.acItem = found.acBonus;
-            hero.stats.acArmorPenalty = found.penalty;
 
+    // Хелпер: достаёт предметы, реально лежащие в рюкзаке героя (item1..item15 с qty > 0)
+    const getOwnedGearFromBackpack = (matcherFn) => {
+        const result = [];
+        const seen = new Set();
+        for (let i = 1; i <= 15; i++) {
+            const rawName = String(hero.stats[`item${i}Name`] || '').trim();
+            const qty = Math.max(0, Number(hero.stats[`item${i}Qty`]) || 0);
+            if (!rawName || qty <= 0) continue;
+
+            const norm = normalizeStr(rawName);
+            if (seen.has(norm)) continue;
+            seen.add(norm);
+
+            const found = matcherFn(norm);
+            if (found) {
+                result.push({ ...found, backpackQty: qty });
+            }
+        }
+        return result;
+    };
+
+    // 4. Броня (выбор только из рюкзака героя)
+    const armorInp = overlay.querySelector('.bst-armor-picker-inp');
+    if (armorInp) armorInp.dataset.validArmor = armorInp.value || '';
+
+    bindAutocomplete(armorInp, overlay.querySelector('[data-armor-drop="1"]'), {
+        width: 310,
+        getItems: (q) => {
+            const nq = normalizeStr(q);
+            const ownedArmors = getOwnedGearFromBackpack((normItem) =>
+                (PF2E_ARMOR_CATALOG || []).find(a => normalizeStr(a.name) === normItem)
+            );
+            const unarmoredOpt = { id: 'none', name: '👕 Без брони (Снять доспех)', category: 'unarmored', acBonus: 0, dexCap: 5, penalty: 0, strReq: 0, group: 'Тканевая' };
+            const pool = [unarmoredOpt, ...ownedArmors];
+            return nq ? pool.filter(a => normalizeStr(a.name).includes(nq)) : pool;
+        },
+        renderOption: (a) => a.id === 'none'
+            ? `<div class="bst-cantrip-opt-top"><b style="color:#ff7675;">👕 Без брони (Снять доспех)</b></div>`
+            : `<div class="bst-cantrip-opt-top"><b>${a.name}</b> <span style="color:#2ecc71;">[🎒 ×${a.backpackQty}]</span></div>
+               <div class="bst-cantrip-opt-trad" style="font-size:11px;">КБ: +${a.acBonus} • Макс. ЛВК: +${a.dexCap} • Штраф: ${a.penalty}</div>`,
+
+        onSelect: (found) => {
             const typeSel = overlay.querySelector('[data-sheet-txt="armorType"]');
             const itemInp = overlay.querySelector('[data-sheet-num="acItem"]');
             const penaltyInp = overlay.querySelector('[data-sheet-num="acArmorPenalty"]');
             const totalAcInp = overlay.querySelector('[data-sheet-num="ac"]');
+            const prevArmorName = String(hero.stats.armorName || '').trim();
+
+            if (found.id === 'none') {
+                if (prevArmorName && !returnGearToBackpack(hero, prevArmorName, overlay)) {
+                    alert('⚠️ В рюкзаке нет свободного места (15/15 слотов), чтобы убрать снятый доспех!');
+                    return;
+                }
+                armorInp.value = '';
+                armorInp.dataset.validArmor = '';
+                hero.stats.armorName = '';
+                hero.stats.armorType = 'unarmored';
+                hero.stats.acItem = 0;
+                hero.stats.acArmorPenalty = 0;
+                hero.stats.eq_armor_Name = '';
+                hero.stats.eq_armor_Invested = false;
+                if (typeSel) typeSel.value = 'unarmored';
+                if (itemInp) itemInp.value = 0;
+                if (penaltyInp) penaltyInp.value = 0;
+                if (totalAcInp) totalAcInp.dataset.currentStrReq = '0';
+                if (onRecalc) onRecalc();
+                return;
+            }
+
+            // Если меняем один надетый доспех на другой — старый возвращаем в рюкзак, новый забираем из рюкзака
+            if (prevArmorName && normalizeStr(prevArmorName) !== normalizeStr(found.name)) {
+                returnGearToBackpack(hero, prevArmorName, overlay);
+            }
+            if (!prevArmorName || normalizeStr(prevArmorName) !== normalizeStr(found.name)) {
+                consumeGearFromBackpack(hero, found.name, overlay);
+            }
+
+            armorInp.value = found.name;
+            armorInp.dataset.validArmor = found.name;
+            hero.stats.armorName = found.name;
+            hero.stats.armorType = found.category;
+            hero.stats.acItem = found.acBonus;
+            hero.stats.acArmorPenalty = found.penalty;
+            hero.stats.eq_armor_Name = found.name;
 
             if (typeSel) typeSel.value = found.category;
             if (itemInp) itemInp.value = found.acBonus;
@@ -233,8 +394,26 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
             if (totalAcInp) totalAcInp.dataset.currentStrReq = found.strReq;
             if (onRecalc) onRecalc();
         }
+
     });
-    // 5. Оружие (ближнее и дистанционное)
+
+    armorInp?.addEventListener('change', () => {
+        const cur = String(armorInp.value || '').trim();
+        if (!cur) {
+            armorInp.dataset.validArmor = '';
+            return;
+        }
+        const owned = getOwnedGearFromBackpack((normItem) =>
+            (PF2E_ARMOR_CATALOG || []).find(a => normalizeStr(a.name) === normItem)
+        );
+        if (owned.some(a => normalizeStr(a.name) === normalizeStr(cur))) {
+            armorInp.dataset.validArmor = cur;
+        } else {
+            armorInp.value = armorInp.dataset.validArmor || '';
+        }
+    });
+
+    // 5. Оружие (ближнее и дистанционное — выбор только из рюкзака героя)
     const getLiveCombatStats = () => ({
         level: parseInt(overlay.querySelector('[data-sheet-num="level"]')?.value, 10) || hero.stats.level || 1,
         str: parseInt(overlay.querySelector('[data-sheet-num="str"]')?.value, 10) || 0,
@@ -242,6 +421,14 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
     });
 
     const applyWeapon = (slot, found, calcFn) => {
+        const prevWpn = String(hero.stats[`${slot}Name`] || '').trim();
+        if (prevWpn && normalizeStr(prevWpn) !== normalizeStr(found.name) && !normalizeStr(prevWpn).includes('кулак')) {
+            returnGearToBackpack(hero, prevWpn, overlay);
+        }
+        if ((!prevWpn || normalizeStr(prevWpn) !== normalizeStr(found.name)) && found.id !== 'fist') {
+            consumeGearFromBackpack(hero, found.name, overlay);
+        }
+
         const { atkStr, dmgStr } = calcFn(found, getLiveCombatStats());
         const setField = (suffix, val) => {
             const el = overlay.querySelector(`[data-sheet-txt="${slot}${suffix}"]`);
@@ -254,25 +441,115 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
         setField('Traits', found.traits);
     };
 
+    const clearWeaponSlot = (slot) => {
+        const prevWpn = String(hero.stats[`${slot}Name`] || '').trim();
+        if (prevWpn && !normalizeStr(prevWpn).includes('кулак')) {
+            if (!returnGearToBackpack(hero, prevWpn, overlay)) {
+                alert('⚠️ В рюкзаке нет свободного места (15/15 слотов), чтобы убрать оружие!');
+                return false;
+            }
+        }
+        ['Name', 'Atk', 'Dmg', 'Traits'].forEach(suf => {
+            const el = overlay.querySelector(`[data-sheet-txt="${slot}${suf}"]`);
+            if (el) el.value = '';
+            hero.stats[`${slot}${suf}`] = '';
+        });
+        return true;
+    };
+
     overlay.querySelectorAll('.bst-weapon-picker-inp').forEach(inp => {
         const slot = inp.dataset.weaponSlot;
+        inp.dataset.validWpn = inp.value || '';
+
         bindAutocomplete(inp, overlay.querySelector(`[data-weapon-drop="${slot}"]`), {
             width: 360,
-            getItems: (q) => searchMeleeWeapons(q),
-            renderOption: (w) => `
-                <div class="bst-cantrip-opt-top"><b>${w.name}</b> <span>${w.dmgDice} ${w.dmgType}</span></div>
-                <div class="bst-cantrip-opt-trad">${w.category} • ${w.group}</div>`,
-            onSelect: (found) => applyWeapon(slot, found, calcMeleeWeaponRoll)
+            getItems: (q) => {
+                const nq = normalizeStr(q);
+                const ownedMelee = getOwnedGearFromBackpack((normItem) =>
+                    (PF2E_MELEE_WEAPONS || []).find(w => normalizeStr(w.name) === normItem)
+                );
+                const fist = (PF2E_MELEE_WEAPONS || []).find(w => w.id === 'fist');
+                const clearOpt = { id: 'clear', name: '❌ Убрать оружие из слота' };
+                const pool = [clearOpt, ...(fist ? [fist] : []), ...ownedMelee];
+                return nq ? pool.filter(w => normalizeStr(w.name).includes(nq)) : pool;
+            },
+            renderOption: (w) => {
+                if (w.id === 'clear') return `<div class="bst-cantrip-opt-top"><b style="color:#ff7675;">❌ Очистить слот оружия</b></div>`;
+                const bagTag = w.backpackQty ? `<span style="color:#2ecc71;">[🎒 ×${w.backpackQty}]</span>` : `<span style="color:#a4b0be;">[Безоружно]</span>`;
+                return `<div class="bst-cantrip-opt-top"><b>${w.name}</b> ${bagTag}</div>
+                        <div class="bst-cantrip-opt-trad">${w.dmgDice} ${w.dmgType} • ${w.category}</div>`;
+            },
+            onSelect: (found) => {
+                if (found.id === 'clear') {
+                    clearWeaponSlot(slot);
+                    inp.dataset.validWpn = '';
+                    return;
+                }
+                applyWeapon(slot, found, calcMeleeWeaponRoll);
+                inp.dataset.validWpn = found.name;
+            }
+        });
+
+        inp.addEventListener('change', () => {
+            const cur = String(inp.value || '').trim();
+            if (!cur) { clearWeaponSlot(slot); inp.dataset.validWpn = ''; return; }
+            const ownedMelee = getOwnedGearFromBackpack((normItem) =>
+                (PF2E_MELEE_WEAPONS || []).find(w => normalizeStr(w.name) === normItem)
+            );
+            const isFist = normalizeStr(cur).includes('кулак');
+            if (isFist || ownedMelee.some(w => normalizeStr(w.name) === normalizeStr(cur))) {
+                inp.dataset.validWpn = cur;
+            } else {
+                inp.value = inp.dataset.validWpn || '';
+            }
         });
     });
 
     const rangedInp = overlay.querySelector('.bst-ranged-picker-inp');
+    if (rangedInp) rangedInp.dataset.validWpn = rangedInp.value || '';
+
     bindAutocomplete(rangedInp, overlay.querySelector('[data-ranged-drop="1"]'), {
         width: 360,
-        getItems: (q) => searchRangedWeapons(q),
-        renderOption: (w) => `<div class="bst-cantrip-opt-top"><b>${w.name}</b> <span>${w.dmgDice}</span></div>`,
-        onSelect: (found) => applyWeapon('ranged', found, calcRangedWeaponRoll)
+        getItems: (q) => {
+            const nq = normalizeStr(q);
+            const ownedRanged = getOwnedGearFromBackpack((normItem) =>
+                (PF2E_RANGED_WEAPONS || []).find(w => normalizeStr(w.name) === normItem)
+            );
+            const clearOpt = { id: 'clear', name: '❌ Убрать оружие из слота' };
+            const pool = [clearOpt, ...ownedRanged];
+            return nq ? pool.filter(w => normalizeStr(w.name).includes(nq)) : pool;
+        },
+        renderOption: (w) => {
+            if (w.id === 'clear') return `<div class="bst-cantrip-opt-top"><b style="color:#ff7675;">❌ Очистить слот оружия</b></div>`;
+            return `<div class="bst-cantrip-opt-top"><b>${w.name}</b> <span style="color:#2ecc71;">[🎒 ×${w.backpackQty}]</span></div>
+                    <div class="bst-cantrip-opt-trad">${w.dmgDice} ${w.dmgType} • ${w.range}</div>`;
+        },
+        onSelect: (found) => {
+            if (found.id === 'clear') {
+                clearWeaponSlot('ranged');
+                rangedInp.dataset.validWpn = '';
+                return;
+            }
+            applyWeapon('ranged', found, calcRangedWeaponRoll);
+            rangedInp.dataset.validWpn = found.name;
+        }
     });
+
+    rangedInp?.addEventListener('change', () => {
+        const cur = String(rangedInp.value || '').trim();
+        if (!cur) { clearWeaponSlot('ranged'); rangedInp.dataset.validWpn = ''; return; }
+        const ownedRanged = getOwnedGearFromBackpack((normItem) =>
+            (PF2E_RANGED_WEAPONS || []).find(w => normalizeStr(w.name) === normItem)
+        );
+        if (ownedRanged.some(w => normalizeStr(w.name) === normalizeStr(cur))) {
+            rangedInp.dataset.validWpn = cur;
+        } else {
+            rangedInp.value = rangedInp.dataset.validWpn || '';
+        }
+    });
+
+
+
 
 
     // 6. Классовые черты по уровням
@@ -407,6 +684,7 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
     });
 
 }
+
 
 
 export function initPage2Pickers(overlay, hero) {
@@ -605,6 +883,7 @@ export function initPage2Pickers(overlay, hero) {
         return true;
     };
 
+
     const applySelectedItemToRow = (inp, row, found) => {
         const qtyInp = overlay.querySelector(`[data-sheet-num="item${row}Qty"]`);
         const noteInp = overlay.querySelector(`[data-sheet-txt="item${row}Notes"]`);
@@ -661,6 +940,10 @@ export function initPage2Pickers(overlay, hero) {
         if (isLevelLocked) {
             if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
             return;
+        }
+
+        if (window.BestiaryManager?._save) {
+            window.BestiaryManager._save();
         }
 
         if (found.shieldStats) {
@@ -723,15 +1006,26 @@ export function initPage2Pickers(overlay, hero) {
         if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
     };
 
-    // 3. Предметы, щиты и степперы количества (выбор строго из каталога + диалог покупки)
     overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
         const row = inp.dataset.itemRow;
         inp.dataset.validItem = inp.value || '';
 
+        const isShopClosedForPlayer = () =>
+            CloudSyncService.isPlayerMode && !Boolean(window.BestiaryManager?.state?.isShopOpen);
+
+        if (isShopClosedForPlayer()) {
+            inp.readOnly = true;
+            inp.placeholder = '🔒 Магазин закрыт Мастером';
+            inp.style.cursor = 'not-allowed';
+        }
+
         bindAutocomplete(inp, overlay.querySelector(`[data-item-drop="${row}"]`), {
             width: 390,
             zIndex: '10000180',
-            getItems: (q) => searchItemsCatalog(q),
+            getItems: (q) => {
+                if (isShopClosedForPlayer()) return [];
+                return CatalogService.searchAllGear(q);
+            },
             renderOption: (it) => {
                 const priceInfo = parseItemPriceCp(it);
                 const priceTagHtml = priceInfo
@@ -742,7 +1036,18 @@ export function initPage2Pickers(overlay, hero) {
                     ${priceTagHtml}
                 </div>`;
             },
+
+
+
             onSelect: (found) => {
+                if (isShopClosedForPlayer()) {
+                    inp.value = inp.dataset.validItem || '';
+                    return;
+                }
+
+                // Сразу возвращаем в поле предыдущее валидное значение, чтобы не висел поисковый обрывок
+                inp.value = inp.dataset.validItem || '';
+
                 const priceInfo = parseItemPriceCp(found);
                 if (!priceInfo || priceInfo.totalCp <= 0) {
                     applySelectedItemToRow(inp, row, found);
@@ -758,10 +1063,9 @@ export function initPage2Pickers(overlay, hero) {
                 const totalCp = curG * 100 + curS * 10 + curC;
                 const canAfford = totalCp >= priceInfo.totalCp;
 
-
                 const choiceModal = ModalManager.open({
                     id: 'bstAcquireItemChoiceModal',
-                    title: '🛒 Покупка предмета',
+                    title: '🛒 Покупка снаряжения в магазине',
                     width: '440px',
                     borderColor: '#ffd875',
                     bodyHtml: `
@@ -789,6 +1093,7 @@ export function initPage2Pickers(overlay, hero) {
                             onClick: () => {
                                 if (spendHeroCoinsCp(priceInfo.totalCp)) {
                                     applySelectedItemToRow(inp, row, found);
+                                    inp.dispatchEvent(new Event('input', { bubbles: true }));
                                 }
                                 choiceModal.close();
                             }
@@ -796,28 +1101,32 @@ export function initPage2Pickers(overlay, hero) {
                     ]
                 });
 
-
-
                 if (choiceModal?.overlay) {
                     choiceModal.overlay.style.zIndex = '10000250';
                 }
             }
+
         });
+
 
         inp.addEventListener('change', () => {
             const cur = String(inp.value || '').trim();
             if (!cur) {
-                inp.dataset.validItem = '';
+                inp.value = inp.dataset.validItem || '';
                 return;
             }
-            const isValid = (PF2E_ITEMS_CATALOG || []).some(it => normalizeStr(it.name) === normalizeStr(cur));
+            const isValid = CatalogService.getAllGear().some(it => normalizeStr(it.name) === normalizeStr(cur));
             if (isValid) {
                 inp.dataset.validItem = cur;
             } else {
                 inp.value = inp.dataset.validItem || '';
             }
         });
+
+
+
     });
+
 
     overlay.querySelectorAll('.bst-qty-stepper').forEach(stepper => {
         const qtyInp = stepper.querySelector('.bst-qty-inp');
@@ -874,6 +1183,7 @@ export function initPage2Pickers(overlay, hero) {
                     qtyInp.value = 0;
                     qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
                 }
+                if (window.BestiaryManager?._save) window.BestiaryManager._save();
             };
 
             const confirmModal = ModalManager.open({
@@ -1033,6 +1343,7 @@ export function initPage2Pickers(overlay, hero) {
                                 }
                             }
 
+                            if (window.BestiaryManager?._save) window.BestiaryManager._save();
                             sellModal.close();
                         }
                     }
@@ -1661,6 +1972,20 @@ export function initPage3Pickers(overlay, hero) {
         const rowWrap = inp.parentElement;
         if (!rowWrap || rowWrap.querySelector('.bst-eq-unequip-btn')) return;
 
+        const prevEquipped = String(hero.stats[`eq_${slot}_Name`] || '').trim();
+        if (prevEquipped && !prevEquipped.startsWith('🔒')) {
+            if (!returnGearToBackpack(hero, prevEquipped, overlay)) {
+                alert('⚠️ В рюкзаке нет свободного места (15/15 слотов), чтобы убрать снятый предмет!');
+                return;
+            }
+        }
+        if (slot === 'armor') {
+            hero.stats.armorName = '';
+            hero.stats.armorType = 'unarmored';
+            hero.stats.acItem = 0;
+            hero.stats.acArmorPenalty = 0;
+        }
+
         const unequipBtn = document.createElement('button');
         unequipBtn.type = 'button';
         unequipBtn.className = 'bst-eq-unequip-btn';
@@ -1683,9 +2008,20 @@ export function initPage3Pickers(overlay, hero) {
         rowWrap.appendChild(unequipBtn);
     };
 
+
     const equipItemToSlot = (slot, inp, found) => {
         const needsInvest = isInvestedItem(found);
         const curUsed = Math.max(0, Number(hero.stats.investedUsedToday) || 0);
+
+        const prevInSlot = String(hero.stats[`eq_${slot}_Name`] || '').trim();
+        if (prevInSlot && !prevInSlot.startsWith('🔒') && normalizeStr(prevInSlot) !== normalizeStr(found.name)) {
+            returnGearToBackpack(hero, prevInSlot, overlay);
+        }
+        if (!prevInSlot || normalizeStr(prevInSlot) !== normalizeStr(found.name)) {
+            consumeGearFromBackpack(hero, found.name, overlay);
+        }
+        renderPage3BackpackList();
+
 
         if (needsInvest && curUsed >= 10) {
             const m = ModalManager.open({
@@ -1732,6 +2068,8 @@ export function initPage3Pickers(overlay, hero) {
         updateInvestedCounterUi();
     };
 
+
+
     overlay.querySelectorAll('[data-eq-picker]').forEach(inp => {
         const slot = inp.dataset.eqPicker;
         const basePool = (slot === 'mainHand' || slot === 'offHand')
@@ -1743,7 +2081,8 @@ export function initPage3Pickers(overlay, hero) {
             zIndex: '10000190',
             getItems: (q) => {
                 const nq = normalizeStr(q);
-                const combined = [...getBackpackItems(), ...basePool];
+                const bpOnly = getBackpackItems();
+                const combined = CloudSyncService.isPlayerMode ? bpOnly : [...bpOnly, ...basePool];
                 return nq ? combined.filter(x => normalizeStr(x.name).includes(nq)) : combined.slice(0, 35);
             },
             renderOption: (it) => {
@@ -1758,6 +2097,20 @@ export function initPage3Pickers(overlay, hero) {
 
     overlay.querySelectorAll('.bst-eq-unequip-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            const prevEquipped = String(hero.stats[`eq_${slot}_Name`] || '').trim();
+            if (prevEquipped && !prevEquipped.startsWith('🔒')) {
+                if (!returnGearToBackpack(hero, prevEquipped, overlay)) {
+                    alert('⚠️ В рюкзаке нет свободного места (15/15 слотов), чтобы убрать снятый предмет!');
+                    return;
+                }
+            }
+            if (slot === 'armor') {
+                hero.stats.armorName = '';
+                hero.stats.armorType = 'unarmored';
+                hero.stats.acItem = 0;
+                hero.stats.acArmorPenalty = 0;
+            }
+
             const slot = btn.dataset.unequipSlot;
             const inp = overlay.querySelector(`[data-eq-picker="${slot}"]`);
             if (slot === 'mainHand' && hero.stats.eq_offHand_Name === '🔒 Занято (двуручное)') {

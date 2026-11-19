@@ -89,8 +89,16 @@ export function buildPage2Html(stats) {
                 </div>
             </div>
             <div class="bst-sheet-col">
+            
                 <div class="k-panel" style="margin-bottom: 10px;">
-                    <div class="k-sec-title">🎒 Снаряжение и Монеты</div>
+                    <div class="k-sec-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                        <span>🎒 Снаряжение и Монеты</span>
+                        ${Boolean(window.BestiaryManager?.state?.isShopOpen)
+                            ? `<span style="font-size: 11px; color: #2ecc71; background: rgba(46,204,113,0.14); border: 1px solid #2ecc71; border-radius: 4px; padding: 1px 8px; text-transform: none;">🏪 Магазин открыт (покупка за монеты)</span>`
+                            : `<span style="font-size: 11px; color: #ff7675; background: rgba(231,76,60,0.14); border: 1px solid #e74c3c; border-radius: 4px; padding: 1px 8px; text-transform: none;">🔒 Магазин закрыт Мастером</span>`
+                        }
+                    </div>
+                    
                     <div class="bst-coins-row" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                             <span style="font-size: 12px; color: #e17055; font-weight: bold;">🥉 ММ:</span>

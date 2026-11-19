@@ -45,8 +45,9 @@ export function recalculateSheetStats(overlayEl, hero) {
     const totalAc = 10 + effDex + acProf + acItem + acOther;
     setNum('ac', totalAc);
 
-    // Проверка требования Силы для штрафа брони к навыкам (Check Penalty)
-    const strReq = armorObj ? (armorObj.strReq || 0) : 0;
+    // поддержка и старой шкалы 10..18, и модификаторов Remaster +0..+4):
+    const rawStrReq = armorObj ? (armorObj.strReq || 0) : 0;
+    const strReq = rawStrReq >= 10 ? Math.floor((rawStrReq - 10) / 2) : rawStrReq;
     const acInpEl = overlayEl.querySelector('[data-sheet-num="ac"]');
     if (acInpEl) acInpEl.dataset.currentStrReq = String(strReq);
 

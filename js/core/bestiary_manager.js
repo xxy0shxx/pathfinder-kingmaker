@@ -790,6 +790,7 @@ const BestiaryManager = {
 
 
 
+
     _renderTreasuryZone() {
         const box = document.getElementById('bstZoneTreasury');
         if (!box) return;
@@ -813,6 +814,9 @@ const BestiaryManager = {
                 </div>
             `).join('');
 
+        const isShopOpen = Boolean(this.state.isShopOpen);
+        const shopBtnHtml = `<button type="button" id="bstBtnToggleShop" class="btn ${isShopOpen ? 'ok' : 'del'}" style="padding: 4px 12px; font-size: 13px; font-weight: bold;" title="Открыть или закрыть магазин для игроков (покупка вещей, брони и оружия в рюкзак)">${isShopOpen ? '🏪 Магазин: ОТКРЫТ' : '🔒 Магазин: ЗАКРЫТ'}</button>`;
+
 
         box.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
@@ -820,6 +824,7 @@ const BestiaryManager = {
                     💰 Общая казна отряда <span style="font-size: 13px; color: #a4b0be; font-weight: normal;">(≈ ${totalGoldEq} ЗМ)</span>
                 </div>
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    ${shopBtnHtml}
                     <button type="button" id="bstBtnConvertCoins" class="btn cc" style="padding: 4px 10px; font-size: 12px;" title="Обменять каждые 10 ММ → 1 СМ и 10 СМ → 1 ЗМ">💱 Укрупнить монеты</button>
                     <button type="button" id="bstBtnCollectFromParty" class="btn cc" style="padding: 4px 10px; font-size: 12px;" title="Собрать все монеты из личных кошельков героев в общую казну">📥 Собрать с отряда</button>
                     <button type="button" id="bstBtnSplitTreasury" class="btn ok" style="padding: 4px 12px; font-size: 13px;">⚖️ Разделить поровну на отряд</button>
@@ -877,6 +882,10 @@ const BestiaryManager = {
             </div>
         `;
 
+        box.querySelector('#bstBtnToggleShop')?.addEventListener('click', () => {
+            this.state.isShopOpen = !this.state.isShopOpen;
+            this._save();
+        });
 
 
 
