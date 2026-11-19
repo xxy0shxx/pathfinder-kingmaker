@@ -494,7 +494,6 @@ export function initPage2Pickers(overlay, hero) {
         { selector: '.bst-lvl4-picker-inp', rowAttr: 'lvl4Row', dropAttr: 'data-lvl4-drop', prefix: 'lvl4Spell', searchFn: searchSpellsLvl4 }
     ];
 
-
     spellTiers.forEach(({ selector, rowAttr, dropAttr, prefix, searchFn }) => {
         overlay.querySelectorAll(selector).forEach(inp => {
             const row = inp.dataset[rowAttr];
@@ -818,15 +817,6 @@ export function initPage2Pickers(overlay, hero) {
             }
         });
     });
-
-
-
-
-
-
-
-
-
 
     overlay.querySelectorAll('.bst-qty-stepper').forEach(stepper => {
         const qtyInp = stepper.querySelector('.bst-qty-inp');
@@ -1547,8 +1537,6 @@ export function initPage3Pickers(overlay, hero) {
         }
     };
 
-
-
     const renderActivePropsSummary = () => {
         const host = overlay.querySelector('#bstPage3ActivePropsSummary');
         if (!host) return;
@@ -1627,7 +1615,6 @@ export function initPage3Pickers(overlay, hero) {
         syncEquippedSkillBonuses();
         renderActivePropsSummary();
     };
-
 
     const renderPage3BackpackList = () => {
         const host = overlay.querySelector('#bstPage3BackpackSummary');
