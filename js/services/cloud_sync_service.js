@@ -8,6 +8,9 @@ import {
 } from './cloud_auth_modal.js';
 import ModalManager from '../ui/modal_manager.js';
 
+import HeroSyncService from './hero_sync_service.js';
+
+
 const { createClient } = window.supabase;
 
 const SUPABASE_URL = MAP_CONFIG.supabase.url;
@@ -537,6 +540,7 @@ const CloudSyncService = {
     },
 
 
+
     _applyHeroRow(row) {
         const incoming = { ...row.hero_data, isReadOnly: !!row.is_readonly };
         this._knownHeroIds.add(incoming.id);
@@ -561,20 +565,9 @@ const CloudSyncService = {
             window.BestiaryManager.openCharacterSheetModal(incoming.id, activePage);
         }
 
-        // Синхронизируем статы в трекере инициативы, если герой сейчас в бою
-        if (window.InitiativeManager?.state?.combatants) {
-            let initUpdated = false;
-            window.InitiativeManager.state.combatants.forEach(c => {
-                if (c && c.heroId === incoming.id && incoming.stats) {
-                    c.stats = JSON.parse(JSON.stringify(incoming.stats));
-                    initUpdated = true;
-                }
-            });
-            if (initUpdated) {
-                window.InitiativeManager.renderUi();
-            }
-        }
+        HeroSyncService.syncFullStats(incoming, false);
     },
+
 
     _startHeroPolling() {
         if (this._pollTimer) return;

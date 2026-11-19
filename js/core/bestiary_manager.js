@@ -18,6 +18,7 @@ import { PF2E_ITEMS_CATALOG, searchItemsCatalog } from '../config/items_catalog.
 import { bindSheetTooltip } from './bestiary/bestiary_tooltip_builder.js';
 import CloudSyncService from '../services/cloud_sync_service.js';
 import { derivePlayerHash } from '../services/cloud_auth_modal.js';
+import HeroSyncService from '../services/hero_sync_service.js';
 
 
 export { STAT_CATEGORIES, createDefaultStats };
@@ -352,22 +353,14 @@ const BestiaryManager = {
                     variant: 'ok',
                     onClick: () => {
                         if (shareCp > 0) {
-                            const initCombatants = window.InitiativeManager?.state?.combatants || [];
                             recipients.forEach(hero => {
-                                if (!hero.stats) hero.stats = createDefaultStats();
-                                hero.stats.coinsGold = (Number(hero.stats.coinsGold) || 0) + shareG;
-                                hero.stats.coinsSilver = (Number(hero.stats.coinsSilver) || 0) + shareS;
-                                hero.stats.coinsCopper = (Number(hero.stats.coinsCopper) || 0) + shareC;
-
-                                // Синхронизируем с копией героя в трекере инициативы, если она отдельная
-                                const normH = String(hero.name || '').trim().toLowerCase();
-                                initCombatants.forEach(u => {
-                                    if (u && u.faction === 'friend' && String(u.name || '').trim().toLowerCase() === normH && u.stats && u.stats !== hero.stats) {
-                                        u.stats.coinsGold = hero.stats.coinsGold;
-                                        u.stats.coinsSilver = hero.stats.coinsSilver;
-                                        u.stats.coinsCopper = hero.stats.coinsCopper;
-                                    }
-                                });
+                                HeroSyncService.syncCoins(
+                                    hero,
+                                    (Number(hero.stats?.coinsGold) || 0) + shareG,
+                                    (Number(hero.stats?.coinsSilver) || 0) + shareS,
+                                    (Number(hero.stats?.coinsCopper) || 0) + shareC,
+                                    false
+                                );
                             });
 
                             tr.gold = remG;
@@ -398,6 +391,7 @@ const BestiaryManager = {
 
         if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
     },
+
 
     openCollectPartyCoinsModal() {
         const tr = this._ensureTreasury();
@@ -462,21 +456,8 @@ const BestiaryManager = {
                     label: '📥 Собрать в казну',
                     variant: 'ok',
                     onClick: () => {
-                        const initCombatants = window.InitiativeManager?.state?.combatants || [];
                         recipients.forEach(hero => {
-                            if (!hero.stats) hero.stats = createDefaultStats();
-                            hero.stats.coinsGold = 0;
-                            hero.stats.coinsSilver = 0;
-                            hero.stats.coinsCopper = 0;
-
-                            const normH = String(hero.name || '').trim().toLowerCase();
-                            initCombatants.forEach(u => {
-                                if (u && u.faction === 'friend' && String(u.name || '').trim().toLowerCase() === normH && u.stats && u.stats !== hero.stats) {
-                                    u.stats.coinsGold = 0;
-                                    u.stats.coinsSilver = 0;
-                                    u.stats.coinsCopper = 0;
-                                }
-                            });
+                            HeroSyncService.syncCoins(hero, 0, 0, 0, false);
                         });
 
                         tr.gold = (Number(tr.gold) || 0) + sumG;
@@ -501,6 +482,9 @@ const BestiaryManager = {
 
         if (modal?.overlay) modal.overlay.style.zIndex = '10000250';
     },
+
+
+
 
     _ensureTreasuryLootBag() {
         const tr = this._ensureTreasury();
@@ -538,6 +522,7 @@ const BestiaryManager = {
         if (tr.log.length > 8) tr.log.length = 8;
         this._save();
     },
+
 
     openClaimTreasuryItemModal(lootId) {
         const bag = this._ensureTreasuryLootBag();
@@ -604,11 +589,19 @@ const BestiaryManager = {
                             return;
                         }
 
+
                         const dest = foundSlot !== -1 ? foundSlot : emptySlot;
                         const prevQty = foundSlot !== -1 ? (Math.max(0, Number(targetHero.stats[`item${dest}Qty`]) || 0)) : 0;
-                        targetHero.stats[`item${dest}Name`] = targetHero.stats[`item${dest}Name`] || item.name;
-                        targetHero.stats[`item${dest}Qty`] = prevQty + takeQty;
-                        if (!targetHero.stats[`item${dest}Notes`]) targetHero.stats[`item${dest}Notes`] = item.notes || '';
+
+
+                        HeroSyncService.syncBackpackSlot(
+                            targetHero,
+                            dest,
+                            targetHero.stats[`item${dest}Name`] || item.name,
+                            prevQty + takeQty,
+                            targetHero.stats[`item${dest}Notes`] || item.notes || '',
+                            false
+                        );
 
                         (window.InitiativeManager?.state?.combatants || []).forEach(u => {
                             if (u && u.faction === 'friend' && norm(u.name) === norm(targetHero.name) && u.stats && u.stats !== targetHero.stats) {
@@ -1181,10 +1174,11 @@ const BestiaryManager = {
 
             const hasPass = Boolean(item.playerPasswordHash);
             const lockBtnHtml = isHeroGroup
-                ? `<button type="button" class="bst-lock-hero-btn" title="${item.isReadOnly ? 'Режим Read-Only ВКЛ' : 'Редактирование разрешено'}" style="background:${item.isReadOnly ? '#5e1914' : '#1b3324'}; border:1px solid ${item.isReadOnly ? '#ff7675' : '#2ecc71'}; color:#fff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">${item.isReadOnly ? '🔒' : '🔓'}</button>
-                   <button type="button" class="bst-pass-hero-btn" title="${hasPass ? 'Ссылка и пароль игрока (нажмите для настройки)' : 'Ссылка и пароль игрока'}" style="background:${hasPass ? '#3b2e14' : '#1a1a1a'}; border:1px solid ${hasPass ? '#ffd875' : '#7f8c8d'}; color:#ffd875; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔑</button>`
+                ? `<div style="display:inline-flex; align-items:center; gap:4px; z-index:5;">
+           <button type="button" class="bst-lock-hero-btn" title="${item.isReadOnly ? 'Режим Read-Only ВКЛ' : 'Редактирование разрешено'}" style="background:${item.isReadOnly ? '#5e1914' : '#1b3324'}; border:1px solid ${item.isReadOnly ? '#ff7675' : '#2ecc71'}; color:#fff; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">${item.isReadOnly ? '🔒' : '🔓'}</button>
+           <button type="button" class="bst-hero-key-btn" title="${hasPass ? 'Ссылка и пароль игрока (нажмите для настройки)' : 'Ссылка и пароль игрока'}" style="background:${hasPass ? '#3b2e14' : '#1a1a1a'}; border:1px solid ${hasPass ? '#ffd875' : '#7f8c8d'}; color:#ffd875; border-radius:4px; padding:1px 5px; font-size:11px; cursor:pointer;">🔑</button>
+       </div>`
                 : '';
-
 
             card.innerHTML = [
                 reserveBtn,
@@ -1193,10 +1187,9 @@ const BestiaryManager = {
                 '<div class="init-card-name-text" title="' + item.name + '">' + item.name + '</div>',
                 '<div class="init-avatar-shield-circle active">' + avatarContent + '</div>',
                 '</div>',
-                '<div class="init-card-right">',
+                '<div class="init-card-right" style="display:flex !important; align-items:center; justify-content:space-between; gap:4px; width:100%;">',
                 lockBtnHtml,
-                '<button type="button" class="bst-quick-send-btn" title="Добавить в трекер инициативы">⚔️</button>',
-                '<div class="init-score-massive-block">',
+                '<div class="init-score-massive-block" style="margin-left:auto;">',
                 '<input type="number" class="init-inline-score-input" value="' + item.defaultScore + '" title="Базовая инициатива">',
                 '</div>',
                 '</div>'
@@ -1211,10 +1204,6 @@ const BestiaryManager = {
                 e.stopPropagation();
                 this.moveHeroReserve(isParty ? 'party' : 'inactive', isParty ? 'inactive' : 'party', item.id);
             });
-            card.querySelector('.bst-quick-send-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.deployToInitiative(item);
-            });
             card.querySelector('.init-inline-score-input').addEventListener('change', (e) => {
                 this.updatePresetScore(groupKey, item.id, e.target.value);
             });
@@ -1226,6 +1215,11 @@ const BestiaryManager = {
             card.querySelector('.bst-lock-hero-btn')?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.toggleHeroReadOnly(groupKey, item.id);
+            });
+
+            card.querySelector('.bst-hero-key-btn')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openSetHeroPasswordModal(groupKey, item.id);
             });
 
             const nameEl = card.querySelector('.init-card-name-text');

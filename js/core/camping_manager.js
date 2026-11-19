@@ -2,6 +2,7 @@ import AnimationManager from '../services/animation_manager.js';
 import { MAP_CONFIG } from '../config/app_config.js';
 import EventBus from '../services/event_bus.js';
 import ModalManager from '../ui/modal_manager.js';
+import HeroSyncService from '../services/hero_sync_service.js';
 
 const CAMP_MEALS_CATALOG = [
     {
@@ -443,10 +444,6 @@ const CampingManager = {
         } catch (e) { console.error("Ошибка при перерасчете параметров лагеря:", e); }
     },
 
-
-
-
-
     formatActionActors(actionIdx) {
         const list = (this.state.assignments && Array.isArray(this.state.assignments[actionIdx]))
             ? this.state.assignments[actionIdx]
@@ -501,8 +498,6 @@ const CampingManager = {
         }).slice(0, 6);
     },
 
-
-
     getPartySuppliesSummary() {
         const cleanText = (str) => String(str || '')
             .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
@@ -541,9 +536,6 @@ const CampingManager = {
             html: `📦 <b>Запасы группы (${heroes.length} чел.):</b> 🍞 ${totalRations} пайков • 🏕️ ${totalNormIng} обычн. • 🌿 ${totalSpecIng} особ.`
         };
     },
-
-
-
 
     syncSuppliesWithParty() {
         const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
@@ -627,10 +619,8 @@ const CampingManager = {
             return linked;
         };
 
-
         const adjustHeroItem = (hero, matchRegex, defaultName, defaultNotes, deltaQty) => {
-            const targets = getLinkedHeroObjects(hero);
-            // Выбираем именно ту копию героя, у которой РЕАЛЬНО заполнены предметы в рюкзаке (не пустые строки)
+            const targets = HeroSyncService.getHeroInstances(hero);
             const primary = targets.find(t => {
                 if (!t || !t.stats) return false;
                 for (let k = 1; k <= 15; k++) {
@@ -642,7 +632,6 @@ const CampingManager = {
             if (!primary) return 0;
             if (!primary.stats) primary.stats = {};
 
-            // Нормализуем строку (убираем эмодзи, селекторы и приводим к нижнему регистру)
             const cleanText = (str) => String(str || '')
                 .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
                 .trim()
@@ -666,68 +655,30 @@ const CampingManager = {
                         totalExistingQty = qty;
                     } else {
                         totalExistingQty += qty;
-                        // Очищаем дублирующий слот во всех копиях героя
-                        for (let j = 0; j < targets.length; j++) {
-                            const t = targets.at(j);
-                            if (!t.stats) t.stats = {};
-                            t.stats[`item${i}Name`] = '';
-                            t.stats[`item${i}Qty`] = 0;
-                            t.stats[`item${i}Notes`] = '';
-                        }
+                        HeroSyncService.syncBackpackSlot(primary, i, '', 0, '', false);
                     }
                 }
             }
 
             if (firstSlot !== -1) {
-                let nextQty = totalExistingQty;
-                let applied = 0;
+                const applied = deltaQty < 0 ? Math.min(totalExistingQty, Math.abs(deltaQty)) : deltaQty;
+                const nextQty = deltaQty < 0 ? (totalExistingQty - applied) : (totalExistingQty + deltaQty);
 
-                if (deltaQty < 0) {
-                    applied = Math.min(totalExistingQty, Math.abs(deltaQty));
-                    nextQty = totalExistingQty - applied;
-                } else {
-                    applied = deltaQty;
-                    nextQty = totalExistingQty + deltaQty;
-                }
-
-                // Синхронизируем ВСЕ 15 слотов рюкзака между копиями героя (Бестиарий <-> Инициатива)
-                primary.stats[`item${firstSlot}Name`] = primary.stats[`item${firstSlot}Name`] || defaultName;
-                primary.stats[`item${firstSlot}Qty`] = nextQty;
-                if (!primary.stats[`item${firstSlot}Notes`]) {
-                    primary.stats[`item${firstSlot}Notes`] = defaultNotes;
-                }
-
-                for (let j = 0; j < targets.length; j++) {
-                    const t = targets.at(j);
-                    if (t === primary) continue;
-                    if (!t.stats) t.stats = {};
-                    for (let sIdx = 1; sIdx <= 15; sIdx++) {
-                        t.stats[`item${sIdx}Name`] = primary.stats[`item${sIdx}Name`] || '';
-                        t.stats[`item${sIdx}Qty`] = primary.stats[`item${sIdx}Qty`] ?? 0;
-                        t.stats[`item${sIdx}Notes`] = primary.stats[`item${sIdx}Notes`] || '';
-                    }
-                }
+                HeroSyncService.syncBackpackSlot(
+                    primary,
+                    firstSlot,
+                    primary.stats[`item${firstSlot}Name`] || defaultName,
+                    nextQty,
+                    primary.stats[`item${firstSlot}Notes`] || defaultNotes,
+                    false
+                );
                 return applied;
             } else if (deltaQty > 0 && emptySlot !== -1) {
-                primary.stats[`item${emptySlot}Name`] = defaultName;
-                primary.stats[`item${emptySlot}Qty`] = deltaQty;
-                primary.stats[`item${emptySlot}Notes`] = defaultNotes;
-
-                for (let j = 0; j < targets.length; j++) {
-                    const t = targets.at(j);
-                    if (t === primary) continue;
-                    if (!t.stats) t.stats = {};
-                    for (let sIdx = 1; sIdx <= 15; sIdx++) {
-                        t.stats[`item${sIdx}Name`] = primary.stats[`item${sIdx}Name`] || '';
-                        t.stats[`item${sIdx}Qty`] = primary.stats[`item${sIdx}Qty`] ?? 0;
-                        t.stats[`item${sIdx}Notes`] = primary.stats[`item${sIdx}Notes`] || '';
-                    }
-                }
+                HeroSyncService.syncBackpackSlot(primary, emptySlot, defaultName, deltaQty, defaultNotes, false);
                 return deltaQty;
             }
             return 0;
         };
-
 
         const rationRegex = /па[её]к|рацион|rations|провиз|еда|food/i;
         const hungryHeroes = [];
@@ -845,13 +796,6 @@ const CampingManager = {
 
 
         const spendPartyResources = (normToSpend, specToSpend, rationsToSpend) => {
-            const initUnits = (window.InitiativeManager?.state?.combatants && Array.isArray(window.InitiativeManager.state.combatants))
-                ? window.InitiativeManager.state.combatants
-                : (this.mapDataRef?.initiative?.combatants || []);
-            const bestiaryParty = (window.BestiaryManager?.state?.party && Array.isArray(window.BestiaryManager.state.party))
-                ? window.BestiaryManager.state.party
-                : (this.mapDataRef?.bestiary?.party || []);
-
             const cleanText = (str) => String(str || '')
                 .replace(/[\u{1F300}-\u{1FAFF}\uFE0F\u200D]/gu, '')
                 .trim().toLowerCase().replace(/ё/g, 'е');
@@ -862,17 +806,6 @@ const CampingManager = {
                 let rem = amount;
                 for (const h of heroes) {
                     if (rem <= 0) break;
-                    const key = cleanText(h.name);
-
-                    // Собираем только уникальные объекты stats для этого героя (без дублирования ссылок)
-                    const uniqueStatsObjs = new Set();
-                    if (h.stats) uniqueStatsObjs.add(h.stats);
-                    [...bestiaryParty, ...initUnits].forEach(u => {
-                        if (u && u.faction === 'friend' && cleanText(u.name) === key && u.stats) {
-                            uniqueStatsObjs.add(u.stats);
-                        }
-                    });
-
                     const primaryStats = h.stats;
                     if (!primaryStats) continue;
 
@@ -882,12 +815,15 @@ const CampingManager = {
                         const qty = Math.max(0, Number(primaryStats[`item${i}Qty`]) || 0);
                         if (cleaned && regex.test(cleaned) && qty > 0) {
                             const take = Math.min(qty, rem);
-                            const nextQty = qty - take;
                             rem -= take;
-
-                            uniqueStatsObjs.forEach(stObj => {
-                                stObj[`item${i}Qty`] = nextQty;
-                            });
+                            HeroSyncService.syncBackpackSlot(
+                                h,
+                                i,
+                                primaryStats[`item${i}Name`],
+                                qty - take,
+                                primaryStats[`item${i}Notes`],
+                                false
+                            );
                         }
                     }
                 }
@@ -901,9 +837,6 @@ const CampingManager = {
             else EventBus.emit('data:save');
             if (window.InitiativeManager?.renderUi) window.InitiativeManager.renderUi();
         };
-
-
-
 
         const costSummaryHtml = [
             reqNorm > 0 ? `${reqNorm} 🏕️ обычных (в наличии: <b style="color:${hasEnoughNorm ? '#2ecc71' : '#ff7675'}">${sup.totalNormIng}</b>)` : '',

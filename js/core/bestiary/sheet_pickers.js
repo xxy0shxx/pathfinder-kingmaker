@@ -26,6 +26,7 @@ import {
     PF2E_RANGED_WEAPONS, searchRangedWeapons, calcRangedWeaponRoll
 } from '../../config/weapons_catalog.js';
 import CloudSyncService from '../../services/cloud_sync_service.js';
+import HeroSyncService from '../../services/hero_sync_service.js';
 
 export const normalizeStr = (str) => String(str || '')
     .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu, '')
@@ -1064,7 +1065,6 @@ export function initPage2Pickers(overlay, hero) {
         });
     });
 
-
     // Кнопка передачи предмета (🎁) другому герою отряда
     overlay.querySelectorAll('.bst-item-give-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1163,49 +1163,28 @@ export function initPage2Pickers(overlay, hero) {
                             const destSlot = targetSlot !== -1 ? targetSlot : emptySlot;
                             const prevDestQty = targetSlot !== -1 ? (Math.max(0, Number(recipient.stats[`item${destSlot}Qty`]) || 0)) : 0;
 
-                            recipient.stats[`item${destSlot}Name`] = recipient.stats[`item${destSlot}Name`] || itemName;
-                            recipient.stats[`item${destSlot}Qty`] = prevDestQty + giveCount;
-                            if (!recipient.stats[`item${destSlot}Notes`]) {
-                                recipient.stats[`item${destSlot}Notes`] = itemNotes;
-                            }
+                            HeroSyncService.syncBackpackSlot(
+                                recipient,
+                                destSlot,
+                                recipient.stats[`item${destSlot}Name`] || itemName,
+                                prevDestQty + giveCount,
+                                recipient.stats[`item${destSlot}Notes`] || itemNotes,
+                                false
+                            );
 
-                            // Синхронизируем рюкзак получателя с трекером инициативы
-                            const normRecName = normalizeStr(recipient.name);
-                            (window.InitiativeManager?.state?.combatants || []).forEach(u => {
-                                if (u && u.faction === 'friend' && normalizeStr(u.name) === normRecName && u.stats && u.stats !== recipient.stats) {
-                                    u.stats[`item${destSlot}Name`] = recipient.stats[`item${destSlot}Name`];
-                                    u.stats[`item${destSlot}Qty`] = recipient.stats[`item${destSlot}Qty`];
-                                    u.stats[`item${destSlot}Notes`] = recipient.stats[`item${destSlot}Notes`];
-                                }
-                            });
-
-                            // 2. Списываем переданное количество у отправителя и синхронизируем все его копии
                             const remQty = itemQty - giveCount;
                             const nextSenderName = remQty <= 0 ? '' : itemName;
                             const nextSenderQty = remQty <= 0 ? 0 : remQty;
                             const nextSenderNotes = remQty <= 0 ? '' : itemNotes;
 
-                            const applySenderSlot = (targetObj) => {
-                                if (!targetObj) return;
-                                if (!targetObj.stats) targetObj.stats = {};
-                                targetObj.stats[`item${row}Name`] = nextSenderName;
-                                targetObj.stats[`item${row}Qty`] = nextSenderQty;
-                                targetObj.stats[`item${row}Notes`] = nextSenderNotes;
-                            };
-
-                            applySenderSlot(hero);
-
-                            allBestiaryHeroes.forEach(p => {
-                                if (p && p !== hero && (p.id === hero.id || normalizeStr(p.name) === normSender)) {
-                                    applySenderSlot(p);
-                                }
-                            });
-
-                            (window.InitiativeManager?.state?.combatants || []).forEach(u => {
-                                if (u && u.faction === 'friend' && normalizeStr(u.name) === normSender && u !== hero) {
-                                    applySenderSlot(u);
-                                }
-                            });
+                            HeroSyncService.syncBackpackSlot(
+                                hero,
+                                row,
+                                nextSenderName,
+                                nextSenderQty,
+                                nextSenderNotes,
+                                false
+                            );
 
                             // 3. Обновляем поля ввода в открытом бланке отправителя
                             if (nameInp) {
@@ -1236,10 +1215,6 @@ export function initPage2Pickers(overlay, hero) {
             if (giveModal?.overlay) giveModal.overlay.style.zIndex = '10000250';
         });
     });
-
-
-
-
 
     // 4. Способности и виды спутников (единое поведение для зверей и фамильяров)
     const compInp = overlay.querySelector('.bst-comp-ability-picker');

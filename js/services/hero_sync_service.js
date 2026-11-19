@@ -1,15 +1,15 @@
+import CloudSyncService from './cloud_sync_service.js';
+
 /**
  * ЕДИНЫЙ СЕРВИС СИНХРОНИЗАЦИИ ПЕРСОНАЖЕЙ (HeroSyncService)
- * Связывает копии героя между Бестиарием (отряд/резерв) и трекером боевой инициативы.
+ * Связывает копии героя между Бестиарием (отряд/резерв), трекером инициативы,
+ * локальным сохранением и облаком Supabase.
  */
 const HeroSyncService = {
     normalizeName(name) {
         return String(name || '').trim().toLowerCase().replace(/ё/g, 'е');
     },
 
-    /**
-     * Возвращает все доступные списки героев из Бестиария (активный отряд + резерв)
-     */
     getAllBestiaryHeroes() {
         const bm = window.BestiaryManager;
         if (!bm || !bm.state) return [];
@@ -19,9 +19,6 @@ const HeroSyncService = {
         ].filter(Boolean);
     },
 
-    /**
-     * Находит героя в Бестиарии по id или нормализованному имени
-     */
     findBestiaryHero(idOrName) {
         const needle = this.normalizeName(idOrName);
         return this.getAllBestiaryHeroes().find(p =>
@@ -30,16 +27,17 @@ const HeroSyncService = {
     },
 
     /**
-     * Находит все экземпляры одного и того же персонажа во всех хранилищах:
-     * 1) переданный объект (например, открытый в модалке),
-     * 2) запись в отряде или резерве Бестиария,
-     * 3) все карточки этого союзника в трекере боевой инициативы.
+     * Находит все локальные экземпляры персонажа:
+     * 1) переданный объект, 2) запись в отряде/резерве Бестиария, 3) карточки в трекере инициативы.
      */
     getHeroInstances(heroRef) {
         if (!heroRef) return [];
-        const instances = new Set([heroRef]);
-        const targetHeroId = heroRef.heroId || heroRef.id;
-        const targetNormName = this.normalizeName(heroRef.name);
+        const instances = new Set();
+        const isObj = typeof heroRef === 'object';
+        if (isObj) instances.add(heroRef);
+
+        const targetHeroId = isObj ? (heroRef.heroId || heroRef.id) : heroRef;
+        const targetNormName = isObj ? this.normalizeName(heroRef.name) : this.normalizeName(heroRef);
 
         const isSameHero = (candidate) => {
             if (!candidate) return false;
@@ -64,23 +62,77 @@ const HeroSyncService = {
     },
 
     /**
-     * Применяет функцию обновления ко всем копиям героя и при необходимости сохраняет состояние
+     * Применяет мутацию ко всем локальным копиям героя, сохраняет локально и в облако.
      */
-    syncHero(heroRef, mutatorFn, options = { save: true, renderInitiative: false }) {
+    syncHero(heroRef, mutatorFn, options = { save: true, renderInitiative: false, cloudPush: true }) {
         const copies = this.getHeroInstances(heroRef);
         copies.forEach(copy => {
             if (!copy.stats) copy.stats = {};
             mutatorFn(copy);
         });
 
-        if (options.save && window.BestiaryManager?._save) {
-            window.BestiaryManager._save();
-        }
-        if (options.renderInitiative && window.InitiativeManager?.renderUi) {
-            window.InitiativeManager._persist?.();
+        const shouldSave = options.save !== false;
+        const shouldCloud = options.cloudPush !== false;
+
+        if (shouldSave) {
+            // _save() внутри BestiaryManager сам вызовет EventBus('data:save'),
+            // который сохранит в StorageManager и запустит CloudSyncService.pushToCloud()
+            if (window.BestiaryManager?._save) {
+                window.BestiaryManager._save();
+            } else if (window.InitiativeManager?._saveWithoutSort) {
+                window.InitiativeManager._saveWithoutSort();
+            }
+        } else if (options.renderInitiative && window.InitiativeManager?.renderUi) {
             window.InitiativeManager.renderUi();
         }
+
+        // Если save === false (например, пакетное обновление нескольких героев),
+        // но включён cloudPush, точечно обновляем затронутого героя в Supabase
+        if (!shouldSave && shouldCloud && copies.length > 0) {
+            this.pushSingleHeroToCloud(copies[0]);
+        }
+
         return copies.length;
+    },
+
+    /**
+     * Точечная отправка одного героя в Supabase (актуально для пакетных операций
+     * и передачи предметов/монет между игроками).
+     */
+    async pushSingleHeroToCloud(heroObj) {
+        if (!heroObj?.id || !CloudSyncService?.supabaseClient || !CloudSyncService.roomCode) return;
+        if (CloudSyncService._isRemoteApplying) return;
+
+        // Ищем эталонную запись из Бестиария, если передали копию из инициативы
+        const canonical = this.findBestiaryHero(heroObj.heroId || heroObj.id) || heroObj;
+        if (!canonical.id) return;
+
+        try {
+            if (CloudSyncService.isPlayerMode) {
+                if (canonical.isReadOnly) return;
+                await CloudSyncService.supabaseClient
+                    .from('campaign_heroes')
+                    .update({
+                        hero_data: canonical,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', canonical.id)
+                    .eq('room_code', CloudSyncService.roomCode);
+            } else if (CloudSyncService.gmSecret) {
+                await CloudSyncService.supabaseClient
+                    .from('campaign_heroes')
+                    .upsert({
+                        id: canonical.id,
+                        room_code: CloudSyncService.roomCode,
+                        gm_secret: CloudSyncService.gmSecret,
+                        hero_data: canonical,
+                        is_readonly: !!canonical.isReadOnly,
+                        updated_at: new Date().toISOString()
+                    });
+            }
+        } catch (e) {
+            console.warn('HeroSyncService: ошибка точечного сохранения в облако:', e);
+        }
     },
 
     /**
@@ -91,7 +143,7 @@ const HeroSyncService = {
             copy.stats.coinsGold = Math.max(0, Number(gold) || 0);
             copy.stats.coinsSilver = Math.max(0, Number(silver) || 0);
             copy.stats.coinsCopper = Math.max(0, Number(copper) || 0);
-        }, { save });
+        }, { save, cloudPush: save });
     },
 
     /**
@@ -102,7 +154,7 @@ const HeroSyncService = {
             copy.stats[`item${slotIndex}Name`] = String(name || '');
             copy.stats[`item${slotIndex}Qty`] = Math.max(0, Number(qty) || 0);
             copy.stats[`item${slotIndex}Notes`] = String(notes || '');
-        }, { save });
+        }, { save, cloudPush: save });
     },
 
     /**
@@ -117,7 +169,7 @@ const HeroSyncService = {
                 copy.avatarType = sourceHero.avatarType;
                 copy.stats = JSON.parse(JSON.stringify(snapshot));
             }
-        }, { save, renderInitiative: true });
+        }, { save, renderInitiative: true, cloudPush: save });
     }
 };
 
