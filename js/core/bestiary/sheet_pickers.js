@@ -86,6 +86,7 @@ export function returnGearToBackpack(hero, itemName, overlay = null) {
         window.BestiaryManager._save();
     }
 
+    StorageManager.appendTreasuryLog(`🎒 ${hero.name} снял в рюкзак: ${cleanName}`, 'transfer');
     return true;
 }
 
@@ -126,7 +127,7 @@ export function consumeGearFromBackpack(hero, itemName, overlay = null) {
     if (window.BestiaryManager?._save) {
         window.BestiaryManager._save();
     }
-
+    StorageManager.appendTreasuryLog(`⚔️ ${hero.name} надел: ${cleanName}`, 'transfer');
 }
 
 
@@ -1036,6 +1037,7 @@ export function initPage2Pickers(overlay, hero) {
                                     applySelectedItemToRow(inp, row, found);
                                     inp.dispatchEvent(new Event('input', { bubbles: true }));
                                 }
+                                StorageManager.appendTreasuryLog(`🛒 ${hero.name} купил: ${found.name} (−${priceInfo.label})`, 'treasury');
                                 choiceModal.close();
                             }
                         }] : [])
@@ -1285,6 +1287,7 @@ export function initPage2Pickers(overlay, hero) {
                             }
 
                             if (window.BestiaryManager?._save) window.BestiaryManager._save();
+                            StorageManager.appendTreasuryLog(`💰 ${hero.name} продал: ${itemName} ×${sellCnt} (+${gainLabel})`, 'treasury');
                             sellModal.close();
                         }
                     }

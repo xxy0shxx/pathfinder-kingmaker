@@ -896,15 +896,13 @@ const BestiaryManager = {
 
         box.querySelector('#bstShopLevelSelect')?.addEventListener('change', (e) => {
             const lvl = parseInt(e.target.value, 10) || 0;
+            if (this.state.shopMaxLevel === lvl) return;
             this.state.shopMaxLevel = lvl;
             this.state.isShopOpen = lvl > 0;
-            this._save();
-        });
-
-        box.querySelector('#bstShopLevelSelect')?.addEventListener('change', (e) => {
-            const lvl = parseInt(e.target.value, 10) || 0;
-            this.state.shopMaxLevel = lvl;
-            this.state.isShopOpen = lvl > 0;
+            this._pushTreasuryLog(
+                lvl > 0 ? `🏪 Мастер открыл лавку (товары до ${lvl} ур.)` : `🔒 Мастер закрыл лавку`,
+                'treasury'
+            );
             this._save();
         });
 
