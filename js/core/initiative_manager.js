@@ -362,6 +362,43 @@ const InitiativeManager = {
         this._saveWithoutSort();
     },
 
+    clearOutCombatants() {
+        const outUnits = this.state.combatants.filter(c => c.status === 'out');
+        if (outUnits.length === 0) return;
+
+        ModalManager.open({
+            id: 'initClearOutModal',
+            title: '🧹 Очистка выбывших бойцов',
+            width: '440px',
+            borderColor: '#e74c3c',
+            bodyHtml: `
+                <div style="font-size: 15px; line-height: 1.5; color: #ebd291;">
+                    Удалить из трекера всех выбывших из боя участников (<b style="color: #ff7675;">${outUnits.length} шт.</b>)?
+                </div>
+            `,
+            footerButtons: [
+                {
+                    label: '✖ Отмена',
+                    variant: 'cc'
+                },
+                {
+                    label: '🧹 Очистить',
+                    variant: 'del',
+                    onClick: (close) => {
+                        this.state.combatants = this.state.combatants.filter(c => c.status !== 'out');
+                        if (this.state.selectedUnitId && !this.state.combatants.some(c => c.id === this.state.selectedUnitId)) {
+                            this.state.selectedUnitId = this.state.combatants.length > 0 ? this.state.combatants[0].id : null;
+                        }
+                        this._saveWithoutSort();
+                        if (typeof close === 'function') close();
+                        else ModalManager.close('initClearOutModal');
+                    }
+                }
+            ]
+        });
+    },
+
+
     resetRound() {
         const activeUnits = this.state.combatants.filter(c => c.status !== 'out');
         const firstActive = activeUnits.length > 0 ? activeUnits[0] : null;
@@ -470,6 +507,7 @@ const InitiativeManager = {
         this._saveWithoutSort();
     },
 
+
     renderUi() {
         this._hideUnitTooltip();
         const container = document.getElementById('initiativeTabletContainer');
@@ -532,12 +570,13 @@ const InitiativeManager = {
                         </div>
                     </div>
                     
-                    <div class="init-battle-workspace">
-                        <aside id="initBestiaryDrawer" class="init-bestiary-drawer" style="display: none;"></aside>
-                        <div id="initBattleMainArea" class="init-battle-main-area">
-                            <div id="initiativeCombatantsList" class="init-cards-scroll-list"></div>
-                        </div>
-                    </div>
+                    
+<div class="init-battle-workspace" style="display: flex; gap: 12px; align-items: flex-start; position: relative;">
+    <aside id="initBestiaryDrawer" class="init-bestiary-drawer" style="display: none; width: 255px; min-width: 255px; max-width: 255px; flex-shrink: 0; max-height: 560px; overflow-y: auto;"></aside>
+    <div id="initBattleMainArea" class="init-battle-main-area" style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+        <div id="initiativeCombatantsList" class="init-cards-scroll-list"></div>
+    </div>
+</div>
                     
                 </div>
             `;
@@ -893,18 +932,25 @@ const InitiativeManager = {
         listContainer.parentNode.appendChild(quoteShield);
 
 
+
         // Зона выбывших бойцов строго под рамкой с цитатами
         if (isBg3 && outUnits.length > 0) {
             const outZone = document.createElement('div');
             outZone.className = 'init-out-combatants-zone';
             outZone.innerHTML = `
-                <div class="init-out-zone-title">💀 Выбыли из боя (${outUnits.length})</div>
-                <div class="init-cards-scroll-list mode-bg3 init-out-zone-grid"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <div class="init-out-zone-title" style="margin: 0;">💀 Выбыли из боя (${outUnits.length})</div>
+                    <button type="button" id="initBtnClearOutUnits" class="btn del" style="padding: 3px 10px; font-size: 12px;" title="Удалить всех выбывших из трекера">🧹 Очистить выбывших</button>
+                </div>
+                <div class="init-cards-scroll-list mode-bg3 init-out-zone-grid" style="max-height: 215px; overflow-y: auto; overflow-x: hidden; padding-right: 4px; align-content: start;"></div>
             `;
+            outZone.querySelector('#initBtnClearOutUnits')?.addEventListener('click', () => this.clearOutCombatants());
             const outGrid = outZone.querySelector('.init-out-zone-grid');
             outUnits.forEach((unit, idx) => outGrid.appendChild(createCardElement(unit, idx)));
             listContainer.parentNode.appendChild(outZone);
         }
+
+
 
         this._renderBestiaryDrawer();
 
@@ -1196,23 +1242,20 @@ const InitiativeManager = {
             return;
         }
 
-
-
         drawer.style.display = 'flex';
         const party = window.BestiaryManager?.state?.party || [];
         const monsters = window.BestiaryManager?.state?.monsters || [];
 
         const allPresets = [...party, ...monsters];
+
         const renderMiniGroup = (title, items, badgeColor) => `
             <div class="init-drawer-section">
                 <div class="init-drawer-sec-title" style="color:${badgeColor};">${title} (${items.length})</div>
-                <div class="init-drawer-cards-grid">
-                    ${items.length === 0 ? `<div class="init-drawer-empty">Пусто (настройте во вкладке 🐉)</div>` : ''}
+                <div class="init-drawer-cards-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;">
+                    ${items.length === 0 ? `<div class="init-drawer-empty" style="grid-column: 1 / -1;">Пусто (настройте во вкладке 🐉)</div>` : ''}
                     ${items.map(item => `
-                        <!--div class="init-drawer-card faction-${item.faction}" draggable="true" data-preset='${JSON.stringify(item).replace(/'/g, "&apos;")}' title="Перетащите на ленту инициативы или нажмите +"-->
-                        <div class="init-drawer-card faction-${item.faction}" draggable="true" data-preset-id="${item.id}" title="Перетащите на ленту инициативы или нажмите +">
-
-                            <div class="init-drawer-card-top">${item.name}</div>
+                        <div class="init-drawer-card faction-${item.faction}" draggable="true" data-preset-id="${item.id}" style="min-width: 0; width: 100%;" title="Перетащите на ленту инициативы или нажмите +">
+                            <div class="init-drawer-card-top" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</div>
                             <div class="init-drawer-card-img">
                                 ${item.avatar ? `<img src="${item.avatar}">` : `<span>⚔️</span>`}
                             </div>
@@ -1241,7 +1284,6 @@ const InitiativeManager = {
             if (window.HudWindowManager) window.HudWindowManager.open('bestiary');
         });
 
-
         drawer.querySelectorAll('.init-drawer-card').forEach(cardEl => {
             const preset = allPresets.find(p => p.id === cardEl.dataset.presetId);
             if (!preset) return;
@@ -1260,8 +1302,12 @@ const InitiativeManager = {
             });
         });
 
+        const mainAreaEl = document.getElementById('initBattleMainArea');
+        if (mainAreaEl) {
+            const targetH = Math.max(460, mainAreaEl.offsetHeight || 540);
+            drawer.style.maxHeight = `${targetH}px`;
+        }
     },
-
 
 };
 
