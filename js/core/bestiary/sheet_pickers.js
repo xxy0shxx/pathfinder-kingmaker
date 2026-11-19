@@ -27,6 +27,7 @@ import {
 } from '../../config/weapons_catalog.js';
 import CloudSyncService from '../../services/cloud_sync_service.js';
 import HeroSyncService from '../../services/hero_sync_service.js';
+import { recalculateSheetStats } from './sheet_calculator.js';
 
 export const normalizeStr = (str) => String(str || '')
     .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu, '')
@@ -1509,6 +1510,10 @@ export function initPage3Pickers(overlay, hero) {
             hero.stats.armorType = found.category;
             hero.stats.acItem = found.acBonus;
             hero.stats.acArmorPenalty = found.penalty || 0;
+
+            const dex = Number(hero.stats.dex) || 0;
+            const dexCap = found.dexCap ?? ({ unarmored: 5, light: 3, medium: 2, heavy: 1 }[found.category] ?? 5);
+            hero.stats.acDex = Math.min(dex, dexCap);
         }
         if (slot === 'mainHand' && found && found.dmgDice) {
             const liveStats = {
@@ -1711,6 +1716,19 @@ export function initPage3Pickers(overlay, hero) {
         hero.stats[`eq_${slot}_Name`] = found.name;
         attachUnequipButton(slot, inp);
         syncDollToPage1Stats(slot, found);
+        if (slot === 'armor') {
+            hero.stats.armorName = '';
+            hero.stats.armorType = 'unarmored';
+            hero.stats.acItem = 0;
+            hero.stats.acArmorPenalty = 0;
+            hero.stats.acDex = Math.min(Number(hero.stats.dex) || 0, 5);
+        }
+        if (slot === 'offHand') {
+            hero.stats.acShieldBonus = 0;
+            hero.stats.acShieldHardness = 0;
+            hero.stats.acShieldHp = 0;
+        }
+        recalculateSheetStats(overlay, hero);
         updateInvestedCounterUi();
     };
 

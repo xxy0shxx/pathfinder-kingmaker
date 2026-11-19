@@ -156,7 +156,7 @@ function buildPage1RightColHtml(stats) {
                 </div>
             </div>
             <div style="background: rgba(20, 31, 41, 0.9); padding: 12px; border-radius: 6px; border: 2px solid #3498db; display: grid; grid-template-columns: 1.1fr repeat(3, 1fr); gap: 10px; align-items: center;">
-                <div><span style="font-size:13px; font-weight:900; color:#74b9ff; display:block;">🛡️ Настройки щита</span><span style="font-size:11px; color:#a4b0be;">(Shield Raise)</span></div>
+                <div><span style="font-size:13px; font-weight:900; color:#74b9ff; display:block;">🛡️ Параметры щита</span><span style="font-size:11px; color:#a4b0be;">(бонус КБ только при поднятии)</span></div>
                 <label>➕ Бонус КБ:<input type="number" data-sheet-num="acShieldBonus" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldBonus ?? 0}"></label>
                 <label>💎 Твердость:<input type="number" data-sheet-num="acShieldHardness" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldHardness ?? 0}"></label>
                 <label>❤️ Тек. ПЗ:<input type="number" data-sheet-num="acShieldHp" class="k-inp bst-tiny-num" style="color:#74b9ff !important;" value="${stats.acShieldHp ?? 0}"></label>
