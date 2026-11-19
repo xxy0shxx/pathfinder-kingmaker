@@ -228,7 +228,38 @@ const CatalogService = {
         if (isInv && !isSlotInvested) return false;
 
         return true;
-    }
+    },
+
+    isAvailableInShop(itemObj, maxLevel) {
+        if (!itemObj || maxLevel <= 0) return false;
+        if (itemObj.id === 'normal_ingredients' || itemObj.id === 'special_ingredients') return false;
+        if (/привал/i.test(itemObj.category || '') && !itemObj.price) return false;
+
+        const lvl = getItemLevel(itemObj);
+        if (lvl > maxLevel) return false;
+
+        // В лавках до 10 ур. включительно скрываем «Необычное» и «Экзотическое» снаряжение
+        if (maxLevel < 20) {
+            const meta = `${itemObj.category || ''} ${itemObj.traits || ''}`.toLowerCase();
+            if (meta.includes('необычн') || meta.includes('экзотическ')) {
+                return false;
+            }
+        }
+        return true;
+    },
+
+    searchShopGear(query = '', maxLevel = 20) {
+        this.init();
+        const q = this.normalize(query);
+        return this._indexes.allGear.filter(it => {
+            if (!this.isAvailableInShop(it, maxLevel)) return false;
+            if (!q) return true;
+            return this.normalize(it.name).includes(q) ||
+                this.normalize(it.category).includes(q) ||
+                this.normalize(it.notes).includes(q);
+        });
+    },
+
 };
 
 window.CatalogService = CatalogService;

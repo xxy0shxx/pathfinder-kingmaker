@@ -93,10 +93,12 @@ export function buildPage2Html(stats) {
                 <div class="k-panel" style="margin-bottom: 10px;">
                     <div class="k-sec-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
                         <span>🎒 Снаряжение и Монеты</span>
-                        ${Boolean(window.BestiaryManager?.state?.isShopOpen)
-                            ? `<span style="font-size: 11px; color: #2ecc71; background: rgba(46,204,113,0.14); border: 1px solid #2ecc71; border-radius: 4px; padding: 1px 8px; text-transform: none;">🏪 Магазин открыт (покупка за монеты)</span>`
-                            : `<span style="font-size: 11px; color: #ff7675; background: rgba(231,76,60,0.14); border: 1px solid #e74c3c; border-radius: 4px; padding: 1px 8px; text-transform: none;">🔒 Магазин закрыт Мастером</span>`
-                        }
+                        ${(() => {
+                            const shopLvl = Number(window.BestiaryManager?.state?.shopMaxLevel ?? (window.BestiaryManager?.state?.isShopOpen ? 2 : 0)) || 0;
+                            return shopLvl > 0
+                                ? `<span style="font-size: 11px; color: #2ecc71; background: rgba(46,204,113,0.14); border: 1px solid #2ecc71; border-radius: 4px; padding: 1px 8px; text-transform: none;">🏪 Лавка открыта (товары до ${shopLvl} ур.)</span>`
+                                : `<span style="font-size: 11px; color: #ff7675; background: rgba(231,76,60,0.14); border: 1px solid #e74c3c; border-radius: 4px; padding: 1px 8px; text-transform: none;">🔒 Лавка закрыта Мастером</span>`;
+                        })()}
                     </div>
                     
                     <div class="bst-coins-row" style="justify-content: space-between; flex-wrap: wrap; gap: 8px;">

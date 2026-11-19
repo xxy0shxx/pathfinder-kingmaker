@@ -942,19 +942,21 @@ export function initPage2Pickers(overlay, hero) {
         if (window.BestiaryManager?._save) window.BestiaryManager._save();
     };
 
-
-
-
     overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
         const row = inp.dataset.itemRow;
         inp.dataset.validItem = inp.value || '';
 
+        const getShopMaxLevel = () => {
+            const st = window.BestiaryManager?.state;
+            return Number(st?.shopMaxLevel ?? (st?.isShopOpen ? 2 : 0)) || 0;
+        };
+
         const isShopClosedForPlayer = () =>
-            CloudSyncService.isPlayerMode && !Boolean(window.BestiaryManager?.state?.isShopOpen);
+            CloudSyncService.isPlayerMode && getShopMaxLevel() <= 0;
 
         if (isShopClosedForPlayer()) {
             inp.readOnly = true;
-            inp.placeholder = '🔒 Магазин закрыт Мастером';
+            inp.placeholder = '🔒 Лавка закрыта Мастером';
             inp.style.cursor = 'not-allowed';
         }
 
@@ -962,8 +964,10 @@ export function initPage2Pickers(overlay, hero) {
             width: 390,
             zIndex: '10000180',
             getItems: (q) => {
-                if (isShopClosedForPlayer()) return [];
-                return CatalogService.searchAllGear(q);
+                const maxLvl = getShopMaxLevel();
+                if (CloudSyncService.isPlayerMode && maxLvl <= 0) return [];
+                // Игроку фильтруем строго по уровню лавки, ГМу показываем весь каталог (до 20 ур.)
+                return CatalogService.searchShopGear(q, CloudSyncService.isPlayerMode ? maxLvl : 20);
             },
             renderOption: (it) => {
                 const priceInfo = parseItemPriceCp(it);
@@ -975,8 +979,6 @@ export function initPage2Pickers(overlay, hero) {
                     ${priceTagHtml}
                 </div>`;
             },
-
-
 
             onSelect: (found) => {
                 if (isShopClosedForPlayer()) {

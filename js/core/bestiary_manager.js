@@ -814,9 +814,21 @@ const BestiaryManager = {
                 </div>
             `).join('');
 
-        const isShopOpen = Boolean(this.state.isShopOpen);
-        const shopBtnHtml = `<button type="button" id="bstBtnToggleShop" class="btn ${isShopOpen ? 'ok' : 'del'}" style="padding: 4px 12px; font-size: 13px; font-weight: bold;" title="Открыть или закрыть магазин для игроков (покупка вещей, брони и оружия в рюкзак)">${isShopOpen ? '🏪 Магазин: ОТКРЫТ' : '🔒 Магазин: ЗАКРЫТ'}</button>`;
+        const shopMaxLevel = Number(this.state.shopMaxLevel ?? (this.state.isShopOpen ? 2 : 0)) || 0;
+        const isShopOpen = shopMaxLevel > 0;
 
+        const shopBtnHtml = `
+            <div style="display:inline-flex; align-items:center; gap:4px; background:rgba(4,9,5,0.75); border:1px solid ${isShopOpen ? '#2ecc71' : '#e74c3c'}; border-radius:5px; padding:2px 6px;">
+                <span style="font-size:12px; font-weight:bold; color:${isShopOpen ? '#2ecc71' : '#ff7675'};">${isShopOpen ? '🏪 Лавка:' : '🔒 Лавка:'}</span>
+                <select id="bstShopLevelSelect" style="background:#101c14; color:#ebd291; border:1px solid #543e0d; border-radius:4px; padding:2px 6px; font-size:12px; font-weight:bold; cursor:pointer;">
+                    <option value="0" ${shopMaxLevel === 0 ? 'selected' : ''}>Закрыта</option>
+                    <option value="2" ${shopMaxLevel === 2 ? 'selected' : ''}>Пост Олега / Деревня (до 2 ур.)</option>
+                    <option value="5" ${shopMaxLevel === 5 ? 'selected' : ''}>Малый город / Рестов (до 5 ур.)</option>
+                    <option value="10" ${shopMaxLevel === 10 ? 'selected' : ''}>Крупный город (до 10 ур.)</option>
+                    <option value="20" ${shopMaxLevel === 20 ? 'selected' : ''}>Столица / Без лимита (до 20 ур.)</option>
+                </select>
+            </div>
+        `;
 
         box.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
@@ -882,12 +894,19 @@ const BestiaryManager = {
             </div>
         `;
 
-        box.querySelector('#bstBtnToggleShop')?.addEventListener('click', () => {
-            this.state.isShopOpen = !this.state.isShopOpen;
+        box.querySelector('#bstShopLevelSelect')?.addEventListener('change', (e) => {
+            const lvl = parseInt(e.target.value, 10) || 0;
+            this.state.shopMaxLevel = lvl;
+            this.state.isShopOpen = lvl > 0;
             this._save();
         });
 
-
+        box.querySelector('#bstShopLevelSelect')?.addEventListener('change', (e) => {
+            const lvl = parseInt(e.target.value, 10) || 0;
+            this.state.shopMaxLevel = lvl;
+            this.state.isShopOpen = lvl > 0;
+            this._save();
+        });
 
         box.querySelector('#bstTrGold')?.addEventListener('change', (e) => { tr.gold = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
         box.querySelector('#bstTrSilver')?.addEventListener('change', (e) => { tr.silver = Math.max(0, parseInt(e.target.value, 10) || 0); this._save(); });
