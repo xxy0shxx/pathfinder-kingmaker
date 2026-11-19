@@ -913,6 +913,7 @@ export function initPage2Pickers(overlay, hero) {
             hero.stats[`item${row}Name`] = '';
             if (qtyInp) { qtyInp.value = 0; hero.stats[`item${row}Qty`] = 0; }
             if (noteInp) { noteInp.value = ''; hero.stats[`item${row}Notes`] = ''; }
+            if (window.BestiaryManager?._save) window.BestiaryManager._save();
             return;
         }
 
@@ -937,74 +938,12 @@ export function initPage2Pickers(overlay, hero) {
             hero.stats[`item${row}Notes`] = finalNote;
         }
 
-        if (isLevelLocked) {
-            if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
-            return;
-        }
-
-        if (window.BestiaryManager?._save) {
-            window.BestiaryManager._save();
-        }
-
-        if (found.shieldStats) {
-            hero.stats.acShieldBonus = found.shieldStats.bonus;
-            hero.stats.acShieldHardness = found.shieldStats.hardness;
-            hero.stats.acShieldHp = found.shieldStats.hp;
-        }
-
-        if (found.runeEffect) {
-            const eff = found.runeEffect;
-            if (eff.target === 'weapon') {
-                const slot = ['melee1', 'melee2', 'ranged'].find(s => String(hero.stats[`${s}Name`] || '').trim()) || 'melee1';
-                if (eff.potency) {
-                    const curAtk = parseInt(String(hero.stats[`${slot}Atk`] || '0').replace(/[^\d+-]/g, ''), 10) || 0;
-                    const nextAtk = curAtk + eff.potency;
-                    hero.stats[`${slot}Atk`] = nextAtk >= 0 ? `+${nextAtk}` : `${nextAtk}`;
-                    const wName = String(hero.stats[`${slot}Name`] || '').trim();
-                    if (wName && !/^\+\d/.test(wName)) hero.stats[`${slot}Name`] = `+${eff.potency} ${wName}`;
-                }
-                if (eff.striking) {
-                    const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
-                    if (curDmg) hero.stats[`${slot}Dmg`] = curDmg.replace(/^\d+(d\d+)/i, `${eff.striking}$1`);
-                    const wName = String(hero.stats[`${slot}Name`] || '').trim();
-                    if (wName && !wName.toLowerCase().includes('разящ')) hero.stats[`${slot}Name`] = `${wName} (Разящее)`;
-                }
-                if (eff.extraDmg) {
-                    const curDmg = String(hero.stats[`${slot}Dmg`] || '').trim();
-                    if (curDmg && !curDmg.includes(eff.extraDmg)) hero.stats[`${slot}Dmg`] = `${curDmg} ${eff.extraDmg}`;
-                }
-                if (eff.extraTrait) {
-                    const curTraits = String(hero.stats[`${slot}Traits`] || '').trim();
-                    if (!curTraits.includes(eff.extraTrait)) hero.stats[`${slot}Traits`] = curTraits ? `${curTraits}, ${eff.extraTrait}` : eff.extraTrait;
-                }
-            } else if (eff.target === 'armor') {
-                if (eff.potency) {
-                    const baseArmor = (PF2E_ARMOR_CATALOG || []).find(a => normalizeStr(a.name) === normalizeStr(hero.stats.armorName));
-                    const baseBonus = baseArmor ? (Number(baseArmor.acBonus) || 0) : (Number(hero.stats.acItem) || 0);
-                    hero.stats.acItem = baseBonus + eff.potency;
-                    const aName = String(hero.stats.armorName || '').trim();
-                    if (aName && !/^\+\d/.test(aName)) hero.stats.armorName = `+${eff.potency} ${aName}`;
-                }
-                if (eff.noteTag) {
-                    const aName = String(hero.stats.armorName || '').trim();
-                    if (aName && !aName.includes(eff.noteTag)) hero.stats.armorName = `${aName} [${eff.noteTag}]`;
-                }
-            } else if (eff.target === 'save' && eff.bonus) {
-                hero.stats.saveItemBonus = eff.bonus;
-            }
-        }
-
-        if (found.skillBonus && found.skillBonus.skill) {
-            if (!hero.stats.skillItemBonuses || typeof hero.stats.skillItemBonuses !== 'object') {
-                hero.stats.skillItemBonuses = {};
-            }
-            const sk = found.skillBonus.skill;
-            const curB = Number(hero.stats.skillItemBonuses[sk]) || 0;
-            hero.stats.skillItemBonuses[sk] = Math.max(curB, Number(found.skillBonus.bonus) || 0);
-        }
-
         if (qtyInp) qtyInp.dispatchEvent(new Event('input', { bubbles: true }));
+        if (window.BestiaryManager?._save) window.BestiaryManager._save();
     };
+
+
+
 
     overlay.querySelectorAll('.bst-item-picker-inp').forEach(inp => {
         const row = inp.dataset.itemRow;
@@ -1968,10 +1907,8 @@ export function initPage3Pickers(overlay, hero) {
         });
     };
 
-    const attachUnequipButton = (slot, inp) => {
-        const rowWrap = inp.parentElement;
-        if (!rowWrap || rowWrap.querySelector('.bst-eq-unequip-btn')) return;
 
+    const handleUnequipSlotClick = (slot, inp, btnEl) => {
         const prevEquipped = String(hero.stats[`eq_${slot}_Name`] || '').trim();
         if (prevEquipped && !prevEquipped.startsWith('🔒')) {
             if (!returnGearToBackpack(hero, prevEquipped, overlay)) {
@@ -1984,30 +1921,51 @@ export function initPage3Pickers(overlay, hero) {
             hero.stats.armorType = 'unarmored';
             hero.stats.acItem = 0;
             hero.stats.acArmorPenalty = 0;
+            hero.stats.acDex = Math.min(Number(hero.stats.dex) || 0, 5);
         }
+        if (slot === 'offHand') {
+            hero.stats.acShieldBonus = 0;
+            hero.stats.acShieldHardness = 0;
+            hero.stats.acShieldHp = 0;
+        }
+        if (slot === 'mainHand') {
+            if (hero.stats.melee1Name === prevEquipped) {
+                hero.stats.melee1Name = '';
+                hero.stats.melee1Atk = '';
+                hero.stats.melee1Dmg = '';
+                hero.stats.melee1Traits = '';
+            }
+            if (hero.stats.eq_offHand_Name === '🔒 Занято (двуручное)') {
+                hero.stats.eq_offHand_Name = '';
+                const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
+                if (offInp) offInp.value = '';
+            }
+        }
+        hero.stats[`eq_${slot}_Name`] = '';
+        hero.stats[`eq_${slot}_Invested`] = false;
+        if (inp) inp.value = '';
+        if (btnEl) btnEl.remove();
+
+        recalculateSheetStats(overlay, hero);
+        renderPage3BackpackList();
+        updateInvestedCounterUi();
+        if (window.BestiaryManager?._save) window.BestiaryManager._save();
+    };
+
+    const attachUnequipButton = (slot, inp) => {
+        const rowWrap = inp.parentElement;
+        if (!rowWrap || rowWrap.querySelector('.bst-eq-unequip-btn')) return;
 
         const unequipBtn = document.createElement('button');
         unequipBtn.type = 'button';
         unequipBtn.className = 'bst-eq-unequip-btn';
         unequipBtn.dataset.unequipSlot = slot;
-        unequipBtn.title = 'Снять предмет (дневной лимит вложения сохраняется)';
+        unequipBtn.title = 'Снять предмет и вернуть в рюкзак';
         unequipBtn.style.cssText = 'background:#3b1717; border:1px solid #9b2c2c; color:#ff7675; border-radius:3px; padding:0 5px; height:22px; cursor:pointer; font-size:11px;';
         unequipBtn.textContent = '✖';
-        unequipBtn.addEventListener('click', () => {
-            if (slot === 'mainHand' && hero.stats.eq_offHand_Name === '🔒 Занято (двуручное)') {
-                hero.stats.eq_offHand_Name = '';
-                const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
-                if (offInp) offInp.value = '';
-            }
-            hero.stats[`eq_${slot}_Name`] = '';
-            hero.stats[`eq_${slot}_Invested`] = false;
-            inp.value = '';
-            unequipBtn.remove();
-            updateInvestedCounterUi();
-        });
+        unequipBtn.addEventListener('click', () => handleUnequipSlotClick(slot, inp, unequipBtn));
         rowWrap.appendChild(unequipBtn);
     };
-
 
     const equipItemToSlot = (slot, inp, found) => {
         const needsInvest = isInvestedItem(found);
@@ -2020,8 +1978,6 @@ export function initPage3Pickers(overlay, hero) {
         if (!prevInSlot || normalizeStr(prevInSlot) !== normalizeStr(found.name)) {
             consumeGearFromBackpack(hero, found.name, overlay);
         }
-        renderPage3BackpackList();
-
 
         if (needsInvest && curUsed >= 10) {
             const m = ModalManager.open({
@@ -2052,23 +2008,12 @@ export function initPage3Pickers(overlay, hero) {
         hero.stats[`eq_${slot}_Name`] = found.name;
         attachUnequipButton(slot, inp);
         syncDollToPage1Stats(slot, found);
-        if (slot === 'armor') {
-            hero.stats.armorName = '';
-            hero.stats.armorType = 'unarmored';
-            hero.stats.acItem = 0;
-            hero.stats.acArmorPenalty = 0;
-            hero.stats.acDex = Math.min(Number(hero.stats.dex) || 0, 5);
-        }
-        if (slot === 'offHand') {
-            hero.stats.acShieldBonus = 0;
-            hero.stats.acShieldHardness = 0;
-            hero.stats.acShieldHp = 0;
-        }
+
         recalculateSheetStats(overlay, hero);
+        renderPage3BackpackList();
         updateInvestedCounterUi();
+        if (window.BestiaryManager?._save) window.BestiaryManager._save();
     };
-
-
 
     overlay.querySelectorAll('[data-eq-picker]').forEach(inp => {
         const slot = inp.dataset.eqPicker;
@@ -2097,34 +2042,15 @@ export function initPage3Pickers(overlay, hero) {
 
     overlay.querySelectorAll('.bst-eq-unequip-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const prevEquipped = String(hero.stats[`eq_${slot}_Name`] || '').trim();
-            if (prevEquipped && !prevEquipped.startsWith('🔒')) {
-                if (!returnGearToBackpack(hero, prevEquipped, overlay)) {
-                    alert('⚠️ В рюкзаке нет свободного места (15/15 слотов), чтобы убрать снятый предмет!');
-                    return;
-                }
-            }
-            if (slot === 'armor') {
-                hero.stats.armorName = '';
-                hero.stats.armorType = 'unarmored';
-                hero.stats.acItem = 0;
-                hero.stats.acArmorPenalty = 0;
-            }
-
             const slot = btn.dataset.unequipSlot;
             const inp = overlay.querySelector(`[data-eq-picker="${slot}"]`);
-            if (slot === 'mainHand' && hero.stats.eq_offHand_Name === '🔒 Занято (двуручное)') {
-                hero.stats.eq_offHand_Name = '';
-                const offInp = overlay.querySelector('[data-eq-picker="offHand"]');
-                if (offInp) offInp.value = '';
-            }
-            hero.stats[`eq_${slot}_Name`] = '';
-            hero.stats[`eq_${slot}_Invested`] = false;
-            if (inp) inp.value = '';
-            btn.remove();
-            updateInvestedCounterUi();
+            handleUnequipSlotClick(slot, inp, btn);
         });
     });
+
+
+
+
 
     overlay.querySelector('#btnResetDailyInvested')?.addEventListener('click', () => {
         let activeInvested = 0;
