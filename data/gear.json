@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-19T14:15:04.047Z",
-  "totalCount": 928,
+  "generatedAt": "2026-11-19T14:55:38.939Z",
+  "totalCount": 926,
   "gear": [
     {
       "id": "rations",
@@ -11,32 +11,6 @@
       "price": "4 СМ",
       "priceCp": 40,
       "notes": "Суточный рацион на 1 день пути или привала (7 дней = 4 СМ).",
-      "shieldBonus": 0,
-      "shieldHardness": 0,
-      "shieldHp": 0
-    },
-    {
-      "id": "normal_ingredients",
-      "name": "🏕️ Обычные ингредиенты",
-      "kind": "item",
-      "category": "Привал",
-      "level": 0,
-      "price": "",
-      "priceCp": 0,
-      "notes": "Базовые припасы для приготовления сытной пищи в лагере.",
-      "shieldBonus": 0,
-      "shieldHardness": 0,
-      "shieldHp": 0
-    },
-    {
-      "id": "special_ingredients",
-      "name": "🌿 Особые ингредиенты",
-      "kind": "item",
-      "category": "Привал",
-      "level": 0,
-      "price": "",
-      "priceCp": 0,
-      "notes": "Редкие травы, дичь или специи для приготовления особых блюд на привале.",
       "shieldBonus": 0,
       "shieldHardness": 0,
       "shieldHp": 0

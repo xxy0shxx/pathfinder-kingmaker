@@ -65,7 +65,9 @@ function parsePriceCp(rawText) {
 }
 
 // 1. Обычные предметы, зелья, руны, щиты
-const items = (PF2E_ITEMS_CATALOG || []).map(it => {
+const items = (PF2E_ITEMS_CATALOG || [])
+    .filter(it => it.id !== 'normal_ingredients' && it.id !== 'special_ingredients')
+    .map(it => {
     const { priceLabel, priceCp } = parsePriceCp(`${it.price || ''} ${it.notes || ''}`);
     return {
         id: it.id || '',
