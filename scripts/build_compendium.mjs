@@ -25,6 +25,8 @@ import { PF2E_SPELLS_LVL9 } from '../js/config/spells_lvl9_catalog.js';
 import { PF2E_SPELLS_LVL10 } from '../js/config/spells_lvl10_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../js/config/meta_catalog.js';
 import { PF2E_HERITAGES } from '../js/config/heritages_catalog.js';
+import { PF2E_DEITIES } from '../js/config/deities_catalog.js';
+import { PF2E_RITUALS } from '../js/config/rituals_catalog.js';
 
 const entries = [];
 const seenKeys = new Set();
@@ -198,6 +200,33 @@ for (const c of (PF2E_COMPANION_ABILITIES || [])) {
         category: typeMap[c.type] || 'Спутник',
         level: c.minLevel || 0,
         desc: c.desc || ''
+    });
+}
+
+// 7. Божества Голариона
+for (const d of (PF2E_DEITIES || [])) {
+    pushEntry({
+        id: d.id,
+        name: d.name,
+        kind: 'deity',
+        category: `Божество • ${d.title}`,
+        traits: `Домены: ${d.domains.join(', ')}`,
+        meta: `Источник: ${d.font} | Оружие: ${d.weapon} | Навык: ${d.skill}`,
+        desc: `Освящение: ${d.sanctification}\nЗаклинания: ${d.spells}\nЭдикты: ${d.edicts}\nАнафема: ${d.anathema}`
+    });
+}
+
+// 8. Ритуалы
+for (const r of (PF2E_RITUALS || [])) {
+    pushEntry({
+        id: r.id,
+        name: r.name,
+        kind: 'ritual',
+        category: `Ритуал ${r.level}-го круга`,
+        level: r.level || 1,
+        traits: `Время: ${r.castTime} | Вторичные заклинатели: ${r.secondaryCasters}`,
+        meta: `Основная проверка: ${r.primaryCheck} | Стоимость: ${r.cost}`,
+        desc: r.desc || ''
     });
 }
 
