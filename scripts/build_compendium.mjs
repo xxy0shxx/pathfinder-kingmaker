@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { PF2E_ACTIONS_CATALOG } from '../js/config/actions_catalog.js';
+import { PF2E_ANCESTRY_FEATS } from '../js/config/ancestry_feats_catalog.js';
 import { PF2E_BACKGROUNDS } from '../js/config/backgrounds_catalog.js';
 import { PF2E_CANTRIPS } from '../js/config/cantrips_catalog.js';
 import { PF2E_COMPANION_ABILITIES } from '../js/config/companions_catalog.js';
@@ -16,22 +17,45 @@ import { PF2E_SPELLS_LVL1 } from '../js/config/spells_lvl1_catalog.js';
 import { PF2E_SPELLS_LVL2 } from '../js/config/spells_lvl2_catalog.js';
 import { PF2E_SPELLS_LVL3 } from '../js/config/spells_lvl3_catalog.js';
 import { PF2E_SPELLS_LVL4 } from '../js/config/spells_lvl4_catalog.js';
+import { PF2E_SPELLS_LVL5 } from '../js/config/spells_lvl5_catalog.js';
+import { PF2E_SPELLS_LVL6 } from '../js/config/spells_lvl6_catalog.js';
+import { PF2E_SPELLS_LVL7 } from '../js/config/spells_lvl7_catalog.js';
+import { PF2E_SPELLS_LVL8 } from '../js/config/spells_lvl8_catalog.js';
+import { PF2E_SPELLS_LVL9 } from '../js/config/spells_lvl9_catalog.js';
+import { PF2E_SPELLS_LVL10 } from '../js/config/spells_lvl10_catalog.js';
 import { PF2E_ANCESTRIES, PF2E_CLASSES } from '../js/config/meta_catalog.js';
 import { PF2E_HERITAGES } from '../js/config/heritages_catalog.js';
 
 const entries = [];
-const seenIds = new Set();
+const seenKeys = new Set();
+const usedIds = new Set();
 
 function pushEntry(item) {
     if (!item || !item.name) return;
-    if (item.id && seenIds.has(item.id)) return;
-    if (item.id) seenIds.add(item.id);
-    entries.push(item);
+
+    const normName = String(item.name).toLowerCase().replace(/\s+/g, ' ').trim();
+    const dedupKey = `${item.kind}|${item.category}|${normName}`;
+    if (seenKeys.has(dedupKey)) return;
+    seenKeys.add(dedupKey);
+
+    let finalId = item.id || `${item.kind}_${entries.length + 1}`;
+    if (usedIds.has(finalId)) {
+        let n = 2;
+        while (usedIds.has(`${finalId}_${n}`)) n++;
+        finalId = `${finalId}_${n}`;
+    }
+    usedIds.add(finalId);
+
+    entries.push({ ...item, id: finalId });
 }
 
 // 1. Действия
 for (const a of (PF2E_ACTIONS_CATALOG || [])) {
-    const catMap = { basic: 'Базовое действие', class: `Классовое (${a.className || ''})`, skill: `Навык (${a.skillName || ''})` };
+    const catMap = {
+        basic: 'Базовое действие',
+        class: `Классовое (${a.className || ''})`,
+        skill: `Навык (${a.skillName || ''})`
+    };
     pushEntry({
         id: a.id,
         name: a.name,
@@ -66,8 +90,28 @@ addSpells(PF2E_SPELLS_LVL1, 1, 'Заклинание 1-го круга');
 addSpells(PF2E_SPELLS_LVL2, 2, 'Заклинание 2-го круга');
 addSpells(PF2E_SPELLS_LVL3, 3, 'Заклинание 3-го круга');
 addSpells(PF2E_SPELLS_LVL4, 4, 'Заклинание 4-го круга');
+addSpells(PF2E_SPELLS_LVL5, 5, 'Заклинание 5-го круга');
+addSpells(PF2E_SPELLS_LVL6, 6, 'Заклинание 6-го круга');
+addSpells(PF2E_SPELLS_LVL7, 7, 'Заклинание 7-го круга');
+addSpells(PF2E_SPELLS_LVL8, 8, 'Заклинание 8-го круга');
+addSpells(PF2E_SPELLS_LVL9, 9, 'Заклинание 9-го круга');
+addSpells(PF2E_SPELLS_LVL10, 10, 'Заклинание 10-го круга');
 
-// 3. Черты (Общие, Навыков, Классовые)
+// 3. Черты (Народов, Общие, Навыков, Классовые)
+for (const af of (PF2E_ANCESTRY_FEATS || [])) {
+    pushEntry({
+        id: af.id,
+        name: af.name,
+        kind: 'feat',
+        category: `Черта народа (${af.ancestryName})`,
+        level: af.level || 1,
+        actions: af.actions && af.actions !== '-' ? af.actions : '',
+        prerequisites: af.prerequisites && af.prerequisites !== '-' ? af.prerequisites : '',
+        source: af.source || '',
+        desc: af.desc || ''
+    });
+}
+
 const addFeats = (list, categoryLabel) => {
     for (const f of (list || [])) {
         pushEntry({
@@ -126,7 +170,6 @@ for (const cls of (PF2E_CLASSES || [])) {
         desc: cls.desc || ''
     });
 }
-// Сортируем родословные так, чтобы записи с описанием шли первыми (убирает пустые заглушки котолюдов)
 const sortedHeritages = [...(PF2E_HERITAGES || [])].sort((a, b) => (b.desc ? 1 : 0) - (a.desc ? 1 : 0));
 for (const h of sortedHeritages) {
     const ancName = h.id === 'her_surki_crusher' ? 'Сурки' : (h.ancestryName || '');
@@ -158,11 +201,15 @@ for (const c of (PF2E_COMPANION_ABILITIES || [])) {
     });
 }
 
-fs.mkdirSync('./data', { recursive: true });
-fs.writeFileSync('./data/compendium.json', JSON.stringify({
+fs.mkdirSync('../data', { recursive: true });
+fs.writeFileSync('../data/compendium.json', JSON.stringify({
     generatedAt: new Date().toISOString(),
     totalCount: entries.length,
     entries
 }, null, 2), 'utf8');
 
-console.log(`✅ Сгенерировано записей в data/compendium.json: ${entries.length}`);
+const byKind = entries.reduce((acc, e) => {
+    acc[e.kind] = (acc[e.kind] || 0) + 1;
+    return acc;
+}, {});
+console.log(`✅ Сгенерировано записей в data/compendium.json: ${entries.length}`, byKind);

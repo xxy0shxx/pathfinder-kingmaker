@@ -86,6 +86,7 @@ export function buildPage2Html(stats) {
                     ${renderTierBlock(magicInfo.showLvl2, 2, magicInfo.lvl2Slots, 'lvl2Spell', 'lvl2', 'Заклинание 2 круга...', true)}
                     ${renderTierBlock(magicInfo.showLvl3, 3, magicInfo.lvl3Slots, 'lvl3Spell', 'lvl3', 'Заклинание 3 круга...', true)}
                     ${renderTierBlock(magicInfo.showLvl4, 4, magicInfo.lvl4Slots, 'lvl4Spell', 'lvl4', 'Заклинание 4 круга...', true)}
+                    ${renderTierBlock(magicInfo.showLvl5, 5, magicInfo.lvl5Slots, 'lvl5Spell', 'lvl5', 'Заклинание 5 круга...', true)}
                 </div>
             </div>
             <div class="bst-sheet-col">
@@ -335,7 +336,8 @@ export function initPage2(overlay, hero) {
         { prefix: 'lvl1Spell', rowAttr: 'lvl1Row', icon: '1️⃣' },
         { prefix: 'lvl2Spell', rowAttr: 'lvl2Row', icon: '2️⃣' },
         { prefix: 'lvl3Spell', rowAttr: 'lvl3Row', icon: '3️⃣' },
-        { prefix: 'lvl4Spell', rowAttr: 'lvl4Row', icon: '4️⃣' }
+        { prefix: 'lvl4Spell', rowAttr: 'lvl4Row', icon: '4️⃣' },
+        { prefix: 'lvl5Spell', rowAttr: 'lvl5Row', icon: '4️⃣' }
     ];
 
     overlay.querySelectorAll('.bst-cantrips-table tbody tr').forEach(tr => {

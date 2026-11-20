@@ -7,6 +7,7 @@ import { PF2E_SPELLS_LVL1, searchSpellsLvl1 } from '../../config/spells_lvl1_cat
 import { PF2E_SPELLS_LVL2, searchSpellsLvl2 } from '../../config/spells_lvl2_catalog.js';
 import { PF2E_SPELLS_LVL3, searchSpellsLvl3 } from '../../config/spells_lvl3_catalog.js';
 import { PF2E_SPELLS_LVL4, searchSpellsLvl4 } from '../../config/spells_lvl4_catalog.js';
+import { PF2E_SPELLS_LVL5, searchSpellsLvl5 } from '../../config/spells_lvl5_catalog.js';
 import { PF2E_FOCUS_SPELLS, searchFocusSpells } from '../../config/focus_spells_catalog.js';
 import { searchCompanionAbilities, PF2E_COMPANION_ABILITIES, calcCompanionStats } from '../../config/companions_catalog.js';
 import { searchActionsCatalog } from '../../config/actions_catalog.js';
@@ -28,6 +29,7 @@ import {
 import CloudSyncService from '../../services/cloud_sync_service.js';
 import HeroSyncService from '../../services/hero_sync_service.js';
 import { recalculateSheetStats } from './sheet_calculator.js';
+import { PF2E_ANCESTRY_FEATS } from '../../config/ancestry_feats_catalog.js';
 
 export const normalizeStr = (str) => String(str || '')
     .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\u200D]/gu, '')
@@ -597,7 +599,16 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
                     pool = PF2E_SKILL_FEATS || [];
                 } else if (kind === 'ancestry') {
                     const curAnc = normalizeStr(overlay.querySelector('[data-sheet-txt="ancestry"]')?.value);
-                    pool = (PF2E_HERITAGES || []).filter(h => !curAnc || normalizeStr(h.ancestryName) === curAnc || normalizeStr(h.ancestry) === curAnc || h.ancestry === 'versatile');
+                    const allAncFeats = PF2E_ANCESTRY_FEATS || [];
+                    if (curAnc) {
+                        const matched = allAncFeats.filter(f =>
+                            curAnc.includes(normalizeStr(f.ancestryName)) ||
+                            curAnc.includes(normalizeStr(f.ancestry))
+                        );
+                        pool = matched.length > 0 ? matched : allAncFeats;
+                    } else {
+                        pool = allAncFeats;
+                    }
                 }
                 return pool.filter(f => (f.level || 1) <= lvl && normalizeStr(f.name).includes(normQ));
             },
@@ -771,7 +782,8 @@ export function initPage2Pickers(overlay, hero) {
         { selector: '.bst-lvl1-picker-inp', rowAttr: 'lvl1Row', dropAttr: 'data-lvl1-drop', prefix: 'lvl1Spell', searchFn: searchSpellsLvl1 },
         { selector: '.bst-lvl2-picker-inp', rowAttr: 'lvl2Row', dropAttr: 'data-lvl2-drop', prefix: 'lvl2Spell', searchFn: searchSpellsLvl2 },
         { selector: '.bst-lvl3-picker-inp', rowAttr: 'lvl3Row', dropAttr: 'data-lvl3-drop', prefix: 'lvl3Spell', searchFn: searchSpellsLvl3 },
-        { selector: '.bst-lvl4-picker-inp', rowAttr: 'lvl4Row', dropAttr: 'data-lvl4-drop', prefix: 'lvl4Spell', searchFn: searchSpellsLvl4 }
+        { selector: '.bst-lvl4-picker-inp', rowAttr: 'lvl4Row', dropAttr: 'data-lvl4-drop', prefix: 'lvl4Spell', searchFn: searchSpellsLvl4 },
+        { selector: '.bst-lvl5-picker-inp', rowAttr: 'lvl5Row', dropAttr: 'data-lvl5-drop', prefix: 'lvl5Spell', searchFn: searchSpellsLvl5 }
     ];
 
     spellTiers.forEach(({ selector, rowAttr, dropAttr, prefix, searchFn }) => {

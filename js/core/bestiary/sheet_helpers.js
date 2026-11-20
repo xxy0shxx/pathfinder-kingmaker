@@ -77,9 +77,21 @@ export function getMagicTierVisibility(stats) {
         showLvl2: lvl >= 3,
         showLvl3: lvl >= 5,
         showLvl4: lvl >= 7,
+        showLvl5: lvl >= 9,
+        showLvl6: lvl >= 11,
+        showLvl7: lvl >= 13,
+        showLvl8: lvl >= 15,
+        showLvl9: lvl >= 17,
+        showLvl10: lvl >= 19,
         lvl1Slots: calcSlots(1, 2),
         lvl2Slots: calcSlots(3, 4),
         lvl3Slots: calcSlots(5, 6),
-        lvl4Slots: calcSlots(7, 8)
+        lvl4Slots: calcSlots(7, 8),
+        lvl5Slots: calcSlots(9, 10),
+        lvl6Slots: calcSlots(11, 12),
+        lvl7Slots: calcSlots(13, 14),
+        lvl8Slots: calcSlots(15, 16),
+        lvl9Slots: calcSlots(17, 18),
+        lvl10Slots: lvl >= 20 ? 2 : (lvl >= 19 ? 1 : 0)
     };
 }
