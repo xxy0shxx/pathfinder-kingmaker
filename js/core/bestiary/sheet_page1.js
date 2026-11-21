@@ -20,7 +20,7 @@ export function buildPage1Html(stats) {
             : [])
     ];
 
-    const alignVal = stats.alignment === 'Н' ? 'ИН' : (stats.alignment || '');
+    const alignVal = stats.alignment || '';
 
     return `
         <div class="bst-sheet-top-bar">
@@ -257,6 +257,15 @@ function buildPage1RightColHtml(stats) {
 export function initPage1(overlay, hero) {
     const lvlInp = overlay.querySelector('[data-sheet-num="level"]');
 
+    const speedInp = overlay.querySelector('[data-sheet-num="speed"]');
+    if (speedInp) {
+        speedInp.addEventListener('change', () => {
+            const val = Math.max(5, parseInt(speedInp.value, 10) || 25);
+            hero.stats._baseSpeed = val;
+            triggerRecalc();
+        });
+    }
+
     const runLevelProgression = () => {
         const newLvl = Math.max(1, parseInt(lvlInp?.value, 10) || 1);
         hero.stats.level = newLvl;
@@ -264,10 +273,9 @@ export function initPage1(overlay, hero) {
         const res = recalculateLevelProgression(overlay, hero);
 
         const info = getMagicTierVisibility(hero.stats);
-        hero.stats.lvl1PerDay = info.lvl1Slots;
-        hero.stats.lvl2PerDay = info.lvl2Slots;
-        hero.stats.lvl3PerDay = info.lvl3Slots;
-        hero.stats.lvl4PerDay = info.lvl4Slots;
+        for (let t = 1; t <= 10; t++) {
+            hero.stats[`lvl${t}PerDay`] = info[`lvl${t}Slots`] || 0;
+        }
 
         if (hero.stats.compType === 'familiar') {
             const famSpecies = (PF2E_COMPANION_ABILITIES || []).find(x => x.id === hero.stats.compSpeciesId);

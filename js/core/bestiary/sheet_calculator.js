@@ -54,6 +54,34 @@ export function recalculateSheetStats(overlayEl, hero) {
     const baseArmorPenalty = Math.abs(getNum('acArmorPenalty'));
     const effectiveSkillPenalty = (armorType !== 'unarmored' && str < strReq) ? baseArmorPenalty : 0;
 
+    // --- 1.1. Умный расчёт штрафа скорости от брони с учётом Силы ---
+    const baseSpeed = Math.max(5, Number(hero.stats._baseSpeed ?? getNum('speed', 25)) || 25);
+    if (hero.stats._baseSpeed === undefined) {
+        hero.stats._baseSpeed = baseSpeed;
+    }
+
+    let rawSpeedPen = 0;
+    if (armorObj && armorObj.speedPenalty !== undefined) {
+        rawSpeedPen = Math.abs(Number(armorObj.speedPenalty) || 0);
+    } else if (armorType === 'medium') {
+        rawSpeedPen = 5;
+    } else if (armorType === 'heavy') {
+        rawSpeedPen = 10;
+    }
+
+    // При выполнении требования Силы штраф скорости снижается на 5 фт.
+    const effectiveSpeedPen = rawSpeedPen > 0
+        ? Math.max(0, rawSpeedPen - (str >= strReq ? 5 : 0))
+        : 0;
+
+    // Проверяем, нет ли у персонажа игнорирования штрафа брони к скорости (напр. Дварф: Необременительный / Unburdened Iron)
+    const heroTraitsText = `${hero.stats.heritage || ''} ${hero.stats.ancFeatLvl1Name || ''} ${hero.stats.classFeatLvl1Name || ''}`.toLowerCase();
+    const ignoreArmorSpeedPen = /необременител|unburdened/i.test(heroTraitsText);
+
+    const finalSpeed = Math.max(5, baseSpeed - (ignoreArmorSpeedPen ? 0 : effectiveSpeedPen));
+    setNum('speed', finalSpeed);
+
+
     // --- 2. Поиск активных бонусов к навыкам и испытаниям от предметов и рун ---
     const activeSkillBonuses = {};
     let activeSaveBonus = 0;

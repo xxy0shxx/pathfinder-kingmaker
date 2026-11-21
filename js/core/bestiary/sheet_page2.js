@@ -87,6 +87,12 @@ export function buildPage2Html(stats) {
                     ${renderTierBlock(magicInfo.showLvl3, 3, magicInfo.lvl3Slots, 'lvl3Spell', 'lvl3', 'Заклинание 3 круга...', true)}
                     ${renderTierBlock(magicInfo.showLvl4, 4, magicInfo.lvl4Slots, 'lvl4Spell', 'lvl4', 'Заклинание 4 круга...', true)}
                     ${renderTierBlock(magicInfo.showLvl5, 5, magicInfo.lvl5Slots, 'lvl5Spell', 'lvl5', 'Заклинание 5 круга...', true)}
+                    ${renderTierBlock(magicInfo.showLvl6, 6, magicInfo.lvl6Slots, 'lvl6Spell', 'lvl6', 'Заклинание 6 круга...', true)}
+                    ${renderTierBlock(magicInfo.showLvl7, 7, magicInfo.lvl7Slots, 'lvl7Spell', 'lvl7', 'Заклинание 7 круга...', true)}
+                    ${renderTierBlock(magicInfo.showLvl8, 8, magicInfo.lvl8Slots, 'lvl8Spell', 'lvl8', 'Заклинание 8 круга...', true)}
+                    ${renderTierBlock(magicInfo.showLvl9, 9, magicInfo.lvl9Slots, 'lvl9Spell', 'lvl9', 'Заклинание 9 круга...', true)}
+                    ${renderTierBlock(magicInfo.showLvl10, 10, magicInfo.lvl10Slots, 'lvl10Spell', 'lvl10', 'Заклинание 10 круга...', true)}
+
                 </div>
             </div>
             <div class="bst-sheet-col">

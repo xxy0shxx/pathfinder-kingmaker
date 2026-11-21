@@ -34,42 +34,43 @@ export function getMagicTierVisibility(stats) {
     const cls = String(stats.charClass || '').toLowerCase().replace(/ё/g, 'е').trim();
     const lvl = Math.max(1, parseInt(stats.level, 10) || 1);
 
-    const casterKeywords = [
-        'волшебник', 'маг', 'wizard',
-        'чародей', 'сорк', 'sorcerer',
-        'жрец', 'клирик', 'cleric',
-        'друид', 'druid',
-        'бард', 'bard',
-        'ведьма', 'witch',
-        'оракул', 'oracle',
-        'анимист', 'animist',
-        'экстрасенс', 'псионик', 'psychic',
-        'колдун', 'магус', 'magus',
-        'призыватель', 'summoner',
-        'некромант', 'necromancer'
-    ];
-
-    const extraSlotKeywords = [
-        'волшебник', 'маг', 'wizard',
-        'чародей', 'сорк', 'sorcerer',
-        'жрец', 'клирик', 'cleric'
-    ];
+    const emptyResult = {
+        showLvl1: false, showLvl2: false, showLvl3: false, showLvl4: false, showLvl5: false,
+        showLvl6: false, showLvl7: false, showLvl8: false, showLvl9: false, showLvl10: false,
+        lvl1Slots: 0, lvl2Slots: 0, lvl3Slots: 0, lvl4Slots: 0, lvl5Slots: 0,
+        lvl6Slots: 0, lvl7Slots: 0, lvl8Slots: 0, lvl9Slots: 0, lvl10Slots: 0
+    };
 
     const matchWord = (keywords) =>
         keywords.some(k => new RegExp(`(^|\\s|\\()${k}($|\\s|\\))`, 'i').test(cls));
 
-    if (!matchWord(casterKeywords)) {
-        return {
-            showLvl1: false, showLvl2: false, showLvl3: false, showLvl4: false,
-            lvl1Slots: 0, lvl2Slots: 0, lvl3Slots: 0, lvl4Slots: 0
-        };
+    const isFourSlotCaster = matchWord(['чародей', 'сорк', 'sorcerer', 'волшебник', 'маг', 'wizard', 'жрец', 'клирик', 'cleric']);
+    const isThreeSlotCaster = matchWord(['друид', 'druid', 'бард', 'bard', 'ведьма', 'witch', 'оракул', 'oracle', 'анимист', 'animist', 'некромант', 'necromancer']);
+    const isPsychic = matchWord(['экстрасенс', 'псионик', 'psychic']);
+    const isBoundedCaster = matchWord(['колдун', 'магус', 'magus', 'призыватель', 'summoner']);
+
+    if (!isFourSlotCaster && !isThreeSlotCaster && !isPsychic && !isBoundedCaster) {
+        return emptyResult;
     }
 
-    const hasBonusSlot = matchWord(extraSlotKeywords);
+    // Ограниченные заклинатели (Magus / Summoner): по 2 ячейки двух высших доступных кругов
+    if (isBoundedCaster) {
+        const maxTier = Math.min(9, Math.ceil(lvl / 2));
+        const res = { ...emptyResult };
+        for (let t = 1; t <= 10; t++) {
+            const isActiveTier = (t === maxTier) || (t === maxTier - 1 && maxTier > 1);
+            res[`showLvl${t}`] = isActiveTier;
+            res[`lvl${t}Slots`] = isActiveTier ? 2 : 0;
+        }
+        return res;
+    }
+
     const calcSlots = (minLvl, upLvl) => {
         if (lvl < minLvl) return 0;
-        const base = lvl >= upLvl ? 3 : 2;
-        return base + (hasBonusSlot ? 1 : 0);
+        const isUpgraded = lvl >= upLvl;
+        if (isPsychic) return isUpgraded ? 2 : 1;
+        if (isFourSlotCaster) return isUpgraded ? 4 : 3;
+        return isUpgraded ? 3 : 2;
     };
 
     return {
