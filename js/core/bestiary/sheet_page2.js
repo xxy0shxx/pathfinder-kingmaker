@@ -294,8 +294,12 @@ export function initPage2(overlay, hero) {
                     const target = document.getElementById('bstTxTargetSel')?.value || 'spend';
                     const note = String(document.getElementById('bstTxNote')?.value || '').trim();
 
+                    const coinParts = [g > 0 ? `${g} ЗМ` : '', s > 0 ? `${s} СМ` : '', c > 0 ? `${c} ММ` : ''].filter(Boolean).join(' ');
+                    const noteSuffix = note ? ` <span style="color:#a4b0be;">(${esc(note)})</span>` : '';
+
                     if (target === 'treasury' && window.BestiaryManager?.addTreasuryLoot) {
                         window.BestiaryManager.addTreasuryLoot(g, s, c, `${hero.name}${note ? ': ' + note : ''}`);
+                        CloudSyncService.notifyGmToast(`📥 <b>${hero.name}</b> внёс в казну: <b style="color:#ffd875;">${coinParts}</b>${noteSuffix}`, '#ffd875');
                     } else if (target.startsWith('hero:')) {
                         const recipient = HeroSyncService.findBestiaryHero(target.slice(5));
                         if (recipient) {
@@ -312,7 +316,14 @@ export function initPage2(overlay, hero) {
                                 recipient.id,
                                 `💰 *${hero.name}* перевёл(а) вам *${coinParts}*${note ? ` _(${note})_` : ''}!`
                             );
+                            CloudSyncService.pushHeroClientAlert(
+                                recipient.id,
+                                '💰 Перевод монет от союзника',
+                                `Герой <b style="color:#74b9ff;">${hero.name}</b> перевёл(а) вам: <b style="color:#ffd875;">${coinParts}</b>${note ? `<br><span style="color:#a4b0be; font-size:13px;">Комментарий: «${esc(note)}»</span>` : ''}`
+                            );
                         }
+                    } else {
+                        CloudSyncService.notifyGmToast(`🛒 <b>${hero.name}</b> потратил: <b style="color:#ff7675;">${coinParts}</b>${noteSuffix}`, '#ff7675');
                     }
 
                     if (window.BestiaryManager?._save) window.BestiaryManager._save();

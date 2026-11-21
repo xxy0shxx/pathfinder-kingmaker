@@ -305,6 +305,97 @@ export function initPage1Pickers(overlay, hero, onRecalc) {
         }
     });
 
+    // 3.1. Способность происхождения (черты навыков 1 ур. + черта из выбранного происхождения)
+    const bgFeatInp = overlay.querySelector('.bst-bgfeat-picker-inp');
+    bindAutocomplete(bgFeatInp, overlay.querySelector('[data-bgfeat-drop="1"]'), {
+        width: 360,
+        getItems: (q) => {
+            const normQ = normalizeStr(q);
+            const curBg = normalizeStr(overlay.querySelector('[data-sheet-txt="background"]')?.value);
+            const bgObj = (PF2E_BACKGROUNDS || []).find(b => normalizeStr(b.name) === curBg);
+
+            const lvl1SkillFeats = (PF2E_SKILL_FEATS || []).filter(f => (f.level || 1) === 1);
+            const pool = bgObj?.feat
+                ? [{ name: `📜 ${bgObj.feat}`, desc: `Бонусная черта происхождения «${bgObj.name}»`, skillName: 'Происхождение' }, ...lvl1SkillFeats]
+                : lvl1SkillFeats;
+
+            return normQ
+                ? pool.filter(f => normalizeStr(f.name).includes(normQ) || normalizeStr(f.skillName || '').includes(normQ))
+                : pool;
+        },
+        renderOption: (f) => `
+            <div class="bst-cantrip-opt-top"><b>${f.name}</b> ${f.skillName ? `<span style="color:#74b9ff;">[${f.skillName}]</span>` : ''}</div>
+            <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">${f.desc || ''}</div>`,
+        onSelect: (found) => {
+            bgFeatInp.value = found.name;
+            hero.stats.backgroundFeat = found.name;
+        }
+    });
+
+    // 3.2. Указы (Edicts) и Анафема (Anathema) — пресеты PF2e Remaster + божеств Голариона
+    const EDICTS_PRESETS = [
+        { title: '⚔️ Иомедэй (Доблесть и Честь)', text: 'Быть умеренным, уважать честь и рыцарство, сражаться со злом' },
+        { title: '☀️ Саренрэй (Искупление и Свет)', text: 'Уничтожать отродье Ровагуга, защищать союзников, нести свет и исцеление' },
+        { title: '🦋 Дезна (Путешествия и Свобода)', text: 'Помогать путникам, исследовать новые места, выражать себя в искусстве' },
+        { title: '🍺 Кайден Кайлин (Свобода и Отвага)', text: 'Пить, освобождать рабов, помогать угнетённым, искать приключения' },
+        { title: '⚖️ Абадар (Закон и Торговля)', text: 'Быть практичным, уважать закон и договоры, развивать цивилизацию' },
+        { title: '⚒️ Тораг (Ремесло и Семья)', text: 'Быть честным и трудолюбивым, защищать семью и клан, создавать надёжные вещи' },
+        { title: '🌿 Гозрей (Природа и Стихии)', text: 'Защищать дикую природу, уважать море и небо' },
+        { title: '💀 Фаразма (Судьба и Покой)', text: 'Стремиться к пониманию, помогать умирающим, уважать цикл жизни и смерти' },
+        { title: '🛡️ Кодекс Защитника (Champion)', text: 'Защищать невинных, ставить благо других выше своего, держать слово' },
+        { title: '🌲 Кодекс Друида / Следопыта', text: 'Охранять равновесие природы, не допускать бессмысленного истребления зверей' }
+    ];
+
+    const ANATHEMA_PRESETS = [
+        { title: '⚔️ Иомедэй', text: 'Бросить союзника в беде, отказаться от вызова на честный бой, солгать' },
+        { title: '☀️ Саренрэй', text: 'Создавать нежить, лгать, отказывать в покаянии искренне раскаявшемуся' },
+        { title: '🦋 Дезна', text: 'Вызывать страх или отчаяние, лишать кого-либо свободы, осквернять сны' },
+        { title: '🍺 Кайден Кайлин', text: 'Заниматься работорговлей, быть трусом или занудой, портить хороший напиток' },
+        { title: '⚖️ Абадар', text: 'Заниматься бандитизмом, пиратством или воровством, нарушать контракты' },
+        { title: '⚒️ Тораг', text: 'Нарушать клятвы, проявлять милосердие к заклятым врагам рода, делать халтуру' },
+        { title: '🌿 Гозрей', text: 'Осквернять и загрязнять природу, чрезмерно рубить лес или охотиться ради забавы' },
+        { title: '💀 Фаразма', text: 'Создавать нежить, осквернять могилы, нарушать естественный ход смерти' },
+        { title: '🛡️ Кодекс Защитника', text: 'Совершать злые поступки, причинять вред невинным, нарушать закон без веской причины' },
+        { title: '🌲 Кодекс Друида', text: 'Носить металлические доспехи (Legacy), осквернять священные рощи, поощрять скверну' }
+    ];
+
+    const bindPrinciplePicker = (inp, dropEl, presets, fieldKey) => {
+        bindAutocomplete(inp, dropEl, {
+            width: 380,
+            getItems: (q) => {
+                const normQ = normalizeStr(q);
+                return normQ
+                    ? presets.filter(p => normalizeStr(p.title).includes(normQ) || normalizeStr(p.text).includes(normQ))
+                    : presets;
+            },
+            renderOption: (p) => `
+                <div class="bst-cantrip-opt-top"><b>${p.title}</b></div>
+                <div class="bst-cantrip-opt-trad" style="font-size: 11px; white-space: normal; color: #ebd291; margin-top: 2px;">${p.text}</div>`,
+            onSelect: (found) => {
+                // Если в поле уже есть текст — дописываем через точку с запятой, иначе подставляем
+                const current = String(inp.value || '').trim();
+                const nextVal = current && !current.includes(found.text)
+                    ? `${current}; ${found.text}`
+                    : found.text;
+                inp.value = nextVal;
+                hero.stats[fieldKey] = nextVal;
+            }
+        });
+    };
+
+    bindPrinciplePicker(
+        overlay.querySelector('.bst-edicts-picker-inp'),
+        overlay.querySelector('[data-edicts-drop="1"]'),
+        EDICTS_PRESETS,
+        'edicts'
+    );
+    bindPrinciplePicker(
+        overlay.querySelector('.bst-anathema-picker-inp'),
+        overlay.querySelector('[data-anathema-drop="1"]'),
+        ANATHEMA_PRESETS,
+        'anathema'
+    );
+
 
     // Хелпер: достаёт предметы, реально лежащие в рюкзаке героя (item1..item15 с qty > 0)
     const getOwnedGearFromBackpack = (matcherFn) => {
@@ -1048,6 +1139,10 @@ export function initPage2Pickers(overlay, hero) {
                                 if (spendHeroCoinsCp(priceInfo.totalCp)) {
                                     applySelectedItemToRow(inp, row, found);
                                     inp.dispatchEvent(new Event('input', { bubbles: true }));
+                                    CloudSyncService.notifyGmToast(
+                                        `🛒 <b>${hero.name}</b> купил в лавке: <b style="color:#ffd875;">${found.name}</b> (−${priceInfo.label})`,
+                                        '#2ecc71'
+                                    );
                                 }
                                 StorageManager.appendTreasuryLog(`🛒 ${hero.name} купил: ${found.name} (−${priceInfo.label})`, 'treasury');
                                 choiceModal.close();
@@ -1299,7 +1394,12 @@ export function initPage2Pickers(overlay, hero) {
                             }
 
                             if (window.BestiaryManager?._save) window.BestiaryManager._save();
-                            StorageManager.appendTreasuryLog(`💰 ${hero.name} продал: ${itemName} ×${sellCnt} (+${gainLabel})`, 'treasury');
+                            const gainLabel = formatCpLabel(totalGainCp);
+                            StorageManager.appendTreasuryLog(`💰 ${hero.name} продал: ${itemName} ×${sellCount} (+${gainLabel})`, 'treasury');
+                            CloudSyncService.notifyGmToast(
+                                `💰 <b>${hero.name}</b> продал: <b style="color:#ffd875;">${itemName}</b> ×${sellCount} (+${gainLabel})`,
+                                '#ffd875'
+                            );
                             sellModal.close();
                         }
                     }
@@ -1463,6 +1563,11 @@ export function initPage2Pickers(overlay, hero) {
                             CloudSyncService.sendHeroTgNotification(
                                 recipient.id,
                                 `🎁 *${hero.name}* передал(а) вам предмет: *${itemName}* (\`×${giveCount}\`)!`
+                            );
+                            CloudSyncService.pushHeroClientAlert(
+                                recipient.id,
+                                '🎁 Посылка от союзника',
+                                `Герой <b style="color:#74b9ff;">${hero.name}</b> передал(а) в ваш рюкзак:<br><b style="color:#2ecc71;">${itemName}</b> <span style="color:#ffd875;">(×${giveCount} шт.)</span>`
                             );
                             giveModal.close();
                         }

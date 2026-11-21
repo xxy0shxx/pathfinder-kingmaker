@@ -211,6 +211,11 @@ const CloudSyncService = {
                     this.pullFromCloud();
                 }
             })
+            .on('broadcast', { event: 'gm_toast' }, ({ payload }) => {
+                if (payload?.text) {
+                    this.showGmToast(payload.text, payload.accentColor || '#ffd875');
+                }
+            })
             .subscribe();
         this._startHeroPolling();
     },
@@ -539,8 +544,6 @@ const CloudSyncService = {
         this._isRemoteApplying = false;
     },
 
-
-
     _applyHeroRow(row) {
         const incoming = { ...row.hero_data, isReadOnly: !!row.is_readonly };
         this._knownHeroIds.add(incoming.id);
@@ -561,13 +564,40 @@ const CloudSyncService = {
 
         const openModal = document.getElementById('bstHeroSheetModal');
         if (openModal && openModal.dataset.heroId === String(incoming.id)) {
-            const activePage = Number(openModal.dataset.pageNum) || 1;
-            window.BestiaryManager.openCharacterSheetModal(incoming.id, activePage);
+            // Если пользователь прямо сейчас печатает в этом окне — не перерисовываем его
+            const activeEl = document.activeElement;
+            const isTypingHere = activeEl && openModal.contains(activeEl) && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName);
+
+            if (!isTypingHere) {
+                const activePage = Number(openModal.dataset.pageNum) || 1;
+                // Сохраняем scrollTop самого модального окна и всех его прокручиваемых внутренних блоков
+                const modalScrolls = [openModal, ...openModal.querySelectorAll('*')]
+                    .filter(el => el.scrollTop > 0)
+                    .map(el => [el, el.scrollTop]);
+
+                window.BestiaryManager.openCharacterSheetModal(incoming.id, activePage);
+
+                const newModal = document.getElementById('bstHeroSheetModal');
+                if (newModal) {
+                    requestAnimationFrame(() => {
+                        // Восстанавливаем скролл основного контейнера модалки и аналогичных блоков
+                        const newScrollables = [newModal, ...newModal.querySelectorAll('*')];
+                        modalScrolls.forEach(([oldEl, top]) => {
+                            if (oldEl === openModal) {
+                                newModal.scrollTop = top;
+                            } else if (oldEl.className) {
+                                const match = newScrollables.find(el => el.className === oldEl.className && el.scrollHeight > el.clientHeight);
+                                if (match) match.scrollTop = top;
+                            }
+                        });
+                    });
+                }
+            }
         }
 
         HeroSyncService.syncFullStats(incoming, false);
+        this._checkAndShowHeroAlerts(incoming);
     },
-
 
     _startHeroPolling() {
         if (this._pollTimer) return;
@@ -592,15 +622,22 @@ const CloudSyncService = {
             const { data: heroesData, error } = await query;
             if (error || !Array.isArray(heroesData) || !window.BestiaryManager) return;
 
+            const canonicalStringify = (obj) => {
+                if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
+                if (Array.isArray(obj)) return '[' + obj.map(canonicalStringify).join(',') + ']';
+                const keys = Object.keys(obj).sort();
+                return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalStringify(obj[k])).join(',') + '}';
+            };
+
             let hasChanges = false;
             for (const row of heroesData) {
                 if (!row?.hero_data) continue;
                 const localHero = (window.BestiaryManager.state.party || []).find(h => h.id === row.id)
                     || (window.BestiaryManager.state.inactive || []).find(h => h.id === row.id);
 
-                // Сравниваем JSON, чтобы перерисовывать только при реальном изменении извне (например, из Telegram)
-                const localSnap = localHero ? JSON.stringify({ ...localHero, isReadOnly: !!localHero.isReadOnly }) : '';
-                const remoteSnap = JSON.stringify({ ...row.hero_data, isReadOnly: !!row.is_readonly });
+                // Используем canonicalStringify вместо JSON.stringify!
+                const localSnap = localHero ? canonicalStringify({ ...localHero, isReadOnly: !!localHero.isReadOnly }) : '';
+                const remoteSnap = canonicalStringify({ ...row.hero_data, isReadOnly: !!row.is_readonly });
 
                 if (localSnap !== remoteSnap) {
                     hasChanges = true;
@@ -612,6 +649,7 @@ const CloudSyncService = {
                     }
                 }
             }
+
 
             if (hasChanges) {
                 window.BestiaryManager.renderUi();
@@ -632,6 +670,144 @@ const CloudSyncService = {
             console.warn('Не удалось поставить TG-уведомление в очередь:', e);
         }
     },
+
+    // Отправляет в браузер получателя всплывающую модалку с кнопкой «Принять»
+    async pushHeroClientAlert(targetHeroId, title, htmlBody) {
+        const hero = window.BestiaryManager?.state?.party?.find(h => String(h.id) === String(targetHeroId))
+            || window.BestiaryManager?.state?.inactive?.find(h => String(h.id) === String(targetHeroId));
+        if (!hero) return;
+
+        if (!Array.isArray(hero.pendingAlerts)) hero.pendingAlerts = [];
+        hero.pendingAlerts.push({
+            id: 'al_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            title,
+            body: htmlBody,
+            ts: Date.now()
+        });
+        // Храним не более 10 непрочитанных уведомлений
+        if (hero.pendingAlerts.length > 10) {
+            hero.pendingAlerts = hero.pendingAlerts.slice(-10);
+        }
+    },
+
+    // Проверяет, есть ли для текущего игрока непрочитанные уведомления, и показывает модалку
+    _checkAndShowHeroAlerts(hero) {
+        if (!this.isPlayerMode || String(hero.id) !== String(this.playerHeroId)) return;
+        if (!Array.isArray(hero.pendingAlerts) || hero.pendingAlerts.length === 0) return;
+        if (document.getElementById('bstIncomingLootAlertModal')) return; // Уже открыто
+
+        const alertItem = hero.pendingAlerts[0];
+
+        const modal = ModalManager.open({
+            id: 'bstIncomingLootAlertModal',
+            title: alertItem.title || '🎁 Новое поступление!',
+            width: '440px',
+            borderColor: '#2ecc71',
+            bodyHtml: `
+                <div style="font-size: 15px; color: #ebd291; line-height: 1.55; padding: 4px 2px;">
+                    ${alertItem.body}
+                </div>
+            `,
+            footerButtons: [
+                {
+                    label: '✅ ОК / Принять',
+                    variant: 'ok',
+                    onClick: async () => {
+                        // Удаляем показанное уведомление из очереди героя и сохраняем в облако
+                        hero.pendingAlerts = (hero.pendingAlerts || []).filter(a => a.id !== alertItem.id);
+                        modal.close();
+                        await this.pushToCloud();
+                        // Если остались ещё уведомления в очереди — покажем следующее
+                        this._checkAndShowHeroAlerts(hero);
+                    }
+                }
+            ]
+        });
+
+        if (modal?.overlay) {
+            modal.overlay.style.zIndex = '10000500';
+        }
+    },
+    // Отправляет лёгкое тост-уведомление в окно ГМа (без Telegram и без записи в БД)
+    notifyGmToast(text, accentColor = '#ffd875') {
+        if (!this._channel) return;
+        // Если событие произошло у самого ГМа — показываем локально, иначе шлём по broadcast
+        if (!this.isPlayerMode) {
+            this.showGmToast(text, accentColor);
+        } else {
+            this._channel.send({
+                type: 'broadcast',
+                event: 'gm_toast',
+                payload: { text, accentColor, ts: Date.now() }
+            });
+        }
+    },
+
+    // Отрисовывает всплывающее уведомление в левом верхнем углу экрана ГМа (не более 5 штук)
+    showGmToast(text, accentColor = '#ffd875') {
+        if (this.isPlayerMode) return; // Показываем только Мастеру
+
+        let container = document.getElementById('bstGmToastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'bstGmToastContainer';
+            Object.assign(container.style, {
+                position: 'fixed',
+                top: '16px',
+                left: '16px',
+                zIndex: '10000600',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                maxWidth: '360px',
+                pointerEvents: 'none'
+            });
+            document.body.appendChild(container);
+        }
+
+        // Ограничиваем ленту: не более 5 сообщений в высоту (удаляем самое старое)
+        while (container.children.length >= 5) {
+            container.firstElementChild?.remove();
+        }
+
+        const toast = document.createElement('div');
+        Object.assign(toast.style, {
+            background: 'rgba(8, 16, 11, 0.96)',
+            border: `1.5px solid ${accentColor}`,
+            borderLeft: `4px solid ${accentColor}`,
+            borderRadius: '6px',
+            padding: '8px 12px',
+            color: '#ebd291',
+            fontSize: '13px',
+            lineHeight: '1.4',
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.85)',
+            pointerEvents: 'auto',
+            cursor: 'pointer',
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
+            opacity: '0',
+            transform: 'translateX(-14px)'
+        });
+        toast.innerHTML = text;
+        toast.title = 'Нажмите, чтобы закрыть';
+
+        const removeToast = () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-14px)';
+            setTimeout(() => toast.remove(), 250);
+        };
+
+        toast.addEventListener('click', removeToast);
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
+
+        // Автоматически скрываем через 6 секунд
+        setTimeout(removeToast, 6000);
+    },
+
 
 };
 

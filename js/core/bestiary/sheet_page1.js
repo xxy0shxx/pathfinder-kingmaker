@@ -9,17 +9,15 @@ import CatalogService from '../../services/catalog_service.js';
 import { esc, numInp, txtInp, getMagicTierVisibility } from './sheet_helpers.js';
 
 export function buildPage1Html(stats) {
-    const alignments = [
-        ['', '— Выберите —'],
-        ['ЗД', '⚖️😇 Законопослушный Добрый (ЗД)'],
-        ['НД', '😇 Нейтральный Добрый (НД)'],
-        ['ХД', '🌀😇 Хаотичный Добрый (ХД)'],
-        ['ЗН', '⚖️ Законопослушный Нейтральный (ЗН)'],
-        ['ИН', '⚖️🌀 Истинный Нейтральный (Н)'],
-        ['ХН', '🌀 Хаотичный Нейтральный (ХН)'],
-        ['ЗЗ', '⚖️😈 Законопослушный Злой (ЗЗ)'],
-        ['НЗ', '😈 Нейтральный Злой (НЗ)'],
-        ['ХЗ', '🌀😈 Хаотичный Злой (ХЗ)']
+    const sanctifications = [
+        ['', '— Без освящения / Обычный —'],
+        ['Святой', '✨😇 Святой (Holy — против нежити и бестий)'],
+        ['Нечестивый', '🔥😈 Нечестивый (Unholy — против небожителей)'],
+        ['Оба', '⚖️✨🔥 Святой или Нечестивый (по выбору божества)'],
+        // Оставляем поддержку старых значений для совместимости со старыми чарниками:
+        ...(stats.alignment && !['', 'Святой', 'Нечестивый', 'Оба'].includes(stats.alignment)
+            ? [[stats.alignment, `📜 Legacy: ${stats.alignment}`]]
+            : [])
     ];
 
     const alignVal = stats.alignment === 'Н' ? 'ИН' : (stats.alignment || '');
@@ -41,12 +39,14 @@ export function buildPage1Html(stats) {
                 <input type="text" data-sheet-txt="charClass" class="k-inp bst-txt-inp bst-meta-picker-inp" data-meta-type="class" autocomplete="off" placeholder="Воин, Жрец..." value="${esc(stats.charClass)}">
                 <div class="bst-cantrip-dropdown" data-meta-drop="class" style="display: none; z-index: 10000120;"></div>
             </div>
+            
             <div class="bst-top-field">
-                <span>⚖️ Мировоззрение</span>
+                <span>✨ Освящение (PF2e Remaster)</span>
                 <select data-sheet-txt="alignment" class="k-inp" style="background: #040905; border: 1px solid #543e0d; color: #ebd291; padding: 4px; font-weight: bold; width: 100%;">
-                    ${alignments.map(([val, lbl]) => `<option value="${val}" ${alignVal === val ? 'selected' : ''}>${lbl}</option>`).join('')}
+                    ${sanctifications.map(([val, lbl]) => `<option value="${val}" ${alignVal === val ? 'selected' : ''}>${lbl}</option>`).join('')}
                 </select>
             </div>
+            
             <div class="bst-top-field bst-narrow" style="min-width: 96px;">
                 <span>⭐ Уровень</span>
                 <div style="display: flex; align-items: center; gap: 3px;">
@@ -60,9 +60,23 @@ export function buildPage1Html(stats) {
                 <label style="font-size: 11px; color: #dfbc6f; display: block; margin-bottom: 2px;">🧬 Способность народа / Наследие</label>
                 ${txtInp(stats, 'heritage', '🧬 Родословная и способность народа...')}
             </div>
+            
             <div class="bst-top-field" style="position: relative;">
                 <span>✨ Способность происхождения</span>
-                <input type="text" data-sheet-txt="backgroundFeat" class="k-inp bst-txt-inp" placeholder="Автовыбор из происхождения..." value="${esc(stats.backgroundFeat)}">
+                <input type="text" data-sheet-txt="backgroundFeat" class="k-inp bst-txt-inp bst-bgfeat-picker-inp" autocomplete="off" placeholder="Выберите черту происхождения..." value="${esc(stats.backgroundFeat)}">
+                <div class="bst-cantrip-dropdown" data-bgfeat-drop="1" style="display: none; z-index: 10000120;"></div>
+            </div>
+            <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
+                <div class="bst-top-field" style="position: relative;">
+                    <span>📜 Указы (Edicts — чему следовать)</span>
+                    <input type="text" data-sheet-txt="edicts" class="k-inp bst-txt-inp bst-edicts-picker-inp" autocomplete="off" placeholder="Выберите из списка или впишите свои..." value="${esc(stats.edicts)}">
+                    <div class="bst-cantrip-dropdown" data-edicts-drop="1" style="display: none; z-index: 10000120;"></div>
+                </div>
+                <div class="bst-top-field" style="position: relative;">
+                    <span>🚫 Анафема (Anathema — что строго запрещено)</span>
+                    <input type="text" data-sheet-txt="anathema" class="k-inp bst-txt-inp bst-anathema-picker-inp" autocomplete="off" placeholder="Выберите из списка или впишите свои..." value="${esc(stats.anathema)}">
+                    <div class="bst-cantrip-dropdown" data-anathema-drop="1" style="display: none; z-index: 10000120;"></div>
+                </div>
             </div>
         </div>
 

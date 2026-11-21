@@ -381,6 +381,11 @@ const BestiaryManager = {
                                     hero.id,
                                     `⚖️ Общая казна отряда разделена! Ваша доля: *${shareParts}*`
                                 );
+                                CloudSyncService.pushHeroClientAlert(
+                                    hero.id,
+                                    '⚖️ Раздел общей казны отряда',
+                                    `Общая казна отряда разделена!<br>В ваш кошелёк зачислена доля: <b style="color:#ffd875;">${shareParts}</b>`
+                                );
                             });
                         }
                         modal.close();
@@ -622,6 +627,11 @@ const BestiaryManager = {
                             targetHero.id,
                             `📦 Из общего сундука отряда вам передан предмет: *${item.name}* (\`×${takeQty}\`)!`
                         );
+                        CloudSyncService.pushHeroClientAlert(
+                            targetHero.id,
+                            '📦 Предмет из сундука отряда',
+                            `Мастер передал в ваш рюкзак из общего сундука:<br><b style="color:#2ecc71;">${item.name}</b> <span style="color:#ffd875;">(×${takeQty} шт.)</span>`
+                        );
                         modal.close();
                     }
                 }
@@ -731,6 +741,25 @@ const BestiaryManager = {
         const container = document.getElementById('bestiaryTabletContainer');
         if (!container) return;
 
+        // 1. Запоминаем скролл окна, самого контейнера и ВСЕХ его прокрученных родителей
+        const winScrollY = window.scrollY;
+        const ancestorScrolls = [];
+        let curr = container;
+        while (curr && curr !== document.body) {
+            if (curr.scrollTop > 0) ancestorScrolls.push([curr, curr.scrollTop]);
+            curr = curr.parentElement;
+        }
+
+        const lootListEl = container.querySelector('#bstZoneTreasury [style*="overflow-y: auto"]');
+        const lootScrollTop = lootListEl ? lootListEl.scrollTop : 0;
+        const catalogListEl = container.querySelector('#bstFullCatalogList');
+        const catalogScrollTop = catalogListEl ? catalogListEl.scrollTop : 0;
+
+        const zonesMain = container.querySelector('.bst-zones-main');
+        if (zonesMain) {
+            zonesMain.style.minHeight = zonesMain.offsetHeight + 'px';
+        }
+
         if (!container.querySelector('.bestiary-tablet-root')) {
             container.innerHTML = `
                 <div class="bestiary-tablet-root">
@@ -786,6 +815,24 @@ const BestiaryManager = {
         this._renderZone('bstZoneParty', '🛡️ Текущий отряд (Герои)', 'party', this.state.party, true);
         this._renderZone('bstZoneMonsters', '👹 Заготовленные монстры и NPC', 'monsters', this.state.monsters, false);
         this._renderZone('bstZoneInactive', '💤 Неактивные персонажи (Резерв)', 'inactive', this.state.inactive || [], false);
+
+        // 2. Восстанавливаем прокрутку всех элементов после обновления DOM
+        const newLootListEl = container.querySelector('#bstZoneTreasury [style*="overflow-y: auto"]');
+        if (newLootListEl) newLootListEl.scrollTop = lootScrollTop;
+
+        const newCatalogListEl = container.querySelector('#bstFullCatalogList');
+        if (newCatalogListEl) newCatalogListEl.scrollTop = catalogScrollTop;
+
+        ancestorScrolls.forEach(([el, top]) => { el.scrollTop = top; });
+        window.scrollTo(window.scrollX, winScrollY);
+
+        // 3. Освобождаем min-height после отрисовки нового кадра
+        if (zonesMain) {
+            requestAnimationFrame(() => {
+                zonesMain.style.minHeight = '';
+            });
+        }
+
     },
 
 
@@ -794,6 +841,11 @@ const BestiaryManager = {
     _renderTreasuryZone() {
         const box = document.getElementById('bstZoneTreasury');
         if (!box) return;
+
+        if (document.activeElement && box.contains(document.activeElement) && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) {
+            return;
+        }
+
         const tr = this._ensureTreasury();
         const totalGoldEq = ((Number(tr.gold) || 0) + (Number(tr.silver) || 0) / 10 + (Number(tr.copper) || 0) / 100).toFixed(2);
 
