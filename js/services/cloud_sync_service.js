@@ -562,6 +562,25 @@ const CloudSyncService = {
             party.push(incoming);
         }
 
+        // Показываем Мастеру тосты о покупках и действиях игроков в Telegram
+        if (!this.isPlayerMode && Array.isArray(incoming._gmToasts) && incoming._gmToasts.length > 0) {
+            if (!this._shownTgToastIds) this._shownTgToastIds = new Set();
+            let hasNew = false;
+
+            incoming._gmToasts.forEach(t => {
+                if (t?.id && !this._shownTgToastIds.has(t.id)) {
+                    this._shownTgToastIds.add(t.id);
+                    this.showGmToast(t.text, t.color || '#2ecc71');
+                    hasNew = true;
+                }
+            });
+
+            if (hasNew) {
+                incoming._gmToasts = [];
+                this.pushToCloud();
+            }
+        }
+
         const openModal = document.getElementById('bstHeroSheetModal');
         if (openModal && openModal.dataset.heroId === String(incoming.id)) {
             // Если пользователь прямо сейчас печатает в этом окне — не перерисовываем его
