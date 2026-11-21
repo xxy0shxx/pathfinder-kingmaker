@@ -354,6 +354,8 @@ const CloudSyncService = {
             delete clone.bestiary.party;
             delete clone.bestiary.inactive;
         }
+        // Не перезаписываем серверное расписание сессии и флаги напоминаний бота
+        delete clone.nextSession;
         return clone;
     },
 
@@ -494,6 +496,17 @@ const CloudSyncService = {
 
         const mapPayload = this._buildSanitizedMapPayload();
         if (mapPayload) {
+            // Сохраняем актуальный nextSession, установленный Telegram-ботом
+            const { data: curState } = await this.supabaseClient
+                .from('campaign_state')
+                .select('map_data')
+                .eq('room_code', this.roomCode)
+                .maybeSingle();
+
+            if (curState?.map_data?.nextSession) {
+                mapPayload.nextSession = curState.map_data.nextSession;
+            }
+
             const { error: mapErr } = await this.supabaseClient.from('campaign_state').upsert({
                 room_code: this.roomCode,
                 gm_secret: this.gmSecret,
@@ -504,6 +517,7 @@ const CloudSyncService = {
                 console.error('Ошибка сохранения карты в Supabase:', mapErr.message);
             }
         }
+
 
         if (this._channel) {
             this._channel.send({
