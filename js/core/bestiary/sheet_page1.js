@@ -54,7 +54,13 @@ export function buildPage1Html(stats) {
                     <button type="button" id="btnRecalcByLevel" class="btn cc" style="padding: 2px 5px; font-size: 11px; flex-shrink: 0;" title="Пересчитать Макс. ПЗ, Атаку и СЛ заклинаний по текущему уровню, народу и классу">🔄</button>
                 </div>
             </div>
-            <div class="bst-top-field bst-narrow"><span>✨ Опыт</span>${numInp(stats, 'xp', 'bst-mini-num')}</div>
+            <div class="bst-top-field bst-narrow" style="min-width: 82px;">
+                <span style="color: #ffd875;">🌟 Героизм</span>
+                <div style="display: flex; align-items: center; gap: 3px;">
+                    <input type="number" data-sheet-num="heroPoints" min="0" max="10" class="k-inp bst-mini-num" style="color: #ffd875 !important; font-weight: 900; border-color: #ffd875;" value="${stats.heroPoints ?? 1}">
+                    <button type="button" id="btnSpendHeroPoint" class="btn cc" style="padding: 2px 5px; font-size: 11px; flex-shrink: 0;" title="Потратить 1 очко героизма (переброс d20 или спасение при смерти)">🎲</button>
+                </div>
+            </div>
             <div class="bst-top-field"><span>👤 Игрок</span>${txtInp(stats, 'playerName', 'Имя игрока')}</div>
             <div style="position: relative;">
                 <label style="font-size: 11px; color: #dfbc6f; display: block; margin-bottom: 2px;">🧬 Способность народа / Наследие</label>
@@ -299,6 +305,35 @@ export function initPage1(overlay, hero) {
 
     if (lvlInp) {
         lvlInp.addEventListener('change', runLevelProgression);
+    }
+
+    const btnSpendHpPoint = overlay.querySelector('#btnSpendHeroPoint');
+    const hpPointsInp = overlay.querySelector('[data-sheet-num="heroPoints"]');
+    if (btnSpendHpPoint && hpPointsInp) {
+        btnSpendHpPoint.addEventListener('click', () => {
+            const cur = parseInt(hpPointsInp.value, 10) || 0;
+            if (cur <= 0) {
+                btnSpendHpPoint.textContent = '❌';
+                setTimeout(() => { btnSpendHpPoint.textContent = '🎲'; }, 800);
+                return;
+            }
+            const nextVal = cur - 1;
+            hpPointsInp.value = nextVal;
+            hero.stats.heroPoints = nextVal;
+
+            if (window.CloudSyncService?.notifyGmToast) {
+                window.CloudSyncService.notifyGmToast(
+                    `🌟 <b>${hero.name}</b> потратил <b>Очко героизма</b> (осталось: <b>${nextVal}</b>)!`,
+                    '#ffd875'
+                );
+            }
+            if (window.BestiaryManager?._save) {
+                window.BestiaryManager._save();
+            }
+
+            btnSpendHpPoint.textContent = '✨';
+            setTimeout(() => { btnSpendHpPoint.textContent = '🎲'; }, 900);
+        });
     }
 
     const btnRecalcLvl = overlay.querySelector('#btnRecalcByLevel');

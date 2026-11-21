@@ -109,7 +109,7 @@ export function ensureCharacterStats(item) {
     }
 
     const numDefaults = {
-        level: 1, xp: 0, speed: 25,
+        level: 1, xp: 0, heroPoints: 1, speed: 25,
         hpMax: 10, hpCurrent: 10, hpTemp: 0,
         ac: 10, acDex: 0, acProf: 0, acItem: 0, acOther: 0,
         acShieldBonus: 0, acShieldHardness: 0, acShieldHp: 0, acArmorPenalty: 0,
@@ -151,7 +151,7 @@ export function ensureCharacterStats(item) {
     });
 
     const textDefaults = {
-        pronouns: '', alignment: '', playerName: '',
+        pronouns: '', alignment: '', edicts: '', anathema: '', playerName: '',
         ancestry: '', heritage: '', ancestryFeat: '',
         background: '', backgroundFeat: '',
         charClass: '', classFeatsLvl1: '', classFeatsLvl2: '', classFeatsLvl3: '',
